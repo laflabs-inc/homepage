@@ -21,22 +21,18 @@ export function StackStrip() {
 
   return (
     <section className="strip" aria-label={t.stripLabel}>
-      <div className="strip-inner">
-        <span className="strip-label">{t.stripLabel}</span>
-        <div style={{ minWidth: 0, overflow: "hidden", maskImage: "linear-gradient(90deg, transparent, #000 6%, #000 92%, transparent)" }}>
-          <motion.div
-            style={{ display: "flex", gap: 40, width: "max-content" }}
-            animate={reduced ? undefined : { x: ["0%", "-50%"] }}
-            transition={{ duration: 34, ease: "linear", repeat: Infinity }}
-          >
-            {track}
-            {track}
-          </motion.div>
-        </div>
+      <div className="strip-label">{t.stripLabel}</div>
+
+      <div className="strip-viewport">
+        <motion.div
+          style={{ display: "flex", gap: 52, width: "max-content" }}
+          animate={reduced ? undefined : { x: ["0%", "-50%"] }}
+          transition={{ duration: 42, ease: "linear", repeat: Infinity }}
+        >
+          {track}
+          {track}
+        </motion.div>
       </div>
-      <span className="sr-only" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>
-        {stack.join(", ")}
-      </span>
     </section>
   )
 }

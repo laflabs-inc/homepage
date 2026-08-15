@@ -7,6 +7,7 @@ import { OpenSource } from "@/components/sections/open-source"
 import { Principles } from "@/components/sections/principles"
 import { Products } from "@/components/sections/products"
 import { StackStrip } from "@/components/sections/stack-strip"
+import { Statement } from "@/components/sections/statement"
 import { contactEmail, githubOrg, siteUrl } from "@/lib/content"
 
 const organizationSchema = {
@@ -34,8 +35,9 @@ export default function HomePage() {
       <SiteHeader />
       <main>
         <Hero />
-        <StackStrip />
+        <Statement />
         <Products />
+        <StackStrip />
         <OpenSource />
         <Principles />
         <NameStory />

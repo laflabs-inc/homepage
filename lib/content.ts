@@ -29,13 +29,20 @@ export const products = [
   { id: "lafdock", name: "LafDock", href: null, domain: "lafdock.com" },
 ] as const
 
+export type ProductId = (typeof products)[number]["id"]
+
 export const repositories = [
   { name: "lafetch", href: `${githubOrg}/lafetch`, language: "TypeScript", dot: "#3178c6" },
   { name: "lafwall", href: `${githubOrg}/lafwall`, language: "Go", dot: "#00add8" },
   { name: "lafinvest", href: `${githubOrg}/lafinvest`, language: "Python", dot: "#3572a5" },
 ] as const
 
+export type RepoName = (typeof repositories)[number]["name"]
+
+export const motto = "Build quietly. Work reliably."
+
 type ProductCopy = {
+  layer: string
   tagline: string
   description: string
   status: string
@@ -45,31 +52,36 @@ type ProductCopy = {
 type Copy = {
   nav: { products: string; open: string; principles: string; contact: string }
   hero: {
-    badge: string
-    title: readonly [string, string]
+    overline: string
+    titleQuiet: string
+    titleLoud: string
     lede: string
     primary: string
     secondary: string
-    proof: readonly [string, string, string]
+    scroll: string
   }
-  terminal: { command: string; lines: readonly string[]; result: string }
+  /** Split into words for the scroll-driven reveal. */
+  statement: { eyebrow: string; words: readonly string[]; footnote: string }
   stripLabel: string
-  products: { eyebrow: string; title: string; lede: string; visit: string; soon: string } & Record<
-    "laf-id" | "laf-pay" | "lafdock",
-    ProductCopy
-  >
+  products: {
+    eyebrow: string
+    title: readonly [string, string]
+    lede: string
+    visit: string
+    soon: string
+  } & Record<ProductId, ProductCopy>
   open: {
     eyebrow: string
-    title: string
+    title: readonly [string, string]
     lede: string
     all: string
-    descriptions: Record<"lafetch" | "lafwall" | "lafinvest", string>
+    descriptions: Record<RepoName, string>
   }
   principles: {
     eyebrow: string
-    title: string
+    title: readonly [string, string]
     lede: string
-    items: readonly { key: string; title: string; body: string }[]
+    items: readonly { key: string; body: string }[]
   }
   name: { eyebrow: string; laf: string; labs: string; note: string }
   cta: { eyebrow: string; title: readonly [string, string]; lede: string; mail: string; github: string }
@@ -87,43 +99,42 @@ type Copy = {
 const ko: Copy = {
   nav: { products: "제품", open: "오픈소스", principles: "원칙", contact: "문의" },
   hero: {
-    badge: "Seoul, South Korea",
-    title: ["복잡한 인프라를", "안 보이게 만듭니다."],
-    lede: "LafLabs는 신원, 결제, 클라우드 인프라를 하나의 경험으로 잇습니다. 기술의 복잡함은 우리가 맡고, 쓰는 사람에게는 단순함만 남깁니다.",
+    overline: "LafLabs Inc. — Seoul, South Korea",
+    titleQuiet: "보이지 않는",
+    titleLoud: "인프라를 만듭니다",
+    lede: "신원, 결제, 클라우드. 세 겹의 인프라를 하나의 경험으로 잇습니다. 복잡함은 우리가 갖고, 쓰는 사람에게는 단순함만 남깁니다.",
     primary: "제품 살펴보기",
     secondary: "GitHub",
-    proof: ["신원 인프라", "결제 인프라", "클라우드 플랫폼"],
+    scroll: "아래로",
   },
-  terminal: {
-    command: "laf --about",
-    lines: [
-      "LafLabs Inc.",
-      "laf   → 재미있는 이야기, 웃음",
-      "labs  → 만들고 실험하는 곳",
-      "재미있는 것을 만드는 소프트웨어 개발사.",
-    ],
-    result: "Build quietly. Work reliably.",
+  statement: {
+    eyebrow: "우리가 믿는 것",
+    words: ["좋은", "인프라는", "눈에", "띄지", "않습니다.", "우리는", "아무도", "보지", "않는", "그", "아래를", "만듭니다."],
+    footnote: "그래서 우리 이름은 제품 위가 아니라 아래에 있습니다.",
   },
-  stripLabel: "BUILT WITH",
+  stripLabel: "우리가 쓰는 것",
   products: {
     eyebrow: "제품",
-    title: "따로 배우지 않아도 이어지는 세 가지.",
-    lede: "신원, 결제, 인프라는 결국 한 제품 안에서 만납니다. 하나를 익히면 나머지도 예측할 수 있도록 같은 규칙 위에 올렸습니다.",
+    title: ["세 겹의 인프라,", "하나의 규칙."],
+    lede: "신원, 결제, 인프라는 결국 한 코드베이스 안에서 만납니다. 하나를 익히면 나머지도 예측할 수 있도록 같은 규칙 위에 올렸습니다.",
     visit: "바로가기",
     soon: "준비 중",
     "laf-id": {
+      layer: "Identity",
       tagline: "신원 인프라",
       description: "OAuth 2.0과 OpenID Connect 위에 올린 인증 플랫폼. 표준을 다시 구현하지 않고 안전한 로그인을 연결합니다.",
       status: "Developer Preview",
       points: ["Authorization Code + PKCE", "OIDC Discovery · JWKS", "Verify API"],
     },
     "laf-pay": {
+      layer: "Payments",
       tagline: "결제·빌링 인프라",
       description: "결제, 구독, 정산을 하나의 일관된 API로 다룹니다. 결제 수단이 늘어나도 연동 코드는 그대로입니다.",
       status: "개발 중",
       points: ["일관된 결제 API", "구독 · 빌링", "정산 리포트"],
     },
     lafdock: {
+      layer: "Cloud",
       tagline: "클라우드 플랫폼",
       description: "컴퓨트, 호스팅, 네트워킹을 묶은 클라우드 플랫폼. 서버를 다루는 시간을 제품 만드는 시간으로 돌려줍니다.",
       status: "개발 중",
@@ -132,8 +143,8 @@ const ko: Copy = {
   },
   open: {
     eyebrow: "오픈소스",
-    title: "쓸 만해진 것부터 공개합니다.",
-    lede: "제품을 만들다 필요해서 직접 만든 것들입니다. 우리가 실제로 쓰고 있고, 그래서 계속 고쳐집니다.",
+    title: ["필요해서 만들었고,", "쓸 만해져서 열었습니다."],
+    lede: "전부 제품을 만들다 막혀서 직접 만든 것들입니다. 우리가 실제로 운영에 쓰고 있고, 그래서 계속 고쳐집니다.",
     all: "GitHub에서 전체 보기",
     descriptions: {
       lafetch: "브라우저와 서버 모두에서 동작하는 가볍고 타입 우선인 HTTP 클라이언트.",
@@ -143,14 +154,14 @@ const ko: Copy = {
   },
   principles: {
     eyebrow: "원칙",
-    title: "조용히 만들고, 확실하게 돌아가게.",
+    title: ["조용히 만들고,", "확실하게 돌아가게."],
     lede: "빠르게 만드는 방법은 많지만 오래 가는 방법은 적습니다. 우리는 매번 후자를 고릅니다.",
     items: [
-      { key: "SIMPLE", title: "단순함", body: "문제를 푸는 가장 짧은 길을 고릅니다. 덜 만든 것은 덜 고장납니다." },
-      { key: "RELIABLE", title: "신뢰성", body: "아무 일도 일어나지 않는 상태가 가장 좋은 상태입니다. 장애는 눈에 띄기 전에 끝냅니다." },
-      { key: "SECURE", title: "보안", body: "안전한 쪽을 기본값으로 두고, 예외는 반드시 명시적으로 남깁니다." },
-      { key: "SCALABLE", title: "확장성", body: "오늘의 규모에 맞춰 만들되, 내일의 규모를 막는 결정은 하지 않습니다." },
-      { key: "CONSISTENT", title: "일관성", body: "하나를 배우면 나머지도 짐작할 수 있어야 합니다. 놀라움은 문서가 아니라 버그입니다." },
+      { key: "단순함", body: "문제를 푸는 가장 짧은 길을 고릅니다. 덜 만든 것은 덜 고장납니다." },
+      { key: "신뢰성", body: "아무 일도 일어나지 않는 상태가 가장 좋은 상태입니다. 장애는 눈에 띄기 전에 끝냅니다." },
+      { key: "보안", body: "안전한 쪽을 기본값으로 두고, 예외는 반드시 명시적으로 남깁니다." },
+      { key: "확장성", body: "오늘의 규모에 맞춰 만들되, 내일의 규모를 막는 결정은 하지 않습니다." },
+      { key: "일관성", body: "하나를 배우면 나머지도 짐작할 수 있어야 합니다. 놀라움은 문서가 아니라 버그입니다." },
     ],
   },
   name: {
@@ -180,43 +191,42 @@ const ko: Copy = {
 const en: Copy = {
   nav: { products: "Products", open: "Open source", principles: "Principles", contact: "Contact" },
   hero: {
-    badge: "Seoul, South Korea",
-    title: ["We make infrastructure", "disappear."],
-    lede: "LafLabs connects identity, payments, and cloud infrastructure into one experience. We keep the complexity so the people building on top of it never have to.",
+    overline: "LafLabs Inc. — Seoul, South Korea",
+    titleQuiet: "We build the",
+    titleLoud: "invisible parts",
+    lede: "Identity, payments, cloud. Three layers of infrastructure connected into one experience. We keep the complexity; everyone building on top of it gets the simple part.",
     primary: "See the products",
     secondary: "GitHub",
-    proof: ["Identity", "Payments", "Cloud platform"],
+    scroll: "Scroll",
   },
-  terminal: {
-    command: "laf --about",
-    lines: [
-      "LafLabs Inc.",
-      "laf   → a good story, a laugh",
-      "labs  → where things get built",
-      "A software company that builds fun things.",
-    ],
-    result: "Build quietly. Work reliably.",
+  statement: {
+    eyebrow: "What we believe",
+    words: ["Good", "infrastructure", "is", "invisible.", "We", "build", "the", "layer", "nobody", "ever", "looks", "at."],
+    footnote: "Which is why our name sits underneath the product, not on top of it.",
   },
-  stripLabel: "BUILT WITH",
+  stripLabel: "WHAT WE BUILD WITH",
   products: {
     eyebrow: "Products",
-    title: "Three products. One set of rules.",
+    title: ["Three layers.", "One set of rules."],
     lede: "Identity, payments, and infrastructure always end up in the same codebase. Ours are built on shared conventions, so learning one tells you how the others behave.",
     visit: "Visit",
     soon: "Coming soon",
     "laf-id": {
+      layer: "Identity",
       tagline: "Identity infrastructure",
       description: "An authentication platform built on OAuth 2.0 and OpenID Connect. Connect a secure sign-in flow without reimplementing the standards.",
       status: "Developer Preview",
       points: ["Authorization Code + PKCE", "OIDC Discovery · JWKS", "Verify API"],
     },
     "laf-pay": {
+      layer: "Payments",
       tagline: "Payments & billing",
       description: "Payments, subscriptions, and settlement behind one consistent API. Add a payment method without touching your integration code.",
       status: "In development",
       points: ["One consistent API", "Subscriptions & billing", "Settlement reporting"],
     },
     lafdock: {
+      layer: "Cloud",
       tagline: "Cloud platform",
       description: "Compute, hosting, and networking in one platform — so the hours you spend on servers go back into the product instead.",
       status: "In development",
@@ -225,8 +235,8 @@ const en: Copy = {
   },
   open: {
     eyebrow: "Open source",
-    title: "We ship it once it earns its keep.",
-    lede: "Every one of these started as something we needed while building a product. We run them in production, which is why they keep improving.",
+    title: ["Built because we needed it.", "Opened once it earned its keep."],
+    lede: "Every one of these started as something that blocked us while building a product. We run them in production, which is why they keep improving.",
     all: "See everything on GitHub",
     descriptions: {
       lafetch: "A lightweight, TypeScript-first HTTP client that runs in the browser and on the server.",
@@ -236,14 +246,14 @@ const en: Copy = {
   },
   principles: {
     eyebrow: "Principles",
-    title: "Build quietly. Work reliably.",
+    title: ["Build quietly.", "Work reliably."],
     lede: "There are many ways to build something fast and far fewer that last. We pick the second kind every time.",
     items: [
-      { key: "SIMPLE", title: "Simplicity", body: "Take the shortest path that solves the problem. Code you never wrote never breaks." },
-      { key: "RELIABLE", title: "Reliability", body: "Nothing happening is the best possible state. Incidents get resolved before anyone notices them." },
-      { key: "SECURE", title: "Security", body: "The safe option is the default. Every exception has to be written down on purpose." },
-      { key: "SCALABLE", title: "Scalability", body: "Build for the load you have, but never make a decision that blocks the load you'll have." },
-      { key: "CONSISTENT", title: "Consistency", body: "Learn one thing and you can guess the rest. Surprise is a bug, not a documentation problem." },
+      { key: "Simplicity", body: "Take the shortest path that solves the problem. Code you never wrote never breaks." },
+      { key: "Reliability", body: "Nothing happening is the best possible state. Incidents get resolved before anyone notices them." },
+      { key: "Security", body: "The safe option is the default. Every exception has to be written down on purpose." },
+      { key: "Scalability", body: "Build for the load you have, but never make a decision that blocks the load you'll have." },
+      { key: "Consistency", body: "Learn one thing and you can guess the rest. Surprise is a bug, not a documentation problem." },
     ],
   },
   name: {

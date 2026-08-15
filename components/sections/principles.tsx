@@ -15,30 +15,38 @@ export function Principles() {
   return (
     <section className="section" id="principles">
       <div className="shell">
-        <div className="principle-layout">
-          <Reveal>
-            <span className="eyebrow">{t.eyebrow}</span>
-            <h2 className="section-title">{t.title}</h2>
-            <p className="section-lede">{t.lede}</p>
+        <Reveal>
+          <div className="label">
+            <span>{t.eyebrow}</span>
+            <span>0{t.items.length}</span>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.06} className="section-head">
+          <h2 className="display section-head-title">
+            {t.title[0]}
+            <br />
+            {t.title[1]}
+          </h2>
+          <div>
+            <p className="lede">{t.lede}</p>
             <div className="acronym-chips">
               {acronyms.map((item) => (
                 <span key={item}>{item}</span>
               ))}
             </div>
-          </Reveal>
+          </div>
+        </Reveal>
 
-          <RevealGroup className="principle-list" stagger={0.07}>
-            {t.items.map((item) => (
-              <motion.div key={item.key} className="principle-row" variants={revealItem}>
-                <span>{item.key}</span>
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </div>
-              </motion.div>
-            ))}
-          </RevealGroup>
-        </div>
+        <RevealGroup className="principle-list" stagger={0.07}>
+          {t.items.map((item, index) => (
+            <motion.div key={item.key} className="principle-row" variants={revealItem}>
+              <span>0{index + 1}</span>
+              <h3>{item.key}</h3>
+              <p>{item.body}</p>
+            </motion.div>
+          ))}
+        </RevealGroup>
       </div>
     </section>
   )

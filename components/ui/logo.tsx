@@ -20,10 +20,10 @@ export function LogoMark({ size = 26, className }: { size?: number; className?: 
   )
 }
 
-export function Logo({ size = 26 }: { size?: number }) {
+export function Logo({ size = 24 }: { size?: number }) {
   return (
     <span className="laf-logo" aria-label="LafLabs">
-      <LogoMark size={size} className="laf-logo-mark" />
+      <LogoMark size={size} />
       <span className="laf-logo-text">
         <b>Laf</b>
         <span>Labs</span>

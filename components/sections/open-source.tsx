@@ -14,42 +14,48 @@ export function OpenSource() {
   return (
     <section className="section section-alt" id="open-source">
       <div className="shell">
-        <Reveal className="section-head">
-          <span className="eyebrow">{t.eyebrow}</span>
-          <h2 className="section-title">{t.title}</h2>
-          <p className="section-lede">{t.lede}</p>
+        <Reveal>
+          <div className="label">
+            <span>{t.eyebrow}</span>
+            <span>0{repositories.length}</span>
+          </div>
         </Reveal>
 
-        <RevealGroup className="repo-grid">
+        <Reveal delay={0.06} className="section-head">
+          <h2 className="display-sm section-head-title">
+            {t.title[0]}
+            <br />
+            {t.title[1]}
+          </h2>
+          <p className="lede">{t.lede}</p>
+        </Reveal>
+
+        <RevealGroup className="repo-list" stagger={0.08}>
           {repositories.map((repo) => (
             <motion.a
               key={repo.name}
               href={repo.href}
               target="_blank"
               rel="noreferrer noopener"
-              className="repo-card"
+              className="repo-row"
               variants={revealItem}
             >
-              <div className="repo-card-top">
-                <strong>{repo.name}</strong>
-                <ArrowUpRight size={15} weight="bold" />
-              </div>
+              <span className="repo-name">{repo.name}</span>
               <p>{t.descriptions[repo.name]}</p>
               <span className="repo-lang" style={{ "--dot": repo.dot } as React.CSSProperties}>
                 <i />
                 {repo.language}
               </span>
+              <ArrowUpRight size={18} weight="bold" />
             </motion.a>
           ))}
         </RevealGroup>
 
-        <Reveal delay={0.1}>
-          <div style={{ marginTop: 26 }}>
-            <a href={githubOrg} target="_blank" rel="noreferrer noopener" className="text-link">
-              {t.all}
-              <ArrowUpRight size={14} weight="bold" />
-            </a>
-          </div>
+        <Reveal delay={0.1} className="repo-foot">
+          <a href={githubOrg} target="_blank" rel="noreferrer noopener" className="text-link">
+            {t.all}
+            <ArrowUpRight size={14} weight="bold" />
+          </a>
         </Reveal>
       </div>
     </section>
