@@ -88,6 +88,7 @@ type Copy = {
     links: { principles: string; contact: string; github: string }
     rights: string
     location: string
+    cookieSettings: string
   }
 }
 
@@ -173,6 +174,7 @@ const ko: Copy = {
     links: { principles: "원칙", contact: "문의하기", github: "GitHub" },
     rights: "All rights reserved.",
     location: "Seoul, South Korea",
+    cookieSettings: "쿠키 설정",
   },
 }
 
@@ -258,6 +260,7 @@ const en: Copy = {
     links: { principles: "Principles", contact: "Contact", github: "GitHub" },
     rights: "All rights reserved.",
     location: "Seoul, South Korea",
+    cookieSettings: "Cookie settings",
   },
 }
 

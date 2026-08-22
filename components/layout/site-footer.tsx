@@ -1,6 +1,7 @@
 "use client"
 
 import { useLocale } from "@/components/i18n/locale-provider"
+import { useConsent } from "@/components/analytics/consent-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
 import { Logo } from "@/components/ui/logo"
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
@@ -8,6 +9,7 @@ import { contactEmail, copy, githubOrg, products } from "@/lib/content"
 
 export function SiteFooter() {
   const locale = useLocale()
+  const { openSettings } = useConsent()
   const t = copy[locale].footer
   const ko = locale === "ko"
 
@@ -27,7 +29,17 @@ export function SiteFooter() {
           <span>
             © {new Date().getFullYear()} LafLabs Inc. {t.rights}
           </span>
-          <span>{t.location}<a href={githubOrg} target="_blank" rel="noreferrer noopener" aria-label="GitHub"><GithubGlyph size={14} /></a></span>
+          <span>
+            <button
+              type="button"
+              className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] tracking-[inherit] text-inherit transition-colors hover:text-white"
+              onClick={openSettings}
+            >
+              {t.cookieSettings}
+            </button>
+            {t.location}
+            <a href={githubOrg} target="_blank" rel="noreferrer noopener" aria-label="GitHub"><GithubGlyph size={14} /></a>
+          </span>
         </div>
       </div>
     </footer>

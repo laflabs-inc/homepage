@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from "next"
 import localFont from "next/font/local"
 import { cookies, headers } from "next/headers"
 
+import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
+import { CONSENT_COOKIE, parseConsentCookie } from "@/lib/analytics/consent"
+import type { ConsentState } from "@/lib/analytics/types"
 import { siteUrl } from "@/lib/content"
 import { defaultLocale, LOCALE_COOKIE, pickLocale, type Locale } from "@/lib/i18n"
 import "./globals.css"
@@ -56,9 +59,10 @@ export const viewport: Viewport = {
   themeColor: "#f8fafc",
 }
 
-async function resolveLocale(): Promise<Locale> {
-  const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()])
-
+function resolveLocale(
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
+  requestHeaders: Awaited<ReturnType<typeof headers>>,
+): Locale {
   const saved = pickLocale(cookieStore.get(LOCALE_COOKIE)?.value)
   if (saved) return saved
 
@@ -70,12 +74,22 @@ async function resolveLocale(): Promise<Locale> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const initialLocale = await resolveLocale()
+  const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()])
+  const initialLocale = resolveLocale(cookieStore, requestHeaders)
+  const dnt = requestHeaders.get("dnt") === "1"
+  const savedConsent = parseConsentCookie(cookieStore.get(CONSENT_COOKIE)?.value)?.choice
+  const initialState: ConsentState = dnt && savedConsent === "analytics"
+    ? "essential"
+    : savedConsent ?? "unknown"
 
   return (
     <html lang={initialLocale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
+        <LocaleProvider initialLocale={initialLocale}>
+          <ConsentProvider initialState={initialState} dnt={dnt}>
+            {children}
+          </ConsentProvider>
+        </LocaleProvider>
       </body>
     </html>
   )
