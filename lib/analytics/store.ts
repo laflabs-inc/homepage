@@ -33,6 +33,9 @@ export type AnalyticsSummary = {
   githubClicks: number
   contactClicks: number
   funnel: {
+    pageVisitors: number
+    productVisitors: number
+    contactVisitors: number
     pageToProduct: number
     productToContact: number
   }
@@ -186,6 +189,9 @@ export async function getAnalyticsSummary(
     githubClicks: toCount(row?.githubClicks),
     contactClicks: toCount(row?.contactClicks),
     funnel: {
+      pageVisitors,
+      productVisitors,
+      contactVisitors,
       pageToProduct: conversionRate(productVisitors, pageVisitors),
       productToContact: conversionRate(contactVisitors, productVisitors),
     },

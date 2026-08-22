@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -28,7 +28,13 @@ const summary: AnalyticsSummary = {
   productClicks: 7,
   githubClicks: 4,
   contactClicks: 2,
-  funnel: { pageToProduct: 0.5833, productToContact: 0.2857 },
+  funnel: {
+    pageVisitors: 12,
+    productVisitors: 7,
+    contactVisitors: 2,
+    pageToProduct: 0.5833,
+    productToContact: 0.2857,
+  },
   locales: [{ key: "ko", count: 20 }, { key: "en", count: 10 }],
   devices: [{ key: "mobile", count: 18 }, { key: "desktop", count: 12 }],
   referrers: [{ key: "github.com", count: 5 }],
@@ -73,7 +79,13 @@ describe("AnalyticsDashboard", () => {
       productClicks: 0,
       githubClicks: 0,
       contactClicks: 0,
-      funnel: { pageToProduct: 0, productToContact: 0 },
+      funnel: {
+        pageVisitors: 0,
+        productVisitors: 0,
+        contactVisitors: 0,
+        pageToProduct: 0,
+        productToContact: 0,
+      },
       locales: [],
       devices: [],
       referrers: [],
@@ -85,6 +97,34 @@ describe("AnalyticsDashboard", () => {
     expect(screen.queryByText("No signal yet / 아직 수집된 신호가 없습니다")).not.toBeInTheDocument()
   })
 
+  it("keeps repeated event totals separate from distinct-visitor funnel stages", () => {
+    render(<AnalyticsDashboard summary={{
+      ...summary,
+      pageViews: 30,
+      productClicks: 14,
+      contactClicks: 4,
+      funnel: {
+        pageVisitors: 12,
+        productVisitors: 7,
+        contactVisitors: 2,
+        pageToProduct: 0.5833,
+        productToContact: 0.2857,
+      },
+    }} />)
+
+    const totals = screen.getByLabelText("Consented analytics totals")
+    expect(within(totals).getByText("Page views").nextElementSibling).toHaveTextContent("30")
+    expect(within(totals).getByText("Product clicks").nextElementSibling).toHaveTextContent("14")
+    expect(within(totals).getByText("Contact clicks").nextElementSibling).toHaveTextContent("4")
+
+    const funnel = screen.getByRole("region", { name: "Visitor funnel / 방문자 퍼널" })
+    expect(within(funnel).getByText("Page view").parentElement).toHaveTextContent("12")
+    expect(within(funnel).getByText("Product click").parentElement).toHaveTextContent("7")
+    expect(within(funnel).getByText("Contact click").parentElement).toHaveTextContent("2")
+    expect(within(funnel).getByText("58.33%")).toBeInTheDocument()
+    expect(within(funnel).getByText("28.57%")).toBeInTheDocument()
+  })
+
   it("explains empty consented datasets instead of inventing values", () => {
     render(<AnalyticsDashboard summary={{
       ...summary,
@@ -93,7 +133,13 @@ describe("AnalyticsDashboard", () => {
       productClicks: 0,
       githubClicks: 0,
       contactClicks: 0,
-      funnel: { pageToProduct: 0, productToContact: 0 },
+      funnel: {
+        pageVisitors: 0,
+        productVisitors: 0,
+        contactVisitors: 0,
+        pageToProduct: 0,
+        productToContact: 0,
+      },
       locales: [],
       devices: [],
       referrers: [],

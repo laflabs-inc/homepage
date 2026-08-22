@@ -152,8 +152,8 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
             <div className={styles.funnelTrack}>
               <div className={styles.funnelStage}>
                 <span>Page view</span>
-                <strong>{formatCount(summary.pageViews)}</strong>
-                <small>events</small>
+                <strong>{formatCount(summary.funnel.pageVisitors)}</strong>
+                <small>visitors / 방문자</small>
               </div>
               <div className={styles.funnelRate}>
                 <strong>{formatPercent(summary.funnel.pageToProduct)}</strong>
@@ -161,8 +161,8 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
               </div>
               <div className={styles.funnelStage}>
                 <span>Product click</span>
-                <strong>{formatCount(summary.productClicks)}</strong>
-                <small>events</small>
+                <strong>{formatCount(summary.funnel.productVisitors)}</strong>
+                <small>visitors / 방문자</small>
               </div>
               <div className={styles.funnelRate}>
                 <strong>{formatPercent(summary.funnel.productToContact)}</strong>
@@ -170,8 +170,8 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
               </div>
               <div className={styles.funnelStage}>
                 <span>Contact click</span>
-                <strong>{formatCount(summary.contactClicks)}</strong>
-                <small>events</small>
+                <strong>{formatCount(summary.funnel.contactVisitors)}</strong>
+                <small>visitors / 방문자</small>
               </div>
             </div>
           </section>

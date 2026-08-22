@@ -48,7 +48,13 @@ describe("analytics dashboard aggregation", () => {
       productClicks: 7,
       githubClicks: 4,
       contactClicks: 2,
-      funnel: { pageToProduct: 0.5833, productToContact: 0.2857 },
+      funnel: {
+        pageVisitors: 12,
+        productVisitors: 7,
+        contactVisitors: 2,
+        pageToProduct: 0.5833,
+        productToContact: 0.2857,
+      },
       locales: [{ key: "ko", count: 20 }, { key: "en", count: 10 }],
       devices: [{ key: "mobile", count: 18 }, { key: "desktop", count: 12 }],
       referrers: [{ key: "github.com", count: 5 }],
@@ -99,7 +105,13 @@ describe("analytics dashboard aggregation", () => {
 
     const summary = await getAnalyticsSummary(7, now)
 
-    expect(summary.funnel).toEqual({ pageToProduct: 0, productToContact: 0 })
+    expect(summary.funnel).toEqual({
+      pageVisitors: 0,
+      productVisitors: 0,
+      contactVisitors: 0,
+      pageToProduct: 0,
+      productToContact: 0,
+    })
     expect(summary.locales).toEqual([])
     expect(summary.devices).toEqual([])
   })
