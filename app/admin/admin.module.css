@@ -1,0 +1,153 @@
+.shell {
+  min-height: 100svh;
+  background:
+    linear-gradient(90deg, transparent calc(100% - 1px), rgb(203 213 225 / 44%) 1px) 0 0 / 80px 80px,
+    linear-gradient(transparent calc(100% - 1px), rgb(203 213 225 / 44%) 1px) 0 0 / 80px 80px,
+    var(--paper);
+}
+
+.header {
+  min-height: 76px;
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgb(248 250 252 / 92%);
+  border-bottom: 1px solid var(--ink);
+  backdrop-filter: blur(16px);
+}
+
+.headerLabel,
+.eyebrow,
+.cardIndex {
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.headerLabel {
+  color: var(--muted);
+}
+
+.content {
+  width: var(--shell);
+  margin: 0 auto;
+  padding: 72px 0;
+}
+
+.signInGrid {
+  min-height: calc(100svh - 220px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.56fr);
+  align-items: center;
+  gap: clamp(48px, 8vw, 128px);
+}
+
+.signInIntro {
+  align-self: center;
+}
+
+.eyebrow {
+  margin: 0 0 32px;
+  color: var(--blue);
+}
+
+.signInIntro h1 {
+  margin: 0;
+  font-size: clamp(56px, 7vw, 110px);
+  font-weight: 780;
+  line-height: 0.92;
+  letter-spacing: -0.072em;
+}
+
+.signInIntro > p:last-child {
+  max-width: 540px;
+  margin: 36px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.signInCard {
+  aspect-ratio: 1;
+  min-width: 0;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--ink);
+}
+
+.cardIndex {
+  color: #dbeafe;
+}
+
+.signInCard h2 {
+  margin: 0;
+  font-size: clamp(30px, 3vw, 46px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.signInCard p {
+  margin: 18px 0 0;
+  color: #dbeafe;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.signInCard code {
+  color: white;
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.signInButton {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--ink);
+  font: 700 12px var(--font-geist-mono), monospace;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.signInButton:hover {
+  color: white;
+  background: var(--ink);
+  transform: translate(-3px, -3px);
+}
+
+@media (max-width: 900px) {
+  .content {
+    padding: 48px 0 72px;
+  }
+
+  .signInGrid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .signInIntro h1 {
+    font-size: clamp(48px, 15vw, 76px);
+  }
+
+  .signInCard {
+    width: min(100%, 520px);
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signInButton {
+    transition: none;
+  }
+}
