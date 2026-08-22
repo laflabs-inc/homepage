@@ -5,10 +5,21 @@ type OriginEnvironment = {
 }
 
 const LOOPBACK_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]"] as const
+const EXACT_ORIGIN_PATTERN = /^https?:\/\/[^/?#]+\/?$/
+const FORBIDDEN_ORIGIN_CHARACTERS = /[,@\\\s]/
+const VERCEL_HOSTNAME_PATTERN = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+vercel\.app$/
 
 function parseExactOrigin(value: string): string | null {
+  if (
+    value !== value.trim() ||
+    !EXACT_ORIGIN_PATTERN.test(value) ||
+    FORBIDDEN_ORIGIN_CHARACTERS.test(value)
+  ) return null
+
+  const rawOrigin = value.endsWith("/") ? value.slice(0, -1) : value
+
   try {
-    const parsed = new URL(value.trim())
+    const parsed = new URL(value)
     if (
       (parsed.protocol !== "http:" && parsed.protocol !== "https:") ||
       !parsed.hostname ||
@@ -16,7 +27,8 @@ function parseExactOrigin(value: string): string | null {
       parsed.password ||
       parsed.pathname !== "/" ||
       parsed.search ||
-      parsed.hash
+      parsed.hash ||
+      parsed.origin !== rawOrigin
     ) return null
 
     return parsed.origin
@@ -26,19 +38,21 @@ function parseExactOrigin(value: string): string | null {
 }
 
 function parseVercelOrigin(value: string): string | null {
-  const candidate = value.trim()
-  if (!candidate || candidate.includes(":")) return null
+  if (!VERCEL_HOSTNAME_PATTERN.test(value)) return null
+  const rawOrigin = `https://${value}`
 
   try {
-    const parsed = new URL(`https://${candidate}`)
+    const parsed = new URL(rawOrigin)
     if (
       !parsed.hostname ||
+      parsed.hostname !== value ||
       parsed.username ||
       parsed.password ||
       parsed.port ||
       parsed.pathname !== "/" ||
       parsed.search ||
-      parsed.hash
+      parsed.hash ||
+      parsed.origin !== rawOrigin
     ) return null
 
     return parsed.origin
@@ -51,14 +65,14 @@ function controlledOrigins(environment: OriginEnvironment): Set<string> | null {
   const origins = new Set<string>()
 
   for (const value of [environment.NEXT_PUBLIC_SITE_URL, environment.AUTH_URL]) {
-    if (value === undefined || value.trim() === "") continue
+    if (value === undefined || value === "") continue
     const origin = parseExactOrigin(value)
     if (!origin) return null
     origins.add(origin)
   }
 
   const vercelUrl = environment.VERCEL_URL
-  if (vercelUrl !== undefined && vercelUrl.trim() !== "") {
+  if (vercelUrl !== undefined && vercelUrl !== "") {
     const origin = parseVercelOrigin(vercelUrl)
     if (!origin) return null
     origins.add(origin)

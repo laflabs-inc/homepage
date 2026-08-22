@@ -97,6 +97,14 @@ origin, exact origins configured through `NEXT_PUBLIC_SITE_URL`, `AUTH_URL`, or
 the canonical tunnel/preview origin explicitly; malformed values and scheme,
 port, subdomain, or lookalike mismatches fail closed.
 
+Write `NEXT_PUBLIC_SITE_URL` and `AUTH_URL` as their exact lowercase HTTP(S)
+origin, with either no trailing slash or one trailing slash. Do not include a
+path, credentials, query, fragment, comma, backslash, surrounding whitespace,
+or redundant/mixed scheme slashes. `VERCEL_URL` must remain the lowercase
+`*.vercel.app` hostname supplied by Vercel, without a scheme, slash, port, or
+other URL component. The application rejects values that a URL parser would
+need to repair or normalize into a different origin.
+
 The application deliberately pins `next-auth@5.0.0-beta.32`. Auth.js v5 is a
 beta dependency; do not loosen the pin or upgrade it through a routine package
 refresh. Review v5 release notes and rerun the real provider/config, session

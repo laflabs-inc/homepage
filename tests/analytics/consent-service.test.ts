@@ -211,6 +211,54 @@ describe("consent request origin", () => {
   })
 
   it.each([
+    ["AUTH_URL parser-repaired extra slashes", "AUTH_URL", "https:////attacker.example", "https://attacker.example"],
+    ["AUTH_URL parser-repaired backslashes", "AUTH_URL", "https:\\\\attacker.example", "https://attacker.example"],
+    ["AUTH_URL parser-repaired mixed slashes", "AUTH_URL", "https:/\\/attacker.example", "https://attacker.example"],
+    ["AUTH_URL comma hostname", "AUTH_URL", "https://attacker.example,laflabs.co", "https://attacker.example,laflabs.co"],
+    ["AUTH_URL surrounding whitespace", "AUTH_URL", " https://attacker.example ", "https://attacker.example"],
+    ["AUTH_URL normalized default port", "AUTH_URL", "https://attacker.example:443", "https://attacker.example"],
+    ["VERCEL_URL parser-repaired slashes", "VERCEL_URL", "//attacker.example", "https://attacker.example"],
+    ["VERCEL_URL parser-repaired backslashes", "VERCEL_URL", "\\\\attacker.example", "https://attacker.example"],
+    ["VERCEL_URL comma hostname", "VERCEL_URL", "attacker.example,laflabs.co", "https://attacker.example,laflabs.co"],
+  ])("rejects raw controlled-origin bypass: %s", (_label, variable, configured, origin) => {
+    vi.stubEnv(variable, configured)
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: origin },
+    }))).toBe(false)
+  })
+
+  it("accepts an exact configured origin with one optional trailing slash", () => {
+    vi.stubEnv("AUTH_URL", "https://freebase-shamrock-magnetic.ngrok-free.dev/")
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: "https://freebase-shamrock-magnetic.ngrok-free.dev" },
+    }))).toBe(true)
+  })
+
+  it("rejects a configured origin with more than one trailing slash", () => {
+    vi.stubEnv("AUTH_URL", "https://freebase-shamrock-magnetic.ngrok-free.dev//")
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: "https://freebase-shamrock-magnetic.ngrok-free.dev" },
+    }))).toBe(false)
+  })
+
+  it.each([
+    ["attacker.example", "https://attacker.example"],
+    ["attacker-example.vercel.app/", "https://attacker-example.vercel.app"],
+    ["attacker-example.vercel.app?next=laflabs.co", "https://attacker-example.vercel.app"],
+    ["ATTACKER-EXAMPLE.VERCEL.APP", "https://attacker-example.vercel.app"],
+    ["-attacker.vercel.app", "https://-attacker.vercel.app"],
+  ])("rejects non-platform VERCEL_URL form: %s", (configured, origin) => {
+    vi.stubEnv("VERCEL_URL", configured)
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: origin },
+    }))).toBe(false)
+  })
+
+  it.each([
     ["scheme mismatch", "http://freebase-shamrock-magnetic.ngrok-free.dev"],
     ["port mismatch", "https://freebase-shamrock-magnetic.ngrok-free.dev:444"],
     ["subdomain lookalike", "https://evil.laflabs.co"],
