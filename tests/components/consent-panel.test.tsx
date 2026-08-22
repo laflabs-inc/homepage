@@ -10,9 +10,14 @@ const analyticsClientMocks = vi.hoisted(() => ({
   stop: vi.fn(),
   size: vi.fn(() => 0),
 }))
+const consentNavigationMocks = vi.hoisted(() => ({ reload: vi.fn() }))
 
 vi.mock("@/lib/analytics/client", () => ({
   createAnalyticsClient: analyticsClientMocks.create,
+}))
+
+vi.mock("@/lib/analytics/reload", () => ({
+  reloadForConsentPolicyUpdate: consentNavigationMocks.reload,
 }))
 
 vi.mock("next/navigation", () => ({
@@ -29,6 +34,7 @@ import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { Landing } from "@/components/landing"
 import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
+import { CONSENT_POLICY_VERSION } from "@/lib/analytics/consent"
 
 analyticsClientMocks.create.mockReturnValue({
   track: analyticsClientMocks.track,
@@ -41,6 +47,7 @@ analyticsClientMocks.create.mockReturnValue({
 beforeEach(() => {
   vi.clearAllMocks()
   window.history.replaceState({}, "", "/")
+  document.cookie = "laf_locale=; path=/; max-age=0"
 })
 
 const baseProps = {
@@ -220,10 +227,36 @@ describe("ConsentProvider", () => {
 
     expect(fetchMock).toHaveBeenCalledWith("/api/consent", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ choice: "analytics" }),
+      body: JSON.stringify({
+        choice: "analytics",
+        policyVersion: CONSENT_POLICY_VERSION,
+      }),
     }))
     expect(screen.getByLabelText("consent state")).toHaveTextContent("analytics")
     expect(screen.queryByRole("heading", { name: "Choose your analytics preference" })).not.toBeInTheDocument()
+  })
+
+  it("reloads and keeps the current panel mandatory after a policy-version conflict", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      error: "policy_version_mismatch",
+    }), { status: 409, headers: { "content-type": "application/json" } })))
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <ConsentProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "Open settings" }))
+    await user.click(screen.getByRole("button", { name: "Essential only" }))
+
+    expect(screen.getByLabelText("consent state")).toHaveTextContent("unknown")
+    expect(screen.getByRole("heading", { name: "Choose your analytics preference" })).toBeVisible()
+    expect(screen.queryByRole("button", { name: "Close cookie settings" })).not.toBeInTheDocument()
+    expect(consentNavigationMocks.reload).toHaveBeenCalledOnce()
   })
 
   it("keeps settings open and exposes a retryable error after an API failure", async () => {
@@ -314,6 +347,26 @@ describe("ConsentProvider", () => {
     expect(analyticsClientMocks.create).toHaveBeenCalledOnce()
     expect(analyticsClientMocks.track).toHaveBeenCalledWith("locale_change", "en")
     expect(analyticsClientMocks.track.mock.calls.filter(([type]) => type === "page_view")).toHaveLength(1)
+  })
+
+  it("does not write a preference or analytics event when the active locale is clicked", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <LocaleProvider initialLocale="ko">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <SiteHeader />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledOnce())
+    analyticsClientMocks.track.mockClear()
+    await user.click(screen.getByRole("button", { name: "KO" }))
+
+    expect(analyticsClientMocks.track).not.toHaveBeenCalled()
+    expect(document.cookie).not.toContain("laf_locale=")
+    expect(screen.getByRole("button", { name: "KO" })).not.toHaveAttribute("data-analytics-event")
   })
 
   it("stops the active client before exposing a successful withdrawal", async () => {
@@ -413,7 +466,7 @@ describe("ConsentProvider", () => {
 
     expect(screen.getByRole("button", { name: "KO" })).toHaveAttribute("data-analytics-event", "locale_change")
     expect(screen.getByRole("button", { name: "KO" })).toHaveAttribute("data-analytics-target", "ko")
-    expect(screen.getByRole("button", { name: "EN" })).toHaveAttribute("data-analytics-target", "en")
+    expect(screen.getByRole("button", { name: "EN" })).not.toHaveAttribute("data-analytics-event")
 
     const contacts = Array.from(container.querySelectorAll<HTMLAnchorElement>('a[href^="mailto:"]'))
     expect(contacts).not.toHaveLength(0)

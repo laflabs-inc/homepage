@@ -1,4 +1,5 @@
-import type { ConsentChoice } from "@/lib/analytics/types"
+import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
+import { matchVisitorToken } from "@/lib/analytics/identity"
 
 export const CONSENT_POLICY_VERSION = "1"
 export const CONSENT_COOKIE = "laf_consent"
@@ -37,3 +38,26 @@ export const consentCookieOptions = () => ({
   path: "/",
   maxAge: CONSENT_MAX_AGE,
 })
+
+export function resolveInitialConsentState({
+  consentCookie,
+  visitorToken,
+  dnt,
+  currentSecret,
+  previousSecret,
+}: {
+  consentCookie: string | null | undefined
+  visitorToken: string | null | undefined
+  dnt: boolean
+  currentSecret: string
+  previousSecret?: string
+}): ConsentState {
+  const savedChoice = parseConsentCookie(consentCookie)?.choice
+  if (savedChoice !== "analytics") return savedChoice ?? "unknown"
+  if (dnt) return "essential"
+
+  const identity = matchVisitorToken(visitorToken, currentSecret, previousSecret)
+  return identity.status === "current" || identity.status === "previous"
+    ? "analytics"
+    : "unknown"
+}

@@ -1,8 +1,14 @@
 import { createHmac } from "node:crypto"
 import { describe, expect, it } from "vitest"
-import { createVisitorToken, hashAnalyticsId, verifyVisitorToken } from "@/lib/analytics/identity"
+import {
+  createVisitorToken,
+  hashAnalyticsId,
+  matchVisitorToken,
+  verifyVisitorToken,
+} from "@/lib/analytics/identity"
 
 const secret = "test-secret-that-is-long-enough-for-hmac"
+const previousSecret = "previous-secret-that-is-long-enough-hmac"
 const visitorId = "8f5c5c8b-54cf-4de1-9a16-4be9b8c0e3d7"
 
 const encodeBase64Url = (value: string | Buffer): string => Buffer.from(value).toString("base64url")
@@ -29,6 +35,25 @@ describe("signed visitor identity", () => {
   it("rejects malformed visitor tokens", () => {
     expect(verifyVisitorToken("missing-separator", secret)).toBeNull()
     expect(verifyVisitorToken("%%%.__", secret)).toBeNull()
+  })
+
+  it("distinguishes absent, current, previous, and invalid visitor tokens", () => {
+    expect(matchVisitorToken(null, secret, previousSecret)).toEqual({ status: "absent" })
+    expect(matchVisitorToken(createVisitorToken(visitorId, secret), secret, previousSecret)).toEqual({
+      status: "current",
+      visitorId,
+    })
+    expect(matchVisitorToken(createVisitorToken(visitorId, previousSecret), secret, previousSecret)).toEqual({
+      status: "previous",
+      visitorId,
+    })
+    expect(matchVisitorToken("invalid-token", secret, previousSecret)).toEqual({ status: "invalid" })
+  })
+
+  it("does not treat a previous-key token as valid when no previous key is configured", () => {
+    const token = createVisitorToken(visitorId, previousSecret)
+
+    expect(matchVisitorToken(token, secret)).toEqual({ status: "invalid" })
   })
 
   it("rejects a correctly signed non-UUID payload", () => {

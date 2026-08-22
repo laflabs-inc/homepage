@@ -2,12 +2,16 @@ import "server-only"
 
 import type { ConsentChoice } from "@/lib/analytics/types"
 import { parseConsentCookie } from "@/lib/analytics/consent"
-import { hashAnalyticsId, verifyVisitorToken } from "@/lib/analytics/identity"
+import {
+  hashAnalyticsId,
+  matchVisitorToken,
+  type VisitorTokenMatch,
+} from "@/lib/analytics/identity"
 import {
   AnalyticsBatchSchema,
   normalizeDeviceCategory,
   normalizePath,
-  normalizeReferrer,
+  normalizeReferrerHost,
 } from "@/lib/analytics/normalize"
 import { analyticsStore, type AnalyticsStore } from "@/lib/analytics/store"
 import { getAnalyticsEnv } from "@/lib/env"
@@ -19,7 +23,7 @@ export type AnalyticsRequestContext = {
   consentCookie: string | null
   visitorToken: string | null
   userAgent: string | null
-  referrer: string | null
+  siteHostnames: readonly string[]
   now: Date
 }
 
@@ -47,16 +51,51 @@ export class WithdrawalFailedError extends Error {
   }
 }
 
+type MatchedVisitorIdentity = Extract<VisitorTokenMatch, { visitorId: string }>
+
+function isMatchedVisitor(identity: VisitorTokenMatch): identity is MatchedVisitorIdentity {
+  return "visitorId" in identity
+}
+
+function matchedSecret(
+  identity: MatchedVisitorIdentity,
+  currentSecret: string,
+  previousSecret?: string,
+): string {
+  if (identity.status === "current") return currentSecret
+  if (!previousSecret) throw new Error("Previous analytics secret is unavailable")
+  return previousSecret
+}
+
+async function withdrawMatchedVisitor(
+  identity: MatchedVisitorIdentity,
+  currentSecret: string,
+  previousSecret: string | undefined,
+  store: AnalyticsStore,
+): Promise<void> {
+  const secret = matchedSecret(identity, currentSecret, previousSecret)
+  await store.withdrawVisitorAnalytics(hashAnalyticsId(identity.visitorId, secret))
+}
+
 export async function deleteVisitorEventsByToken(
   visitorToken: string,
   store: AnalyticsStore = analyticsStore,
 ): Promise<boolean> {
   try {
-    const secret = getAnalyticsEnv().ANALYTICS_HASH_SECRET
-    const visitorId = verifyVisitorToken(visitorToken, secret)
-    if (!visitorId) return false
+    const environment = getAnalyticsEnv()
+    const identity = matchVisitorToken(
+      visitorToken,
+      environment.ANALYTICS_HASH_SECRET,
+      environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+    )
+    if (!isMatchedVisitor(identity)) return false
 
-    await store.withdrawVisitorAnalytics(hashAnalyticsId(visitorId, secret))
+    await withdrawMatchedVisitor(
+      identity,
+      environment.ANALYTICS_HASH_SECRET,
+      environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+      store,
+    )
     return true
   } catch {
     return false
@@ -72,23 +111,33 @@ export async function collectAnalyticsBatch(
   if (consent?.choice !== "analytics") return { status: "ignored", accepted: 0 }
   if (!context.visitorToken) return { status: "ignored", accepted: 0 }
 
-  let secret: string
+  let environment: ReturnType<typeof getAnalyticsEnv>
   try {
-    secret = getAnalyticsEnv().ANALYTICS_HASH_SECRET
+    environment = getAnalyticsEnv()
   } catch {
     return { status: "unavailable", accepted: 0 }
   }
 
-  const visitorId = verifyVisitorToken(context.visitorToken, secret)
-  if (!visitorId) return { status: "ignored", accepted: 0 }
+  const identity = matchVisitorToken(
+    context.visitorToken,
+    environment.ANALYTICS_HASH_SECRET,
+    environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+  )
+  if (!isMatchedVisitor(identity)) {
+    return { status: "ignored", accepted: 0 }
+  }
+  const secret = matchedSecret(
+    identity,
+    environment.ANALYTICS_HASH_SECRET,
+    environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+  )
 
   const batch = AnalyticsBatchSchema.safeParse(input)
   if (!batch.success) return { status: "invalid", accepted: 0 }
 
   const now = new Date(context.now)
-  const visitorHash = hashAnalyticsId(visitorId, secret)
+  const visitorHash = hashAnalyticsId(identity.visitorId, secret)
   const deviceCategory = normalizeDeviceCategory(context.userAgent)
-  const referrerHost = normalizeReferrer(context.referrer)
   const events = batch.data.events.map((event) => {
     const clientTime = new Date(event.occurredAt)
     const occurredAt = Math.abs(clientTime.getTime() - now.getTime()) > FIVE_MINUTES_MS
@@ -104,7 +153,9 @@ export async function collectAnalyticsBatch(
       targetId: event.targetId,
       locale: event.locale,
       deviceCategory,
-      referrerHost,
+      referrerHost: event.type === "page_view"
+        ? normalizeReferrerHost(event.referrerHost, context.siteHostnames)
+        : null,
       occurredAt,
       receivedAt: now,
     }
@@ -135,10 +186,38 @@ export async function applyConsentChoice(
   const dntHonored = dnt && requested === "analytics"
   const choice: ConsentChoice = dntHonored ? "essential" : requested
 
-  if (choice === "essential" && visitorToken) {
+  if (!visitorToken) {
+    return {
+      choice,
+      dntHonored,
+      createVisitor: choice === "analytics",
+    }
+  }
+
+  let environment: ReturnType<typeof getAnalyticsEnv>
+  let identity: VisitorTokenMatch
+  try {
+    environment = getAnalyticsEnv()
+    identity = matchVisitorToken(
+      visitorToken,
+      environment.ANALYTICS_HASH_SECRET,
+      environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+    )
+  } catch (cause) {
+    throw new WithdrawalFailedError({ cause })
+  }
+
+  const mustDelete = isMatchedVisitor(identity) && (
+    choice === "essential" || identity.status === "previous"
+  )
+  if (mustDelete && isMatchedVisitor(identity)) {
     try {
-      const deleted = await deleteVisitorEventsByToken(visitorToken, store)
-      if (!deleted) throw new Error("Invalid visitor token")
+      await withdrawMatchedVisitor(
+        identity,
+        environment.ANALYTICS_HASH_SECRET,
+        environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+        store,
+      )
     } catch (cause) {
       throw new WithdrawalFailedError({ cause })
     }
@@ -147,6 +226,6 @@ export async function applyConsentChoice(
   return {
     choice,
     dntHonored,
-    createVisitor: choice === "analytics" && !visitorToken,
+    createVisitor: choice === "analytics" && identity.status !== "current",
   }
 }

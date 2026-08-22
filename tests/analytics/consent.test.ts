@@ -7,7 +7,13 @@ import {
   consentCookieOptions,
   consentCookieValue,
   parseConsentCookie,
+  resolveInitialConsentState,
 } from "@/lib/analytics/consent"
+import { createVisitorToken } from "@/lib/analytics/identity"
+
+const currentSecret = "current-analytics-secret-that-is-long-enough"
+const previousSecret = "previous-analytics-secret-that-is-long-enough"
+const visitorId = "8f5c5c8b-54cf-4de1-9a16-4be9b8c0e3d7"
 
 describe("consent cookies", () => {
   it("parses the current version and an allowlisted choice", () => {
@@ -37,5 +43,49 @@ describe("consent cookies", () => {
       path: "/",
       maxAge: CONSENT_MAX_AGE,
     })
+  })
+
+  it("reopens analytics consent when no visitor can be verified", () => {
+    expect(resolveInitialConsentState({
+      consentCookie: consentCookieValue("analytics"),
+      visitorToken: null,
+      dnt: false,
+      currentSecret,
+      previousSecret,
+    })).toBe("unknown")
+    expect(resolveInitialConsentState({
+      consentCookie: consentCookieValue("analytics"),
+      visitorToken: "invalid-token",
+      dnt: false,
+      currentSecret,
+      previousSecret,
+    })).toBe("unknown")
+  })
+
+  it("accepts current and previous verifiable identities but still honors DNT", () => {
+    const currentToken = createVisitorToken(visitorId, currentSecret)
+    const previousToken = createVisitorToken(visitorId, previousSecret)
+
+    expect(resolveInitialConsentState({
+      consentCookie: consentCookieValue("analytics"),
+      visitorToken: currentToken,
+      dnt: false,
+      currentSecret,
+      previousSecret,
+    })).toBe("analytics")
+    expect(resolveInitialConsentState({
+      consentCookie: consentCookieValue("analytics"),
+      visitorToken: previousToken,
+      dnt: false,
+      currentSecret,
+      previousSecret,
+    })).toBe("analytics")
+    expect(resolveInitialConsentState({
+      consentCookie: consentCookieValue("analytics"),
+      visitorToken: currentToken,
+      dnt: true,
+      currentSecret,
+      previousSecret,
+    })).toBe("essential")
   })
 })

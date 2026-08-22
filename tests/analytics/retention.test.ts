@@ -1,38 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
+import { PgDialect } from "drizzle-orm/pg-core"
 
 import { handleAnalyticsRetention } from "@/app/api/cron/analytics-retention/route"
-import {
-  analyticsEvents,
-  analyticsRateWindows,
-  analyticsWithdrawalGuards,
-} from "@/lib/db/schema"
 import { deleteExpiredAnalytics } from "@/lib/analytics/service"
 import { analyticsStore, type AnalyticsStore } from "@/lib/analytics/store"
 
 const {
-  batchMock,
-  deleteMock,
+  executeMock,
   getDbMock,
-  ltMock,
-  lteMock,
-  returningMock,
-  whereMock,
 } = vi.hoisted(() => ({
-  batchMock: vi.fn(),
-  deleteMock: vi.fn(),
+  executeMock: vi.fn(),
   getDbMock: vi.fn(),
-  ltMock: vi.fn(),
-  lteMock: vi.fn(),
-  returningMock: vi.fn(),
-  whereMock: vi.fn(),
 }))
 
 vi.mock("@/lib/db", () => ({ getDb: getDbMock }))
-
-vi.mock("drizzle-orm", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("drizzle-orm")>()
-  return { ...actual, lt: ltMock, lte: lteMock }
-})
 
 class RetentionStore implements AnalyticsStore {
   cutoff: Date | null = null
@@ -107,19 +88,30 @@ describe("analytics retention", () => {
     await expect(second.json()).resolves.toEqual({ events: 0, windows: 0 })
   })
 
-  it("deletes a withdrawal guard that expires exactly at the cleanup time", async () => {
+  it("counts bounded CTE deletions without returning every deleted identifier", async () => {
     const cutoff = new Date("2026-05-24T00:00:00.000Z")
     const now = new Date("2026-08-22T00:00:00.000Z")
-    returningMock.mockResolvedValue([])
-    whereMock.mockImplementation(() => ({ returning: returningMock }))
-    deleteMock.mockImplementation(() => ({ where: whereMock }))
-    batchMock.mockImplementation((operations: Promise<unknown>[]) => Promise.all(operations))
-    getDbMock.mockReturnValue({ batch: batchMock, delete: deleteMock })
+    executeMock.mockResolvedValue({ rows: [{ events: "4", windows: 2 }] })
+    getDbMock.mockReturnValue({ execute: executeMock })
 
-    await analyticsStore.deleteBefore(cutoff, now)
+    await expect(analyticsStore.deleteBefore(cutoff, now)).resolves.toEqual({
+      events: 4,
+      windows: 2,
+    })
 
-    expect(ltMock).toHaveBeenCalledWith(analyticsEvents.receivedAt, cutoff)
-    expect(ltMock).toHaveBeenCalledWith(analyticsRateWindows.minuteBucket, cutoff)
-    expect(lteMock).toHaveBeenCalledWith(analyticsWithdrawalGuards.expiresAt, now)
+    const compiled = new PgDialect().sqlToQuery(executeMock.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(compiled.params).toContainEqual(cutoff)
+    expect(compiled.params).toContainEqual(now)
+    expect(normalizedSql).toContain("with deleted_events as")
+    expect(normalizedSql).toContain("deleted_windows as")
+    expect(normalizedSql).toContain("deleted_guards as")
+    expect(normalizedSql).toContain('"received_at" <')
+    expect(normalizedSql).toContain('"minute_bucket" <')
+    expect(normalizedSql).toContain('"expires_at" <=')
+    expect(normalizedSql).toContain("returning 1")
+    expect(normalizedSql).toContain("count(*)::integer")
+    expect(normalizedSql).not.toContain('returning "id"')
+    expect(normalizedSql).not.toContain('returning "visitor_hash"')
   })
 })

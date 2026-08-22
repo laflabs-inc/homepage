@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/client"
+import {
+  createAnalyticsClient,
+  minimizeInitialNavigationReferrer,
+  type AnalyticsClient,
+} from "@/lib/analytics/client"
 
 const clients: AnalyticsClient[] = []
 let sendBeaconDescriptor: PropertyDescriptor | undefined
@@ -33,6 +37,7 @@ async function readBeaconBatch(sendBeacon: ReturnType<typeof vi.fn>, call = 0) {
       locale: string
       pathname: string
       sessionId: string
+      referrerHost?: string
     }>
   }
 }
@@ -183,6 +188,37 @@ describe("createAnalyticsClient", () => {
     await client.flush()
 
     expect((await readBeaconBatch(sendBeacon)).events[0]?.pathname).toBe("/")
+  })
+
+  it("captures only the external hostname from the initial document navigation referrer", async () => {
+    vi.spyOn(document, "referrer", "get").mockReturnValue(
+      "https://github.com/laflabs-inc/homepage?campaign=private#fragment",
+    )
+    const sendBeacon = vi.fn(() => true)
+    setSendBeacon(sendBeacon)
+    const client = createClient()
+
+    client.track("page_view", null)
+    client.track("github_click", "lafetch")
+    await client.flush()
+
+    const batch = await readBeaconBatch(sendBeacon)
+    const raw = JSON.stringify(batch)
+    const { events } = batch
+    expect(events[0]).toMatchObject({ type: "page_view", referrerHost: "github.com" })
+    expect(events[1]).not.toHaveProperty("referrerHost")
+    expect(raw).not.toContain("/laflabs-inc/homepage")
+    expect(raw).not.toContain("campaign")
+    expect(raw).not.toContain("fragment")
+  })
+
+  it.each([
+    ["same-origin", "https://laflabs.co/from?private=1"],
+    ["IPv4", "https://192.0.2.10/private"],
+    ["IPv6", "https://[2001:db8::1]/private"],
+    ["invalid", "not a URL"],
+  ])("drops a %s initial navigation referrer", (_label, referrer) => {
+    expect(minimizeInitialNavigationReferrer(referrer, "https://laflabs.co")).toBeNull()
   })
 
   it("reuses one UUID session identifier across clients in the same tab", async () => {

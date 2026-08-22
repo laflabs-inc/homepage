@@ -47,12 +47,32 @@ export const AnalyticsEventInputSchema = z.object({
   targetId: z.string().max(80).nullable(),
   locale: z.enum(["ko", "en"]),
   occurredAt: z.string().datetime(),
+  referrerHost: z.string().max(253).nullable().optional(),
 }).strict().superRefine((event, context) => {
   if (!hasValidTarget(event.type, event.targetId)) {
     context.addIssue({
       code: "custom",
       path: ["targetId"],
       message: "Target is not valid for this event type",
+    })
+  }
+  if (event.type !== "page_view" && event.referrerHost !== undefined) {
+    context.addIssue({
+      code: "custom",
+      path: ["referrerHost"],
+      message: "Referrer host is allowed only for page views",
+    })
+  }
+  if (
+    event.type === "page_view" &&
+    event.referrerHost !== undefined &&
+    event.referrerHost !== null &&
+    normalizeReferrerHost(event.referrerHost, []) !== event.referrerHost
+  ) {
+    context.addIssue({
+      code: "custom",
+      path: ["referrerHost"],
+      message: "Referrer host must be a minimized hostname",
     })
   }
 })
@@ -76,17 +96,43 @@ export function normalizeReferrer(value: string | null | undefined): string | nu
   if (!value) return null
 
   try {
-    const hostname = new URL(value).hostname.toLowerCase()
-    const ipCandidate = hostname.startsWith("[") && hostname.endsWith("]")
-      ? hostname.slice(1, -1)
-      : hostname
-    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(ipCandidate) || ipCandidate.includes(":")) {
-      return null
-    }
-    return hostname || null
+    const parsed = new URL(value)
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null
+    const hostname = parsed.hostname.toLowerCase()
+    return normalizedHostname(hostname)
   } catch {
     return null
   }
+}
+
+const HOST_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
+
+function normalizedHostname(value: string): string | null {
+  const hostname = value.endsWith(".") ? value.slice(0, -1) : value
+  const ipCandidate = hostname.startsWith("[") && hostname.endsWith("]")
+    ? hostname.slice(1, -1)
+    : hostname
+  if (
+    !hostname ||
+    hostname.length > 253 ||
+    /^\d{1,3}(?:\.\d{1,3}){3}$/.test(ipCandidate) ||
+    ipCandidate.includes(":") ||
+    !hostname.split(".").every((label) => HOST_LABEL.test(label))
+  ) return null
+
+  return hostname
+}
+
+export function normalizeReferrerHost(
+  value: string | null | undefined,
+  siteHostnames: readonly string[],
+): string | null {
+  if (!value || value !== value.toLowerCase()) return null
+  const hostname = normalizedHostname(value)
+  if (!hostname || hostname !== value) return null
+
+  const normalizedSiteHostnames = new Set(siteHostnames.map((site) => site.toLowerCase()))
+  return normalizedSiteHostnames.has(hostname) ? null : hostname
 }
 
 export function normalizeLocale(value: string | null | undefined): AnalyticsLocale {

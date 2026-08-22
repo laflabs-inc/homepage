@@ -1,7 +1,26 @@
 import { z } from "zod"
 
 const databaseSchema = z.object({ DATABASE_URL: z.string().url() })
-const analyticsSchema = z.object({ ANALYTICS_HASH_SECRET: z.string().min(32) })
+const optionalAnalyticsSecret = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.string().min(32).optional(),
+)
+const analyticsFields = {
+  ANALYTICS_HASH_SECRET: z.string().min(32),
+  ANALYTICS_HASH_SECRET_PREVIOUS: optionalAnalyticsSecret,
+}
+const analyticsSchema = z.object(analyticsFields).superRefine((environment, context) => {
+  if (
+    environment.ANALYTICS_HASH_SECRET_PREVIOUS &&
+    environment.ANALYTICS_HASH_SECRET_PREVIOUS === environment.ANALYTICS_HASH_SECRET
+  ) {
+    context.addIssue({
+      code: "custom",
+      path: ["ANALYTICS_HASH_SECRET_PREVIOUS"],
+      message: "ANALYTICS_HASH_SECRET_PREVIOUS must differ from ANALYTICS_HASH_SECRET",
+    })
+  }
+})
 const authSchema = z.object({
   AUTH_SECRET: z.string().min(32),
   AUTH_GITHUB_ID: z.string().min(1),
@@ -9,7 +28,22 @@ const authSchema = z.object({
   ADMIN_GITHUB_ORG: z.string().min(1).default("laflabs-inc"),
 })
 const cronSchema = z.object({ CRON_SECRET: z.string().min(16) })
-const schema = databaseSchema.merge(analyticsSchema).merge(authSchema).merge(cronSchema)
+const schema = databaseSchema
+  .merge(z.object(analyticsFields))
+  .merge(authSchema)
+  .merge(cronSchema)
+  .superRefine((environment, context) => {
+    if (
+      environment.ANALYTICS_HASH_SECRET_PREVIOUS &&
+      environment.ANALYTICS_HASH_SECRET_PREVIOUS === environment.ANALYTICS_HASH_SECRET
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["ANALYTICS_HASH_SECRET_PREVIOUS"],
+        message: "ANALYTICS_HASH_SECRET_PREVIOUS must differ from ANALYTICS_HASH_SECRET",
+      })
+    }
+  })
 
 export type ServerEnv = z.infer<typeof schema>
 

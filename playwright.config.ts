@@ -11,6 +11,7 @@ const testDatabaseUrl = validateE2eDatabaseEnvironment({
   databaseUrl: process.env.DATABASE_URL,
   productionSiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.co",
   productionDatabaseHostname: process.env.E2E_PRODUCTION_DATABASE_HOSTNAME,
+  databaseSentinel: process.env.E2E_DATABASE_SENTINEL,
   ci: Boolean(process.env.CI),
 })
 
@@ -49,6 +50,8 @@ export default defineConfig({
       ...process.env,
       DATABASE_URL: testDatabaseUrl,
       TEST_DATABASE_URL: testDatabaseUrl,
+      E2E_DATABASE_SENTINEL: process.env.E2E_DATABASE_SENTINEL ?? "",
+      E2E_PRODUCTION_DATABASE_HOSTNAME: process.env.E2E_PRODUCTION_DATABASE_HOSTNAME ?? "",
       ANALYTICS_HASH_SECRET: E2E_ANALYTICS_HASH_SECRET,
       AUTH_SECRET: process.env.AUTH_SECRET ?? "laflabs-e2e-only-auth-secret-32-bytes",
       AUTH_GITHUB_ID: process.env.AUTH_GITHUB_ID ?? "e2e-placeholder-client-id",

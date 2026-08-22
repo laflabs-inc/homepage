@@ -77,11 +77,46 @@ describe("analytics dashboard aggregation", () => {
       "lafinvest",
     ]))
     expect(normalizedSql).toContain("count(distinct visitor_hash)")
+    expect(normalizedSql).toContain("page_stage as")
+    expect(normalizedSql).toContain("product_stage as")
+    expect(normalizedSql).toContain("contact_stage as")
+    expect(normalizedSql).toContain("selected.occurred_at >= page_stage.page_at")
+    expect(normalizedSql).toContain("selected.occurred_at >= product_stage.product_at")
     expect(normalizedSql).toContain("event_type = 'page_view'")
     expect(normalizedSql).toContain("event_type = 'product_click'")
     expect(normalizedSql).toContain("event_type = 'contact_click'")
     expect(normalizedSql).toContain("limit 10")
     expect(JSON.stringify(await getAnalyticsSummary(30, now))).not.toContain("visitorHash")
+  })
+
+  it("never exposes a downstream funnel stage above its upstream cohort", async () => {
+    executeMock.mockResolvedValue({
+      rows: [{
+        consentedVisitors: 1,
+        pageViews: 1,
+        productClicks: 5,
+        githubClicks: 0,
+        contactClicks: 8,
+        pageVisitors: 1,
+        productVisitors: 5,
+        contactVisitors: 8,
+        locales: [],
+        devices: [],
+        referrers: [],
+        products: [],
+        githubTargets: [],
+      }],
+    })
+
+    const summary = await getAnalyticsSummary(30, now)
+
+    expect(summary.funnel).toEqual({
+      pageVisitors: 1,
+      productVisitors: 1,
+      contactVisitors: 1,
+      pageToProduct: 1,
+      productToContact: 1,
+    })
   })
 
   it("returns zero conversion rates when a funnel stage has no visitors", async () => {

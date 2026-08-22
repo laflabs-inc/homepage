@@ -4,10 +4,16 @@ import { cookies, headers } from "next/headers"
 
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
-import { CONSENT_COOKIE, parseConsentCookie } from "@/lib/analytics/consent"
+import {
+  CONSENT_COOKIE,
+  VISITOR_COOKIE,
+  parseConsentCookie,
+  resolveInitialConsentState,
+} from "@/lib/analytics/consent"
 import type { ConsentState } from "@/lib/analytics/types"
 import { siteUrl } from "@/lib/content"
 import { defaultLocale, LOCALE_COOKIE, pickLocale, type Locale } from "@/lib/i18n"
+import { getAnalyticsEnv } from "@/lib/env"
 import "./globals.css"
 
 const geistSans = localFont({
@@ -77,10 +83,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()])
   const initialLocale = resolveLocale(cookieStore, requestHeaders)
   const dnt = requestHeaders.get("dnt") === "1"
-  const savedConsent = parseConsentCookie(cookieStore.get(CONSENT_COOKIE)?.value)?.choice
-  const initialState: ConsentState = dnt && savedConsent === "analytics"
-    ? "essential"
-    : savedConsent ?? "unknown"
+  const consentCookie = cookieStore.get(CONSENT_COOKIE)?.value
+  const savedConsent = parseConsentCookie(consentCookie)?.choice
+  let initialState: ConsentState = savedConsent ?? "unknown"
+  if (savedConsent === "analytics") {
+    try {
+      const environment = getAnalyticsEnv()
+      initialState = resolveInitialConsentState({
+        consentCookie,
+        visitorToken: cookieStore.get(VISITOR_COOKIE)?.value,
+        dnt,
+        currentSecret: environment.ANALYTICS_HASH_SECRET,
+        previousSecret: environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+      })
+    } catch {
+      initialState = "unknown"
+    }
+  }
 
   return (
     <html lang={initialLocale}>

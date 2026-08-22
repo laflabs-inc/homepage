@@ -44,6 +44,28 @@ export const verifyVisitorToken = (token: string | null | undefined, secret: str
   return visitorId
 }
 
+export type VisitorTokenMatch =
+  | { status: "absent" | "invalid" }
+  | { status: "current" | "previous"; visitorId: string }
+
+export const matchVisitorToken = (
+  token: string | null | undefined,
+  currentSecret: string,
+  previousSecret?: string,
+): VisitorTokenMatch => {
+  if (!token) return { status: "absent" }
+
+  const currentVisitorId = verifyVisitorToken(token, currentSecret)
+  if (currentVisitorId) return { status: "current", visitorId: currentVisitorId }
+
+  if (previousSecret) {
+    const previousVisitorId = verifyVisitorToken(token, previousSecret)
+    if (previousVisitorId) return { status: "previous", visitorId: previousVisitorId }
+  }
+
+  return { status: "invalid" }
+}
+
 export const hashAnalyticsId = (value: string, secret: string): string => (
   createHmac("sha256", secret).update(`analytics-id:${value}`).digest("hex")
 )

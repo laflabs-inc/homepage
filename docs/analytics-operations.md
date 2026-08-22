@@ -11,8 +11,10 @@ engineering draft, not a legal conclusion.
   production data into preview or test environments.
 - Never run Playwright against the production database. The test runner refuses
   a missing `TEST_DATABASE_URL`, an exact `DATABASE_URL` match, or a host under
-  the configured production domain. CI must set
-  `E2E_PRODUCTION_DATABASE_HOSTNAME` to the exact production database hostname.
+  the configured production domain. Every local and CI run must set
+  `E2E_PRODUCTION_DATABASE_HOSTNAME` to the exact production database hostname
+  and `E2E_DATABASE_SENTINEL` to the secret value provisioned only in the
+  disposable test database.
   The guard also compares canonical database identity without credentials, URL
   scheme aliases, or query ordering. To prevent libpq-style destination
   overrides from bypassing that comparison, test and protected database URLs
@@ -53,15 +55,27 @@ Generate separate values; do not reuse one secret for another purpose:
 
 ```bash
 openssl rand -base64 32 # ANALYTICS_HASH_SECRET
+openssl rand -base64 32 # ANALYTICS_HASH_SECRET_PREVIOUS (rotation only)
 openssl rand -base64 32 # AUTH_SECRET
 openssl rand -base64 24 # CRON_SECRET (at least 16 bytes)
+openssl rand -base64 32 # E2E_DATABASE_SENTINEL (test database only)
 ```
 
-Set the three values independently in Vercel for preview and production. A
-change to `ANALYTICS_HASH_SECRET` invalidates existing signed visitor cookies
-and their correlation to stored event hashes. Rotating it therefore requires a
-deliberate cookie/data transition. Rotating `AUTH_SECRET` invalidates active
-admin sessions.
+Set application secrets independently in Vercel for preview and production.
+Keep `E2E_DATABASE_SENTINEL` out of production and preview application
+environments; it belongs only to the browser-test runner and its disposable
+database.
+
+To rotate analytics identity safely, first move the old
+`ANALYTICS_HASH_SECRET` value to `ANALYTICS_HASH_SECRET_PREVIOUS`, then install a
+new independent `ANALYTICS_HASH_SECRET`. Keep the previous key available through
+the transition. Existing previous-key visitors remain verifiable; when one
+renews analytics consent, the application deletes rows under the previous HMAC
+before issuing a current-key identity. Invalid or no-longer-identifiable tokens
+are replaced or cleared, and any inaccessible rows expire under the 90-day
+retention rule. Remove the previous key only after the intended transition and
+retention window have completed. Rotating `AUTH_SECRET` invalidates active admin
+sessions.
 
 ## 4. Register GitHub OAuth callbacks and canonical hosts
 
@@ -137,11 +151,28 @@ For the isolated browser database:
 
 ```bash
 DATABASE_URL="$TEST_DATABASE_URL" npm run db:migrate
+psql "$TEST_DATABASE_URL" --set=sentinel="$E2E_DATABASE_SENTINEL" <<'SQL'
+CREATE TABLE IF NOT EXISTS e2e_database_sentinel (
+  name text PRIMARY KEY,
+  sentinel text NOT NULL
+);
+INSERT INTO e2e_database_sentinel (name, sentinel)
+VALUES ('laflabs-playwright', :'sentinel')
+ON CONFLICT (name) DO UPDATE SET sentinel = EXCLUDED.sentinel;
+SQL
 npm run test:e2e
 ```
 
+The sentinel table is test infrastructure and is intentionally absent from the
+production Drizzle migrations. Provision it only after independently confirming
+that `TEST_DATABASE_URL` is disposable. Playwright requires the protected
+production hostname on every run, verifies the secret sentinel once in every
+worker before page traffic can write, and reuses that verified boundary before
+all direct reads and cleanup deletes. A missing table, missing/mismatched value,
+or database error fails closed without printing the URL or sentinel.
+
 The Playwright suite starts Next.js on `127.0.0.1:3200` and executes the same
-eight flows on desktop `1440x1000` and mobile `390x844`. It performs direct
+nine flows on desktop `1440x1000` and mobile `390x844`. It performs direct
 cleanup and assertions only through the guarded `TEST_DATABASE_URL`.
 
 ## 7. Deploy and inspect cookie flags
@@ -168,6 +199,9 @@ Use a clean browser profile and open the Network panel before loading the page:
    `laf_visitor` cookie.
 4. In a fresh profile, choose **Allow analytics** and confirm first-party event
    requests begin without a reload.
+   Navigate once with an external test referrer and confirm only its lowercase
+   hostname is present on the initial page view—never its path, query, fragment,
+   an IP literal, a same-origin host, or the analytics POST `Referer` header.
 5. Repeat with the `DNT: 1` request header. An analytics choice must resolve to
    essential-only, show the DNT notice, and create no visitor cookie.
 6. Force the analytics endpoint to return `503`; product, GitHub, email, locale,
@@ -176,6 +210,12 @@ Use a clean browser profile and open the Network panel before loading the page:
 Collection is deliberately limited to allowlisted event names and targets. Do
 not add IPs, raw User-Agent strings, query strings, form values, coordinates,
 page contents, or third-party identifiers.
+
+The dashboard funnel is a nested, per-visitor cohort inside the selected
+received-time range: page view, then product click at or after that page view,
+then contact click at or after that product click. Consecutive stages with the
+same `occurred_at` timestamp are intentionally treated as ordered inclusively.
+Downstream counts and rates therefore cannot exceed their upstream stage.
 
 ## 9. Verify organization-member access
 

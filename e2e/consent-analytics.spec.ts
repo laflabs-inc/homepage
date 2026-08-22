@@ -1,11 +1,13 @@
-import { expect, test, type BrowserContext, type Page, type Request } from "@playwright/test"
+import { expect, type BrowserContext, type Page, type Request } from "@playwright/test"
 
 import {
   cleanupVisitorRows,
   countVisitorRows,
   visitorEventTypeCounts,
   visitorHashFromToken,
+  visitorPageViewReferrers,
 } from "./support/analytics-database"
+import { test } from "./support/fixtures"
 
 const ANALYTICS_PATH = "/api/analytics/events"
 const CONSENT_COOKIE = "laf_consent"
@@ -116,6 +118,20 @@ test("allow-analytics creates both cookies and one event request", async ({ page
     consent_update: 1,
     page_view: 1,
   })
+})
+
+test("external navigation stores only the initial referrer hostname", async ({ page, context }) => {
+  await page.goto("/", {
+    referer: "https://github.com/laflabs-inc/homepage?campaign=private#fragment",
+  })
+  const { request, visitorHash } = await chooseAnalytics(page, context)
+  const body = request.postData() ?? ""
+
+  expect(body).toContain('"referrerHost":"github.com"')
+  expect(body).not.toContain("/laflabs-inc/homepage")
+  expect(body).not.toContain("campaign")
+  expect(body).not.toContain("fragment")
+  await expect.poll(() => visitorPageViewReferrers(visitorHash)).toEqual(["github.com"])
 })
 
 test("DNT: 1 resolves an analytics choice to essential without a visitor cookie", async ({ page, context }) => {

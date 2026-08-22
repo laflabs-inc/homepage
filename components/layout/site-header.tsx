@@ -22,19 +22,24 @@ function LanguageToggle() {
         animate={{ x: locale === "ko" ? 0 : 34 }}
         transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 38 }}
       />
-      {locales.map((value) => (
-        <button
-          key={value}
-          type="button"
-          data-analytics-event="locale_change"
-          data-analytics-target={value}
-          data-active={value === locale}
-          aria-pressed={value === locale}
-          onClick={() => setLocale(value)}
-        >
-          <span>{value.toUpperCase()}</span>
-        </button>
-      ))}
+      {locales.map((value) => {
+        const active = value === locale
+        return (
+          <button
+            key={value}
+            type="button"
+            data-analytics-event={active ? undefined : "locale_change"}
+            data-analytics-target={active ? undefined : value}
+            data-active={active}
+            aria-pressed={active}
+            onClick={() => {
+              if (!active) setLocale(value)
+            }}
+          >
+            <span>{value.toUpperCase()}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }

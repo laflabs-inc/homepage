@@ -1,5 +1,7 @@
 import {
   AnalyticsEventInputSchema,
+  normalizeReferrer,
+  normalizeReferrerHost,
   type AnalyticsEventType,
   type AnalyticsLocale,
 } from "@/lib/analytics/normalize"
@@ -22,6 +24,19 @@ export type AnalyticsClient = {
 type AnalyticsClientOptions = {
   locale: AnalyticsLocale
   pathname: string
+}
+
+export function minimizeInitialNavigationReferrer(
+  referrer: string,
+  currentOrigin: string,
+): string | null {
+  try {
+    const referrerHost = normalizeReferrer(referrer)
+    const currentHostname = new URL(currentOrigin).hostname.toLowerCase()
+    return normalizeReferrerHost(referrerHost, [currentHostname])
+  } catch {
+    return null
+  }
 }
 
 function sanitizedPathname(value: string): string {
@@ -57,6 +72,10 @@ export function createAnalyticsClient({
 }: AnalyticsClientOptions): AnalyticsClient {
   const sessionId = getSessionId()
   const eventPathname = sanitizedPathname(pathname)
+  const initialReferrerHost = minimizeInitialNavigationReferrer(
+    document.referrer,
+    window.location.origin,
+  )
   const queue: Array<ReturnType<typeof AnalyticsEventInputSchema.parse>> = []
   const fetchControllers = new Set<AbortController>()
   let locale = initialLocale
@@ -168,6 +187,9 @@ export function createAnalyticsClient({
           targetId,
           locale,
           occurredAt: new Date().toISOString(),
+          ...(type === "page_view" && initialReferrerHost
+            ? { referrerHost: initialReferrerHost }
+            : {}),
         })
         if (!parsed.success) return
 

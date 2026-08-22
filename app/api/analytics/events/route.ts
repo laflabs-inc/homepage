@@ -1,11 +1,11 @@
 import { cookies } from "next/headers"
 
 import { CONSENT_COOKIE, VISITOR_COOKIE, parseConsentCookie } from "@/lib/analytics/consent"
-import { verifyVisitorToken } from "@/lib/analytics/identity"
+import { matchVisitorToken } from "@/lib/analytics/identity"
 import { collectAnalyticsBatch } from "@/lib/analytics/service"
 import { analyticsStore, type AnalyticsStore } from "@/lib/analytics/store"
 import { getAnalyticsEnv } from "@/lib/env"
-import { isSameOriginRequest } from "@/lib/http/same-origin"
+import { isSameOriginRequest, trustedRequestHostnames } from "@/lib/http/same-origin"
 
 const MAX_BODY_BYTES = 16 * 1024
 
@@ -16,6 +16,7 @@ export async function handleAnalyticsEvents(
   store: AnalyticsStore = analyticsStore,
 ): Promise<Response> {
   if (!isSameOriginRequest(request)) return emptyResponse(403)
+  if (request.headers.get("dnt") === "1") return emptyResponse(204)
 
   let consentCookie: string | null
   let visitorToken: string | null
@@ -31,7 +32,13 @@ export async function handleAnalyticsEvents(
   if (!visitorToken) return emptyResponse(204)
 
   try {
-    if (!verifyVisitorToken(visitorToken, getAnalyticsEnv().ANALYTICS_HASH_SECRET)) {
+    const environment = getAnalyticsEnv()
+    const identity = matchVisitorToken(
+      visitorToken,
+      environment.ANALYTICS_HASH_SECRET,
+      environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+    )
+    if (identity.status === "absent" || identity.status === "invalid") {
       return emptyResponse(204)
     }
   } catch {
@@ -62,7 +69,7 @@ export async function handleAnalyticsEvents(
     consentCookie,
     visitorToken,
     userAgent: request.headers.get("user-agent"),
-    referrer: request.headers.get("referer"),
+    siteHostnames: trustedRequestHostnames(request),
     now: new Date(),
   }, store)
 

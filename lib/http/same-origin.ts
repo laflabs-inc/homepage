@@ -92,31 +92,52 @@ function addLoopbackAliases(origins: Set<string>, requestUrl: URL): void {
   }
 }
 
-export function isSameOriginRequest(
+function requestOrigins(
   request: Request,
-  environment: OriginEnvironment = {
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    AUTH_URL: process.env.AUTH_URL,
-    VERCEL_URL: process.env.VERCEL_URL,
-  },
-): boolean {
+  environment: OriginEnvironment,
+): Set<string> | null {
   const origins = controlledOrigins(environment)
-  if (!origins) return false
+  if (!origins) return null
 
   let requestUrl: URL
   try {
     requestUrl = new URL(request.url)
   } catch {
-    return false
+    return null
   }
-  if (requestUrl.protocol !== "http:" && requestUrl.protocol !== "https:") return false
+  if (requestUrl.protocol !== "http:" && requestUrl.protocol !== "https:") return null
 
   origins.add(requestUrl.origin)
   addLoopbackAliases(origins, requestUrl)
+  return origins
+}
+
+const runtimeOriginEnvironment = (): OriginEnvironment => ({
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  AUTH_URL: process.env.AUTH_URL,
+  VERCEL_URL: process.env.VERCEL_URL,
+})
+
+export function isSameOriginRequest(
+  request: Request,
+  environment: OriginEnvironment = runtimeOriginEnvironment(),
+): boolean {
+  const origins = requestOrigins(request, environment)
+  if (!origins) return false
 
   const originHeader = request.headers.get("origin")
   if (originHeader === null) return true
 
   const origin = parseExactOrigin(originHeader)
   return origin !== null && origins.has(origin)
+}
+
+export function trustedRequestHostnames(
+  request: Request,
+  environment: OriginEnvironment = runtimeOriginEnvironment(),
+): string[] {
+  const origins = requestOrigins(request, environment)
+  if (!origins) return []
+
+  return [...new Set([...origins].map((origin) => new URL(origin).hostname.toLowerCase()))]
 }

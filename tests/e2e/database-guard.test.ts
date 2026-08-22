@@ -1,6 +1,20 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
-import { validateE2eDatabaseEnvironment } from "../../e2e/support/test-database"
+import {
+  createVerifiedDatabaseBoundary,
+  validateE2eDatabaseEnvironment as validateRawE2eDatabaseEnvironment,
+  verifyE2eDatabaseSentinel,
+} from "../../e2e/support/test-database"
+
+const databaseSentinel = "e2e-sentinel-that-is-secret-and-at-least-32-bytes"
+
+const validateE2eDatabaseEnvironment = (
+  environment: Parameters<typeof validateRawE2eDatabaseEnvironment>[0],
+) => validateRawE2eDatabaseEnvironment({
+  productionDatabaseHostname: "production-db.example.net",
+  databaseSentinel,
+  ...environment,
+})
 
 describe("validateE2eDatabaseEnvironment", () => {
   it("returns an isolated PostgreSQL test URL", () => {
@@ -130,14 +144,23 @@ describe("validateE2eDatabaseEnvironment", () => {
     })).toThrow("matches a configured production hostname")
   })
 
-  it("requires an explicit production database hostname in CI", () => {
+  it("requires an explicit production database hostname on every run", () => {
     expect(() => validateE2eDatabaseEnvironment({
       testDatabaseUrl: "postgresql://tester:secret@test-db.example.net/laflabs_e2e",
       databaseUrl: undefined,
       productionSiteUrl: "https://laflabs.co",
       productionDatabaseHostname: undefined,
-      ci: true,
-    })).toThrow("E2E_PRODUCTION_DATABASE_HOSTNAME is required in CI")
+      ci: false,
+    })).toThrow("E2E_PRODUCTION_DATABASE_HOSTNAME is required")
+  })
+
+  it("requires a secret positive database sentinel on every run", () => {
+    expect(() => validateE2eDatabaseEnvironment({
+      testDatabaseUrl: "postgresql://tester:secret@test-db.example.net/laflabs_e2e",
+      databaseUrl: undefined,
+      productionSiteUrl: "https://laflabs.co",
+      databaseSentinel: undefined,
+    })).toThrow("E2E_DATABASE_SENTINEL is required")
   })
 
   it.each([
@@ -189,5 +212,65 @@ describe("validateE2eDatabaseEnvironment", () => {
       databaseUrl: undefined,
       productionSiteUrl: "https://laflabs.co",
     })).toThrow("must be a valid PostgreSQL URL")
+  })
+})
+
+describe("positive E2E database sentinel", () => {
+  it("verifies one exact test-only sentinel row without returning the secret", async () => {
+    const query = async (expected: string) => expected === databaseSentinel ? 1 : 0
+
+    await expect(verifyE2eDatabaseSentinel(databaseSentinel, query)).resolves.toBeUndefined()
+  })
+
+  it("fails closed without leaking the sentinel or raw database error", async () => {
+    const rawError = `database unavailable for ${databaseSentinel}`
+
+    try {
+      await verifyE2eDatabaseSentinel(databaseSentinel, async () => {
+        throw new Error(rawError)
+      })
+      expect.unreachable("sentinel verification must fail closed")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toContain("sentinel verification failed")
+      expect((error as Error).message).not.toContain(databaseSentinel)
+      expect((error as Error).message).not.toContain(rawError)
+    }
+  })
+
+  it("never performs a database read or delete before verification succeeds", async () => {
+    const operation = vi.fn(async () => "read")
+    const boundary = createVerifiedDatabaseBoundary(async () => {
+      throw new Error("sentinel mismatch")
+    })
+
+    await expect(boundary(operation)).rejects.toThrow("sentinel verification failed")
+    expect(operation).not.toHaveBeenCalled()
+  })
+
+  it("verifies once per worker boundary before allowing later operations", async () => {
+    const verify = vi.fn(async () => undefined)
+    const boundary = createVerifiedDatabaseBoundary(verify)
+
+    await expect(boundary(async () => "first")).resolves.toBe("first")
+    await expect(boundary(async () => "second")).resolves.toBe("second")
+    expect(verify).toHaveBeenCalledOnce()
+  })
+
+  it("redacts URL and sentinel details from a post-verification operation failure", async () => {
+    const boundary = createVerifiedDatabaseBoundary(async () => undefined)
+    const rawFailure = `postgresql://user:password@host/database ${databaseSentinel}`
+
+    try {
+      await boundary(async () => {
+        throw new Error(rawFailure)
+      })
+      expect.unreachable("database operation must fail")
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+      expect((error as Error).message).toContain("database operation failed")
+      expect((error as Error).message).not.toContain("postgresql://")
+      expect((error as Error).message).not.toContain(databaseSentinel)
+    }
   })
 })

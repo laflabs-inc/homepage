@@ -7,6 +7,7 @@ import {
   normalizeLocale,
   normalizePath,
   normalizeReferrer,
+  normalizeReferrerHost,
 } from "@/lib/analytics/normalize"
 
 const baseEvent = {
@@ -25,11 +26,21 @@ describe("analytics normalization", () => {
   it("keeps only the hostname from a referrer", () => {
     expect(normalizeReferrer("https://github.com/laflabs-inc/lafetch?q=x")).toBe("github.com")
     expect(normalizeReferrer("not a URL")).toBeNull()
+    expect(normalizeReferrer("ftp://github.com/private")).toBeNull()
   })
 
   it("rejects IPv4 and IPv6 referrer hosts", () => {
     expect(normalizeReferrer("https://192.0.2.10/private?q=x")).toBeNull()
     expect(normalizeReferrer("https://[2001:db8::1]/private?q=x")).toBeNull()
+  })
+
+  it("validates an already-minimized external referrer hostname", () => {
+    expect(normalizeReferrerHost("github.com", ["laflabs.co"])).toBe("github.com")
+    expect(normalizeReferrerHost("LAFLaBs.co", ["laflabs.co"])).toBeNull()
+    expect(normalizeReferrerHost("laflabs.co", ["laflabs.co"])).toBeNull()
+    expect(normalizeReferrerHost("https://github.com/private?q=x", ["laflabs.co"])).toBeNull()
+    expect(normalizeReferrerHost("192.0.2.10", ["laflabs.co"])).toBeNull()
+    expect(normalizeReferrerHost("[2001:db8::1]", ["laflabs.co"])).toBeNull()
   })
 
   it("falls back to English for unsupported locales", () => {
@@ -76,6 +87,27 @@ describe("analytics event schema", () => {
       ...baseEvent,
       type: "page_view",
       targetId: "email",
+    }).success).toBe(false)
+  })
+
+  it("allows a minimized referrer hostname only on page views", () => {
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "page_view",
+      targetId: null,
+      referrerHost: "github.com",
+    }).success).toBe(true)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "github_click",
+      targetId: "lafetch",
+      referrerHost: "github.com",
+    }).success).toBe(false)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "page_view",
+      targetId: null,
+      referrerHost: "https://github.com/private?q=x",
     }).success).toBe(false)
   })
 

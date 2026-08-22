@@ -53,15 +53,17 @@ npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
 npm run build      # production build
 npm test           # all three
-npm run test:e2e   # 8 browser flows on desktop + mobile; isolated DB required
+npm run test:e2e   # 9 browser flows on desktop + mobile; isolated DB required
 ```
 
 Browser tests require a migrated, disposable `TEST_DATABASE_URL`. The runner
 refuses a missing test database, an exact `DATABASE_URL` match, and configured
 production hostnames. Never point Playwright at production. See the
 [analytics operations runbook](docs/analytics-operations.md) for the safe setup.
-CI must set `E2E_PRODUCTION_DATABASE_HOSTNAME` to the production database host;
-the value is compared without credentials and is never sent to the application.
+Every run must set `E2E_PRODUCTION_DATABASE_HOSTNAME` to the production database
+host and `E2E_DATABASE_SENTINEL` to the secret sentinel provisioned only in the
+disposable test database. The hostname is compared without credentials, and
+neither safety value is printed by refusal errors.
 The guard rejects database destination/service/driver override query parameters
 and unknown connection parameters; the allowed Neon-safe query keys are listed
 in the operations runbook.
@@ -75,6 +77,7 @@ require the following server-side environment:
 | --- | --- | --- |
 | `DATABASE_URL` | Environment-specific Neon PostgreSQL connection | Required |
 | `ANALYTICS_HASH_SECRET` | Signs and hashes analytics identity; 32+ bytes | Required |
+| `ANALYTICS_HASH_SECRET_PREVIOUS` | Previous analytics key retained temporarily during rotation | Optional |
 | `AUTH_SECRET` | Encrypts Auth.js sessions; 32+ bytes | Required |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth application | Required |
 | `ADMIN_GITHUB_ORG` | Required active GitHub organization | `laflabs-inc` |

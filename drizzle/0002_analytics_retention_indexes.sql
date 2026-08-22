@@ -1,0 +1,1 @@
+CREATE INDEX "analytics_rate_minute_idx" ON "analytics_rate_windows" USING btree ("minute_bucket");

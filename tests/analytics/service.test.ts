@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { CONSENT_COOKIE, VISITOR_COOKIE, consentCookieValue } from "@/lib/analytics/consent"
-import { createVisitorToken } from "@/lib/analytics/identity"
+import { createVisitorToken, hashAnalyticsId } from "@/lib/analytics/identity"
 import {
   collectAnalyticsBatch,
   deleteExpiredAnalytics,
@@ -19,6 +19,7 @@ const { cookiesMock } = vi.hoisted(() => ({ cookiesMock: vi.fn() }))
 vi.mock("next/headers", () => ({ cookies: cookiesMock }))
 
 const secret = "test-secret-that-is-long-enough-for-hmac"
+const previousSecret = "previous-secret-that-is-long-enough-hmac"
 const visitorId = "8f5c5c8b-54cf-4de1-9a16-4be9b8c0e3d7"
 const visitorToken = createVisitorToken(visitorId, secret)
 const now = new Date("2026-08-22T12:00:30.000Z")
@@ -31,6 +32,7 @@ const validEvent = {
   targetId: null,
   locale: "en",
   occurredAt: "2026-08-22T12:00:00.000Z",
+  referrerHost: "github.com",
 }
 
 const validBatch = { events: [validEvent] }
@@ -39,7 +41,7 @@ const requestContext = {
   consentCookie: consentCookieValue("analytics"),
   visitorToken,
   userAgent: "Mozilla/5.0 (X11; Linux x86_64) private/full/user-agent",
-  referrer: "https://github.com/laflabs-inc/lafetch?q=private#fragment",
+  siteHostnames: ["laflabs.co"],
   now,
 }
 
@@ -137,6 +139,7 @@ const cookieValues = new Map<string, string>()
 
 beforeEach(() => {
   vi.stubEnv("ANALYTICS_HASH_SECRET", secret)
+  vi.stubEnv("ANALYTICS_HASH_SECRET_PREVIOUS", previousSecret)
   cookieValues.clear()
   cookiesMock.mockReset()
   cookiesMock.mockResolvedValue({
@@ -247,6 +250,27 @@ describe("collectAnalyticsBatch", () => {
     expect(fakeStore.rateCalls).toHaveLength(0)
   })
 
+  it("accepts a previous-key visitor under its previous pseudonymous hash", async () => {
+    const fakeStore = new FakeStore()
+    const previousToken = createVisitorToken(visitorId, previousSecret)
+
+    await expect(collectAnalyticsBatch(validBatch, {
+      ...requestContext,
+      visitorToken: previousToken,
+    }, fakeStore)).resolves.toEqual({ status: "accepted", accepted: 1 })
+    expect(fakeStore.events[0]?.visitorHash).toBe(hashAnalyticsId(visitorId, previousSecret))
+  })
+
+  it("drops a submitted same-origin referrer hostname at the server boundary", async () => {
+    const fakeStore = new FakeStore()
+
+    await collectAnalyticsBatch({
+      events: [{ ...validEvent, referrerHost: "laflabs.co" }],
+    }, requestContext, fakeStore)
+
+    expect(fakeStore.events[0]?.referrerHost).toBeNull()
+  })
+
   it("does not load environment configuration when the visitor token is absent", async () => {
     vi.stubEnv("ANALYTICS_HASH_SECRET", "")
     const fakeStore = new FakeStore()
@@ -345,6 +369,29 @@ describe("withdrawal and retention", () => {
 })
 
 describe("analytics event route", () => {
+  it("returns before cookies, body, and storage when DNT is enabled", async () => {
+    cookieValues.set(CONSENT_COOKIE, consentCookieValue("analytics"))
+    cookieValues.set(VISITOR_COOKIE, visitorToken)
+    const fakeStore = new FakeStore()
+    const request = new Request("https://laflabs.co/api/analytics/events", {
+      method: "POST",
+      headers: {
+        dnt: "1",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(validBatch),
+    })
+    const text = vi.spyOn(request, "text")
+
+    const response = await handleAnalyticsEvents(request, fakeStore)
+
+    expect(response.status).toBe(204)
+    expect(cookiesMock).not.toHaveBeenCalled()
+    expect(text).not.toHaveBeenCalled()
+    expect(fakeStore.rateCalls).toEqual([])
+    expect(fakeStore.events).toEqual([])
+  })
+
   it("accepts the external Host origin when Next dev exposes an internal localhost URL", async () => {
     const request = new Request("http://localhost:3200/api/analytics/events", {
       method: "POST",
@@ -527,5 +574,26 @@ describe("analytics event route", () => {
     expect(first.status).toBe(204)
     expect(duplicate.status).toBe(204)
     expect(fakeStore.events).toHaveLength(1)
+  })
+
+  it("ignores the analytics POST Referer header and stores only the minimized page-view field", async () => {
+    cookieValues.set(CONSENT_COOKIE, consentCookieValue("analytics"))
+    cookieValues.set(VISITOR_COOKIE, visitorToken)
+    const fakeStore = new FakeStore()
+    const withoutReferrer = {
+      events: [{ ...validEvent, referrerHost: undefined }],
+    }
+
+    const response = await handleAnalyticsEvents(new Request("https://laflabs.co/api/analytics/events", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        referer: "https://sensitive.example/private/path?token=secret#fragment",
+      },
+      body: JSON.stringify(withoutReferrer),
+    }), fakeStore)
+
+    expect(response.status).toBe(204)
+    expect(fakeStore.events[0]?.referrerHost).toBeNull()
   })
 })

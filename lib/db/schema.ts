@@ -24,7 +24,10 @@ export const analyticsRateWindows = pgTable("analytics_rate_windows", {
   visitorHash: text("visitor_hash").notNull(),
   minuteBucket: timestamp("minute_bucket", { withTimezone: true }).notNull(),
   eventCount: integer("event_count").default(0).notNull(),
-}, (table) => [primaryKey({ columns: [table.visitorHash, table.minuteBucket] })])
+}, (table) => [
+  primaryKey({ columns: [table.visitorHash, table.minuteBucket] }),
+  index("analytics_rate_minute_idx").on(table.minuteBucket),
+])
 
 export const analyticsWithdrawalGuards = pgTable("analytics_withdrawal_guards", {
   visitorHash: text("visitor_hash").primaryKey(),

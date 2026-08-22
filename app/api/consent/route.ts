@@ -5,6 +5,7 @@ import { z } from "zod"
 
 import {
   CONSENT_COOKIE,
+  CONSENT_POLICY_VERSION,
   VISITOR_COOKIE,
   consentCookieOptions,
   consentCookieValue,
@@ -19,6 +20,7 @@ export { isSameOriginRequest }
 
 const consentRequestSchema = z.object({
   choice: z.enum(["essential", "analytics"]),
+  policyVersion: z.string(),
 }).strict()
 
 export async function handleConsent(
@@ -39,6 +41,9 @@ export async function handleConsent(
   const parsed = consentRequestSchema.safeParse(body)
   if (!parsed.success) {
     return Response.json({ error: "invalid_request" }, { status: 400 })
+  }
+  if (parsed.data.policyVersion !== CONSENT_POLICY_VERSION) {
+    return Response.json({ error: "policy_version_mismatch" }, { status: 409 })
   }
 
   const cookieStore = await cookies()

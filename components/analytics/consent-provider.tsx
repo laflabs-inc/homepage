@@ -7,6 +7,8 @@ import { useLocale } from "@/components/i18n/locale-provider"
 import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/client"
 import type { AnalyticsEventType } from "@/lib/analytics/normalize"
 import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
+import { CONSENT_POLICY_VERSION } from "@/lib/analytics/consent"
+import { reloadForConsentPolicyUpdate } from "@/lib/analytics/reload"
 import { ConsentPanel } from "./consent-panel"
 
 type ConsentContextValue = {
@@ -113,8 +115,19 @@ export function ConsentProvider({
       const response = await fetch("/api/consent", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ choice }),
+        body: JSON.stringify({
+          choice,
+          policyVersion: CONSENT_POLICY_VERSION,
+        }),
       })
+      if (response.status === 409) {
+        clientRef.current?.stop()
+        clientRef.current = null
+        setState("unknown")
+        setSettingsOpen(true)
+        reloadForConsentPolicyUpdate()
+        return
+      }
       if (!response.ok) throw new Error("Consent request failed")
 
       const result = await response.json() as { choice: ConsentChoice }

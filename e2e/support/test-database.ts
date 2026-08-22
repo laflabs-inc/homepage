@@ -8,6 +8,7 @@ type E2eDatabaseEnvironment = {
   databaseUrl: string | undefined
   productionSiteUrl: string | undefined
   productionDatabaseHostname?: string | undefined
+  databaseSentinel?: string | undefined
   ci?: boolean
 }
 
@@ -144,7 +145,7 @@ export function validateE2eDatabaseEnvironment({
   databaseUrl,
   productionSiteUrl,
   productionDatabaseHostname,
-  ci = false,
+  databaseSentinel,
 }: E2eDatabaseEnvironment): string {
   const candidate = testDatabaseUrl?.trim()
   if (!candidate) {
@@ -162,8 +163,16 @@ export function validateE2eDatabaseEnvironment({
   }
 
   const productionDatabaseHost = parseProductionDatabaseHostname(productionDatabaseHostname)
-  if (ci && !productionDatabaseHost) {
-    throw new Error(`${REFUSAL_PREFIX}: E2E_PRODUCTION_DATABASE_HOSTNAME is required in CI.`)
+  if (!productionDatabaseHost) {
+    throw new Error(`${REFUSAL_PREFIX}: E2E_PRODUCTION_DATABASE_HOSTNAME is required.`)
+  }
+
+  if (
+    !databaseSentinel ||
+    databaseSentinel.length < 32 ||
+    databaseSentinel !== databaseSentinel.trim()
+  ) {
+    throw new Error(`${REFUSAL_PREFIX}: E2E_DATABASE_SENTINEL is required.`)
   }
 
   const protectedHostnames = [
@@ -176,4 +185,38 @@ export function validateE2eDatabaseEnvironment({
   }
 
   return candidate
+}
+
+const sentinelFailure = (): Error => new Error(
+  `${REFUSAL_PREFIX}: test database sentinel verification failed.`,
+)
+
+export async function verifyE2eDatabaseSentinel(
+  expectedSentinel: string,
+  query: (expectedSentinel: string) => Promise<number>,
+): Promise<void> {
+  try {
+    const matches = await query(expectedSentinel)
+    if (matches !== 1) throw sentinelFailure()
+  } catch {
+    throw sentinelFailure()
+  }
+}
+
+export function createVerifiedDatabaseBoundary(
+  verify: () => Promise<void>,
+): <T>(operation: () => Promise<T>) => Promise<T> {
+  let verification: Promise<void> | null = null
+
+  return async <T>(operation: () => Promise<T>): Promise<T> => {
+    verification ??= verify().catch(() => {
+      throw sentinelFailure()
+    })
+    await verification
+    try {
+      return await operation()
+    } catch {
+      throw new Error(`${REFUSAL_PREFIX}: test database operation failed.`)
+    }
+  }
 }

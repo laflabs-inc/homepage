@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { createVisitorToken } from "@/lib/analytics/identity"
+import { createVisitorToken, hashAnalyticsId } from "@/lib/analytics/identity"
 import {
   WithdrawalFailedError,
   applyConsentChoice,
@@ -10,6 +10,7 @@ import type { AnalyticsStore } from "@/lib/analytics/store"
 import { isSameOriginRequest } from "@/app/api/consent/route"
 
 const secret = "test-secret-that-is-long-enough-for-hmac"
+const previousSecret = "previous-secret-that-is-long-enough-hmac"
 const visitorId = "8f5c5c8b-54cf-4de1-9a16-4be9b8c0e3d7"
 
 class FakeStore implements AnalyticsStore {
@@ -128,6 +129,81 @@ describe("applyConsentChoice", () => {
       dntHonored: false,
       createVisitor: true,
     })
+  })
+
+  it("keeps a current identity without deleting or replacing it", async () => {
+    vi.stubEnv("ANALYTICS_HASH_SECRET", secret)
+    vi.stubEnv("ANALYTICS_HASH_SECRET_PREVIOUS", previousSecret)
+    const fakeStore = new FakeStore()
+
+    await expect(applyConsentChoice({
+      requested: "analytics",
+      dnt: false,
+      visitorToken: createVisitorToken(visitorId, secret),
+    }, fakeStore)).resolves.toEqual({
+      choice: "analytics",
+      dntHonored: false,
+      createVisitor: false,
+    })
+    expect(fakeStore.deletedVisitorHashes).toEqual([])
+  })
+
+  it("deletes a previous-key identity with the previous hash before replacing it", async () => {
+    vi.stubEnv("ANALYTICS_HASH_SECRET", secret)
+    vi.stubEnv("ANALYTICS_HASH_SECRET_PREVIOUS", previousSecret)
+    const fakeStore = new FakeStore()
+
+    await expect(applyConsentChoice({
+      requested: "analytics",
+      dnt: false,
+      visitorToken: createVisitorToken(visitorId, previousSecret),
+    }, fakeStore)).resolves.toEqual({
+      choice: "analytics",
+      dntHonored: false,
+      createVisitor: true,
+    })
+    expect(fakeStore.deletedVisitorHashes).toEqual([
+      hashAnalyticsId(visitorId, previousSecret),
+    ])
+  })
+
+  it("preserves a previous-key identity for retry when its deletion fails", async () => {
+    vi.stubEnv("ANALYTICS_HASH_SECRET", secret)
+    vi.stubEnv("ANALYTICS_HASH_SECRET_PREVIOUS", previousSecret)
+    const fakeStore = new FakeStore()
+    fakeStore.deletionError = new Error("database unavailable")
+
+    await expect(applyConsentChoice({
+      requested: "analytics",
+      dnt: false,
+      visitorToken: createVisitorToken(visitorId, previousSecret),
+    }, fakeStore)).rejects.toBeInstanceOf(WithdrawalFailedError)
+  })
+
+  it("clears or replaces an unidentifiable token without an endless withdrawal failure", async () => {
+    vi.stubEnv("ANALYTICS_HASH_SECRET", secret)
+    vi.stubEnv("ANALYTICS_HASH_SECRET_PREVIOUS", previousSecret)
+    const fakeStore = new FakeStore()
+
+    await expect(applyConsentChoice({
+      requested: "essential",
+      dnt: false,
+      visitorToken: "invalid-token",
+    }, fakeStore)).resolves.toEqual({
+      choice: "essential",
+      dntHonored: false,
+      createVisitor: false,
+    })
+    await expect(applyConsentChoice({
+      requested: "analytics",
+      dnt: false,
+      visitorToken: "invalid-token",
+    }, fakeStore)).resolves.toEqual({
+      choice: "analytics",
+      dntHonored: false,
+      createVisitor: true,
+    })
+    expect(fakeStore.deletedVisitorHashes).toEqual([])
   })
 })
 

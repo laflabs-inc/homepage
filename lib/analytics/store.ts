@@ -1,6 +1,6 @@
 import "server-only"
 
-import { lt, lte, sql } from "drizzle-orm"
+import { sql } from "drizzle-orm"
 
 import { getDb } from "@/lib/db"
 import {
@@ -106,10 +106,31 @@ export async function getAnalyticsSummary(
         "target_id",
         "locale",
         "device_category",
-        "referrer_host"
+        "referrer_host",
+        "occurred_at"
       FROM ${analyticsEvents}
       WHERE ${analyticsEvents.receivedAt} >= ${cutoff}
         AND ${analyticsEvents.receivedAt} <= ${now}
+    -- Consecutive stages at the same occurred_at are intentionally inclusive.
+    ), page_stage AS (
+      SELECT visitor_hash, min(occurred_at) AS page_at
+      FROM selected
+      WHERE event_type = 'page_view'
+      GROUP BY visitor_hash
+    ), product_stage AS (
+      SELECT selected.visitor_hash, min(selected.occurred_at) AS product_at
+      FROM selected
+      INNER JOIN page_stage USING (visitor_hash)
+      WHERE selected.event_type = 'product_click'
+        AND selected.occurred_at >= page_stage.page_at
+      GROUP BY selected.visitor_hash
+    ), contact_stage AS (
+      SELECT selected.visitor_hash, min(selected.occurred_at) AS contact_at
+      FROM selected
+      INNER JOIN product_stage USING (visitor_hash)
+      WHERE selected.event_type = 'contact_click'
+        AND selected.occurred_at >= product_stage.product_at
+      GROUP BY selected.visitor_hash
     ), metrics AS (
       SELECT
         count(DISTINCT visitor_hash)::integer AS "consentedVisitors",
@@ -117,9 +138,9 @@ export async function getAnalyticsSummary(
         count(*) FILTER (WHERE event_type = 'product_click')::integer AS "productClicks",
         count(*) FILTER (WHERE event_type = 'github_click')::integer AS "githubClicks",
         count(*) FILTER (WHERE event_type = 'contact_click')::integer AS "contactClicks",
-        count(DISTINCT visitor_hash) FILTER (WHERE event_type = 'page_view')::integer AS "pageVisitors",
-        count(DISTINCT visitor_hash) FILTER (WHERE event_type = 'product_click')::integer AS "productVisitors",
-        count(DISTINCT visitor_hash) FILTER (WHERE event_type = 'contact_click')::integer AS "contactVisitors"
+        (SELECT count(*)::integer FROM page_stage) AS "pageVisitors",
+        (SELECT count(*)::integer FROM product_stage) AS "productVisitors",
+        (SELECT count(*)::integer FROM contact_stage) AS "contactVisitors"
       FROM selected
     ), locale_rows AS (
       SELECT locale AS key, count(*)::integer AS count
@@ -178,8 +199,8 @@ export async function getAnalyticsSummary(
   `)
   const row = result.rows[0]
   const pageVisitors = toCount(row?.pageVisitors)
-  const productVisitors = toCount(row?.productVisitors)
-  const contactVisitors = toCount(row?.contactVisitors)
+  const productVisitors = Math.min(toCount(row?.productVisitors), pageVisitors)
+  const contactVisitors = Math.min(toCount(row?.contactVisitors), productVisitors)
 
   return {
     rangeDays: range,
@@ -340,18 +361,28 @@ export const analyticsStore: AnalyticsStore = {
 
   async deleteBefore(cutoff, expiredGuardsBefore = new Date()) {
     const database = getDb()
-    const [events, windows] = await database.batch([
-      database.delete(analyticsEvents)
-        .where(lt(analyticsEvents.receivedAt, cutoff))
-        .returning({ id: analyticsEvents.id }),
-      database.delete(analyticsRateWindows)
-        .where(lt(analyticsRateWindows.minuteBucket, cutoff))
-        .returning({ visitorHash: analyticsRateWindows.visitorHash }),
-      database.delete(analyticsWithdrawalGuards)
-        .where(lte(analyticsWithdrawalGuards.expiresAt, expiredGuardsBefore))
-        .returning({ visitorHash: analyticsWithdrawalGuards.visitorHash }),
-    ])
-
-    return { events: events.length, windows: windows.length }
+    const result = await database.execute<{ events: number | string; windows: number | string }>(sql`
+      WITH deleted_events AS (
+        DELETE FROM ${analyticsEvents}
+        WHERE ${analyticsEvents.receivedAt} < ${cutoff}
+        RETURNING 1
+      ), deleted_windows AS (
+        DELETE FROM ${analyticsRateWindows}
+        WHERE ${analyticsRateWindows.minuteBucket} < ${cutoff}
+        RETURNING 1
+      ), deleted_guards AS (
+        DELETE FROM ${analyticsWithdrawalGuards}
+        WHERE ${analyticsWithdrawalGuards.expiresAt} <= ${expiredGuardsBefore}
+        RETURNING 1
+      )
+      SELECT
+        (SELECT count(*)::integer FROM deleted_events) AS events,
+        (SELECT count(*)::integer FROM deleted_windows) AS windows
+    `)
+    const row = result.rows[0]
+    return {
+      events: toCount(row?.events),
+      windows: toCount(row?.windows),
+    }
   },
 }
