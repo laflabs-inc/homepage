@@ -14,7 +14,11 @@ engineering draft, not a legal conclusion.
   the configured production domain. CI must set
   `E2E_PRODUCTION_DATABASE_HOSTNAME` to the exact production database hostname.
   The guard also compares canonical database identity without credentials, URL
-  scheme aliases, or query ordering.
+  scheme aliases, or query ordering. To prevent libpq-style destination
+  overrides from bypassing that comparison, test and protected database URLs
+  may use only `sslmode`, `channel_binding`, `connect_timeout`, and
+  `application_name` query parameters. Parameters that can override host, port,
+  database, service, or driver options—and unknown parameters—fail closed.
 - Keep database URLs, OAuth tokens, cookie values, and all secrets out of logs,
   screenshots, issues, and commits. `.env*` remains ignored except for the
   empty-value `.env.example` template.
@@ -85,6 +89,13 @@ and the canonical `AUTH_URL` is correct; Vercel handles trusted-host inference
 on its managed deployment. `next.config.ts` allows Next development resources
 from `127.0.0.1` and the current ngrok hostname only. The callback registered at
 GitHub must exactly match the origin in use, including scheme and host.
+
+Consent and analytics mutation routes do not trust `Host`, `X-Forwarded-Host`,
+or `X-Forwarded-Proto` as external-origin authority. They accept the request URL
+origin, exact origins configured through `NEXT_PUBLIC_SITE_URL`, `AUTH_URL`, or
+`VERCEL_URL`, and same-port loopback aliases for direct development. Configure
+the canonical tunnel/preview origin explicitly; malformed values and scheme,
+port, subdomain, or lookalike mismatches fail closed.
 
 The application deliberately pins `next-auth@5.0.0-beta.32`. Auth.js v5 is a
 beta dependency; do not loosen the pin or upgrade it through a routine package

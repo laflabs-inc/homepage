@@ -377,6 +377,25 @@ describe("analytics event route", () => {
     expect(text).not.toHaveBeenCalled()
   })
 
+  it("rejects spoofed forwarded origins before reading their bodies", async () => {
+    const fakeStore = new FakeStore()
+    const request = new Request("http://localhost:3200/api/analytics/events", {
+      method: "POST",
+      headers: {
+        Origin: "https://attacker.example",
+        "X-Forwarded-Host": "attacker.example",
+        "X-Forwarded-Proto": "https",
+      },
+      body: JSON.stringify(validBatch),
+    })
+    const text = vi.spyOn(request, "text")
+
+    const response = await handleAnalyticsEvents(request, fakeStore)
+
+    expect(response.status).toBe(403)
+    expect(text).not.toHaveBeenCalled()
+  })
+
   it("returns a no-op before reading a body when consent is absent", async () => {
     const fakeStore = new FakeStore()
     const request = new Request("https://laflabs.co/api/analytics/events", {

@@ -17,12 +17,28 @@ type DatabaseIdentity = {
   databaseName: string
 }
 
+// Keep this allowlist intentionally small. Destination, service, and arbitrary
+// driver options can route a URL somewhere other than the authority/path that
+// the destructive-test guard verifies.
+const ALLOWED_CONNECTION_PARAMETERS = new Set([
+  "application_name",
+  "channel_binding",
+  "connect_timeout",
+  "sslmode",
+])
+
 function normalizeHostname(value: string): string {
   return value.toLowerCase().replace(/\.$/, "")
 }
 
 function invalidDatabaseUrl(name: "TEST_DATABASE_URL" | "DATABASE_URL"): never {
   throw new Error(`${REFUSAL_PREFIX}: ${name} must be a valid PostgreSQL URL.`)
+}
+
+function disallowedConnectionParameter(
+  name: "TEST_DATABASE_URL" | "DATABASE_URL",
+): never {
+  throw new Error(`${REFUSAL_PREFIX}: ${name} contains a disallowed connection parameter.`)
 }
 
 function parsePostgresIdentity(
@@ -40,6 +56,12 @@ function parsePostgresIdentity(
     (parsed.protocol !== "postgres:" && parsed.protocol !== "postgresql:") ||
     !parsed.hostname
   ) return invalidDatabaseUrl(name)
+
+  for (const parameter of parsed.searchParams.keys()) {
+    if (!ALLOWED_CONNECTION_PARAMETERS.has(parameter.toLowerCase())) {
+      return disallowedConnectionParameter(name)
+    }
+  }
 
   const port = parsed.port || "5432"
   const portNumber = Number(port)

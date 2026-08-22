@@ -62,6 +62,9 @@ production hostnames. Never point Playwright at production. See the
 [analytics operations runbook](docs/analytics-operations.md) for the safe setup.
 CI must set `E2E_PRODUCTION_DATABASE_HOSTNAME` to the production database host;
 the value is compared without credentials and is never sent to the application.
+The guard rejects database destination/service/driver override query parameters
+and unknown connection parameters; the allowed Neon-safe query keys are listed
+in the operations runbook.
 
 ## Deployment
 

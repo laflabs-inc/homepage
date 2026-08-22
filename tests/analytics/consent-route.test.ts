@@ -31,7 +31,7 @@ class FailingWithdrawalStore implements AnalyticsStore {
   }
 }
 
-describe("consent route withdrawal failure", () => {
+describe("consent route", () => {
   const cookieValues = new Map<string, string>()
   const setCookie = vi.fn((name: string, value: string) => cookieValues.set(name, value))
   const deleteCookie = vi.fn((name: string) => cookieValues.delete(name))
@@ -72,6 +72,25 @@ describe("consent route withdrawal failure", () => {
     await expect(response.json()).resolves.toEqual({ error: "withdrawal_failed" })
     expect(cookieValues.get(VISITOR_COOKIE)).toBe(visitorToken)
     expect(cookieValues.get(CONSENT_COOKIE)).toBe(consentCookieValue("analytics"))
+    expect(deleteCookie).not.toHaveBeenCalled()
+    expect(setCookie).not.toHaveBeenCalled()
+  })
+
+  it("rejects spoofed forwarded origins before reading cookies", async () => {
+    const response = await handleConsent(new Request("http://localhost:3200/api/consent", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://attacker.example",
+        "x-forwarded-host": "attacker.example",
+        "x-forwarded-proto": "https",
+      },
+      body: JSON.stringify({ choice: "essential" }),
+    }), new FailingWithdrawalStore())
+
+    expect(response.status).toBe(403)
+    await expect(response.json()).resolves.toEqual({ error: "forbidden" })
+    expect(cookiesMock).not.toHaveBeenCalled()
     expect(deleteCookie).not.toHaveBeenCalled()
     expect(setCookie).not.toHaveBeenCalled()
   })

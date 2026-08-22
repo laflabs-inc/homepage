@@ -145,34 +145,88 @@ describe("consent request origin", () => {
     }))).toBe(false)
   })
 
-  it("uses the external Host origin when Next dev exposes an internal localhost URL", () => {
+  it("allows deliberate loopback aliases without trusting the Host header", () => {
     expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
       headers: {
-        Host: "127.0.0.1:3200",
+        Host: "attacker.example",
         Origin: "http://127.0.0.1:3200",
       },
     }))).toBe(true)
   })
 
-  it("uses controlled forwarding headers for the current HTTPS ngrok origin", () => {
+  it("accepts the current HTTPS ngrok origin only from controlled AUTH_URL configuration", () => {
+    vi.stubEnv("AUTH_URL", "https://freebase-shamrock-magnetic.ngrok-free.dev")
+
     expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
       headers: {
         Host: "localhost:3200",
         Origin: "https://freebase-shamrock-magnetic.ngrok-free.dev",
-        "X-Forwarded-Host": "freebase-shamrock-magnetic.ngrok-free.dev",
-        "X-Forwarded-Proto": "https",
       },
     }))).toBe(true)
   })
 
-  it("still rejects an attacker origin when external host headers are present", () => {
+  it("accepts exact production and Vercel preview origins from controlled configuration", () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://laflabs.co/")
+    vi.stubEnv("VERCEL_URL", "homepage-git-main-laflabs.vercel.app")
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: "https://laflabs.co" },
+    }))).toBe(true)
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: "https://homepage-git-main-laflabs.vercel.app" },
+    }))).toBe(true)
+  })
+
+  it("does not grant authority to spoofed forwarded headers", () => {
     expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
       headers: {
         Host: "localhost:3200",
         Origin: "https://attacker.example",
+        "X-Forwarded-Host": "attacker.example",
+        "X-Forwarded-Proto": "https",
+      },
+    }))).toBe(false)
+  })
+
+  it("rejects comma-injected forwarded headers even when their first value matches Origin", () => {
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: {
+        Origin: "https://attacker.example",
+        "X-Forwarded-Host": "attacker.example, laflabs.co",
+        "X-Forwarded-Proto": "https, http",
+      },
+    }))).toBe(false)
+  })
+
+  it("fails closed on malformed controlled origin configuration", () => {
+    vi.stubEnv("AUTH_URL", "https://freebase-shamrock-magnetic.ngrok-free.dev/callback")
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: {
+        Origin: "https://freebase-shamrock-magnetic.ngrok-free.dev",
         "X-Forwarded-Host": "freebase-shamrock-magnetic.ngrok-free.dev",
         "X-Forwarded-Proto": "https",
       },
+    }))).toBe(false)
+  })
+
+  it.each([
+    ["scheme mismatch", "http://freebase-shamrock-magnetic.ngrok-free.dev"],
+    ["port mismatch", "https://freebase-shamrock-magnetic.ngrok-free.dev:444"],
+    ["subdomain lookalike", "https://evil.laflabs.co"],
+    ["suffix lookalike", "https://laflabs.co.attacker.example"],
+  ])("rejects a configured-origin %s", (_label, origin) => {
+    vi.stubEnv("AUTH_URL", "https://freebase-shamrock-magnetic.ngrok-free.dev")
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://laflabs.co")
+
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: origin },
+    }))).toBe(false)
+  })
+
+  it("rejects a loopback alias on a different port", () => {
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: { Origin: "http://127.0.0.1:3201" },
     }))).toBe(false)
   })
 })
