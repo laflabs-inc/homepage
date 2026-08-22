@@ -13,6 +13,7 @@ export function Landing() {
   const locale = useLocale()
   const reduced = useReducedMotion()
   const productStage = useRef<HTMLElement>(null)
+  const manifestoStage = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll()
   const { scrollYProgress: productProgress } = useScroll({
     target: productStage,
@@ -20,6 +21,8 @@ export function Landing() {
   })
   const productX = useTransform(productProgress, [0, 1], ["0vw", "-172vw"])
   const heroY = useTransform(scrollYProgress, [0, 0.16], ["0px", "90px"])
+  const { scrollYProgress: manifestoProgress } = useScroll({ target: manifestoStage, offset: ["start end", "end start"] })
+  const manifestoX = useTransform(manifestoProgress, [0, 1], ["28px", "-28px"])
   const t = copy[locale]
   const ko = locale === "ko"
   const reveal = (delay = 0) => ({
@@ -46,10 +49,10 @@ export function Landing() {
       <a className="hero-scroll mono" href="#products"><ArrowDown size={16} /> SELECTED PRODUCTS</a>
     </section>
 
-    <section className="manifesto">
+    <section className="manifesto" ref={manifestoStage}>
       <p className="section-no mono">01 / COMPANY</p>
       <motion.h2 {...reveal()}>{ko ? <>우리는 하나의 분야가 아니라,<br /><em>필요한 것</em>을 만듭니다.</> : <>We don&apos;t build for one category.<br />We build <em>what is needed.</em></>}</motion.h2>
-      <div className="manifesto-copy"><p>{ko ? "아이덴티티, 결제, 클라우드에서 오픈소스까지. 서로 다른 문제를 하나의 태도로 해결합니다." : "From identity, payments, and cloud to open source. Different problems, solved with one point of view."}</p><span className="mono">BUILD QUIETLY.<br />WORK RELIABLY.</span></div>
+      <motion.div className="manifesto-copy" style={{ x: reduced ? 0 : manifestoX }}><p>{ko ? "아이덴티티, 결제, 클라우드에서 오픈소스까지. 서로 다른 문제를 하나의 태도로 해결합니다." : "From identity, payments, and cloud to open source. Different problems, solved with one point of view."}</p><span className="mono">BUILD QUIETLY.<br />WORK RELIABLY.</span></motion.div>
     </section>
 
     <section className="product-stage" id="products" ref={productStage}>
