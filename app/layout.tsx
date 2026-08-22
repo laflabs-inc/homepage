@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next"
 import localFont from "next/font/local"
 import { cookies, headers } from "next/headers"
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
@@ -57,7 +59,11 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
-  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  icons: {
+    icon: [{ url: "/laflabs-logo.png", type: "image/png", sizes: "460x460" }],
+    shortcut: ["/laflabs-logo.png"],
+    apple: [{ url: "/laflabs-logo.png", type: "image/png", sizes: "460x460" }],
+  },
 }
 
 export const viewport: Viewport = {
@@ -109,6 +115,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </ConsentProvider>
         </LocaleProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
