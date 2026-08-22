@@ -7,5 +7,9 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+/playwright-report/
+/test-results/
+/blob-report/
 .DS_Store
 npm-debug.log*
+.worktrees/

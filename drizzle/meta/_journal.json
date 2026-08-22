@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787372753762,
+      "tag": "0000_analytics_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787376340429,
+      "tag": "0001_rare_absorbing_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787391133107,
+      "tag": "0002_analytics_retention_indexes",
+      "breakpoints": true
+    }
+  ]
+}

@@ -2,9 +2,18 @@ import type { Metadata, Viewport } from "next"
 import localFont from "next/font/local"
 import { cookies, headers } from "next/headers"
 
+import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
+import {
+  CONSENT_COOKIE,
+  VISITOR_COOKIE,
+  parseConsentCookie,
+  resolveInitialConsentState,
+} from "@/lib/analytics/consent"
+import type { ConsentState } from "@/lib/analytics/types"
 import { siteUrl } from "@/lib/content"
 import { defaultLocale, LOCALE_COOKIE, pickLocale, type Locale } from "@/lib/i18n"
+import { getAnalyticsEnv } from "@/lib/env"
 import "./globals.css"
 
 const geistSans = localFont({
@@ -52,15 +61,14 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1120" },
-  ],
+  colorScheme: "light",
+  themeColor: "#f8fafc",
 }
 
-async function resolveLocale(): Promise<Locale> {
-  const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()])
-
+function resolveLocale(
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
+  requestHeaders: Awaited<ReturnType<typeof headers>>,
+): Locale {
   const saved = pickLocale(cookieStore.get(LOCALE_COOKIE)?.value)
   if (saved) return saved
 
@@ -72,17 +80,35 @@ async function resolveLocale(): Promise<Locale> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const initialLocale = await resolveLocale()
+  const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()])
+  const initialLocale = resolveLocale(cookieStore, requestHeaders)
+  const dnt = requestHeaders.get("dnt") === "1"
+  const consentCookie = cookieStore.get(CONSENT_COOKIE)?.value
+  const savedConsent = parseConsentCookie(consentCookie)?.choice
+  let initialState: ConsentState = savedConsent ?? "unknown"
+  if (savedConsent === "analytics") {
+    try {
+      const environment = getAnalyticsEnv()
+      initialState = resolveInitialConsentState({
+        consentCookie,
+        visitorToken: cookieStore.get(VISITOR_COOKIE)?.value,
+        dnt,
+        currentSecret: environment.ANALYTICS_HASH_SECRET,
+        previousSecret: environment.ANALYTICS_HASH_SECRET_PREVIOUS,
+      })
+    } catch {
+      initialState = "unknown"
+    }
+  }
 
   return (
-    <html lang={initialLocale} suppressHydrationWarning>
-      <head>
-        {/* Same-origin initializer; must run during parsing to avoid a theme flash. */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script id="laf-theme-init" src="/theme-init.js" suppressHydrationWarning />
-      </head>
+    <html lang={initialLocale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
+        <LocaleProvider initialLocale={initialLocale}>
+          <ConsentProvider initialState={initialState} dnt={dnt}>
+            {children}
+          </ConsentProvider>
+        </LocaleProvider>
       </body>
     </html>
   )

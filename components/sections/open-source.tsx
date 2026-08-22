@@ -14,14 +14,7 @@ export function OpenSource() {
   return (
     <section className="section section-alt" id="open-source">
       <div className="shell">
-        <Reveal>
-          <div className="label">
-            <span>{t.eyebrow}</span>
-            <span>0{repositories.length}</span>
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.06} className="section-head">
+        <Reveal className="section-head">
           <h2 className="display-sm section-head-title">
             {t.title[0]}
             <br />

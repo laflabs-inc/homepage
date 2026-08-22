@@ -1,0 +1,15 @@
+{
+  "category": "logo-reveal",
+  "duration_s": 6,
+  "fps": 30,
+  "canvas": { "w": 1080, "h": 1080, "aspect": "1:1" },
+  "style": "Swiss technical system diagram, square geometry, quiet confidence",
+  "palette": ["#2563EB", "#1E40AF", "#0F172A", "#F8FAFC"],
+  "font": "Pretendard",
+  "beats": [0.2, 0.8, 1.4, 2.2, 3.4, 5.4],
+  "export": "mp4",
+  "asset_needs": [{ "role": "hero", "kind": "logo", "source": "assets/laflabs-logo.png", "treatment": "none" }],
+  "block": "logo-outro",
+  "customize": { "geometry": "square", "assembly": "three product nodes converge into the exact homepage hero square", "remove": ["symbol", "glow", "rounded URL pill", "exit motion"] },
+  "content": { "logo": "top-left typographic LAF", "tagline": "SOFTWARE", "url": "SEOUL / KR" }
+}

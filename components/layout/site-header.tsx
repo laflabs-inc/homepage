@@ -1,58 +1,45 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Moon, Sun } from "@phosphor-icons/react/dist/ssr"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { Logo } from "@/components/ui/logo"
-import { copy, githubOrg } from "@/lib/content"
+import { contactEmail, copy, githubOrg } from "@/lib/content"
 import { locales } from "@/lib/i18n"
-
-/**
- * Both icons render; CSS picks the visible one from the `.dark` class on
- * <html>. Keeping the current theme out of React state means there is no
- * server/client mismatch to reconcile and no flash on hydration.
- */
-function ThemeToggle() {
-  function toggle() {
-    const next = document.documentElement.classList.contains("dark") ? "light" : "dark"
-    document.documentElement.classList.toggle("dark", next === "dark")
-    document.cookie = `laf_theme=${next}; path=/; max-age=31536000; samesite=lax`
-  }
-
-  return (
-    <button type="button" className="icon-toggle" onClick={toggle} aria-label="Toggle colour theme">
-      <Moon size={16} weight="bold" className="theme-icon theme-icon-light" />
-      <Sun size={16} weight="bold" className="theme-icon theme-icon-dark" />
-    </button>
-  )
-}
 
 function LanguageToggle() {
   const locale = useLocale()
   const setLocale = useSetLocale()
+  const reduced = useReducedMotion()
 
   return (
     <div className="lang-toggle" role="group" aria-label="Language">
-      {locales.map((value) => (
-        <button
-          key={value}
-          type="button"
-          data-active={value === locale}
-          aria-pressed={value === locale}
-          onClick={() => setLocale(value)}
-        >
-          {value === locale && (
-            <motion.span
-              layoutId="lang-thumb"
-              className="lang-thumb"
-              transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            />
-          )}
-          <span style={{ position: "relative", zIndex: 1 }}>{value.toUpperCase()}</span>
-        </button>
-      ))}
+      <motion.span
+        className="lang-thumb"
+        aria-hidden="true"
+        initial={false}
+        animate={{ x: locale === "ko" ? 0 : 34 }}
+        transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 38 }}
+      />
+      {locales.map((value) => {
+        const active = value === locale
+        return (
+          <button
+            key={value}
+            type="button"
+            data-analytics-event={active ? undefined : "locale_change"}
+            data-analytics-target={active ? undefined : value}
+            data-active={active}
+            aria-pressed={active}
+            onClick={() => {
+              if (!active) setLocale(value)
+            }}
+          >
+            <span>{value.toUpperCase()}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -80,18 +67,23 @@ export function SiteHeader() {
           <a href="#products">{t.products}</a>
           <a href="#open-source">{t.open}</a>
           <a href="#principles">{t.principles}</a>
-          <a href="#contact">{t.contact}</a>
+          <a
+            href={`mailto:${contactEmail}`}
+            data-analytics-event="contact_click"
+            data-analytics-target="email"
+          >{t.contact}</a>
         </nav>
 
         <div className="header-actions">
           <LanguageToggle />
-          <ThemeToggle />
           <a
             href={githubOrg}
             target="_blank"
             rel="noreferrer noopener"
             className="icon-toggle"
             aria-label="LafLabs on GitHub"
+            data-analytics-event="github_click"
+            data-analytics-target="laflabs-inc"
           >
             <GithubGlyph />
           </a>

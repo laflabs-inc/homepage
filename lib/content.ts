@@ -1,7 +1,7 @@
 import type { Locale } from "@/lib/i18n"
 
-export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.com"
-export const contactEmail = "hello@laflabs.com"
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.co"
+export const contactEmail = "contact@laflabs.co"
 export const githubOrg = "https://github.com/laflabs-inc"
 
 /** Language-independent facts. Kept out of the copy tables so the two
@@ -24,7 +24,7 @@ export const stack = [
 ] as const
 
 export const products = [
-  { id: "laf-id", name: "Laf ID", href: "https://id.laflabs.com", domain: "id.laflabs.com" },
+  { id: "laf-id", name: "Laf ID", href: null, domain: "id.laflabs.com" },
   { id: "laf-pay", name: "Laf Pay", href: null, domain: "pay.laflabs.com" },
   { id: "lafdock", name: "LafDock", href: null, domain: "lafdock.com" },
 ] as const
@@ -52,39 +52,34 @@ type ProductCopy = {
 type Copy = {
   nav: { products: string; open: string; principles: string; contact: string }
   hero: {
-    overline: string
     titleQuiet: string
     titleLoud: string
     lede: string
     primary: string
     secondary: string
-    scroll: string
   }
   /** Split into words for the scroll-driven reveal. */
   statement: { eyebrow: string; words: readonly string[]; footnote: string }
   stripLabel: string
   products: {
-    eyebrow: string
     title: readonly [string, string]
     lede: string
     visit: string
     soon: string
   } & Record<ProductId, ProductCopy>
   open: {
-    eyebrow: string
     title: readonly [string, string]
     lede: string
     all: string
     descriptions: Record<RepoName, string>
   }
   principles: {
-    eyebrow: string
     title: readonly [string, string]
     lede: string
     items: readonly { key: string; body: string }[]
   }
-  name: { eyebrow: string; laf: string; labs: string; note: string }
-  cta: { eyebrow: string; title: readonly [string, string]; lede: string; mail: string; github: string }
+  name: { laf: string; labs: string; note: string }
+  cta: { title: readonly [string, string]; lede: string; mail: string; github: string }
   footer: {
     blurb: string
     products: string
@@ -93,19 +88,18 @@ type Copy = {
     links: { principles: string; contact: string; github: string }
     rights: string
     location: string
+    cookieSettings: string
   }
 }
 
 const ko: Copy = {
   nav: { products: "제품", open: "오픈소스", principles: "원칙", contact: "문의" },
   hero: {
-    overline: "LafLabs Inc. — Seoul, South Korea",
     titleQuiet: "보이지 않는",
     titleLoud: "인프라를 만듭니다",
     lede: "신원, 결제, 클라우드. 세 겹의 인프라를 하나의 경험으로 잇습니다. 복잡함은 우리가 갖고, 쓰는 사람에게는 단순함만 남깁니다.",
     primary: "제품 살펴보기",
     secondary: "GitHub",
-    scroll: "아래로",
   },
   statement: {
     eyebrow: "우리가 믿는 것",
@@ -114,7 +108,6 @@ const ko: Copy = {
   },
   stripLabel: "우리가 쓰는 것",
   products: {
-    eyebrow: "제품",
     title: ["세 겹의 인프라,", "하나의 규칙."],
     lede: "신원, 결제, 인프라는 결국 한 코드베이스 안에서 만납니다. 하나를 익히면 나머지도 예측할 수 있도록 같은 규칙 위에 올렸습니다.",
     visit: "바로가기",
@@ -142,7 +135,6 @@ const ko: Copy = {
     },
   },
   open: {
-    eyebrow: "오픈소스",
     title: ["필요해서 만들었고,", "쓸 만해져서 열었습니다."],
     lede: "전부 제품을 만들다 막혀서 직접 만든 것들입니다. 우리가 실제로 운영에 쓰고 있고, 그래서 계속 고쳐집니다.",
     all: "GitHub에서 전체 보기",
@@ -153,7 +145,6 @@ const ko: Copy = {
     },
   },
   principles: {
-    eyebrow: "원칙",
     title: ["조용히 만들고,", "확실하게 돌아가게."],
     lede: "빠르게 만드는 방법은 많지만 오래 가는 방법은 적습니다. 우리는 매번 후자를 고릅니다.",
     items: [
@@ -165,13 +156,11 @@ const ko: Copy = {
     ],
   },
   name: {
-    eyebrow: "이름에 대하여",
     laf: "재미있는 이야기, 웃음",
     labs: "만들고 실험하는 곳",
     note: "이름은 가볍게 지었지만 만드는 방식은 그렇지 않습니다. 재미있는 걸 만들려면 그 아래가 지루할 만큼 튼튼해야 한다고 믿습니다. 잘 만든 인프라는 눈에 띄지 않고, 그래서 사람들은 그 위에서 마음껏 놀 수 있습니다.",
   },
   cta: {
-    eyebrow: "함께하기",
     title: ["같이 만들 사람을", "찾고 있습니다."],
     lede: "제품 도입, 기술 협업, 합류 문의 모두 환영합니다. 편하게 메일 주세요.",
     mail: "메일 보내기",
@@ -185,19 +174,18 @@ const ko: Copy = {
     links: { principles: "원칙", contact: "문의하기", github: "GitHub" },
     rights: "All rights reserved.",
     location: "Seoul, South Korea",
+    cookieSettings: "쿠키 설정",
   },
 }
 
 const en: Copy = {
   nav: { products: "Products", open: "Open source", principles: "Principles", contact: "Contact" },
   hero: {
-    overline: "LafLabs Inc. — Seoul, South Korea",
     titleQuiet: "We build the",
     titleLoud: "invisible parts",
     lede: "Identity, payments, cloud. Three layers of infrastructure connected into one experience. We keep the complexity; everyone building on top of it gets the simple part.",
     primary: "See the products",
     secondary: "GitHub",
-    scroll: "Scroll",
   },
   statement: {
     eyebrow: "What we believe",
@@ -206,7 +194,6 @@ const en: Copy = {
   },
   stripLabel: "WHAT WE BUILD WITH",
   products: {
-    eyebrow: "Products",
     title: ["Three layers.", "One set of rules."],
     lede: "Identity, payments, and infrastructure always end up in the same codebase. Ours are built on shared conventions, so learning one tells you how the others behave.",
     visit: "Visit",
@@ -234,7 +221,6 @@ const en: Copy = {
     },
   },
   open: {
-    eyebrow: "Open source",
     title: ["Built because we needed it.", "Opened once it earned its keep."],
     lede: "Every one of these started as something that blocked us while building a product. We run them in production, which is why they keep improving.",
     all: "See everything on GitHub",
@@ -245,7 +231,6 @@ const en: Copy = {
     },
   },
   principles: {
-    eyebrow: "Principles",
     title: ["Build quietly.", "Work reliably."],
     lede: "There are many ways to build something fast and far fewer that last. We pick the second kind every time.",
     items: [
@@ -257,13 +242,11 @@ const en: Copy = {
     ],
   },
   name: {
-    eyebrow: "About the name",
     laf: "a good story, a laugh",
     labs: "where things get built",
     note: "The name is lighthearted; the engineering underneath is not. Building something fun requires a foundation boring enough to be trusted. Good infrastructure goes unnoticed — which is exactly what gives everyone above it room to play.",
   },
   cta: {
-    eyebrow: "Get in touch",
     title: ["We're looking for people", "to build this with."],
     lede: "Product questions, technical partnerships, or joining the team — all welcome. Just send us a note.",
     mail: "Send an email",
@@ -277,6 +260,7 @@ const en: Copy = {
     links: { principles: "Principles", contact: "Contact", github: "GitHub" },
     rights: "All rights reserved.",
     location: "Seoul, South Korea",
+    cookieSettings: "Cookie settings",
   },
 }
 

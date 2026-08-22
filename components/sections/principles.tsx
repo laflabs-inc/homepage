@@ -15,14 +15,7 @@ export function Principles() {
   return (
     <section className="section" id="principles">
       <div className="shell">
-        <Reveal>
-          <div className="label">
-            <span>{t.eyebrow}</span>
-            <span>0{t.items.length}</span>
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.06} className="section-head">
+        <Reveal className="section-head">
           <h2 className="display section-head-title">
             {t.title[0]}
             <br />

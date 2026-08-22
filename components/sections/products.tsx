@@ -14,14 +14,7 @@ export function Products() {
   return (
     <section className="section" id="products">
       <div className="shell">
-        <Reveal>
-          <div className="label">
-            <span>{t.eyebrow}</span>
-            <span>03</span>
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.06} className="section-head">
+        <Reveal className="section-head">
           <h2 className="display section-head-title">
             {t.title[0]}
             <br />
@@ -31,21 +24,13 @@ export function Products() {
         </Reveal>
 
         <RevealGroup className="product-list" stagger={0.1}>
-          {products.map((product, index) => {
+          {products.map((product) => {
             const c = t[product.id]
 
             return (
               <motion.article key={product.id} className="product-row" variants={revealItem}>
-                <span className="product-ghost" aria-hidden="true">
-                  {product.name}
-                </span>
-
-                <div className="product-index">
-                  0{index + 1}
-                  <small>{c.layer}</small>
-                </div>
-
                 <div className="product-headline">
+                  <span className="product-layer">{c.layer}</span>
                   <h3>{product.name}</h3>
                   <p>{c.tagline}</p>
                 </div>

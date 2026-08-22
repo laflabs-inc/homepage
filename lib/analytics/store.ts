@@ -1,0 +1,388 @@
+import "server-only"
+
+import { sql } from "drizzle-orm"
+
+import { getDb } from "@/lib/db"
+import {
+  analyticsEvents,
+  analyticsRateWindows,
+  analyticsWithdrawalGuards,
+} from "@/lib/db/schema"
+import type {
+  AnalyticsEventType,
+  AnalyticsLocale,
+  DeviceCategory,
+} from "@/lib/analytics/normalize"
+import { products, repositories } from "@/lib/content"
+
+const WITHDRAWAL_GUARD_TTL_MS = 10 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+export type AnalyticsRange = 7 | 30 | 90
+
+export type AnalyticsCountRow = {
+  key: string
+  count: number
+}
+
+export type AnalyticsSummary = {
+  rangeDays: AnalyticsRange
+  consentedVisitors: number
+  pageViews: number
+  productClicks: number
+  githubClicks: number
+  contactClicks: number
+  funnel: {
+    pageVisitors: number
+    productVisitors: number
+    contactVisitors: number
+    pageToProduct: number
+    productToContact: number
+  }
+  locales: AnalyticsCountRow[]
+  devices: AnalyticsCountRow[]
+  referrers: AnalyticsCountRow[]
+  products: AnalyticsCountRow[]
+  githubTargets: AnalyticsCountRow[]
+}
+
+type AnalyticsSummaryRow = {
+  consentedVisitors: number | string
+  pageViews: number | string
+  productClicks: number | string
+  githubClicks: number | string
+  contactClicks: number | string
+  pageVisitors: number | string
+  productVisitors: number | string
+  contactVisitors: number | string
+  locales: unknown
+  devices: unknown
+  referrers: unknown
+  products: unknown
+  githubTargets: unknown
+}
+
+const productTargets = products.map(({ id }) => id)
+const repositoryTargets = ["laflabs-inc", ...repositories.map(({ name }) => name)]
+
+export function parseAnalyticsRange(value: string | readonly string[] | undefined): AnalyticsRange {
+  if (value === "7" || value === "30" || value === "90") return Number(value) as AnalyticsRange
+  return 30
+}
+
+function toCount(value: number | string | undefined): number {
+  const count = Number(value ?? 0)
+  return Number.isFinite(count) && count >= 0 ? count : 0
+}
+
+function toCountRows(value: unknown): AnalyticsCountRow[] {
+  if (!Array.isArray(value)) return []
+
+  return value.flatMap((row) => {
+    if (typeof row !== "object" || row === null) return []
+    const { key, count } = row as { key?: unknown; count?: unknown }
+    if (typeof key !== "string") return []
+    const normalizedCount = toCount(typeof count === "string" || typeof count === "number" ? count : undefined)
+    return [{ key, count: normalizedCount }]
+  })
+}
+
+function conversionRate(numerator: number, denominator: number): number {
+  if (denominator === 0) return 0
+  return Math.round((numerator / denominator) * 10_000) / 10_000
+}
+
+export async function getAnalyticsSummary(
+  range: AnalyticsRange,
+  now: Date,
+): Promise<AnalyticsSummary> {
+  const cutoff = new Date(now.getTime() - range * DAY_MS)
+  const database = getDb()
+  const result = await database.execute<AnalyticsSummaryRow>(sql`
+    WITH selected AS (
+      SELECT
+        "visitor_hash",
+        "event_type",
+        "target_id",
+        "locale",
+        "device_category",
+        "referrer_host",
+        "occurred_at"
+      FROM ${analyticsEvents}
+      WHERE ${analyticsEvents.receivedAt} >= ${cutoff}
+        AND ${analyticsEvents.receivedAt} <= ${now}
+    -- Consecutive stages at the same occurred_at are intentionally inclusive.
+    ), page_stage AS (
+      SELECT visitor_hash, min(occurred_at) AS page_at
+      FROM selected
+      WHERE event_type = 'page_view'
+      GROUP BY visitor_hash
+    ), product_stage AS (
+      SELECT selected.visitor_hash, min(selected.occurred_at) AS product_at
+      FROM selected
+      INNER JOIN page_stage USING (visitor_hash)
+      WHERE selected.event_type = 'product_click'
+        AND selected.occurred_at >= page_stage.page_at
+      GROUP BY selected.visitor_hash
+    ), contact_stage AS (
+      SELECT selected.visitor_hash, min(selected.occurred_at) AS contact_at
+      FROM selected
+      INNER JOIN product_stage USING (visitor_hash)
+      WHERE selected.event_type = 'contact_click'
+        AND selected.occurred_at >= product_stage.product_at
+      GROUP BY selected.visitor_hash
+    ), metrics AS (
+      SELECT
+        count(DISTINCT visitor_hash)::integer AS "consentedVisitors",
+        count(*) FILTER (WHERE event_type = 'page_view')::integer AS "pageViews",
+        count(*) FILTER (WHERE event_type = 'product_click')::integer AS "productClicks",
+        count(*) FILTER (WHERE event_type = 'github_click')::integer AS "githubClicks",
+        count(*) FILTER (WHERE event_type = 'contact_click')::integer AS "contactClicks",
+        (SELECT count(*)::integer FROM page_stage) AS "pageVisitors",
+        (SELECT count(*)::integer FROM product_stage) AS "productVisitors",
+        (SELECT count(*)::integer FROM contact_stage) AS "contactVisitors"
+      FROM selected
+    ), locale_rows AS (
+      SELECT locale AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'page_view' AND locale IN ('ko', 'en')
+      GROUP BY locale
+    ), device_rows AS (
+      SELECT device_category AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'page_view'
+        AND device_category IN ('desktop', 'mobile', 'tablet', 'unknown')
+      GROUP BY device_category
+    ), referrer_rows AS (
+      SELECT referrer_host AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'page_view' AND referrer_host IS NOT NULL
+      GROUP BY referrer_host
+      ORDER BY count DESC, referrer_host ASC
+      LIMIT 10
+    ), product_rows AS (
+      SELECT target_id AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'product_click'
+        AND target_id IN (${sql.join(productTargets.map((target) => sql`${target}`), sql`, `)})
+      GROUP BY target_id
+    ), github_rows AS (
+      SELECT target_id AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'github_click'
+        AND target_id IN (${sql.join(repositoryTargets.map((target) => sql`${target}`), sql`, `)})
+      GROUP BY target_id
+    )
+    SELECT
+      metrics.*,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM locale_rows),
+        '[]'::jsonb
+      ) AS locales,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM device_rows),
+        '[]'::jsonb
+      ) AS devices,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM referrer_rows),
+        '[]'::jsonb
+      ) AS referrers,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM product_rows),
+        '[]'::jsonb
+      ) AS products,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM github_rows),
+        '[]'::jsonb
+      ) AS "githubTargets"
+    FROM metrics
+  `)
+  const row = result.rows[0]
+  const pageVisitors = toCount(row?.pageVisitors)
+  const productVisitors = Math.min(toCount(row?.productVisitors), pageVisitors)
+  const contactVisitors = Math.min(toCount(row?.contactVisitors), productVisitors)
+
+  return {
+    rangeDays: range,
+    consentedVisitors: toCount(row?.consentedVisitors),
+    pageViews: toCount(row?.pageViews),
+    productClicks: toCount(row?.productClicks),
+    githubClicks: toCount(row?.githubClicks),
+    contactClicks: toCount(row?.contactClicks),
+    funnel: {
+      pageVisitors,
+      productVisitors,
+      contactVisitors,
+      pageToProduct: conversionRate(productVisitors, pageVisitors),
+      productToContact: conversionRate(contactVisitors, productVisitors),
+    },
+    locales: toCountRows(row?.locales),
+    devices: toCountRows(row?.devices),
+    referrers: toCountRows(row?.referrers),
+    products: toCountRows(row?.products),
+    githubTargets: toCountRows(row?.githubTargets),
+  }
+}
+
+export type StoredAnalyticsEvent = {
+  eventId: string
+  visitorHash: string
+  sessionHash: string
+  eventType: AnalyticsEventType
+  pathname: string
+  targetId: string | null
+  locale: AnalyticsLocale
+  deviceCategory: DeviceCategory
+  referrerHost: string | null
+  occurredAt: Date
+  receivedAt: Date
+}
+
+export type AnalyticsStoreCollectionResult =
+  | { status: "accepted"; accepted: number }
+  | { status: "guarded" | "rate_limited"; accepted: 0 }
+
+export interface AnalyticsStore {
+  collectEvents(
+    visitorHash: string,
+    minute: Date,
+    events: StoredAnalyticsEvent[],
+  ): Promise<AnalyticsStoreCollectionResult>
+  withdrawVisitorAnalytics(visitorHash: string): Promise<void>
+  deleteBefore(
+    cutoff: Date,
+    expiredGuardsBefore?: Date,
+  ): Promise<{ events: number; windows: number }>
+}
+
+export const analyticsStore: AnalyticsStore = {
+  async collectEvents(visitorHash, minute, events) {
+    if (events.length < 1 || events.length > 60) {
+      return { status: "rate_limited", accepted: 0 }
+    }
+
+    const eventValues = sql.join(events.map((event) => sql`(
+      ${event.eventId}::uuid,
+      ${visitorHash}::text,
+      ${event.sessionHash}::text,
+      ${event.eventType}::text,
+      ${event.pathname}::text,
+      ${event.targetId}::text,
+      ${event.locale}::text,
+      ${event.deviceCategory}::text,
+      ${event.referrerHost}::text,
+      ${event.occurredAt}::timestamptz,
+      ${event.receivedAt}::timestamptz
+    )`), sql`, `)
+    const database = getDb()
+    const [, collection] = await database.batch([
+      database.execute(sql`
+        SELECT pg_advisory_xact_lock(hashtextextended(${visitorHash}, 0))
+      `),
+      database.execute<{ status: "accepted" | "guarded" | "rate_limited"; accepted: number }>(sql`
+        WITH eligible AS (
+          SELECT 1 AS allowed
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM ${analyticsWithdrawalGuards}
+            WHERE ${analyticsWithdrawalGuards.visitorHash} = ${visitorHash}
+              AND ${analyticsWithdrawalGuards.expiresAt} > statement_timestamp()
+          )
+        ), rate_window AS (
+          INSERT INTO ${analyticsRateWindows} ("visitor_hash", "minute_bucket", "event_count")
+          SELECT ${visitorHash}, ${minute}, ${events.length}
+          FROM eligible
+          ON CONFLICT ("visitor_hash", "minute_bucket") DO UPDATE
+          SET "event_count" = ${analyticsRateWindows.eventCount} + ${events.length}
+          WHERE ${analyticsRateWindows.eventCount} + ${events.length} <= 60
+          RETURNING "visitor_hash"
+        ), event_input (
+          "event_id", "visitor_hash", "session_hash", "event_type", "pathname",
+          "target_id", "locale", "device_category", "referrer_host", "occurred_at", "received_at"
+        ) AS (
+          VALUES ${eventValues}
+        ), inserted AS (
+          INSERT INTO ${analyticsEvents} (
+            "event_id", "visitor_hash", "session_hash", "event_type", "pathname",
+            "target_id", "locale", "device_category", "referrer_host", "occurred_at", "received_at"
+          )
+          SELECT event_input.*
+          FROM event_input
+          WHERE EXISTS (SELECT 1 FROM rate_window)
+          ON CONFLICT ("event_id") DO NOTHING
+          RETURNING "event_id"
+        )
+        SELECT
+          CASE
+            WHEN NOT EXISTS (SELECT 1 FROM eligible) THEN 'guarded'
+            WHEN NOT EXISTS (SELECT 1 FROM rate_window) THEN 'rate_limited'
+            ELSE 'accepted'
+          END AS status,
+          (SELECT count(*)::integer FROM inserted) AS accepted
+      `),
+    ])
+    const result = collection.rows[0]
+
+    if (result.status === "accepted") {
+      return { status: "accepted", accepted: Number(result.accepted) }
+    }
+    return { status: result.status, accepted: 0 }
+  },
+
+  async withdrawVisitorAnalytics(visitorHash) {
+    const database = getDb()
+    await database.batch([
+      database.execute(sql`
+        SELECT pg_advisory_xact_lock(hashtextextended(${visitorHash}, 0))
+      `),
+      database.execute(sql`
+        WITH guard AS (
+          INSERT INTO ${analyticsWithdrawalGuards} ("visitor_hash", "expires_at")
+          VALUES (
+            ${visitorHash},
+            statement_timestamp() + ${WITHDRAWAL_GUARD_TTL_MS} * INTERVAL '1 millisecond'
+          )
+          ON CONFLICT ("visitor_hash") DO UPDATE
+          SET "expires_at" = EXCLUDED."expires_at"
+          RETURNING "visitor_hash"
+        ), deleted_events AS (
+          DELETE FROM ${analyticsEvents}
+          WHERE ${analyticsEvents.visitorHash} = (SELECT "visitor_hash" FROM guard)
+          RETURNING "event_id"
+        ), deleted_windows AS (
+          DELETE FROM ${analyticsRateWindows}
+          WHERE ${analyticsRateWindows.visitorHash} = (SELECT "visitor_hash" FROM guard)
+          RETURNING "visitor_hash"
+        )
+        SELECT 1
+      `),
+    ])
+  },
+
+  async deleteBefore(cutoff, expiredGuardsBefore = new Date()) {
+    const database = getDb()
+    const result = await database.execute<{ events: number | string; windows: number | string }>(sql`
+      WITH deleted_events AS (
+        DELETE FROM ${analyticsEvents}
+        WHERE ${analyticsEvents.receivedAt} < ${cutoff}
+        RETURNING 1
+      ), deleted_windows AS (
+        DELETE FROM ${analyticsRateWindows}
+        WHERE ${analyticsRateWindows.minuteBucket} < ${cutoff}
+        RETURNING 1
+      ), deleted_guards AS (
+        DELETE FROM ${analyticsWithdrawalGuards}
+        WHERE ${analyticsWithdrawalGuards.expiresAt} <= ${expiredGuardsBefore}
+        RETURNING 1
+      )
+      SELECT
+        (SELECT count(*)::integer FROM deleted_events) AS events,
+        (SELECT count(*)::integer FROM deleted_windows) AS windows
+    `)
+    const row = result.rows[0]
+    return {
+      events: toCount(row?.events),
+      windows: toCount(row?.windows),
+    }
+  },
+}
