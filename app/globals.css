@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/pretendard-variable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root { --blue:#2563eb; --deep:#1e40af; --ink:#0f172a; --paper:#f8fafc; --line:#cbd5e1; --muted:#64748b; --shell:min(1440px,calc(100% - 64px)); }
 @theme inline { --font-sans:var(--font-geist-sans); --font-mono:var(--font-geist-mono); }
-*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-geist-sans),sans-serif;-webkit-font-smoothing:antialiased} a{color:inherit;text-decoration:none} ::selection{background:#bfdbfe} :focus-visible{outline:2px solid var(--blue);outline-offset:3px}.mono{font-family:var(--font-geist-mono)}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--paper);color:var(--ink);font-family:"Pretendard",var(--font-geist-sans),sans-serif;-webkit-font-smoothing:antialiased} a{color:inherit;text-decoration:none} ::selection{background:#bfdbfe} :focus-visible{outline:2px solid var(--blue);outline-offset:3px}.mono{font-family:var(--font-geist-mono),monospace}
 
 .site-header{height:76px;position:fixed;z-index:50;inset:0 0 auto;border-bottom:1px solid transparent;transition:.2s}.site-header[data-stuck=true]{background:rgb(248 250 252/.94);border-color:var(--line);backdrop-filter:blur(16px)}.header-inner{width:var(--shell);height:100%;margin:auto;display:flex;align-items:center;justify-content:space-between}.laf-logo{display:flex;align-items:center;gap:10px}.laf-logo-text{font-size:18px;font-weight:780;letter-spacing:-.05em}.laf-logo-text span{font-weight:450;color:var(--muted)}.header-nav{display:flex;gap:32px}.header-nav a{font-size:12px;font-weight:650;text-transform:uppercase;letter-spacing:.08em}.header-nav a:hover{color:var(--blue)}.header-actions{display:flex;align-items:center;gap:8px}.lang-toggle{height:34px;border:1px solid var(--line);display:flex;padding:2px;position:relative}.lang-toggle button{width:34px;border:0;background:none;font:700 9px var(--font-geist-mono);position:relative;z-index:1}.lang-toggle button[data-active=true]{color:white}.lang-thumb{position:absolute;inset:2px;background:var(--ink);z-index:-1}.icon-toggle{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line)}
 

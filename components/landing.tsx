@@ -14,7 +14,7 @@ export function Landing() {
   const t = copy[locale]
   const ko = locale === "ko"
   const reveal = (delay = 0) => ({
-    initial: reduced ? false : { opacity: 0, y: 18 },
+    initial: false as const,
     whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.2 },
     transition: { duration: reduced ? 0 : 0.55, delay },
   })
