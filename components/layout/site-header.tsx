@@ -26,6 +26,8 @@ function LanguageToggle() {
         <button
           key={value}
           type="button"
+          data-analytics-event="locale_change"
+          data-analytics-target={value}
           data-active={value === locale}
           aria-pressed={value === locale}
           onClick={() => setLocale(value)}
@@ -60,7 +62,11 @@ export function SiteHeader() {
           <a href="#products">{t.products}</a>
           <a href="#open-source">{t.open}</a>
           <a href="#principles">{t.principles}</a>
-          <a href={`mailto:${contactEmail}`}>{t.contact}</a>
+          <a
+            href={`mailto:${contactEmail}`}
+            data-analytics-event="contact_click"
+            data-analytics-target="email"
+          >{t.contact}</a>
         </nav>
 
         <div className="header-actions">
@@ -71,6 +77,8 @@ export function SiteHeader() {
             rel="noreferrer noopener"
             className="icon-toggle"
             aria-label="LafLabs on GitHub"
+            data-analytics-event="github_click"
+            data-analytics-target="laflabs-inc"
           >
             <GithubGlyph />
           </a>

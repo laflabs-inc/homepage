@@ -1,6 +1,19 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+
+const analyticsClientMocks = vi.hoisted(() => ({
+  create: vi.fn(),
+  track: vi.fn(),
+  setLocale: vi.fn(),
+  flush: vi.fn(),
+  stop: vi.fn(),
+  size: vi.fn(() => 0),
+}))
+
+vi.mock("@/lib/analytics/client", () => ({
+  createAnalyticsClient: analyticsClientMocks.create,
+}))
 
 vi.mock("@/components/analytics/consent-panel.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
@@ -9,7 +22,19 @@ vi.mock("@/components/analytics/consent-panel.module.css", () => ({
 import { ConsentPanel } from "@/components/analytics/consent-panel"
 import { ConsentProvider, useConsent } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
+import { Landing } from "@/components/landing"
 import { SiteFooter } from "@/components/layout/site-footer"
+import { SiteHeader } from "@/components/layout/site-header"
+
+analyticsClientMocks.create.mockReturnValue({
+  track: analyticsClientMocks.track,
+  setLocale: analyticsClientMocks.setLocale,
+  flush: analyticsClientMocks.flush,
+  stop: analyticsClientMocks.stop,
+  size: analyticsClientMocks.size,
+})
+
+beforeEach(() => vi.clearAllMocks())
 
 const baseProps = {
   open: true,
@@ -31,7 +56,10 @@ function ConsentProbe() {
   )
 }
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.clearAllMocks()
+  vi.unstubAllGlobals()
+})
 
 describe("ConsentPanel", () => {
   it("offers both Korean choices as equal keyboard-accessible buttons", async () => {
@@ -228,5 +256,149 @@ describe("ConsentProvider", () => {
 
     expect(screen.getByRole("heading", { name: "분석 쿠키를 선택해 주세요" })).toBeVisible()
     expect(screen.getByRole("button", { name: "쿠키 설정 닫기" })).toBeEnabled()
+  })
+
+  it("starts analytics only after opt-in and records the transition plus one page view", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      choice: "analytics",
+      dntHonored: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })))
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="unknown" dnt={false}>
+          <ConsentProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(analyticsClientMocks.create).not.toHaveBeenCalled()
+    await user.click(screen.getByRole("button", { name: "Allow analytics" }))
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledWith({
+      locale: "en",
+      pathname: "/",
+    }))
+    expect(analyticsClientMocks.track.mock.calls).toEqual([
+      ["consent_update", "analytics"],
+      ["page_view", null],
+    ])
+  })
+
+  it("keeps one client across locale changes and delegates marked clicks", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <LocaleProvider initialLocale="ko">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <SiteHeader />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledOnce())
+    expect(analyticsClientMocks.track).toHaveBeenCalledWith("page_view", null)
+    expect(analyticsClientMocks.track).not.toHaveBeenCalledWith("consent_update", "analytics")
+
+    await user.click(screen.getByRole("button", { name: "EN" }))
+
+    await waitFor(() => expect(analyticsClientMocks.setLocale).toHaveBeenCalledWith("en"))
+    expect(analyticsClientMocks.create).toHaveBeenCalledOnce()
+    expect(analyticsClientMocks.track).toHaveBeenCalledWith("locale_change", "en")
+    expect(analyticsClientMocks.track.mock.calls.filter(([type]) => type === "page_view")).toHaveLength(1)
+  })
+
+  it("stops the active client before exposing a successful withdrawal", async () => {
+    const user = userEvent.setup()
+    analyticsClientMocks.stop.mockImplementationOnce(() => {
+      expect(screen.getByLabelText("consent state")).toHaveTextContent("analytics")
+    })
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      choice: "essential",
+      dntHonored: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })))
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <ConsentProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledOnce())
+    await user.click(screen.getByRole("button", { name: "Open settings" }))
+    await user.click(screen.getByRole("button", { name: "Essential only" }))
+
+    expect(analyticsClientMocks.stop).toHaveBeenCalledOnce()
+    expect(screen.getByLabelText("consent state")).toHaveTextContent("essential")
+  })
+
+  it("never creates an analytics client while DNT is active", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt>
+          <ConsentProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(analyticsClientMocks.create).not.toHaveBeenCalled()
+  })
+
+  it("keeps rendering the homepage if analytics initialization fails", () => {
+    analyticsClientMocks.create.mockImplementationOnce(() => {
+      throw new Error("browser analytics unavailable")
+    })
+
+    expect(() => render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <p>Homepage remains available</p>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )).not.toThrow()
+    expect(screen.getByText("Homepage remains available")).toBeVisible()
+  })
+
+  it("marks only the existing analytics interactions without adding layout wrappers", () => {
+    vi.stubGlobal("IntersectionObserver", class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    })
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <SiteHeader />
+          <Landing />
+          <SiteFooter />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("button", { name: "KO" })).toHaveAttribute("data-analytics-event", "locale_change")
+    expect(screen.getByRole("button", { name: "KO" })).toHaveAttribute("data-analytics-target", "ko")
+    expect(screen.getByRole("button", { name: "EN" })).toHaveAttribute("data-analytics-target", "en")
+
+    const contacts = Array.from(container.querySelectorAll<HTMLAnchorElement>('a[href^="mailto:"]'))
+    expect(contacts).not.toHaveLength(0)
+    for (const contact of contacts) {
+      expect(contact).toHaveAttribute("data-analytics-event", "contact_click")
+      expect(contact).toHaveAttribute("data-analytics-target", "email")
+    }
+
+    const githubLinks = Array.from(container.querySelectorAll<HTMLAnchorElement>('a[href^="https://github.com/laflabs-inc"]'))
+    expect(githubLinks).not.toHaveLength(0)
+    for (const link of githubLinks) {
+      expect(link).toHaveAttribute("data-analytics-event", "github_click")
+      expect(link).toHaveAttribute(
+        "data-analytics-target",
+        link.href === "https://github.com/laflabs-inc" || link.href === "https://github.com/laflabs-inc/"
+          ? "laflabs-inc"
+          : link.href.split("/").at(-1),
+      )
+    }
   })
 })

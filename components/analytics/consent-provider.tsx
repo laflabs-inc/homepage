@@ -1,8 +1,10 @@
 "use client"
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
+import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/client"
+import type { AnalyticsEventType } from "@/lib/analytics/normalize"
 import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
 import { ConsentPanel } from "./consent-panel"
 
@@ -35,6 +37,64 @@ export function ConsentProvider({
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const clientRef = useRef<AnalyticsClient | null>(null)
+  const previousStateRef = useRef<ConsentState>(initialState)
+  const latestLocaleRef = useRef(locale)
+
+  useEffect(() => {
+    latestLocaleRef.current = locale
+  }, [locale])
+
+  useEffect(() => {
+    const previousState = previousStateRef.current
+    previousStateRef.current = state
+
+    if (dnt || state !== "analytics") {
+      clientRef.current?.stop()
+      clientRef.current = null
+      return
+    }
+
+    if (clientRef.current) return
+
+    let client: AnalyticsClient
+    try {
+      client = createAnalyticsClient({
+        locale: latestLocaleRef.current,
+        pathname: window.location.pathname,
+      })
+      clientRef.current = client
+      if (previousState !== "analytics") client.track("consent_update", "analytics")
+      client.track("page_view", null)
+    } catch {
+      clientRef.current = null
+      return
+    }
+
+    const onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return
+      const target = event.target.closest<HTMLElement>("[data-analytics-event]")
+      const type = target?.dataset.analyticsEvent
+      if (!target || !type) return
+      client.track(
+        type as AnalyticsEventType,
+        target.dataset.analyticsTarget ?? null,
+      )
+    }
+    document.addEventListener("click", onClick)
+
+    return () => {
+      document.removeEventListener("click", onClick)
+      if (clientRef.current === client) {
+        client.stop()
+        clientRef.current = null
+      }
+    }
+  }, [dnt, state])
+
+  useEffect(() => {
+    if (!dnt && state === "analytics") clientRef.current?.setLocale(locale)
+  }, [dnt, locale, state])
 
   const openSettings = useCallback(() => {
     setError(null)
@@ -56,6 +116,10 @@ export function ConsentProvider({
       if (!response.ok) throw new Error("Consent request failed")
 
       const result = await response.json() as { choice: ConsentChoice }
+      if (result.choice !== "analytics") {
+        clientRef.current?.stop()
+        clientRef.current = null
+      }
       setState(result.choice)
       setSettingsOpen(false)
     } catch {
