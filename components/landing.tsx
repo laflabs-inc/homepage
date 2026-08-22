@@ -5,6 +5,7 @@ import { useRef } from "react"
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
+import { StackStrip } from "@/components/sections/stack-strip"
 import { contactEmail, copy, githubOrg, products, repositories } from "@/lib/content"
 
 const productMarks = ["ID", "PAY", "DOCK"] as const
@@ -54,6 +55,8 @@ export function Landing() {
       <motion.h2 {...reveal()}>{ko ? <>우리는 하나의 분야가 아니라,<br /><em>필요한 것</em>을 만듭니다.</> : <>We don&apos;t build for one category.<br />We build <em>what is needed.</em></>}</motion.h2>
       <motion.div className="manifesto-copy" style={{ x: reduced ? 0 : manifestoX }}><p>{ko ? "아이덴티티, 결제, 클라우드에서 오픈소스까지. 서로 다른 문제를 하나의 태도로 해결합니다." : "From identity, payments, and cloud to open source. Different problems, solved with one point of view."}</p><span className="mono">BUILD QUIETLY.<br />WORK RELIABLY.</span></motion.div>
     </section>
+
+    <StackStrip />
 
     <section className="product-stage" id="products" ref={productStage}>
       <div className="product-sticky">

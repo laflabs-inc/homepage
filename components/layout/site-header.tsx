@@ -15,6 +15,13 @@ function LanguageToggle() {
 
   return (
     <div className="lang-toggle" role="group" aria-label="Language">
+      <motion.span
+        className="lang-thumb"
+        aria-hidden="true"
+        initial={false}
+        animate={{ x: locale === "ko" ? 0 : 34 }}
+        transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 38 }}
+      />
       {locales.map((value) => (
         <button
           key={value}
@@ -23,14 +30,7 @@ function LanguageToggle() {
           aria-pressed={value === locale}
           onClick={() => setLocale(value)}
         >
-          {value === locale && (
-            <motion.span
-              layoutId={reduced ? undefined : "lang-thumb"}
-              className="lang-thumb"
-              transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
-            />
-          )}
-          <span style={{ position: "relative", zIndex: 1 }}>{value.toUpperCase()}</span>
+          <span>{value.toUpperCase()}</span>
         </button>
       ))}
     </div>
