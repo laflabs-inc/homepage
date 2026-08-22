@@ -1,7 +1,7 @@
 import type { Locale } from "@/lib/i18n"
 
-export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.com"
-export const contactEmail = "hello@laflabs.com"
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.co"
+export const contactEmail = "contact@laflabs.co"
 export const githubOrg = "https://github.com/laflabs-inc"
 
 /** Language-independent facts. Kept out of the copy tables so the two

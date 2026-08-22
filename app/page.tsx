@@ -16,7 +16,7 @@ const organizationSchema = {
   name: "LafLabs Inc.",
   alternateName: "LafLabs",
   url: siteUrl,
-  logo: `${siteUrl}/favicon.svg`,
+  logo: `${siteUrl}/laflabs-logo.png`,
   email: contactEmail,
   slogan: "Build quietly. Work reliably.",
   description:
