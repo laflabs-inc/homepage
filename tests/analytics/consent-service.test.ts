@@ -17,10 +17,22 @@ class FakeStore implements AnalyticsStore {
   deletionError: Error | null = null
   waitForDeletion: Promise<void> | null = null
 
+  async consumeRateWindow() {
+    return true
+  }
+
+  async insertEvents() {
+    return 0
+  }
+
   async deleteVisitorEvents(visitorHash: string) {
     this.deletedVisitorHashes.push(visitorHash)
     if (this.deletionError) throw this.deletionError
     await this.waitForDeletion
+  }
+
+  async deleteBefore() {
+    return { events: 0, windows: 0 }
   }
 }
 
