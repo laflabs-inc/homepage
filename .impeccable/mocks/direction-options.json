@@ -1,0 +1,133 @@
+{
+  "title": "LafLabs의 새 시각 방향을 선택하세요",
+  "question": "개발자와 투자자에게 제품군과 회사의 신뢰를 가장 선명하게 전달할 방향입니다.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Signal Routing Field",
+      "kicker": "THE ROLL",
+      "lineage": "network routing maps and modular patch fields",
+      "thesis": "세 제품을 하나의 소프트웨어 회사가 라우팅하는 살아 있는 시스템으로 보여줍니다.",
+      "palette": ["#0b1328", "#165dff", "#f4f7fb", "#8ba7d9"],
+      "materials": ["backlit blue fields", "square routing modules", "precise signal lines"],
+      "viewport": "왼쪽의 간결한 회사 선언에서 세 개의 제품 모듈로 신호가 분기되고 공식 심볼이 전체 라우팅의 중심점이 됩니다.",
+      "risk": "선과 모듈이 과해지면 인프라 대시보드처럼 보일 수 있습니다.",
+      "raised": [
+        {"from": "Variable Type Specimen", "raise": "거대한 공식 심볼과 작은 기술 표기의 스케일 대비를 끝까지 유지합니다."},
+        {"from": "VU Meter Bridge", "raise": "제품 상태 변화가 한 리듬으로 반응해 하나의 회사라는 인상을 강화합니다."},
+        {"from": "Raku Surface", "raise": "남색 바탕에 미세한 재질감을 더해 평평한 SaaS 화면을 피합니다."},
+        {"from": "Drawcord Cape", "raise": "모바일에서는 복잡한 장면을 세 개의 명확한 제품 상태로 접습니다."}
+      ],
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "label": "Software Prospectus",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "institutional prospectuses and engineering reports",
+      "thesis": "회사의 제품과 원칙을 투자 설명서처럼 명료한 한 권의 소프트웨어 문서로 구성합니다.",
+      "palette": ["#f5f7fa", "#10234a", "#1e63e9", "#77839a"],
+      "materials": ["uncoated report paper", "blue index tabs", "technical photography"],
+      "viewport": "큰 회사 선언과 공식 심볼, 오른쪽의 제품 인덱스가 한 화면에서 제품 탐색을 시작하게 합니다.",
+      "risk": "가장 익숙하고 안전해 보이지만 기술 회사의 역동성은 약할 수 있습니다.",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "challenger-dumbar",
+      "label": "Modular Blue Identity",
+      "verdict": "competitive",
+      "lineage": "modular identity systems with hard vector blocks",
+      "thesis": "공식 심볼의 네 조각을 제품, 오픈소스, 원칙, 회사의 모듈로 확장합니다.",
+      "palette": ["#eef3fb", "#0757db", "#0d172b", "#84a9ff"],
+      "materials": ["flat vector blocks", "documentary product imagery", "hard crop typography"],
+      "viewport": "네 개의 큰 모듈이 공식 로고를 이루고 스크롤과 함께 제품 콘텐츠로 풀립니다.",
+      "case": "브랜드 식별력은 가장 강하지만 제품 의미가 시각 장치 뒤로 밀릴 위험이 있어 경쟁안으로 남깁니다.",
+      "risk": "강한 블록 구성이 제품 링크보다 먼저 읽힐 수 있습니다.",
+      "comp": ".impeccable/mocks/decision/challenger-dumbar.webp",
+      "hero": "https://impeccable.style/worlds/cards/studio-dumbar-identity-hero.webp"
+    },
+    {
+      "id": "challenger-type",
+      "label": "Variable Type Specimen",
+      "verdict": "declined",
+      "lineage": "interactive type specimens",
+      "thesis": "제품군을 하나의 가변 서체 축처럼 다룹니다.",
+      "palette": ["#f8f9fb", "#10192d", "#1e63e9"],
+      "materials": ["specimen paper", "live type axes"],
+      "viewport": "거대한 LafLabs 글자와 제품 축 컨트롤이 첫 화면을 지배합니다.",
+      "case": "개발자 감성은 있으나 제품의 실체보다 타이포 실험이 앞섭니다.",
+      "kept": "극단적인 크기 대비",
+      "risk": "회사보다 폰트 제품처럼 보일 수 있습니다.",
+      "hero": "https://impeccable.style/worlds/cards/variable-font-specimen-hero.webp"
+    },
+    {
+      "id": "challenger-vu",
+      "label": "Product Signal Bridge",
+      "verdict": "declined",
+      "lineage": "recording desk meter bridges",
+      "thesis": "각 제품을 하나의 운영 신호 채널로 보여줍니다.",
+      "palette": ["#eef2f8", "#111a2e", "#1e63e9"],
+      "materials": ["instrument glass", "calibrated scales"],
+      "viewport": "세 제품의 신호 계기가 같은 박자로 반응합니다.",
+      "case": "시스템성은 좋지만 음악 장비의 문화적 연상이 제품 명료도를 낮춥니다.",
+      "kept": "동기화된 제품 반응",
+      "risk": "장식적 계기판으로 읽힐 수 있습니다.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-vu-meter-bridge-hero.webp"
+    },
+    {
+      "id": "challenger-laban",
+      "label": "Infrastructure Score",
+      "verdict": "declined",
+      "lineage": "vertical notation systems",
+      "thesis": "제품 관계를 위로 진행되는 하나의 기술 악보로 기록합니다.",
+      "palette": ["#f7f8fa", "#10182b", "#2463eb"],
+      "materials": ["score paper", "encoded blocks"],
+      "viewport": "중앙 축 좌우로 제품과 기술 요소가 대응합니다.",
+      "case": "구조는 명확하지만 표기법을 배워야 해 첫 방문자의 이해가 늦습니다.",
+      "kept": "중앙 축을 기준으로 한 정보 질서",
+      "risk": "해독해야 하는 인터페이스가 됩니다.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-labanotation-hero.webp"
+    },
+    {
+      "id": "challenger-raku",
+      "label": "Raku Infrastructure",
+      "verdict": "declined",
+      "lineage": "raku ceramic firing",
+      "thesis": "운영의 압력과 견고함을 검은 재질과 푸른 균열로 표현합니다.",
+      "palette": ["#0b1223", "#e9eef7", "#2264ec"],
+      "materials": ["carbon surface", "crackled glaze"],
+      "viewport": "짙은 표면에서 세 제품의 푸른 경로가 드러납니다.",
+      "case": "재질감은 강하지만 소프트웨어 회사보다 공예 브랜드로 읽힙니다.",
+      "kept": "완전히 몰입되는 표면 재질",
+      "risk": "브랜드 업종을 오해하게 만듭니다.",
+      "hero": "https://impeccable.style/worlds/cards/clay-ceramics-fracture-raku-smoke-flash-hero.webp"
+    },
+    {
+      "id": "challenger-cape",
+      "label": "Adaptive Product Fold",
+      "verdict": "declined",
+      "lineage": "transforming drawcord garments",
+      "thesis": "하나의 기반이 세 제품 형태로 접히고 펼쳐집니다.",
+      "palette": ["#0b1328", "#f3f6fb", "#2463eb"],
+      "materials": ["matte technical textile", "stitched channels"],
+      "viewport": "큰 평면이 제품별 모듈로 접히며 하나의 기반을 보여줍니다.",
+      "case": "변형 은유는 맞지만 패션의 물성이 개발사 인식보다 강합니다.",
+      "kept": "모바일의 단계별 변환",
+      "risk": "패션 캠페인처럼 보일 수 있습니다.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-drawcord-transforming-cape-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "comp", "toggle": true},
+  "canon": true,
+  "canonCard": {
+    "label": "B2B software standard",
+    "thesis": "정돈된 SaaS 기업 홈페이지의 표준 구성을 완성도 높게 실행합니다.",
+    "palette": ["#ffffff", "#111827", "#2563eb"],
+    "materials": ["clean grid", "product UI imagery"],
+    "viewport": "왼쪽 헤드라인, 오른쪽 제품 비주얼, 아래 제품 소개로 이어지는 익숙한 구성입니다.",
+    "risk": "명료하지만 다른 개발사와 구분되기 어렵습니다.",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}
