@@ -10,6 +10,6 @@
   "export": "mp4",
   "asset_needs": [{ "role": "hero", "kind": "logo", "source": "assets/laflabs-logo.png", "treatment": "none" }],
   "block": "logo-outro",
-  "customize": { "geometry": "square", "assembly": "three product nodes converge into the official logo", "remove": ["glow", "rounded URL pill"] },
-  "content": { "logo": "assets/laflabs-logo.png", "tagline": "BUILD QUIETLY. WORK RELIABLY.", "url": "laflabs.co" }
+  "customize": { "geometry": "square", "assembly": "three product nodes converge into a large LAF typographic lockup", "remove": ["symbol", "glow", "rounded URL pill"] },
+  "content": { "logo": "typographic LAF", "tagline": "BUILD QUIETLY. WORK RELIABLY.", "url": "laflabs.co" }
 }

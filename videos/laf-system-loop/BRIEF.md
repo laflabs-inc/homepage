@@ -12,11 +12,10 @@ length: 6s
 
 ## Intent
 
-A quiet technical system animation embedded in the homepage hero. Blue square modules arrive from the right, connect as Identity, Payments, and Cloud, and resolve into the official LafLabs identity.
+A quiet technical system animation embedded in the homepage hero. Blue square modules arrive from the right, connect as Identity, Payments, and Cloud, and resolve into a large typographic `LAF` lockup.
 
 ## Assets
 
-- Official LafLabs logo: `assets/laflabs-logo.png`
 - Pretendard variable font: `assets/pretendard-variable.woff2`
 
 ## Customizations
