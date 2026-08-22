@@ -6,7 +6,7 @@ import { motion } from "motion/react"
 
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { Logo } from "@/components/ui/logo"
-import { copy, githubOrg } from "@/lib/content"
+import { contactEmail, copy, githubOrg } from "@/lib/content"
 import { locales } from "@/lib/i18n"
 
 /**
@@ -80,7 +80,7 @@ export function SiteHeader() {
           <a href="#products">{t.products}</a>
           <a href="#open-source">{t.open}</a>
           <a href="#principles">{t.principles}</a>
-          <a href="#contact">{t.contact}</a>
+          <a href={`mailto:${contactEmail}`}>{t.contact}</a>
         </nav>
 
         <div className="header-actions">

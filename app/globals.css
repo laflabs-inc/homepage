@@ -130,15 +130,7 @@ svg { flex: 0 0 auto; }
   word-break: keep-all;
 }
 
-.grid-lines {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 64px 64px;
-  pointer-events: none;
-}
+.grid-lines { display: none; }
 
 /* ------------------------------------------------------------------ *
  * Buttons
@@ -210,7 +202,7 @@ svg { flex: 0 0 auto; }
   gap: 32px;
 }
 
-.header-nav { display: flex; align-items: center; gap: 30px; }
+.header-nav { display: flex; align-items: center; gap: 30px; white-space: nowrap; }
 .header-nav a {
   position: relative;
   padding-block: 4px;
@@ -475,62 +467,30 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
 }
 .section-head > .lede { padding-bottom: 6px; }
 .section-head-title { margin-top: clamp(24px, 2.6vw, 38px); }
+#products .section-head-title { margin-top: 0; }
 
 /* ------------------------------------------------------------------ *
- * Products — editorial rows, not a card grid. Each row is a full
- * band with an oversized index and a wordmark that ghosts in on hover.
+ * Products — direct editorial rows, not a card grid.
  * ------------------------------------------------------------------ */
 .product-list { border-top: 1px solid var(--rule); }
 
 .product-row {
   padding: clamp(34px, 4vw, 56px) 0;
   position: relative;
-  overflow: hidden;
   display: grid;
-  grid-template-columns: 92px minmax(0, 1.05fr) minmax(0, 1.15fr) auto;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.15fr) auto;
   align-items: start;
   gap: clamp(20px, 3vw, 52px);
   border-bottom: 1px solid var(--rule);
-  transition: padding-left 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.product-row:hover { padding-left: 16px; }
 
-/* Stacking context for the row's real cells. Scoped so it cannot claw
-   the absolutely-positioned ghost back into the grid flow. */
-.product-row > *:not(.product-ghost) { position: relative; z-index: 1; }
-
-/* Oversized wordmark that sits behind the row on hover. */
-.product-row > .product-ghost {
-  position: absolute;
-  z-index: 0;
-  inset: 50% 0 auto auto;
-  color: transparent;
-  -webkit-text-stroke: 1px var(--border-strong);
-  font-size: clamp(70px, 9vw, 132px);
-  font-weight: 780;
-  letter-spacing: -0.06em;
-  line-height: 1;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translate(4%, -50%);
-  transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events: none;
-}
-.product-row:hover > .product-ghost { opacity: 0.34; transform: translate(0, -50%); }
-
-.product-index {
+.product-layer {
+  display: block;
+  margin-bottom: 12px;
   color: var(--brand);
   font-family: var(--font-geist-mono);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.12em;
-}
-.product-index small {
-  display: block;
-  margin-top: 7px;
-  color: var(--muted-foreground);
   font-size: 9.5px;
-  font-weight: 550;
+  font-weight: 650;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -595,9 +555,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   align-items: center;
   gap: clamp(18px, 3vw, 48px);
   border-bottom: 1px solid var(--rule);
-  transition: padding-left 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.repo-row:hover { padding-left: 14px; }
 .repo-row::after {
   content: "";
   position: absolute;
@@ -631,7 +589,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   font-family: var(--font-geist-mono);
   font-size: 10.5px;
 }
-.repo-lang i { width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--border-strong)); }
+.repo-lang i { width: 8px; height: 8px; background: var(--dot, var(--border-strong)); }
 .repo-row > svg { color: var(--muted-foreground); transition: color 0.24s ease, transform 0.28s ease; }
 .repo-row:hover > svg { color: var(--brand); transform: translate(3px, -3px); }
 
@@ -649,9 +607,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   align-items: baseline;
   gap: clamp(20px, 3vw, 48px);
   border-bottom: 1px solid var(--rule);
-  transition: padding-left 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.principle-row:hover { padding-left: 14px; }
 .principle-row > span {
   color: var(--brand);
   font-family: var(--font-geist-mono);
@@ -747,12 +703,6 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   color: var(--text-inverse);
   background: var(--surface-inverse);
 }
-.cta .grid-lines {
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
-  mask-image: radial-gradient(ellipse 60% 70% at 70% 40%, #000, transparent 75%);
-}
 .cta-inner { width: var(--shell); margin-inline: auto; position: relative; }
 .cta .label { border-bottom-color: rgba(248, 250, 252, 0.16); color: var(--text-inverse-muted); }
 .cta h2 { margin: clamp(28px, 3.4vw, 46px) 0 0; color: var(--text-inverse); }
@@ -837,8 +787,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   .hero-copy { max-width: 680px; }
   .hero-routing-plane { width: 100%; }
   .section-head { grid-template-columns: 1fr; align-items: start; }
-  .product-row { grid-template-columns: 72px minmax(0, 1fr); gap: 22px 24px; }
-  .product-body { grid-column: 2; }
+  .product-row { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 22px 24px; }
   .product-aside { grid-column: 2; justify-items: start; text-align: left; }
   .repo-row { grid-template-columns: minmax(0, 210px) minmax(0, 1fr) 26px; }
   .repo-lang { display: none; }
@@ -880,8 +829,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   .routing-layer { grid-row: 1 / span 2; grid-column: 2; }
   .routing-availability { grid-row: 2; grid-column: 1; }
   .product-row, .repo-row, .principle-row { grid-template-columns: 1fr; gap: 14px; }
-  .product-row:hover, .repo-row:hover, .principle-row:hover { padding-left: 0; }
-  .product-ghost { display: none; }
+  .product-aside { grid-column: auto; }
   .repo-row > svg { display: none; }
   .footer-top { grid-template-columns: 1fr; }
   .hero-ctas .btn, .cta-actions .btn { flex: 1 1 100%; }
