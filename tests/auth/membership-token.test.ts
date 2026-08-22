@@ -9,20 +9,7 @@ vi.mock("@/lib/auth/github", () => ({
   checkGitHubOrgMembership: membershipMock,
 }))
 
-vi.mock("next-auth", () => ({
-  default: vi.fn(() => ({
-    handlers: {},
-    auth: vi.fn(),
-    signIn: vi.fn(),
-    signOut: vi.fn(),
-  })),
-}))
-
-vi.mock("next-auth/providers/github", () => ({
-  default: vi.fn(() => ({ id: "github", type: "oauth" })),
-}))
-
-import { refreshMembershipToken } from "@/auth"
+import { refreshMembershipToken } from "@/lib/auth/config"
 
 const checkedAt = Date.parse("2026-08-22T06:00:00.000Z")
 
