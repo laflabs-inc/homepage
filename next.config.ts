@@ -3,7 +3,7 @@ import type { NextConfig } from "next"
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  allowedDevOrigins: ["busy-vans-learn.loca.lt"],
+  allowedDevOrigins: ["silent-tools-strive.loca.lt"],
   turbopack: { root: process.cwd() },
   async headers() {
     return [

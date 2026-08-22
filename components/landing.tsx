@@ -1,7 +1,8 @@
 "use client"
 
 import { ArrowDown, ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
-import { motion, useReducedMotion } from "motion/react"
+import { useRef } from "react"
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
 import { contactEmail, copy, githubOrg, products, repositories } from "@/lib/content"
@@ -11,6 +12,12 @@ const productMarks = ["ID", "PAY", "DOCK"] as const
 export function Landing() {
   const locale = useLocale()
   const reduced = useReducedMotion()
+  const productStage = useRef<HTMLElement>(null)
+  const { scrollYProgress: productProgress } = useScroll({
+    target: productStage,
+    offset: ["start start", "end end"],
+  })
+  const productX = useTransform(productProgress, [0, 1], ["0vw", "-172vw"])
   const t = copy[locale]
   const ko = locale === "ko"
   const reveal = (delay = 0) => ({
@@ -37,12 +44,15 @@ export function Landing() {
       <div className="manifesto-copy"><p>{ko ? "아이덴티티, 결제, 클라우드에서 오픈소스까지. 서로 다른 문제를 하나의 태도로 해결합니다." : "From identity, payments, and cloud to open source. Different problems, solved with one point of view."}</p><span className="mono">BUILD QUIETLY.<br />WORK RELIABLY.</span></div>
     </section>
 
-    <section className="product-stage" id="products">
+    <section className="product-stage" id="products" ref={productStage}>
+      <div className="product-sticky">
       <div className="section-heading"><p className="section-no mono">02 / SELECTED PRODUCTS</p><h2>{ko ? "우리가 만드는 것" : "What we build"}</h2></div>
-      <div className="product-grid">{products.map((product, index) => { const item = t.products[product.id]; return <motion.article className="product-panel" key={product.id} {...reveal(index * .07)}>
+      <motion.div className="product-grid" style={{ "--track-x": reduced ? "0vw" : productX } as never}>{products.map((product, index) => { const item = t.products[product.id]; return <motion.article className="product-panel" key={product.id} {...reveal(index * .07)}>
         <div className="product-top mono"><span>0{index + 1}</span><span>{item.layer}</span></div><div className="product-mark" aria-hidden="true">{productMarks[index]}</div>
         <div className="product-content"><p className="product-status mono">{item.status}</p><h3>{product.name}</h3><p>{item.description}</p>{product.href ? <a href={product.href}>{t.products.visit}<ArrowUpRight /></a> : <span className="product-soon">{t.products.soon}</span>}</div>
-      </motion.article> })}</div>
+      </motion.article> })}</motion.div>
+      <div className="product-progress" aria-hidden="true"><span /><span /><span /></div>
+      </div>
     </section>
 
     <section className="open-stage" id="open-source">
