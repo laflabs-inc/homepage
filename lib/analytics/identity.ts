@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
 const BASE64URL_SEGMENT = /^[A-Za-z0-9_-]+$/
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const encodeBase64Url = (value: string | Buffer): string => Buffer.from(value).toString("base64url")
 
@@ -14,6 +15,8 @@ const decodeBase64Url = (value: string): Buffer | null => {
 }
 
 export const createVisitorToken = (visitorId: string, secret: string): string => {
+  if (!UUID.test(visitorId)) throw new TypeError("visitorId must be a UUID")
+
   const payload = encodeBase64Url(visitorId)
   const signature = createHmac("sha256", secret).update(payload).digest()
   return `${payload}.${encodeBase64Url(signature)}`
@@ -36,6 +39,7 @@ export const verifyVisitorToken = (token: string | null | undefined, secret: str
 
   const visitorId = payload.toString("utf8")
   if (!visitorId || !Buffer.from(visitorId, "utf8").equals(payload)) return null
+  if (!UUID.test(visitorId)) return null
 
   return visitorId
 }
