@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { usePathname } from "next/navigation"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/client"
@@ -33,6 +34,7 @@ export function ConsentProvider({
   dnt: boolean
 }) {
   const locale = useLocale()
+  const pathname = usePathname()
   const [state, setState] = useState<ConsentState>(initialState)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [pending, setPending] = useState(false)
@@ -49,7 +51,7 @@ export function ConsentProvider({
     const previousState = previousStateRef.current
     previousStateRef.current = state
 
-    if (dnt || state !== "analytics") {
+    if (dnt || state !== "analytics" || pathname !== "/") {
       clientRef.current?.stop()
       clientRef.current = null
       return
@@ -61,7 +63,7 @@ export function ConsentProvider({
     try {
       client = createAnalyticsClient({
         locale: latestLocaleRef.current,
-        pathname: window.location.pathname,
+        pathname,
       })
       clientRef.current = client
       if (previousState !== "analytics") client.track("consent_update", "analytics")
@@ -90,7 +92,7 @@ export function ConsentProvider({
         clientRef.current = null
       }
     }
-  }, [dnt, state])
+  }, [dnt, pathname, state])
 
   useEffect(() => {
     if (!dnt && state === "analytics") clientRef.current?.setLocale(locale)

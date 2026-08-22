@@ -15,6 +15,10 @@ vi.mock("@/lib/analytics/client", () => ({
   createAnalyticsClient: analyticsClientMocks.create,
 }))
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => window.location.pathname,
+}))
+
 vi.mock("@/components/analytics/consent-panel.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
@@ -34,7 +38,10 @@ analyticsClientMocks.create.mockReturnValue({
   size: analyticsClientMocks.size,
 })
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  window.history.replaceState({}, "", "/")
+})
 
 const baseProps = {
   open: true,
@@ -345,6 +352,32 @@ describe("ConsentProvider", () => {
     )
 
     expect(analyticsClientMocks.create).not.toHaveBeenCalled()
+  })
+
+  it("instruments the public homepage but never starts analytics on admin routes", async () => {
+    window.history.replaceState({}, "", "/admin/analytics?private=1")
+    const admin = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <p>Admin</p>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(analyticsClientMocks.create).not.toHaveBeenCalled()
+    admin.unmount()
+
+    window.history.replaceState({}, "", "/")
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <p>Homepage</p>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledOnce())
+    expect(analyticsClientMocks.create).toHaveBeenCalledWith({ locale: "en", pathname: "/" })
   })
 
   it("keeps rendering the homepage if analytics initialization fails", () => {
