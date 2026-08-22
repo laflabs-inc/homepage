@@ -52,8 +52,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: "dark",
-  themeColor: "#0b1328",
+  colorScheme: "light",
+  themeColor: "#f8fafc",
 }
 
 async function resolveLocale(): Promise<Locale> {
