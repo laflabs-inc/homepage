@@ -1,8 +1,38 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { handleAnalyticsRetention } from "@/app/api/cron/analytics-retention/route"
+import {
+  analyticsEvents,
+  analyticsRateWindows,
+  analyticsWithdrawalGuards,
+} from "@/lib/db/schema"
 import { deleteExpiredAnalytics } from "@/lib/analytics/service"
-import type { AnalyticsStore } from "@/lib/analytics/store"
+import { analyticsStore, type AnalyticsStore } from "@/lib/analytics/store"
+
+const {
+  batchMock,
+  deleteMock,
+  getDbMock,
+  ltMock,
+  lteMock,
+  returningMock,
+  whereMock,
+} = vi.hoisted(() => ({
+  batchMock: vi.fn(),
+  deleteMock: vi.fn(),
+  getDbMock: vi.fn(),
+  ltMock: vi.fn(),
+  lteMock: vi.fn(),
+  returningMock: vi.fn(),
+  whereMock: vi.fn(),
+}))
+
+vi.mock("@/lib/db", () => ({ getDb: getDbMock }))
+
+vi.mock("drizzle-orm", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("drizzle-orm")>()
+  return { ...actual, lt: ltMock, lte: lteMock }
+})
 
 class RetentionStore implements AnalyticsStore {
   cutoff: Date | null = null
@@ -75,5 +105,21 @@ describe("analytics retention", () => {
 
     await expect(first.json()).resolves.toEqual({ events: 4, windows: 2 })
     await expect(second.json()).resolves.toEqual({ events: 0, windows: 0 })
+  })
+
+  it("deletes a withdrawal guard that expires exactly at the cleanup time", async () => {
+    const cutoff = new Date("2026-05-24T00:00:00.000Z")
+    const now = new Date("2026-08-22T00:00:00.000Z")
+    returningMock.mockResolvedValue([])
+    whereMock.mockImplementation(() => ({ returning: returningMock }))
+    deleteMock.mockImplementation(() => ({ where: whereMock }))
+    batchMock.mockImplementation((operations: Promise<unknown>[]) => Promise.all(operations))
+    getDbMock.mockReturnValue({ batch: batchMock, delete: deleteMock })
+
+    await analyticsStore.deleteBefore(cutoff, now)
+
+    expect(ltMock).toHaveBeenCalledWith(analyticsEvents.receivedAt, cutoff)
+    expect(ltMock).toHaveBeenCalledWith(analyticsRateWindows.minuteBucket, cutoff)
+    expect(lteMock).toHaveBeenCalledWith(analyticsWithdrawalGuards.expiresAt, now)
   })
 })

@@ -1,6 +1,6 @@
 import "server-only"
 
-import { lt, sql } from "drizzle-orm"
+import { lt, lte, sql } from "drizzle-orm"
 
 import { getDb } from "@/lib/db"
 import {
@@ -161,7 +161,7 @@ export const analyticsStore: AnalyticsStore = {
         .where(lt(analyticsRateWindows.minuteBucket, cutoff))
         .returning({ visitorHash: analyticsRateWindows.visitorHash }),
       database.delete(analyticsWithdrawalGuards)
-        .where(lt(analyticsWithdrawalGuards.expiresAt, expiredGuardsBefore))
+        .where(lte(analyticsWithdrawalGuards.expiresAt, expiredGuardsBefore))
         .returning({ visitorHash: analyticsWithdrawalGuards.visitorHash }),
     ])
 
