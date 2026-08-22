@@ -144,20 +144,21 @@ The palette uses Route Blue as the only accent and blue-tinted neutrals for ever
 
 ### Primary
 
-- **Route Blue:** Primary actions, routing paths, active states, focus, and semantic live status.
-- **Deep Route Blue:** Primary-button hover state.
-- **Soft Route Blue:** Quiet active and hover backgrounds.
+- **Route Blue (`#165dff`):** Filled primary actions and large structural accents. Off-white text on Route Blue is `4.83:1`.
+- **Deep Route Blue (`#0f4bd8`):** Primary-button hover state.
+- **Soft Route Blue (`#112b5d`):** Quiet active and hover backgrounds.
+- **Route Line / Readable Blue (`#8fb6ff`):** Routes, small blue metadata, live status, and focus outlines. It is `9.05:1` on Page Navy and `6.75:1` on Soft Route Blue.
 
 ### Neutral
 
-- **Page Navy:** Default page ground.
-- **Raised Navy:** Header and raised dark surfaces.
-- **Subtle Navy:** Alternating section band.
-- **Inverse Navy:** Contact section ground.
-- **Off-white:** Primary text.
-- **Blue-grey:** Secondary text and route labels.
-- **Border Blue:** Default one-pixel rules.
-- **Strong Border Blue:** Emphasized rules and endpoints.
+- **Page Navy (`#0b1328`):** Default page ground and browser theme color.
+- **Raised Navy (`#101c35`):** Header and raised dark surfaces, including route endpoints.
+- **Subtle Navy (`#0e1931`):** Alternating section band.
+- **Inverse Navy (`#071022`):** Contact section ground.
+- **Off-white (`#f4f7fb`):** Primary text and light controls.
+- **Blue-grey (`#8ba7d9`):** Secondary text and unavailable labels.
+- **Border Blue (`#263d68`):** Default one-pixel rules.
+- **Strong Border Blue (`#385a91`):** Emphasized rules and endpoints.
 
 **The One Route Rule.** Route Blue is the only accent; do not add competing semantic colors without a product requirement.
 
@@ -211,11 +212,11 @@ All geometry is square (`0rem` radius). Buttons, language controls, icon control
 - **Shape:** Square, with a minimum 50px height and 24px inline padding.
 - **Primary:** Route Blue ground with white text; Deep Route Blue on hover.
 - **Outline:** Strong Border Blue at rest, off-white border on hover.
-- **Focus:** A two-pixel blue outline with a three-pixel offset.
+- **Focus:** A two-pixel solid Route Line (`#8fb6ff`) outline with a three-pixel offset.
 
 ### Navigation
 
-The header uses the official LafLabs logo component, one-line 13px desktop links, square 38px controls, and direct anchors for products, open source, and principles. Contact always resolves to `mailto:contact@laflabs.co`. At 720px and below, section links hide while language, theme, and GitHub controls remain.
+The header uses the official LafLabs logo component, one-line 13px desktop links, square 38px controls, and direct anchors for products, open source, and principles. Contact always resolves to `mailto:contact@laflabs.co`. At 720px and below, section links hide while language and GitHub controls remain. The site is intentionally dark-only; no theme control or initializer is shipped, and browser color scheme/theme metadata use Page Navy.
 
 ### Product Rows
 
@@ -223,13 +224,13 @@ Rows are separated by rules, never card containers. Each row preserves infrastru
 
 ### Motion
 
-Motion clarifies entry, routing, and state only. The hero fades copy and draws the three routes once; shared section reveals run once in view; the technology strip is the only marquee. Avoid layout-moving hover effects. Under `prefers-reduced-motion: reduce`, smooth scrolling is disabled, route drawing resolves immediately, hero content stays fully visible, and animation and transition durations collapse to 0.01ms.
+Motion clarifies entry, routing, and state only. The hero fades copy and draws the three routes once; shared section reveals run once in view; the technology strip is the only marquee. Avoid layout-moving hover effects. Under `prefers-reduced-motion: reduce`, every Motion component starts at its complete final state, transitions use zero duration, the marquee is stationary, and smooth scrolling and CSS animation are disabled.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** use Route Blue consistently for actions, focus, routes, and live status.
+- **Do** use Route Blue for filled actions and Readable Blue for small signal text, routes, focus, and live status.
 - **Do** keep Korean and English readable with `word-break: keep-all` where prose needs stable phrases.
 - **Do** continue sections with generous spacing and one-pixel dividers.
 - **Do** preserve existing anchors and working external links.

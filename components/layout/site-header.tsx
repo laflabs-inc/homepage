@@ -1,37 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Moon, Sun } from "@phosphor-icons/react/dist/ssr"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { Logo } from "@/components/ui/logo"
 import { contactEmail, copy, githubOrg } from "@/lib/content"
 import { locales } from "@/lib/i18n"
 
-/**
- * Both icons render; CSS picks the visible one from the `.dark` class on
- * <html>. Keeping the current theme out of React state means there is no
- * server/client mismatch to reconcile and no flash on hydration.
- */
-function ThemeToggle() {
-  function toggle() {
-    const next = document.documentElement.classList.contains("dark") ? "light" : "dark"
-    document.documentElement.classList.toggle("dark", next === "dark")
-    document.cookie = `laf_theme=${next}; path=/; max-age=31536000; samesite=lax`
-  }
-
-  return (
-    <button type="button" className="icon-toggle" onClick={toggle} aria-label="Toggle colour theme">
-      <Moon size={16} weight="bold" className="theme-icon theme-icon-light" />
-      <Sun size={16} weight="bold" className="theme-icon theme-icon-dark" />
-    </button>
-  )
-}
-
 function LanguageToggle() {
   const locale = useLocale()
   const setLocale = useSetLocale()
+  const reduced = useReducedMotion()
 
   return (
     <div className="lang-toggle" role="group" aria-label="Language">
@@ -45,9 +25,9 @@ function LanguageToggle() {
         >
           {value === locale && (
             <motion.span
-              layoutId="lang-thumb"
+              layoutId={reduced ? undefined : "lang-thumb"}
               className="lang-thumb"
-              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
             />
           )}
           <span style={{ position: "relative", zIndex: 1 }}>{value.toUpperCase()}</span>
@@ -85,7 +65,6 @@ export function SiteHeader() {
 
         <div className="header-actions">
           <LanguageToggle />
-          <ThemeToggle />
           <a
             href={githubOrg}
             target="_blank"

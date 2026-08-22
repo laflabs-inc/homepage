@@ -52,10 +52,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1120" },
-  ],
+  colorScheme: "dark",
+  themeColor: "#0b1328",
 }
 
 async function resolveLocale(): Promise<Locale> {
@@ -75,12 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialLocale = await resolveLocale()
 
   return (
-    <html lang={initialLocale} suppressHydrationWarning>
-      <head>
-        {/* Same-origin initializer; must run during parsing to avoid a theme flash. */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script id="laf-theme-init" src="/theme-init.js" suppressHydrationWarning />
-      </head>
+    <html lang={initialLocale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
       </body>

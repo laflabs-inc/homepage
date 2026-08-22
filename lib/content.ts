@@ -52,19 +52,16 @@ type ProductCopy = {
 type Copy = {
   nav: { products: string; open: string; principles: string; contact: string }
   hero: {
-    overline: string
     titleQuiet: string
     titleLoud: string
     lede: string
     primary: string
     secondary: string
-    scroll: string
   }
   /** Split into words for the scroll-driven reveal. */
   statement: { eyebrow: string; words: readonly string[]; footnote: string }
   stripLabel: string
   products: {
-    eyebrow: string
     title: readonly [string, string]
     lede: string
     visit: string
@@ -99,13 +96,11 @@ type Copy = {
 const ko: Copy = {
   nav: { products: "제품", open: "오픈소스", principles: "원칙", contact: "문의" },
   hero: {
-    overline: "LafLabs Inc. — Seoul, South Korea",
     titleQuiet: "보이지 않는",
     titleLoud: "인프라를 만듭니다",
     lede: "신원, 결제, 클라우드. 세 겹의 인프라를 하나의 경험으로 잇습니다. 복잡함은 우리가 갖고, 쓰는 사람에게는 단순함만 남깁니다.",
     primary: "제품 살펴보기",
     secondary: "GitHub",
-    scroll: "아래로",
   },
   statement: {
     eyebrow: "우리가 믿는 것",
@@ -114,7 +109,6 @@ const ko: Copy = {
   },
   stripLabel: "우리가 쓰는 것",
   products: {
-    eyebrow: "제품",
     title: ["세 겹의 인프라,", "하나의 규칙."],
     lede: "신원, 결제, 인프라는 결국 한 코드베이스 안에서 만납니다. 하나를 익히면 나머지도 예측할 수 있도록 같은 규칙 위에 올렸습니다.",
     visit: "바로가기",
@@ -191,13 +185,11 @@ const ko: Copy = {
 const en: Copy = {
   nav: { products: "Products", open: "Open source", principles: "Principles", contact: "Contact" },
   hero: {
-    overline: "LafLabs Inc. — Seoul, South Korea",
     titleQuiet: "We build the",
     titleLoud: "invisible parts",
     lede: "Identity, payments, cloud. Three layers of infrastructure connected into one experience. We keep the complexity; everyone building on top of it gets the simple part.",
     primary: "See the products",
     secondary: "GitHub",
-    scroll: "Scroll",
   },
   statement: {
     eyebrow: "What we believe",
@@ -206,7 +198,6 @@ const en: Copy = {
   },
   stripLabel: "WHAT WE BUILD WITH",
   products: {
-    eyebrow: "Products",
     title: ["Three layers.", "One set of rules."],
     lede: "Identity, payments, and infrastructure always end up in the same codebase. Ours are built on shared conventions, so learning one tells you how the others behave.",
     visit: "Visit",

@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr"
-import { motion } from "motion/react"
+import { motion, useReducedMotion } from "motion/react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
@@ -18,13 +18,14 @@ const routeY = [100, 260, 420] as const
 
 export function Hero() {
   const locale = useLocale()
+  const reduced = useReducedMotion()
   const t = copy[locale].hero
   const productCopy = copy[locale].products
 
   const rise = (delay: number) => ({
-    initial: { opacity: 0 },
+    initial: reduced ? false : { opacity: 0 },
     animate: { opacity: 1 },
-    transition: { duration: 0.7, delay, ease: EASE },
+    transition: { duration: reduced ? 0 : 0.7, delay: reduced ? 0 : delay, ease: EASE },
   })
 
   return (
@@ -60,9 +61,13 @@ export function Hero() {
                 className="routing-line"
                 pathLength="1"
                 d={d}
-                initial={{ pathLength: 0, opacity: 0 }}
+                initial={reduced ? false : { pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 0.9, delay: 0.34 + index * 0.08, ease: EASE }}
+                transition={{
+                  duration: reduced ? 0 : 0.9,
+                  delay: reduced ? 0 : 0.34 + index * 0.08,
+                  ease: EASE,
+                }}
               />
             ))}
             <rect className="routing-origin" x="31" y="251" width="18" height="18" />

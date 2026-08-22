@@ -13,8 +13,6 @@ export function Cta() {
 
   return (
     <section className="cta" id="contact">
-      <div className="grid-lines" />
-
       <div className="cta-inner">
         <Reveal>
           <div className="label">

@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 /* ------------------------------------------------------------------ *
  * Tokens. Only the token layer is shared with the Laf ID surface —
  * square geometry, one structural blue, Geist. The layout language
@@ -9,9 +7,9 @@
  * the company.
  * ------------------------------------------------------------------ */
 :root {
+  color-scheme: dark;
   --background: #0b1328;
   --foreground: #f4f7fb;
-  --muted: #111d38;
   --muted-foreground: #8ba7d9;
   --border: #263d68;
   --radius: 0rem;
@@ -19,6 +17,8 @@
   --brand: #165dff;
   --brand-deep: #0f4bd8;
   --brand-soft: #112b5d;
+  --route-line: #8fb6ff;
+  --button-ink: #0a0e18;
 
   --surface-page: #0b1328;
   --surface-raised: #101c35;
@@ -39,13 +39,8 @@
   --spark: #165dff;
 
   --rule: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --grid-line: rgba(139, 167, 217, 0.05);
   --shell: min(1280px, calc(100% - 56px));
   --gutter: max(28px, calc((100vw - 1280px) / 2));
-}
-
-.dark {
-  color-scheme: dark;
 }
 
 @theme inline {
@@ -78,7 +73,7 @@ svg { flex: 0 0 auto; }
 ::selection { background: color-mix(in srgb, var(--brand) 24%, transparent); }
 
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--brand) 60%, transparent);
+  outline: 2px solid var(--route-line);
   outline-offset: 3px;
 }
 
@@ -100,7 +95,7 @@ svg { flex: 0 0 auto; }
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
-.label b { color: var(--brand); font-weight: 600; }
+.label b { color: var(--route-line); font-weight: 600; }
 
 /* The display scale. This is what separates the company page from a
    product page — headlines are allowed to be loud. */
@@ -130,8 +125,6 @@ svg { flex: 0 0 auto; }
   word-break: keep-all;
 }
 
-.grid-lines { display: none; }
-
 /* ------------------------------------------------------------------ *
  * Buttons
  * ------------------------------------------------------------------ */
@@ -158,11 +151,11 @@ svg { flex: 0 0 auto; }
 .btn-primary { color: #fff; background: var(--brand); }
 .btn-primary:hover { background: var(--brand-deep); }
 .btn-outline { border-color: var(--border-strong); color: var(--foreground); }
-.btn-outline:hover { border-color: var(--foreground); background: var(--muted); }
-.btn-light { color: #0a0e18; background: #f8fafc; }
+.btn-outline:hover { border-color: var(--foreground); background: var(--brand-soft); }
+.btn-light { color: var(--button-ink); background: var(--text-inverse); }
 .btn-light:hover { background: #fff; }
-.btn-ghost-inverse { border-color: rgba(248, 250, 252, 0.24); color: #f8fafc; }
-.btn-ghost-inverse:hover { border-color: rgba(248, 250, 252, 0.7); background: rgba(248, 250, 252, 0.06); }
+.btn-ghost-inverse { border-color: color-mix(in srgb, var(--text-inverse) 24%, transparent); color: var(--text-inverse); }
+.btn-ghost-inverse:hover { border-color: color-mix(in srgb, var(--text-inverse) 70%, transparent); background: color-mix(in srgb, var(--text-inverse) 6%, transparent); }
 
 .text-link {
   display: inline-flex;
@@ -172,7 +165,7 @@ svg { flex: 0 0 auto; }
   font-size: 13px;
   font-weight: 650;
 }
-.text-link svg { color: var(--brand); transition: transform 0.22s ease; }
+.text-link svg { color: var(--route-line); transition: transform 0.22s ease; }
 .text-link:hover svg { transform: translate(3px, -3px); }
 
 /* ------------------------------------------------------------------ *
@@ -237,12 +230,7 @@ svg { flex: 0 0 auto; }
   cursor: pointer;
   transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
 }
-.icon-toggle:hover { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
-
-.theme-icon { grid-area: 1 / 1; }
-.theme-icon-dark { display: none; }
-.dark .theme-icon-light { display: none; }
-.dark .theme-icon-dark { display: block; }
+.icon-toggle:hover { color: var(--route-line); border-color: var(--route-line); background: var(--brand-soft); }
 
 .lang-toggle {
   height: 38px;
@@ -348,15 +336,15 @@ svg { flex: 0 0 auto; }
 .routing-lines { position: absolute; inset: 0 auto 0 0; width: 90%; height: 100%; overflow: visible; }
 .routing-line {
   fill: none;
-  stroke: #8fb6ff;
+  stroke: var(--route-line);
   stroke-width: 2;
   stroke-linecap: square;
   stroke-linejoin: miter;
   filter: drop-shadow(0 0 4px rgb(22 93 255 / 0.62));
   vector-effect: non-scaling-stroke;
 }
-.routing-origin { fill: var(--foreground); stroke: #8fb6ff; stroke-width: 2; }
-.routing-endpoint { fill: #0b1833; stroke: #5e8fe8; stroke-width: 1.5; }
+.routing-origin { fill: var(--foreground); stroke: var(--route-line); stroke-width: 2; }
+.routing-endpoint { fill: var(--surface-raised); stroke: #5e8fe8; stroke-width: 1.5; }
 
 .routing-items { position: absolute; inset: 0; }
 .routing-item {
@@ -372,20 +360,20 @@ svg { flex: 0 0 auto; }
 .routing-item[data-route="1"] { top: 9.2%; }
 .routing-item[data-route="2"] { top: 40%; }
 .routing-item[data-route="3"] { top: 70.8%; }
-.routing-product-name { position: absolute; top: 0; left: 4.2%; color: #8fb6ff; }
+.routing-product-name { position: absolute; top: 0; left: 4.2%; color: var(--route-line); }
 .routing-layer {
   position: absolute;
   top: 48%;
   right: 2.2%;
   transform: translateY(-50%);
-  color: #8fb6ff;
+  color: var(--route-line);
   text-transform: uppercase;
 }
 .routing-availability {
   position: absolute;
   top: 0;
   left: calc(4.2% + 74px);
-  color: color-mix(in srgb, var(--text-secondary) 64%, transparent);
+  color: var(--muted-foreground);
   font-size: 0.78em;
 }
 a.routing-item .routing-product-name { text-decoration: underline; text-underline-offset: 5px; }
@@ -439,8 +427,8 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }
-.strip-track { display: flex; gap: 52px; width: max-content; }
-.strip-track span {
+.strip-track { margin: 0; padding: 0; display: flex; gap: 52px; width: max-content; list-style: none; }
+.strip-track li {
   display: inline-flex;
   align-items: center;
   gap: 52px;
@@ -450,7 +438,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   letter-spacing: -0.035em;
   white-space: nowrap;
 }
-.strip-track span::after { content: ""; width: 6px; height: 6px; background: var(--brand); }
+.strip-track li::after { content: ""; width: 6px; height: 6px; background: var(--brand); }
 
 /* ------------------------------------------------------------------ *
  * Section frame
@@ -487,7 +475,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
 .product-layer {
   display: block;
   margin-bottom: 12px;
-  color: var(--brand);
+  color: var(--route-line);
   font-family: var(--font-geist-mono);
   font-size: 9.5px;
   font-weight: 650;
@@ -539,7 +527,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   text-transform: uppercase;
   white-space: nowrap;
 }
-.product-status[data-live="true"] { border-color: var(--brand); color: var(--brand); background: var(--brand-soft); }
+.product-status[data-live="true"] { border-color: var(--route-line); color: var(--route-line); background: var(--brand-soft); }
 .product-aside code { color: var(--muted-foreground); font-family: var(--font-geist-mono); font-size: 10.5px; }
 
 /* ------------------------------------------------------------------ *
@@ -591,7 +579,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
 }
 .repo-lang i { width: 8px; height: 8px; background: var(--dot, var(--border-strong)); }
 .repo-row > svg { color: var(--muted-foreground); transition: color 0.24s ease, transform 0.28s ease; }
-.repo-row:hover > svg { color: var(--brand); transform: translate(3px, -3px); }
+.repo-row:hover > svg { color: var(--route-line); transform: translate(3px, -3px); }
 
 .repo-foot { margin-top: 34px; }
 
@@ -609,7 +597,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   border-bottom: 1px solid var(--rule);
 }
 .principle-row > span {
-  color: var(--brand);
+  color: var(--route-line);
   font-family: var(--font-geist-mono);
   font-size: 11px;
   font-weight: 650;
@@ -704,7 +692,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   background: var(--surface-inverse);
 }
 .cta-inner { width: var(--shell); margin-inline: auto; position: relative; }
-.cta .label { border-bottom-color: rgba(248, 250, 252, 0.16); color: var(--text-inverse-muted); }
+.cta .label { border-bottom-color: color-mix(in srgb, var(--text-inverse) 16%, transparent); color: var(--text-inverse-muted); }
 .cta h2 { margin: clamp(28px, 3.4vw, 46px) 0 0; color: var(--text-inverse); }
 .cta-body {
   margin-top: clamp(32px, 3.6vw, 48px);
@@ -713,7 +701,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 36px;
-  border-top: 1px solid rgba(248, 250, 252, 0.16);
+  border-top: 1px solid color-mix(in srgb, var(--text-inverse) 16%, transparent);
 }
 .cta-body .lede { color: var(--text-inverse-muted); }
 .cta-actions { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -723,7 +711,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   color: var(--text-inverse-muted);
   font-family: var(--font-geist-mono);
   font-size: 12px;
-  border-bottom: 1px solid rgba(248, 250, 252, 0.24);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-inverse) 24%, transparent);
   padding-bottom: 2px;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
@@ -760,7 +748,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
 }
 .footer-col ul { margin: 0; padding: 0; display: grid; gap: 11px; list-style: none; }
 .footer-col a { color: var(--text-secondary); font-size: 13.5px; transition: color 0.18s ease; }
-.footer-col a:hover { color: var(--brand); }
+.footer-col a:hover { color: var(--route-line); }
 
 .footer-bottom {
   margin-top: clamp(48px, 6vw, 76px);
@@ -844,9 +832,18 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   .hero-ctas { opacity: 1 !important; transform: none !important; }
   .routing-line { stroke-dasharray: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; }
   .routing-item { opacity: 1 !important; transform: none !important; }
+  [data-reveal],
+  [data-reveal-group] > *,
+  .statement-copy span,
+  .name-equation,
+  .name-equation > *,
+  .name-equation .name-laf,
+  .name-note,
+  .strip-viewport > div { opacity: 1 !important; transform: none !important; }
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
+    animation: none !important;
+    animation-duration: 0s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0s !important;
   }
 }

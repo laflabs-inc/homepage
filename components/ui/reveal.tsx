@@ -6,7 +6,7 @@ const EASE = [0.22, 1, 0.36, 1] as const
 
 /**
  * Scroll-triggered entrance. Fires once, stays put, and collapses to a
- * plain fade when the visitor asks for reduced motion.
+ * static content when the visitor asks for reduced motion.
  */
 export function Reveal({
   children,
@@ -26,11 +26,12 @@ export function Reveal({
 
   return (
     <Tag
+      data-reveal=""
       className={className}
-      initial={{ opacity: 0, y: reduced ? 0 : y }}
+      initial={reduced ? { opacity: 1, y: 0 } : { opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: reduced ? 0.2 : 0.6, delay: reduced ? 0 : delay, ease: EASE }}
+      transition={{ duration: reduced ? 0 : 0.6, delay: reduced ? 0 : delay, ease: EASE }}
     >
       {children}
     </Tag>
@@ -51,11 +52,12 @@ export function RevealGroup({
 
   return (
     <motion.div
+      data-reveal-group=""
       className={className}
-      initial="hidden"
+      initial={reduced ? "visible" : "hidden"}
       whileInView="visible"
       viewport={{ once: true, margin: "-60px" }}
-      variants={{ visible: { transition: { staggerChildren: reduced ? 0 : stagger } } }}
+      variants={{ visible: { transition: { duration: reduced ? 0 : undefined, staggerChildren: reduced ? 0 : stagger } } }}
     >
       {children}
     </motion.div>
