@@ -13,8 +13,189 @@ import type {
   AnalyticsLocale,
   DeviceCategory,
 } from "@/lib/analytics/normalize"
+import { products, repositories } from "@/lib/content"
 
 const WITHDRAWAL_GUARD_TTL_MS = 10 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+export type AnalyticsRange = 7 | 30 | 90
+
+export type AnalyticsCountRow = {
+  key: string
+  count: number
+}
+
+export type AnalyticsSummary = {
+  rangeDays: AnalyticsRange
+  consentedVisitors: number
+  pageViews: number
+  productClicks: number
+  githubClicks: number
+  contactClicks: number
+  funnel: {
+    pageToProduct: number
+    productToContact: number
+  }
+  locales: AnalyticsCountRow[]
+  devices: AnalyticsCountRow[]
+  referrers: AnalyticsCountRow[]
+  products: AnalyticsCountRow[]
+  githubTargets: AnalyticsCountRow[]
+}
+
+type AnalyticsSummaryRow = {
+  consentedVisitors: number | string
+  pageViews: number | string
+  productClicks: number | string
+  githubClicks: number | string
+  contactClicks: number | string
+  pageVisitors: number | string
+  productVisitors: number | string
+  contactVisitors: number | string
+  locales: unknown
+  devices: unknown
+  referrers: unknown
+  products: unknown
+  githubTargets: unknown
+}
+
+const productTargets = products.map(({ id }) => id)
+const repositoryTargets = ["laflabs-inc", ...repositories.map(({ name }) => name)]
+
+export function parseAnalyticsRange(value: string | readonly string[] | undefined): AnalyticsRange {
+  if (value === "7" || value === "30" || value === "90") return Number(value) as AnalyticsRange
+  return 30
+}
+
+function toCount(value: number | string | undefined): number {
+  const count = Number(value ?? 0)
+  return Number.isFinite(count) && count >= 0 ? count : 0
+}
+
+function toCountRows(value: unknown): AnalyticsCountRow[] {
+  if (!Array.isArray(value)) return []
+
+  return value.flatMap((row) => {
+    if (typeof row !== "object" || row === null) return []
+    const { key, count } = row as { key?: unknown; count?: unknown }
+    if (typeof key !== "string") return []
+    const normalizedCount = toCount(typeof count === "string" || typeof count === "number" ? count : undefined)
+    return [{ key, count: normalizedCount }]
+  })
+}
+
+function conversionRate(numerator: number, denominator: number): number {
+  if (denominator === 0) return 0
+  return Math.round((numerator / denominator) * 10_000) / 10_000
+}
+
+export async function getAnalyticsSummary(
+  range: AnalyticsRange,
+  now: Date,
+): Promise<AnalyticsSummary> {
+  const cutoff = new Date(now.getTime() - range * DAY_MS)
+  const database = getDb()
+  const result = await database.execute<AnalyticsSummaryRow>(sql`
+    WITH selected AS (
+      SELECT
+        "visitor_hash",
+        "event_type",
+        "target_id",
+        "locale",
+        "device_category",
+        "referrer_host"
+      FROM ${analyticsEvents}
+      WHERE ${analyticsEvents.receivedAt} >= ${cutoff}
+        AND ${analyticsEvents.receivedAt} <= ${now}
+    ), metrics AS (
+      SELECT
+        count(DISTINCT visitor_hash)::integer AS "consentedVisitors",
+        count(*) FILTER (WHERE event_type = 'page_view')::integer AS "pageViews",
+        count(*) FILTER (WHERE event_type = 'product_click')::integer AS "productClicks",
+        count(*) FILTER (WHERE event_type = 'github_click')::integer AS "githubClicks",
+        count(*) FILTER (WHERE event_type = 'contact_click')::integer AS "contactClicks",
+        count(DISTINCT visitor_hash) FILTER (WHERE event_type = 'page_view')::integer AS "pageVisitors",
+        count(DISTINCT visitor_hash) FILTER (WHERE event_type = 'product_click')::integer AS "productVisitors",
+        count(DISTINCT visitor_hash) FILTER (WHERE event_type = 'contact_click')::integer AS "contactVisitors"
+      FROM selected
+    ), locale_rows AS (
+      SELECT locale AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'page_view' AND locale IN ('ko', 'en')
+      GROUP BY locale
+    ), device_rows AS (
+      SELECT device_category AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'page_view'
+        AND device_category IN ('desktop', 'mobile', 'tablet', 'unknown')
+      GROUP BY device_category
+    ), referrer_rows AS (
+      SELECT referrer_host AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'page_view' AND referrer_host IS NOT NULL
+      GROUP BY referrer_host
+      ORDER BY count DESC, referrer_host ASC
+      LIMIT 10
+    ), product_rows AS (
+      SELECT target_id AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'product_click'
+        AND target_id IN (${sql.join(productTargets.map((target) => sql`${target}`), sql`, `)})
+      GROUP BY target_id
+    ), github_rows AS (
+      SELECT target_id AS key, count(*)::integer AS count
+      FROM selected
+      WHERE event_type = 'github_click'
+        AND target_id IN (${sql.join(repositoryTargets.map((target) => sql`${target}`), sql`, `)})
+      GROUP BY target_id
+    )
+    SELECT
+      metrics.*,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM locale_rows),
+        '[]'::jsonb
+      ) AS locales,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM device_rows),
+        '[]'::jsonb
+      ) AS devices,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM referrer_rows),
+        '[]'::jsonb
+      ) AS referrers,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM product_rows),
+        '[]'::jsonb
+      ) AS products,
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM github_rows),
+        '[]'::jsonb
+      ) AS "githubTargets"
+    FROM metrics
+  `)
+  const row = result.rows[0]
+  const pageVisitors = toCount(row?.pageVisitors)
+  const productVisitors = toCount(row?.productVisitors)
+  const contactVisitors = toCount(row?.contactVisitors)
+
+  return {
+    rangeDays: range,
+    consentedVisitors: toCount(row?.consentedVisitors),
+    pageViews: toCount(row?.pageViews),
+    productClicks: toCount(row?.productClicks),
+    githubClicks: toCount(row?.githubClicks),
+    contactClicks: toCount(row?.contactClicks),
+    funnel: {
+      pageToProduct: conversionRate(productVisitors, pageVisitors),
+      productToContact: conversionRate(contactVisitors, productVisitors),
+    },
+    locales: toCountRows(row?.locales),
+    devices: toCountRows(row?.devices),
+    referrers: toCountRows(row?.referrers),
+    products: toCountRows(row?.products),
+    githubTargets: toCountRows(row?.githubTargets),
+  }
+}
 
 export type StoredAnalyticsEvent = {
   eventId: string

@@ -1,9 +1,6 @@
 .shell {
   min-height: 100svh;
-  background:
-    linear-gradient(90deg, transparent calc(100% - 1px), rgb(203 213 225 / 44%) 1px) 0 0 / 80px 80px,
-    linear-gradient(transparent calc(100% - 1px), rgb(203 213 225 / 44%) 1px) 0 0 / 80px 80px,
-    var(--paper);
+  background: var(--paper);
 }
 
 .header {
@@ -12,9 +9,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgb(248 250 252 / 92%);
+  background: var(--paper);
   border-bottom: 1px solid var(--ink);
-  backdrop-filter: blur(16px);
 }
 
 .headerLabel,
@@ -54,7 +50,7 @@
 
 .signInIntro h1 {
   margin: 0;
-  font-size: clamp(56px, 7vw, 110px);
+  font-size: 66px;
   font-weight: 780;
   line-height: 0.92;
   letter-spacing: -0.072em;
@@ -78,11 +74,10 @@
   color: white;
   background: var(--blue);
   border: 1px solid var(--ink);
-  box-shadow: 10px 10px 0 var(--ink);
 }
 
 .cardIndex {
-  color: #dbeafe;
+  color: var(--paper);
 }
 
 .signInCard h2 {
@@ -94,7 +89,7 @@
 
 .signInCard p {
   margin: 18px 0 0;
-  color: #dbeafe;
+  color: var(--paper);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -126,6 +121,345 @@
   transform: translate(-3px, -3px);
 }
 
+.dashboard {
+  display: grid;
+  gap: 64px;
+}
+
+.dashboardHeading {
+  padding-bottom: 32px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.dashboardHeading h1 {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.dashboardHeading p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rangeNav {
+  display: flex;
+  border: 1px solid var(--ink);
+}
+
+.rangeNav a {
+  min-width: 84px;
+  min-height: 42px;
+  padding: 0 14px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--paper);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.rangeNav a + a {
+  border-left: 1px solid var(--ink);
+}
+
+.rangeNav a:hover {
+  color: var(--ink);
+  background: #eff6ff;
+}
+
+.rangeNav a[aria-current="page"] {
+  color: white;
+  background: var(--blue);
+}
+
+.metrics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--ink);
+}
+
+.metricCell {
+  min-height: 176px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.metricCell + .metricCell {
+  border-left: 1px solid var(--ink);
+}
+
+.metricCell dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metricCell dd {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 740;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.funnel,
+.distributionGrid,
+.tableGrid {
+  border-top: 1px solid var(--ink);
+}
+
+.sectionHeading {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.sectionHeading h2,
+.distribution h2,
+.tableHeading h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.sectionHeading p,
+.tableHeading span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.funnelTrack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr) 132px minmax(0, 1fr);
+  border: 1px solid var(--ink);
+  border-right: 0;
+}
+
+.funnelStage,
+.funnelRate {
+  min-height: 168px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--ink);
+}
+
+.funnelStage span,
+.funnelStage small,
+.funnelRate span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.funnelStage strong {
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.funnelRate {
+  justify-content: center;
+  gap: 8px;
+  color: white;
+  background: var(--blue);
+  text-align: center;
+}
+
+.funnelRate strong {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.funnelRate span {
+  color: var(--paper);
+}
+
+.distributionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.distribution {
+  min-width: 0;
+  padding: 28px 32px 32px 0;
+}
+
+.distribution + .distribution {
+  padding-left: 32px;
+  border-left: 1px solid var(--ink);
+}
+
+.barList {
+  margin: 32px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 24px;
+  list-style: none;
+}
+
+.barMeta {
+  margin-bottom: 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.barMeta span:first-child {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.barMeta span:last-child,
+.tableSection td:last-child {
+  font-variant-numeric: tabular-nums;
+}
+
+.barTrack {
+  height: 10px;
+  background: var(--line);
+}
+
+.barTrack span {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+}
+
+.inlineEmpty {
+  margin: 32px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tableGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tableSection {
+  min-width: 0;
+  padding: 28px 24px 0 0;
+}
+
+.tableSection + .tableSection {
+  padding-left: 24px;
+  border-left: 1px solid var(--ink);
+}
+
+.tableHeading {
+  min-height: 56px;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tableHeading span {
+  max-width: 120px;
+  text-align: right;
+}
+
+.tableSection table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tableSection th,
+.tableSection td {
+  height: 48px;
+  padding: 0 10px;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+.tableSection thead th {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.tableSection tbody th {
+  font-weight: 600;
+}
+
+.tableSection th:last-child,
+.tableSection td:last-child {
+  text-align: right;
+}
+
+.tableEmpty {
+  color: var(--muted);
+  text-align: left !important;
+}
+
+.dashboardEmpty,
+.errorState {
+  min-height: 360px;
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--ink);
+}
+
+.dashboardEmpty h2,
+.errorState h2 {
+  max-width: 680px;
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.dashboardEmpty p,
+.errorState p {
+  max-width: 620px;
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.errorState button {
+  width: max-content;
+  min-height: 46px;
+  margin-top: 32px;
+  padding: 0 18px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.errorState button:hover {
+  background: var(--deep);
+}
+
 @media (max-width: 900px) {
   .content {
     padding: 48px 0 72px;
@@ -137,17 +471,135 @@
   }
 
   .signInIntro h1 {
-    font-size: clamp(48px, 15vw, 76px);
+    font-size: 48px;
   }
 
   .signInCard {
     width: min(100%, 520px);
     justify-self: end;
   }
+
+  .dashboard {
+    gap: 48px;
+  }
+
+  .dashboardHeading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metricCell:nth-child(3) {
+    border-left: 0;
+  }
+
+  .metricCell:nth-child(n + 3) {
+    border-top: 1px solid var(--ink);
+  }
+
+  .funnelTrack {
+    grid-template-columns: minmax(0, 1fr) 104px minmax(0, 1fr) 104px minmax(0, 1fr);
+  }
+
+  .funnelStage,
+  .funnelRate {
+    min-height: 148px;
+    padding: 16px;
+  }
+
+  .tableGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableSection {
+    padding: 28px 0;
+  }
+
+  .tableSection + .tableSection {
+    padding-left: 0;
+    border-top: 1px solid var(--ink);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding-top: 36px;
+  }
+
+  .dashboardHeading h1 {
+    font-size: 34px;
+  }
+
+  .rangeNav {
+    width: 100%;
+  }
+
+  .rangeNav a {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .metrics,
+  .distributionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricCell + .metricCell,
+  .metricCell:nth-child(3) {
+    border-top: 1px solid var(--ink);
+    border-left: 0;
+  }
+
+  .metricCell {
+    min-height: 132px;
+  }
+
+  .sectionHeading {
+    padding: 20px 0;
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .funnelTrack {
+    grid-template-columns: 1fr;
+    border-bottom: 0;
+  }
+
+  .funnelStage,
+  .funnelRate {
+    min-height: 112px;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .funnelRate {
+    min-height: 80px;
+  }
+
+  .distribution {
+    padding: 28px 0;
+  }
+
+  .distribution + .distribution {
+    padding-left: 0;
+    border-top: 1px solid var(--ink);
+    border-left: 0;
+  }
+
+  .dashboardEmpty,
+  .errorState {
+    min-height: 300px;
+    padding: 28px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .signInButton {
+  .signInButton,
+  .rangeNav a,
+  .errorState button {
     transition: none;
   }
 }
