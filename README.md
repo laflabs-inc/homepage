@@ -53,16 +53,32 @@ npm run typecheck  # tsc --noEmit
 npm run lint       # eslint
 npm run build      # production build
 npm test           # all three
+npm run test:e2e   # 8 browser flows on desktop + mobile; isolated DB required
 ```
+
+Browser tests require a migrated, disposable `TEST_DATABASE_URL`. The runner
+refuses a missing test database, an exact `DATABASE_URL` match, and configured
+production hostnames. Never point Playwright at production. See the
+[analytics operations runbook](docs/analytics-operations.md) for the safe setup.
 
 ## Deployment
 
-Vercel builds this repository with zero configuration. The one optional
-environment variable:
+Vercel builds the application. Consent analytics and the protected dashboard
+require the following server-side environment:
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
+| `DATABASE_URL` | Environment-specific Neon PostgreSQL connection | Required |
+| `ANALYTICS_HASH_SECRET` | Signs and hashes analytics identity; 32+ bytes | Required |
+| `AUTH_SECRET` | Encrypts Auth.js sessions; 32+ bytes | Required |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth application | Required |
+| `ADMIN_GITHUB_ORG` | Required active GitHub organization | `laflabs-inc` |
+| `CRON_SECRET` | Retention bearer secret; 16+ bytes | Required |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata and JSON-LD | `https://laflabs.co` |
 
 The public contact address is `contact@laflabs.co`. The route renders on demand
 because locale detection reads request cookies and headers.
+
+Provision Neon, register the exact GitHub callback, migrate preview before
+production, and complete legal review of consent/privacy copy by following
+[docs/analytics-operations.md](docs/analytics-operations.md).

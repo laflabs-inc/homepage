@@ -23,7 +23,7 @@
 .eyebrow {
   margin: 0 0 12px;
   color: var(--blue);
-  font: 650 9px var(--font-geist-mono), monospace;
+  font: 650 9px var(--font-geist-mono), "Pretendard", monospace;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
@@ -85,7 +85,7 @@
   color: var(--ink);
   background: transparent;
   border: 1px solid var(--ink);
-  font: 650 12px var(--font-geist-mono), monospace;
+  font: 650 12px var(--font-geist-mono), "Pretendard", monospace;
   cursor: pointer;
   transition: color 160ms ease, background 160ms ease;
 }
@@ -112,7 +112,7 @@
 .details summary {
   width: max-content;
   color: var(--ink);
-  font: 600 10px var(--font-geist-mono), monospace;
+  font: 600 10px var(--font-geist-mono), "Pretendard", monospace;
   cursor: pointer;
 }
 
