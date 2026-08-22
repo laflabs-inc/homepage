@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-22T02:18:35Z",
+  "title": "Design System: LafLabs Homepage",
+  "extensions": {
+    "colorMeta": {
+      "route-blue": {
+        "role": "primary",
+        "displayName": "Route Blue",
+        "canonical": "#165dff",
+        "description": "Filled primary actions and large structural accents; Pure White text is 4.83:1."
+      },
+      "route-blue-deep": {
+        "role": "primary",
+        "displayName": "Deep Route Blue",
+        "canonical": "#0f4bd8",
+        "description": "Primary-button hover ground."
+      },
+      "route-blue-soft": {
+        "role": "primary",
+        "displayName": "Soft Route Blue",
+        "canonical": "#112b5d",
+        "description": "Quiet active and hover ground."
+      },
+      "route-line": {
+        "role": "primary",
+        "displayName": "Readable Route Blue",
+        "canonical": "#8fb6ff",
+        "description": "Routes, small metadata, live status, and focus; 9.05:1 on Page Navy and 6.75:1 on Soft Route Blue."
+      },
+      "route-endpoint": {
+        "role": "primary",
+        "displayName": "Route Endpoint Blue",
+        "canonical": "#5e8fe8",
+        "description": "1.5px endpoint strokes on Raised Navy; 5.30:1."
+      },
+      "page-navy": {
+        "role": "neutral",
+        "displayName": "Page Navy",
+        "canonical": "#0b1328",
+        "description": "Dark-only page ground and browser theme color."
+      },
+      "raised-navy": {
+        "role": "neutral",
+        "displayName": "Raised Navy",
+        "canonical": "#101c35",
+        "description": "Route endpoint fill and raised dark details."
+      },
+      "subtle-navy": {
+        "role": "neutral",
+        "displayName": "Subtle Navy",
+        "canonical": "#0e1931",
+        "description": "Alternating statement and open-source section bands."
+      },
+      "inverse-navy": {
+        "role": "neutral",
+        "displayName": "Inverse Navy",
+        "canonical": "#071022",
+        "description": "Contact-section ground."
+      },
+      "off-white": {
+        "role": "neutral",
+        "displayName": "Off-white",
+        "canonical": "#f4f7fb",
+        "description": "Primary text and light controls."
+      },
+      "pure-white": {
+        "role": "neutral",
+        "displayName": "Pure White",
+        "canonical": "#fff",
+        "description": "Primary-button and active-language text plus high-contrast hover text."
+      },
+      "blue-grey": {
+        "role": "neutral",
+        "displayName": "Blue-grey",
+        "canonical": "#8ba7d9",
+        "description": "Secondary text and unavailable labels; 7.58:1 on Page Navy."
+      },
+      "border-blue": {
+        "role": "neutral",
+        "displayName": "Border Blue",
+        "canonical": "#263d68",
+        "description": "Default one-pixel rules and control borders."
+      },
+      "border-blue-strong": {
+        "role": "neutral",
+        "displayName": "Strong Border Blue",
+        "canonical": "#385a91",
+        "description": "Emphasized rules and outline-button borders."
+      },
+      "button-ink": {
+        "role": "neutral",
+        "displayName": "Button Ink",
+        "canonical": "#0a0e18",
+        "description": "Contact-button text on Off-white; 17.95:1."
+      },
+      "mask-black": {
+        "role": "neutral",
+        "displayName": "Mask Black",
+        "canonical": "#000",
+        "description": "Opaque stops in the technology-strip edge mask; not a visible surface."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Primary section statements."
+      },
+      "hero": {
+        "displayName": "Hero",
+        "purpose": "The two-line company proposition."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Readable Korean and English explanatory copy."
+      },
+      "mono-route": {
+        "displayName": "Route Metadata",
+        "purpose": "Product names and infrastructure layers in the routing plane."
+      },
+      "label": {
+        "displayName": "Editorial Label",
+        "purpose": "Sparse uppercase technical metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "route-glow",
+        "value": "drop-shadow(0 0 4px rgb(22 93 255 / 0.62))",
+        "purpose": "A restrained glow on the three hero SVG routes; content surfaces remain shadowless."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-route",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Hero entry, shared reveals, arrow movement, and route-adjacent state changes."
+      },
+      {
+        "name": "reveal",
+        "value": "opacity/y 18px, 600ms, once",
+        "purpose": "Shared section entrance; the grouped row variant uses y 20px and 550ms."
+      },
+      {
+        "name": "route-draw",
+        "value": "pathLength 0 to 1, 900ms",
+        "purpose": "Draws each hero route once with an 80ms stagger."
+      },
+      {
+        "name": "technology-strip",
+        "value": "translateX(0% to -50%), 42s linear infinite",
+        "purpose": "The only continuous marquee."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0s",
+        "purpose": "Complete final states, stationary strip, no smooth scroll, CSS animation, or transition duration."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack",
+        "value": "1080px"
+      },
+      {
+        "name": "mobile",
+        "value": "720px"
+      }
+    ],
+    "components": [
+      {
+        "name": "Primary Button",
+        "kind": "button",
+        "refersTo": "button-primary",
+        "description": "Primary product action with a square silhouette and reserved one-pixel border.",
+        "html": "<a class=\"ds-btn ds-btn-primary\" href=\"#products\">Explore products <span aria-hidden=\"true\">→</span></a>",
+        "css": ".ds-btn { min-height: 50px; padding: 0 24px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid transparent; color: #fff; font: 650 13.5px var(--font-geist-sans), Pretendard, sans-serif; letter-spacing: -0.01em; text-decoration: none; transition: background-color 0.2s ease; } .ds-btn-primary { background: var(--brand); } .ds-btn-primary:hover { background: var(--brand-deep); } .ds-btn:focus-visible { outline: 2px solid var(--route-line); outline-offset: 3px; }"
+      },
+      {
+        "name": "Outline Button",
+        "kind": "button",
+        "refersTo": "button-outline",
+        "description": "Secondary action used beside the hero's primary product action.",
+        "html": "<a class=\"ds-btn ds-btn-outline\" href=\"https://github.com/laflabs-inc\">GitHub</a>",
+        "css": ".ds-btn { min-height: 50px; padding: 0 24px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; color: var(--foreground); font: 650 13.5px var(--font-geist-sans), Pretendard, sans-serif; text-decoration: none; transition: background-color 0.2s ease, border-color 0.2s ease; } .ds-btn-outline { border-color: var(--border-strong); background: transparent; } .ds-btn-outline:hover { border-color: var(--foreground); background: var(--brand-soft); } .ds-btn:focus-visible { outline: 2px solid var(--route-line); outline-offset: 3px; }"
+      },
+      {
+        "name": "Icon Control",
+        "kind": "button",
+        "refersTo": "icon-control",
+        "description": "Square 38px utility control used for the GitHub action.",
+        "html": "<a class=\"ds-icon-control\" href=\"https://github.com/laflabs-inc\" aria-label=\"LafLabs on GitHub\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z\"/></svg></a>",
+        "css": ".ds-icon-control { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--border); color: var(--foreground); background: transparent; text-decoration: none; transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease; } .ds-icon-control:hover { color: var(--route-line); border-color: var(--route-line); background: var(--brand-soft); } .ds-icon-control:focus-visible { outline: 2px solid var(--route-line); outline-offset: 3px; }"
+      },
+      {
+        "name": "Language Toggle",
+        "kind": "custom",
+        "description": "Square bilingual segmented control; the active segment is Route Blue.",
+        "html": "<div class=\"ds-lang-toggle\" role=\"group\" aria-label=\"Language\"><button type=\"button\" data-active=\"true\" aria-pressed=\"true\">KO</button><button type=\"button\" data-active=\"false\" aria-pressed=\"false\">EN</button></div>",
+        "css": ".ds-lang-toggle { height: 38px; padding: 3px; display: inline-flex; align-items: center; border: 1px solid var(--border); } .ds-lang-toggle button { min-width: 36px; height: 30px; border: 0; color: var(--muted-foreground); background: transparent; font: 700 10px var(--font-geist-mono), monospace; letter-spacing: 0.05em; } .ds-lang-toggle button[data-active=\"true\"] { color: #fff; background: var(--brand); } .ds-lang-toggle button:focus-visible { outline: 2px solid var(--route-line); outline-offset: 3px; }"
+      },
+      {
+        "name": "Signal Routing Field",
+        "kind": "custom",
+        "description": "The shipped desktop field: one square origin, three routes, three unavailable product destinations.",
+        "html": "<div class=\"ds-routing-plane\" aria-label=\"See the products\"><svg class=\"ds-routing-lines\" viewBox=\"0 0 720 520\" aria-hidden=\"true\"><path d=\"M40 260H340L500 100H680\"/><path d=\"M40 260H680\"/><path d=\"M40 260H340L500 420H680\"/><rect class=\"ds-routing-origin\" x=\"31\" y=\"251\" width=\"18\" height=\"18\"/><rect class=\"ds-routing-endpoint\" x=\"671\" y=\"91\" width=\"18\" height=\"18\"/><rect class=\"ds-routing-endpoint\" x=\"671\" y=\"251\" width=\"18\" height=\"18\"/><rect class=\"ds-routing-endpoint\" x=\"671\" y=\"411\" width=\"18\" height=\"18\"/></svg><div class=\"ds-routing-items\"><div class=\"ds-routing-item\" data-route=\"1\" aria-disabled=\"true\"><span class=\"ds-routing-name\">Laf ID</span><span class=\"ds-routing-availability\">Coming soon</span><span class=\"ds-routing-layer\">Identity</span></div><div class=\"ds-routing-item\" data-route=\"2\" aria-disabled=\"true\"><span class=\"ds-routing-name\">Laf Pay</span><span class=\"ds-routing-availability\">Coming soon</span><span class=\"ds-routing-layer\">Payments</span></div><div class=\"ds-routing-item\" data-route=\"3\" aria-disabled=\"true\"><span class=\"ds-routing-name\">LafDock</span><span class=\"ds-routing-availability\">Coming soon</span><span class=\"ds-routing-layer\">Cloud</span></div></div></div>",
+        "css": ".ds-routing-plane { width: min(720px, 100%); position: relative; aspect-ratio: 720 / 520; border: 1px solid color-mix(in srgb, var(--text-secondary) 32%, transparent); background: linear-gradient(color-mix(in srgb, var(--text-secondary) 7%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--text-secondary) 7%, transparent) 1px, transparent 1px); background-size: 32px 32px; } .ds-routing-lines { position: absolute; inset: 0 auto 0 0; width: 90%; height: 100%; overflow: visible; } .ds-routing-lines path { fill: none; stroke: var(--route-line); stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; filter: drop-shadow(0 0 4px rgb(22 93 255 / 0.62)); vector-effect: non-scaling-stroke; } .ds-routing-origin { fill: var(--foreground); stroke: var(--route-line); stroke-width: 2; } .ds-routing-endpoint { fill: var(--surface-raised); stroke: #5e8fe8; stroke-width: 1.5; } .ds-routing-items { position: absolute; inset: 0; } .ds-routing-item { width: 100%; height: 20%; position: absolute; inset-inline: 0; color: var(--text-secondary); font: 400 clamp(10px, 0.85vw, 13px) var(--font-geist-mono), monospace; letter-spacing: 0.06em; } .ds-routing-item[data-route=\"1\"] { top: 9.2%; } .ds-routing-item[data-route=\"2\"] { top: 40%; } .ds-routing-item[data-route=\"3\"] { top: 70.8%; } .ds-routing-name { position: absolute; top: 0; left: 4.2%; color: var(--route-line); } .ds-routing-layer { position: absolute; top: 48%; right: 2.2%; transform: translateY(-50%); color: var(--route-line); text-transform: uppercase; } .ds-routing-availability { position: absolute; top: 0; left: calc(4.2% + 74px); color: var(--muted-foreground); font-size: 0.78em; }"
+      },
+      {
+        "name": "Product Status",
+        "kind": "chip",
+        "description": "Square product status marker, shown in its currently shipped inactive state.",
+        "html": "<span class=\"ds-product-status\" data-live=\"false\">Developer Preview</span>",
+        "css": ".ds-product-status { padding: 6px 10px; display: inline-block; border: 1px solid var(--border); color: var(--muted-foreground); background: transparent; font: 620 9.5px var(--font-geist-mono), monospace; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; } .ds-product-status[data-live=\"true\"] { border-color: var(--route-line); color: var(--route-line); background: var(--brand-soft); }"
+      },
+      {
+        "name": "Repository Row",
+        "kind": "custom",
+        "description": "Flat open-source index row with a blue rule revealed on hover.",
+        "html": "<a class=\"ds-repo-row\" href=\"https://github.com/laflabs-inc/lafetch\"><span class=\"ds-repo-name\">lafetch</span><span class=\"ds-repo-copy\">A lightweight, TypeScript-first HTTP client that runs in the browser and on the server.</span><span aria-hidden=\"true\">↗</span></a>",
+        "css": ".ds-repo-row { padding: 24px 0; position: relative; display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr) 26px; align-items: center; gap: 18px; border-bottom: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent); color: var(--foreground); text-decoration: none; } .ds-repo-row::after { content: \"\"; position: absolute; inset: auto 0 -1px; height: 1px; background: var(--brand); transform: scaleX(0); transform-origin: left; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1); } .ds-repo-row:hover::after { transform: scaleX(1); } .ds-repo-name { font: 620 clamp(17px, 1.9vw, 24px) var(--font-geist-mono), monospace; letter-spacing: -0.03em; } .ds-repo-copy { color: var(--text-secondary); font: 400 13.5px/1.68 var(--font-geist-sans), Pretendard, sans-serif; } .ds-repo-row:focus-visible { outline: 2px solid var(--route-line); outline-offset: 3px; }"
+      }
+    ],
+    "narrative": {
+      "northStar": "Signal Routing Field",
+      "overview": "LafLabs uses a compact, dark-only technical plane: deep navy surfaces, thin blue-grey rules, one structural blue family, and square geometry. The system should feel like infrastructure made legible rather than a collection of marketing cards. Product discovery is primary. The signature routing field connects one company origin to three product paths, while downstream sections continue as direct editorial rows separated by spacing and rules.",
+      "keyCharacteristics": [
+        "Dark, single-theme technical surfaces with one blue accent.",
+        "Square endpoints, controls, markers, and corners.",
+        "Large Geist Sans headlines paired with restrained Geist Mono labels.",
+        "Flat section bands and dividers instead of cards or decorative depth.",
+        "Bilingual Korean and English copy with line breaks and measures that survive both locales."
+      ],
+      "rules": [
+        {
+          "name": "The One Route Rule",
+          "body": "Route Blue is the only accent; do not add competing semantic colors without a product requirement.",
+          "section": "colors"
+        },
+        {
+          "name": "The Two Voices Rule",
+          "body": "Sans carries meaning; mono carries compact system metadata.",
+          "section": "typography"
+        },
+        {
+          "name": "The Routing Grammar",
+          "body": "One square origin splits into three paths and ends at three square endpoints. Product name, availability, and infrastructure layer align to those routes; unavailable products remain visible but are not links.",
+          "section": "layout"
+        },
+        {
+          "name": "The Flat Infrastructure Rule",
+          "body": "Use borders and surface bands before shadows or floating containers.",
+          "section": "elevation"
+        },
+        {
+          "name": "The Square Signal Rule",
+          "body": "Do not introduce pills or circular decorative dots. A circle is allowed only when its shape carries real meaning supplied by the product.",
+          "section": "shapes"
+        }
+      ],
+      "dos": [
+        "Do use Route Blue for filled actions and Readable Blue for small signal text, routes, focus, and live status.",
+        "Do keep Korean and English readable with `word-break: keep-all` where prose needs stable phrases.",
+        "Do continue sections with generous spacing and one-pixel dividers.",
+        "Do preserve existing anchors and working external links."
+      ],
+      "donts": [
+        "Don't add rounded cards, pills, decorative circles, or ornamental shadows.",
+        "Don't repeat eyebrow labels or section numbers when the heading already establishes context.",
+        "Don't add a second marquee or a hero scroll cue.",
+        "Don't animate padding or layout position on row hover."
+      ]
+    }
+  }
+}
