@@ -12,7 +12,7 @@ length: 6s
 
 ## Intent
 
-A quiet technical system animation embedded in the homepage hero. Blue square modules arrive from the right, connect as Identity, Payments, and Cloud, and resolve into a large typographic `LAF` lockup.
+A quiet technical system animation embedded in the homepage hero. Blue square modules arrive from the right, connect as Identity, Payments, and Cloud, and resolve into the exact static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`.
 
 ## Assets
 
