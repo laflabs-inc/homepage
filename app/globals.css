@@ -454,8 +454,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   gap: clamp(28px, 4vw, 72px);
 }
 .section-head > .lede { padding-bottom: 6px; }
-.section-head-title { margin-top: clamp(24px, 2.6vw, 38px); }
-#products .section-head-title { margin-top: 0; }
+.section-head-title { margin-top: 0; }
 
 /* ------------------------------------------------------------------ *
  * Products — direct editorial rows, not a card grid.
@@ -642,7 +641,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
 .name-inner { width: var(--shell); margin-inline: auto; position: relative; }
 
 .name-equation {
-  margin-top: clamp(38px, 4.6vw, 68px);
+  margin: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -692,8 +691,7 @@ a.routing-item:focus-visible .routing-product-name { color: var(--foreground); }
   background: var(--surface-inverse);
 }
 .cta-inner { width: var(--shell); margin-inline: auto; position: relative; }
-.cta .label { border-bottom-color: color-mix(in srgb, var(--text-inverse) 16%, transparent); color: var(--text-inverse-muted); }
-.cta h2 { margin: clamp(28px, 3.4vw, 46px) 0 0; color: var(--text-inverse); }
+.cta h2 { margin: 0; color: var(--text-inverse); }
 .cta-body {
   margin-top: clamp(32px, 3.6vw, 48px);
   padding-top: 30px;

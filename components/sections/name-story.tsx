@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
-import { EASE, Reveal } from "@/components/ui/reveal"
+import { EASE } from "@/components/ui/reveal"
 import { copy, motto } from "@/lib/content"
 
 /** The one block on the page allowed to have a sense of humour about itself. */
@@ -26,14 +26,7 @@ export function NameStory() {
   return (
     <section className="name-section">
       <div className="name-inner">
-        <Reveal>
-          <div className="label">
-            <span>{t.eyebrow}</span>
-            <b>◆</b>
-          </div>
-        </Reveal>
-
-        <motion.div
+        <motion.h2
           className="name-equation"
           initial={reduced ? "visible" : "hidden"}
           whileInView="visible"
@@ -64,7 +57,7 @@ export function NameStory() {
             <span>LafLabs</span>
             <small>{motto}</small>
           </motion.span>
-        </motion.div>
+        </motion.h2>
 
         <motion.p
           className="name-note"

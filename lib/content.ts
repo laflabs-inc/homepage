@@ -24,7 +24,7 @@ export const stack = [
 ] as const
 
 export const products = [
-  { id: "laf-id", name: "Laf ID", href: "https://id.laflabs.com", domain: "id.laflabs.com" },
+  { id: "laf-id", name: "Laf ID", href: null, domain: "id.laflabs.com" },
   { id: "laf-pay", name: "Laf Pay", href: null, domain: "pay.laflabs.com" },
   { id: "lafdock", name: "LafDock", href: null, domain: "lafdock.com" },
 ] as const
@@ -68,20 +68,18 @@ type Copy = {
     soon: string
   } & Record<ProductId, ProductCopy>
   open: {
-    eyebrow: string
     title: readonly [string, string]
     lede: string
     all: string
     descriptions: Record<RepoName, string>
   }
   principles: {
-    eyebrow: string
     title: readonly [string, string]
     lede: string
     items: readonly { key: string; body: string }[]
   }
-  name: { eyebrow: string; laf: string; labs: string; note: string }
-  cta: { eyebrow: string; title: readonly [string, string]; lede: string; mail: string; github: string }
+  name: { laf: string; labs: string; note: string }
+  cta: { title: readonly [string, string]; lede: string; mail: string; github: string }
   footer: {
     blurb: string
     products: string
@@ -136,7 +134,6 @@ const ko: Copy = {
     },
   },
   open: {
-    eyebrow: "오픈소스",
     title: ["필요해서 만들었고,", "쓸 만해져서 열었습니다."],
     lede: "전부 제품을 만들다 막혀서 직접 만든 것들입니다. 우리가 실제로 운영에 쓰고 있고, 그래서 계속 고쳐집니다.",
     all: "GitHub에서 전체 보기",
@@ -147,7 +144,6 @@ const ko: Copy = {
     },
   },
   principles: {
-    eyebrow: "원칙",
     title: ["조용히 만들고,", "확실하게 돌아가게."],
     lede: "빠르게 만드는 방법은 많지만 오래 가는 방법은 적습니다. 우리는 매번 후자를 고릅니다.",
     items: [
@@ -159,13 +155,11 @@ const ko: Copy = {
     ],
   },
   name: {
-    eyebrow: "이름에 대하여",
     laf: "재미있는 이야기, 웃음",
     labs: "만들고 실험하는 곳",
     note: "이름은 가볍게 지었지만 만드는 방식은 그렇지 않습니다. 재미있는 걸 만들려면 그 아래가 지루할 만큼 튼튼해야 한다고 믿습니다. 잘 만든 인프라는 눈에 띄지 않고, 그래서 사람들은 그 위에서 마음껏 놀 수 있습니다.",
   },
   cta: {
-    eyebrow: "함께하기",
     title: ["같이 만들 사람을", "찾고 있습니다."],
     lede: "제품 도입, 기술 협업, 합류 문의 모두 환영합니다. 편하게 메일 주세요.",
     mail: "메일 보내기",
@@ -225,7 +219,6 @@ const en: Copy = {
     },
   },
   open: {
-    eyebrow: "Open source",
     title: ["Built because we needed it.", "Opened once it earned its keep."],
     lede: "Every one of these started as something that blocked us while building a product. We run them in production, which is why they keep improving.",
     all: "See everything on GitHub",
@@ -236,7 +229,6 @@ const en: Copy = {
     },
   },
   principles: {
-    eyebrow: "Principles",
     title: ["Build quietly.", "Work reliably."],
     lede: "There are many ways to build something fast and far fewer that last. We pick the second kind every time.",
     items: [
@@ -248,13 +240,11 @@ const en: Copy = {
     ],
   },
   name: {
-    eyebrow: "About the name",
     laf: "a good story, a laugh",
     labs: "where things get built",
     note: "The name is lighthearted; the engineering underneath is not. Building something fun requires a foundation boring enough to be trusted. Good infrastructure goes unnoticed — which is exactly what gives everyone above it room to play.",
   },
   cta: {
-    eyebrow: "Get in touch",
     title: ["We're looking for people", "to build this with."],
     lede: "Product questions, technical partnerships, or joining the team — all welcome. Just send us a note.",
     mail: "Send an email",

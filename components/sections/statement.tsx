@@ -23,7 +23,7 @@ function Word({
   // finishes well before the section leaves the viewport. The floor stays
   // legible so the copy never reads as broken or missing.
   const start = (index / total) * 0.7
-  const opacity = useTransform(progress, [start, start + 0.3], [0.26, 1])
+  const opacity = useTransform(progress, [start, start + 0.3], [0.36, 1])
 
   return (
     <motion.span style={{ opacity }}>

@@ -15,13 +15,6 @@ export function Cta() {
     <section className="cta" id="contact">
       <div className="cta-inner">
         <Reveal>
-          <div className="label">
-            <span>{t.eyebrow}</span>
-            <b>◆</b>
-          </div>
-        </Reveal>
-
-        <Reveal delay={0.08}>
           <h2 className="display">
             {t.title[0]}
             <br />
@@ -29,7 +22,7 @@ export function Cta() {
           </h2>
         </Reveal>
 
-        <Reveal delay={0.16}>
+        <Reveal delay={0.08}>
           <div className="cta-body">
             <div>
               <p className="lede">{t.lede}</p>
