@@ -37,7 +37,12 @@ export function Landing() {
         <h1>{ko ? <>제품의 다음을<br />만드는 회사.</> : <>We build what<br />products need next.</>}</h1>
         <p>{ko ? "LafLabs는 더 나은 디지털 경험에 필요한 제품과 기반 기술을 직접 설계하고 만듭니다." : "LafLabs designs and builds the products and infrastructure behind better digital experiences."}</p>
       </motion.div>
-      <motion.div className="hero-block" style={{ y: reduced ? 0 : heroY }} aria-hidden="true"><div className="hero-block-word">LAF</div><div className="hero-block-meta mono"><span>SOFTWARE</span><span>SEOUL / KR</span></div></motion.div>
+      <motion.div className="hero-block" style={{ y: reduced ? 0 : heroY }} aria-hidden="true">
+        <div className="hero-block-word">LAF</div><div className="hero-block-meta mono"><span>SOFTWARE</span><span>SEOUL / KR</span></div>
+        <video className="hero-block-video" autoPlay muted playsInline preload="metadata" poster="/laf-system-loop-poster.png">
+          <source src="/laf-system-loop.mp4" type="video/mp4" />
+        </video>
+      </motion.div>
       <a className="hero-scroll mono" href="#products"><ArrowDown size={16} /> SELECTED PRODUCTS</a>
     </section>
 
