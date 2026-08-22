@@ -16,13 +16,21 @@ class FakeStore implements AnalyticsStore {
   deletedVisitorHashes: string[] = []
   deletionError: Error | null = null
   waitForDeletion: Promise<void> | null = null
+  guardUpserted = false
+  eventsDeleted = false
+  rateWindowsDeleted = false
 
-  async consumeRateWindow() {
-    return true
+  async collectEvents() {
+    return { status: "accepted" as const, accepted: 0 }
   }
 
-  async insertEvents() {
-    return 0
+  async withdrawVisitorAnalytics(visitorHash: string) {
+    this.deletedVisitorHashes.push(visitorHash)
+    if (this.deletionError) throw this.deletionError
+    await this.waitForDeletion
+    this.guardUpserted = true
+    this.eventsDeleted = true
+    this.rateWindowsDeleted = true
   }
 
   async deleteVisitorEvents(visitorHash: string) {
@@ -83,6 +91,9 @@ describe("applyConsentChoice", () => {
       dntHonored: false,
       createVisitor: false,
     })
+    expect(fakeStore.guardUpserted).toBe(true)
+    expect(fakeStore.eventsDeleted).toBe(true)
+    expect(fakeStore.rateWindowsDeleted).toBe(true)
   })
 
   it("rejects with WithdrawalFailedError when deletion fails", async () => {

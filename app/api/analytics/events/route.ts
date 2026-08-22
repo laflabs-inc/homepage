@@ -32,6 +32,7 @@ export async function handleAnalyticsEvents(
   }
 
   if (parseConsentCookie(consentCookie)?.choice !== "analytics") return emptyResponse(204)
+  if (!visitorToken) return emptyResponse(204)
 
   try {
     if (!verifyVisitorToken(visitorToken, getAnalyticsEnv().ANALYTICS_HASH_SECRET)) {

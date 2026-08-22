@@ -76,7 +76,14 @@ export function normalizeReferrer(value: string | null | undefined): string | nu
   if (!value) return null
 
   try {
-    return new URL(value).hostname.toLowerCase() || null
+    const hostname = new URL(value).hostname.toLowerCase()
+    const ipCandidate = hostname.startsWith("[") && hostname.endsWith("]")
+      ? hostname.slice(1, -1)
+      : hostname
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(ipCandidate) || ipCandidate.includes(":")) {
+      return null
+    }
+    return hostname || null
   } catch {
     return null
   }

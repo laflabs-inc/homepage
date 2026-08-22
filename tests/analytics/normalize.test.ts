@@ -27,6 +27,11 @@ describe("analytics normalization", () => {
     expect(normalizeReferrer("not a URL")).toBeNull()
   })
 
+  it("rejects IPv4 and IPv6 referrer hosts", () => {
+    expect(normalizeReferrer("https://192.0.2.10/private?q=x")).toBeNull()
+    expect(normalizeReferrer("https://[2001:db8::1]/private?q=x")).toBeNull()
+  })
+
   it("falls back to English for unsupported locales", () => {
     expect(normalizeLocale("ko")).toBe("ko")
     expect(normalizeLocale("fr")).toBe("en")

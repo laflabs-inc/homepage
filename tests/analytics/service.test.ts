@@ -7,7 +7,11 @@ import {
   deleteExpiredAnalytics,
   deleteVisitorEventsByToken,
 } from "@/lib/analytics/service"
-import type { AnalyticsStore, StoredAnalyticsEvent } from "@/lib/analytics/store"
+import type {
+  AnalyticsStore,
+  AnalyticsStoreCollectionResult,
+  StoredAnalyticsEvent,
+} from "@/lib/analytics/store"
 import { handleAnalyticsEvents } from "@/app/api/analytics/events/route"
 
 const { cookiesMock } = vi.hoisted(() => ({ cookiesMock: vi.fn() }))
@@ -49,14 +53,29 @@ class FakeStore implements AnalyticsStore {
   deletionError: Error | null = null
   seenEventIds = new Set<string>()
   rateCalls: { visitorHash: string; minute: Date; amount: number }[] = []
+  guardActive = false
+  expiredGuardsBefore: Date | null = null
+  waitBeforeInsert: Promise<void> | null = null
+  onInsertStarted: (() => void) | null = null
+  private operationTail: Promise<void> = Promise.resolve()
 
-  async consumeRateWindow(visitorHash: string, minute: Date, amount: number) {
-    this.rateCalls.push({ visitorHash, minute, amount })
-    if (this.rateError) throw this.rateError
-    return this.rateAllowed
+  private async exclusive<T>(operation: () => Promise<T>): Promise<T> {
+    const previous = this.operationTail
+    let release: (() => void) | undefined
+    this.operationTail = new Promise((resolve) => {
+      release = resolve
+    })
+    await previous
+    try {
+      return await operation()
+    } finally {
+      release?.()
+    }
   }
 
-  async insertEvents(events: StoredAnalyticsEvent[]) {
+  private async addEvents(events: StoredAnalyticsEvent[]) {
+    this.onInsertStarted?.()
+    await this.waitBeforeInsert
     if (this.insertError) throw this.insertError
     const inserted = events.filter((event) => {
       if (this.seenEventIds.has(event.eventId)) return false
@@ -67,13 +86,49 @@ class FakeStore implements AnalyticsStore {
     return inserted.length
   }
 
-  async deleteVisitorEvents(visitorHash: string) {
-    if (this.deletionError) throw this.deletionError
-    this.deletedVisitorHashes.push(visitorHash)
+  async collectEvents(
+    visitorHash: string,
+    minute: Date,
+    events: StoredAnalyticsEvent[],
+  ): Promise<AnalyticsStoreCollectionResult> {
+    return this.exclusive(async () => {
+      if (this.guardActive) return { status: "guarded" as const, accepted: 0 }
+      this.rateCalls.push({ visitorHash, minute, amount: events.length })
+      if (this.rateError) throw this.rateError
+      if (!this.rateAllowed) return { status: "rate_limited" as const, accepted: 0 }
+      return { status: "accepted" as const, accepted: await this.addEvents(events) }
+    })
   }
 
-  async deleteBefore(cutoff: Date) {
+  // Legacy split methods preserve the pre-fix race for the RED run.
+  async consumeRateWindow(visitorHash: string, minute: Date, amount: number) {
+    this.rateCalls.push({ visitorHash, minute, amount })
+    if (this.rateError) throw this.rateError
+    return this.rateAllowed
+  }
+
+  async insertEvents(events: StoredAnalyticsEvent[]) {
+    return this.addEvents(events)
+  }
+
+  async withdrawVisitorAnalytics(visitorHash: string) {
+    await this.exclusive(async () => {
+      if (this.deletionError) throw this.deletionError
+      this.deletedVisitorHashes.push(visitorHash)
+      this.guardActive = true
+      this.events = []
+      this.seenEventIds.clear()
+      this.rateCalls = []
+    })
+  }
+
+  async deleteVisitorEvents(visitorHash: string) {
+    await this.withdrawVisitorAnalytics(visitorHash)
+  }
+
+  async deleteBefore(cutoff: Date, expiredGuardsBefore?: Date) {
     this.cutoff = cutoff
+    this.expiredGuardsBefore = expiredGuardsBefore ?? null
     return { events: 3, windows: 2 }
   }
 }
@@ -92,7 +147,10 @@ beforeEach(() => {
   })
 })
 
-afterEach(() => vi.unstubAllEnvs())
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllEnvs()
+})
 
 describe("collectAnalyticsBatch", () => {
   it("stores only normalized, pseudonymous analytics fields", async () => {
@@ -189,6 +247,17 @@ describe("collectAnalyticsBatch", () => {
     expect(fakeStore.rateCalls).toHaveLength(0)
   })
 
+  it("does not load environment configuration when the visitor token is absent", async () => {
+    vi.stubEnv("ANALYTICS_HASH_SECRET", "")
+    const fakeStore = new FakeStore()
+
+    await expect(collectAnalyticsBatch(validBatch, {
+      ...requestContext,
+      visitorToken: null,
+    }, fakeStore)).resolves.toEqual({ status: "ignored", accepted: 0 })
+    expect(fakeStore.rateCalls).toHaveLength(0)
+  })
+
   it("contains store failures as an unavailable result", async () => {
     const rateStore = new FakeStore()
     rateStore.rateError = new Error("raw rate database failure")
@@ -234,6 +303,44 @@ describe("withdrawal and retention", () => {
       windows: 2,
     })
     expect(fakeStore.cutoff).toEqual(new Date("2026-05-24T00:00:00.000Z"))
+    expect(fakeStore.expiredGuardsBefore).toEqual(new Date("2026-08-22T00:00:00.000Z"))
+  })
+
+  it("prevents an in-flight collection from surviving withdrawal", async () => {
+    const fakeStore = new FakeStore()
+    let releaseInsert: (() => void) | undefined
+    let signalInsertStarted: (() => void) | undefined
+    fakeStore.waitBeforeInsert = new Promise((resolve) => {
+      releaseInsert = resolve
+    })
+    const insertStarted = new Promise<void>((resolve) => {
+      signalInsertStarted = resolve
+    })
+    fakeStore.onInsertStarted = signalInsertStarted ?? null
+
+    const collection = collectAnalyticsBatch(validBatch, requestContext, fakeStore)
+    await insertStarted
+    const withdrawal = deleteVisitorEventsByToken(visitorToken, fakeStore)
+    await Promise.resolve()
+    releaseInsert?.()
+
+    await expect(collection).resolves.toEqual({ status: "accepted", accepted: 1 })
+    await expect(withdrawal).resolves.toBe(true)
+    expect(fakeStore.events).toHaveLength(0)
+    expect(fakeStore.rateCalls).toHaveLength(0)
+    expect(fakeStore.guardActive).toBe(true)
+  })
+
+  it("ignores collection while the withdrawal guard is active", async () => {
+    const fakeStore = new FakeStore()
+
+    await expect(deleteVisitorEventsByToken(visitorToken, fakeStore)).resolves.toBe(true)
+    await expect(collectAnalyticsBatch(validBatch, requestContext, fakeStore)).resolves.toEqual({
+      status: "ignored",
+      accepted: 0,
+    })
+    expect(fakeStore.events).toHaveLength(0)
+    expect(fakeStore.rateCalls).toHaveLength(0)
   })
 })
 
@@ -284,6 +391,21 @@ describe("analytics event route", () => {
     expect(text).not.toHaveBeenCalled()
   })
 
+  it("returns a no-op for a missing visitor before validating environment configuration", async () => {
+    vi.stubEnv("ANALYTICS_HASH_SECRET", "")
+    cookieValues.set(CONSENT_COOKIE, consentCookieValue("analytics"))
+    const request = new Request("https://laflabs.co/api/analytics/events", {
+      method: "POST",
+      body: "malformed",
+    })
+    const text = vi.spyOn(request, "text")
+
+    const response = await handleAnalyticsEvents(request, new FakeStore())
+
+    expect(response.status).toBe(204)
+    expect(text).not.toHaveBeenCalled()
+  })
+
   it("rejects oversized content-length before reading the body", async () => {
     cookieValues.set(CONSENT_COOKIE, consentCookieValue("analytics"))
     cookieValues.set(VISITOR_COOKIE, visitorToken)
@@ -298,6 +420,24 @@ describe("analytics event route", () => {
 
     expect(response.status).toBe(400)
     expect(text).not.toHaveBeenCalled()
+  })
+
+  it("enforces the actual UTF-8 byte limit when Content-Length understates it", async () => {
+    cookieValues.set(CONSENT_COOKIE, consentCookieValue("analytics"))
+    cookieValues.set(VISITOR_COOKIE, visitorToken)
+    const raw = JSON.stringify({ padding: "한".repeat(5_500) })
+    expect(raw.length).toBeLessThan(16 * 1024)
+    expect(Buffer.byteLength(raw, "utf8")).toBeGreaterThan(16 * 1024)
+    const parse = vi.spyOn(JSON, "parse")
+
+    const response = await handleAnalyticsEvents(new Request("https://laflabs.co/api/analytics/events", {
+      method: "POST",
+      headers: { "content-length": "1", "content-type": "application/json" },
+      body: raw,
+    }), new FakeStore())
+
+    expect(response.status).toBe(400)
+    expect(parse).not.toHaveBeenCalled()
   })
 
   it("rejects malformed consented payloads", async () => {

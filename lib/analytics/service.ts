@@ -56,7 +56,7 @@ export async function deleteVisitorEventsByToken(
     const visitorId = verifyVisitorToken(visitorToken, secret)
     if (!visitorId) return false
 
-    await store.deleteVisitorEvents(hashAnalyticsId(visitorId, secret))
+    await store.withdrawVisitorAnalytics(hashAnalyticsId(visitorId, secret))
     return true
   } catch {
     return false
@@ -70,6 +70,7 @@ export async function collectAnalyticsBatch(
 ): Promise<AnalyticsCollectionResult> {
   const consent = parseConsentCookie(context.consentCookie)
   if (consent?.choice !== "analytics") return { status: "ignored", accepted: 0 }
+  if (!context.visitorToken) return { status: "ignored", accepted: 0 }
 
   let secret: string
   try {
@@ -111,11 +112,10 @@ export async function collectAnalyticsBatch(
   const minute = new Date(Math.floor(now.getTime() / 60_000) * 60_000)
 
   try {
-    const allowed = await store.consumeRateWindow(visitorHash, minute, events.length)
-    if (!allowed) return { status: "rate_limited", accepted: 0 }
-
-    const accepted = await store.insertEvents(events)
-    return { status: "accepted", accepted }
+    const stored = await store.collectEvents(visitorHash, minute, events)
+    if (stored.status === "guarded") return { status: "ignored", accepted: 0 }
+    if (stored.status === "rate_limited") return { status: "rate_limited", accepted: 0 }
+    return { status: "accepted", accepted: stored.accepted }
   } catch {
     return { status: "unavailable", accepted: 0 }
   }
@@ -125,7 +125,7 @@ export async function deleteExpiredAnalytics(
   now: Date,
   store: AnalyticsStore = analyticsStore,
 ): Promise<{ events: number; windows: number }> {
-  return store.deleteBefore(new Date(now.getTime() - NINETY_DAYS_MS))
+  return store.deleteBefore(new Date(now.getTime() - NINETY_DAYS_MS), now)
 }
 
 export async function applyConsentChoice(

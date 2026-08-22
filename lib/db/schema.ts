@@ -25,3 +25,8 @@ export const analyticsRateWindows = pgTable("analytics_rate_windows", {
   minuteBucket: timestamp("minute_bucket", { withTimezone: true }).notNull(),
   eventCount: integer("event_count").default(0).notNull(),
 }, (table) => [primaryKey({ columns: [table.visitorHash, table.minuteBucket] })])
+
+export const analyticsWithdrawalGuards = pgTable("analytics_withdrawal_guards", {
+  visitorHash: text("visitor_hash").primaryKey(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (table) => [index("analytics_withdrawal_guards_expiry_idx").on(table.expiresAt)])
