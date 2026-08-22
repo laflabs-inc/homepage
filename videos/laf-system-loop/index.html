@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-resolution="square">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1080" />
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face{font-family:Pretendard;src:url("assets/pretendard-variable.woff2") format("woff2");font-weight:100 900}
+    *{box-sizing:border-box}html,body{margin:0;width:1080px;height:1080px;overflow:hidden;background:#2563eb}body{font-family:Pretendard,Arial,sans-serif;color:#f8fafc}
+    #stage{position:relative;width:1080px;height:1080px;overflow:hidden;background:#2563eb}.grid{position:absolute;inset:0;background-image:linear-gradient(rgb(255 255 255/.12) 1px,transparent 1px),linear-gradient(90deg,rgb(255 255 255/.12) 1px,transparent 1px);background-size:90px 90px}
+    .meta{position:absolute;top:44px;left:48px;right:48px;display:flex;justify-content:space-between;font:650 15px/1 monospace;letter-spacing:.14em}.packet{position:absolute;left:110px;width:18px;height:18px;background:#f8fafc;opacity:0}.p1{top:302px}.p2{top:530px}.p3{top:758px}
+    .rail{position:absolute;left:110px;width:650px;height:2px;background:rgb(255 255 255/.35);transform-origin:left}.r1{top:310px}.r2{top:538px}.r3{top:766px}.node{position:absolute;left:670px;width:300px;height:150px;border:2px solid #f8fafc;padding:24px;display:flex;flex-direction:column;justify-content:space-between;background:#2563eb;opacity:0}.n1{top:235px}.n2{top:463px}.n3{top:691px}.node b{font-size:32px;letter-spacing:-.04em}.node span{font:600 13px monospace;letter-spacing:.12em}
+    .code{position:absolute;left:110px;top:430px;font:600 20px/1.8 monospace;color:#e5f1ff;opacity:0}.code strong{color:#fff;font-weight:600}.lockup{position:absolute;inset:0;display:grid;place-items:center;background:#2563eb;opacity:0}.lockup-inner{display:flex;flex-direction:column;align-items:center}.lockup img{width:190px;height:190px;object-fit:contain}.lockup h1{font-size:96px;line-height:.9;letter-spacing:-.08em;margin:30px 0 0}.lockup p{font:700 17px monospace;letter-spacing:.14em;margin:34px 0 0}.url{position:absolute;bottom:48px;right:48px;font:650 15px monospace;letter-spacing:.12em}
+  </style>
+</head>
+<body>
+  <div id="stage" class="clip" data-composition-id="laf-system" data-start="0" data-duration="6" data-fps="30" data-width="1080" data-height="1080" data-track-index="0">
+    <div class="grid"></div><div class="meta"><span>LAF / SYSTEM 001</span><span>SEOUL · KR</span></div>
+    <div class="rail r1"></div><div class="rail r2"></div><div class="rail r3"></div><div class="packet p1"></div><div class="packet p2"></div><div class="packet p3"></div>
+    <div class="node n1"><span>01 / IDENTITY</span><b>Laf ID</b></div><div class="node n2"><span>02 / PAYMENTS</span><b>Laf Pay</b></div><div class="node n3"><span>03 / CLOUD</span><b>LafDock</b></div>
+    <div class="code"><div><strong>const</strong> system = {</div><div>&nbsp;&nbsp;identity, payments, cloud</div><div>}</div></div>
+    <div class="lockup"><div class="lockup-inner"><img src="assets/laflabs-logo.png" alt="" /><h1>LafLabs</h1><p>BUILD QUIETLY. WORK RELIABLY.</p></div><span class="url">LAFLABS.CO</span></div>
+  </div>
+  <script>
+    window.__timelines=window.__timelines||{};const tl=gsap.timeline({paused:true});gsap.set(".rail",{scaleX:0});
+    [".p1",".p2",".p3"].forEach((packet,index)=>{const at=.18+index*.48;tl.fromTo(packet,{x:0,opacity:0},{x:540,opacity:1,duration:.7,ease:"power3.inOut"},at).to(packet,{opacity:0,duration:.12},at+.68).to(`.r${index+1}`,{scaleX:1,duration:.58,ease:"power3.out"},at+.08).fromTo(`.n${index+1}`,{x:210,opacity:0},{x:0,opacity:1,duration:.58,ease:"power4.out"},at+.42)});
+    tl.fromTo(".code",{opacity:0,y:22},{opacity:1,y:0,duration:.55,ease:"power3.out"},1.65).to([".node",".rail",".packet",".code",".meta"],{x:-220,opacity:0,duration:.5,ease:"power4.in"},3.05).fromTo(".lockup",{x:1080,opacity:1},{x:0,opacity:1,duration:.72,ease:"power4.out"},3.22).fromTo(".lockup-inner",{x:80,opacity:0},{x:0,opacity:1,duration:.6,ease:"power3.out"},3.48).fromTo(".url",{opacity:0},{opacity:1,duration:.35,ease:"power2.out"},4.15).to(".lockup",{x:-1080,duration:.55,ease:"power4.in"},5.45);tl.seek(0);window.__timelines["laf-system"]=tl;
+  </script>
+</body>
+</html>

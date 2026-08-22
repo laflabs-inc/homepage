@@ -13,11 +13,13 @@ export function Landing() {
   const locale = useLocale()
   const reduced = useReducedMotion()
   const productStage = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll()
   const { scrollYProgress: productProgress } = useScroll({
     target: productStage,
     offset: ["start start", "end end"],
   })
   const productX = useTransform(productProgress, [0, 1], ["0vw", "-172vw"])
+  const heroY = useTransform(scrollYProgress, [0, 0.16], ["0px", "90px"])
   const t = copy[locale]
   const ko = locale === "ko"
   const reveal = (delay = 0) => ({
@@ -27,6 +29,7 @@ export function Landing() {
   })
 
   return <main>
+    <motion.div className="page-progress" style={{ scaleX: scrollYProgress }} />
     <section className="new-hero" id="top">
       <div className="hero-index mono">LAF / 001</div>
       <motion.div className="new-hero-copy" {...reveal()}>
@@ -34,7 +37,7 @@ export function Landing() {
         <h1>{ko ? <>제품의 다음을<br />만드는 회사.</> : <>We build what<br />products need next.</>}</h1>
         <p>{ko ? "LafLabs는 더 나은 디지털 경험에 필요한 제품과 기반 기술을 직접 설계하고 만듭니다." : "LafLabs designs and builds the products and infrastructure behind better digital experiences."}</p>
       </motion.div>
-      <div className="hero-block" aria-hidden="true"><div className="hero-block-word">LAF</div><div className="hero-block-meta mono"><span>SOFTWARE</span><span>SEOUL / KR</span></div></div>
+      <motion.div className="hero-block" style={{ y: reduced ? 0 : heroY }} aria-hidden="true"><div className="hero-block-word">LAF</div><div className="hero-block-meta mono"><span>SOFTWARE</span><span>SEOUL / KR</span></div></motion.div>
       <a className="hero-scroll mono" href="#products"><ArrowDown size={16} /> SELECTED PRODUCTS</a>
     </section>
 
@@ -51,7 +54,7 @@ export function Landing() {
         <div className="product-top mono"><span>0{index + 1}</span><span>{item.layer}</span></div><div className="product-mark" aria-hidden="true">{productMarks[index]}</div>
         <div className="product-content"><p className="product-status mono">{item.status}</p><h3>{product.name}</h3><p>{item.description}</p>{product.href ? <a href={product.href}>{t.products.visit}<ArrowUpRight /></a> : <span className="product-soon">{t.products.soon}</span>}</div>
       </motion.article> })}</motion.div>
-      <div className="product-progress" aria-hidden="true"><span /><span /><span /></div>
+      <div className="product-progress" aria-hidden="true"><motion.span style={{ scaleX: productProgress }} /></div>
       </div>
     </section>
 
