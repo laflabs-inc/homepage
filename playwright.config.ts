@@ -11,6 +11,7 @@ const testDatabaseUrl = validateE2eDatabaseEnvironment({
   databaseUrl: process.env.DATABASE_URL,
   productionSiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.co",
   productionDatabaseHostname: process.env.E2E_PRODUCTION_DATABASE_HOSTNAME,
+  ci: Boolean(process.env.CI),
 })
 
 export default defineConfig({
@@ -40,7 +41,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --port 3200",
+    command: "npm run dev -- --hostname 127.0.0.1 --port 3200",
     url: baseURL,
     reuseExistingServer: false,
     timeout: 120_000,

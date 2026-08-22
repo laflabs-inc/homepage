@@ -3,6 +3,7 @@ import { expect, test, type BrowserContext, type Page, type Request } from "@pla
 import {
   cleanupVisitorRows,
   countVisitorRows,
+  visitorEventTypeCounts,
   visitorHashFromToken,
 } from "./support/analytics-database"
 
@@ -22,7 +23,14 @@ function monitorAnalyticsRequests(page: Page): Request[] {
 
 async function cookieValue(context: BrowserContext, name: string): Promise<string | null> {
   const cookies = await context.cookies()
-  return cookies.find((cookie) => cookie.name === name)?.value ?? null
+  const value = cookies.find((cookie) => cookie.name === name)?.value
+  if (value === undefined) return null
+
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
 }
 
 async function expectCookie(
@@ -104,7 +112,10 @@ test("allow-analytics creates both cookies and one event request", async ({ page
 
   expect(response?.status()).toBe(204)
   expect(analyticsRequests).toHaveLength(1)
-  await expect.poll(async () => (await countVisitorRows(visitorHash)).events).toBeGreaterThanOrEqual(2)
+  await expect.poll(() => visitorEventTypeCounts(visitorHash)).toEqual({
+    consent_update: 1,
+    page_view: 1,
+  })
 })
 
 test("DNT: 1 resolves an analytics choice to essential without a visitor cookie", async ({ page, context }) => {
@@ -148,7 +159,17 @@ test("locale change translates the panel while laf_consent remains", async ({ pa
   await expect(page.getByRole("heading", { name: "Choose your analytics preference" })).toBeVisible()
   await expect(page.getByRole("button", { name: "Essential only" })).toBeVisible()
   await expect(page.locator("html")).toHaveAttribute("lang", "en")
+  await expectCookie(context, "laf_locale", "en")
   await expectCookie(context, CONSENT_COOKIE, "1:essential")
+
+  await page.reload()
+  await expect(page.locator("html")).toHaveAttribute("lang", "en")
+  await expect(page.getByRole("heading", { name: /We build what products need next\./ })).toBeVisible()
+  await expectCookie(context, "laf_locale", "en")
+  await expectCookie(context, CONSENT_COOKIE, "1:essential")
+
+  await page.getByRole("button", { name: "Cookie settings" }).click()
+  await expect(page.getByRole("heading", { name: "Choose your analytics preference" })).toBeVisible()
 })
 
 test("a forced analytics 503 does not block product, GitHub, contact, locale, or scroll interactions", async ({ page, context }) => {

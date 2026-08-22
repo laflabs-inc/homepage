@@ -11,8 +11,10 @@ engineering draft, not a legal conclusion.
   production data into preview or test environments.
 - Never run Playwright against the production database. The test runner refuses
   a missing `TEST_DATABASE_URL`, an exact `DATABASE_URL` match, or a host under
-  the configured production domain. CI may additionally set
+  the configured production domain. CI must set
   `E2E_PRODUCTION_DATABASE_HOSTNAME` to the exact production database hostname.
+  The guard also compares canonical database identity without credentials, URL
+  scheme aliases, or query ordering.
 - Keep database URLs, OAuth tokens, cookie values, and all secrets out of logs,
   screenshots, issues, and commits. `.env*` remains ignored except for the
   empty-value `.env.example` template.
@@ -59,19 +61,30 @@ admin sessions.
 
 ## 4. Register GitHub OAuth callbacks and canonical hosts
 
-Create separate GitHub OAuth applications for production and local/preview use
-where possible. Use these exact callback shapes:
+GitHub OAuth applications accept one authorization callback URL. They do not
+provide a callback allowlist. Use a separate OAuth application per stable origin,
+or deliberately replace the callback when switching a development application;
+do not expect one application to accept all of the following simultaneously:
 
-- Production: `https://laflabs.co/api/auth/callback/github`
-- Direct local: `http://127.0.0.1:3200/api/auth/callback/github`
-- ngrok: `https://<assigned-host>.ngrok-free.app/api/auth/callback/github`
+| Environment | GitHub callback URL | `AUTH_URL` |
+| --- | --- | --- |
+| Production | `https://laflabs.co/api/auth/callback/github` | `https://laflabs.co` |
+| Stable preview | `https://<stable-preview-host>/api/auth/callback/github` | `https://<stable-preview-host>` |
+| Direct local | `http://127.0.0.1:3200/api/auth/callback/github` | `http://127.0.0.1:3200` |
+| Current ngrok | `https://freebase-shamrock-magnetic.ngrok-free.dev/api/auth/callback/github` | `https://freebase-shamrock-magnetic.ngrok-free.dev` |
 
-Set `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` server-side. For a local server,
-set `AUTH_URL` to the single canonical browser origin, including the ngrok
-origin when tunnelling. Set `AUTH_TRUST_HOST=true` only when the reverse proxy
-and host are controlled and the canonical `AUTH_URL` is correct; Vercel handles
-trusted-host inference on its managed deployment. The callback registered at
-GitHub must exactly match the origin in use.
+Use a stable preview alias for OAuth verification; an ephemeral Vercel preview
+hostname will not match a callback registered for another deployment. Set each
+environment's `AUTH_GITHUB_ID` and `AUTH_GITHUB_SECRET` server-side. For direct
+local development, browse the exact `127.0.0.1` origin shown above. For the
+current ngrok tunnel, start Next.js locally, expose port 3200 at the stable ngrok
+origin, and use that HTTPS origin consistently in both GitHub and `AUTH_URL`.
+
+Set `AUTH_TRUST_HOST=true` only when the reverse proxy and host are controlled
+and the canonical `AUTH_URL` is correct; Vercel handles trusted-host inference
+on its managed deployment. `next.config.ts` allows Next development resources
+from `127.0.0.1` and the current ngrok hostname only. The callback registered at
+GitHub must exactly match the origin in use, including scheme and host.
 
 The application deliberately pins `next-auth@5.0.0-beta.32`. Auth.js v5 is a
 beta dependency; do not loosen the pin or upgrade it through a routine package

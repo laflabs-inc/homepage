@@ -5,15 +5,11 @@ import { verifyVisitorToken } from "@/lib/analytics/identity"
 import { collectAnalyticsBatch } from "@/lib/analytics/service"
 import { analyticsStore, type AnalyticsStore } from "@/lib/analytics/store"
 import { getAnalyticsEnv } from "@/lib/env"
+import { isSameOriginRequest } from "@/lib/http/same-origin"
 
 const MAX_BODY_BYTES = 16 * 1024
 
 const emptyResponse = (status: number): Response => new Response(null, { status })
-
-function isSameOriginRequest(request: Request): boolean {
-  const origin = request.headers.get("origin")
-  return origin === null || origin === new URL(request.url).origin
-}
 
 export async function handleAnalyticsEvents(
   request: Request,

@@ -11,6 +11,7 @@ const testDatabaseUrl = validateE2eDatabaseEnvironment({
   databaseUrl: process.env.DATABASE_URL,
   productionSiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.co",
   productionDatabaseHostname: process.env.E2E_PRODUCTION_DATABASE_HOSTNAME,
+  ci: Boolean(process.env.CI),
 })
 
 const sql = neon(testDatabaseUrl)
@@ -34,6 +35,19 @@ export async function countVisitorRows(visitorHash: string): Promise<{
     events: Number(rows[0]?.events ?? 0),
     windows: Number(rows[0]?.windows ?? 0),
   }
+}
+
+export async function visitorEventTypeCounts(
+  visitorHash: string,
+): Promise<Record<string, number>> {
+  const rows = await sql`
+    SELECT event_type AS "eventType", count(*)::integer AS count
+    FROM analytics_events
+    WHERE visitor_hash = ${visitorHash}
+    GROUP BY event_type
+  ` as Array<{ eventType: string; count: number | string }>
+
+  return Object.fromEntries(rows.map((row) => [row.eventType, Number(row.count)]))
 }
 
 export async function cleanupVisitorRows(visitorHash: string): Promise<void> {

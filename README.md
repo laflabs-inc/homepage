@@ -60,6 +60,8 @@ Browser tests require a migrated, disposable `TEST_DATABASE_URL`. The runner
 refuses a missing test database, an exact `DATABASE_URL` match, and configured
 production hostnames. Never point Playwright at production. See the
 [analytics operations runbook](docs/analytics-operations.md) for the safe setup.
+CI must set `E2E_PRODUCTION_DATABASE_HOSTNAME` to the production database host;
+the value is compared without credentials and is never sent to the application.
 
 ## Deployment
 

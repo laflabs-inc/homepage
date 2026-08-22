@@ -144,4 +144,35 @@ describe("consent request origin", () => {
       headers: { Origin: "https://attacker.example" },
     }))).toBe(false)
   })
+
+  it("uses the external Host origin when Next dev exposes an internal localhost URL", () => {
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: {
+        Host: "127.0.0.1:3200",
+        Origin: "http://127.0.0.1:3200",
+      },
+    }))).toBe(true)
+  })
+
+  it("uses controlled forwarding headers for the current HTTPS ngrok origin", () => {
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: {
+        Host: "localhost:3200",
+        Origin: "https://freebase-shamrock-magnetic.ngrok-free.dev",
+        "X-Forwarded-Host": "freebase-shamrock-magnetic.ngrok-free.dev",
+        "X-Forwarded-Proto": "https",
+      },
+    }))).toBe(true)
+  })
+
+  it("still rejects an attacker origin when external host headers are present", () => {
+    expect(isSameOriginRequest(new Request("http://localhost:3200/api/consent", {
+      headers: {
+        Host: "localhost:3200",
+        Origin: "https://attacker.example",
+        "X-Forwarded-Host": "freebase-shamrock-magnetic.ngrok-free.dev",
+        "X-Forwarded-Proto": "https",
+      },
+    }))).toBe(false)
+  })
 })

@@ -345,6 +345,23 @@ describe("withdrawal and retention", () => {
 })
 
 describe("analytics event route", () => {
+  it("accepts the external Host origin when Next dev exposes an internal localhost URL", async () => {
+    const request = new Request("http://localhost:3200/api/analytics/events", {
+      method: "POST",
+      headers: {
+        Host: "127.0.0.1:3200",
+        Origin: "http://127.0.0.1:3200",
+      },
+      body: "malformed",
+    })
+    const text = vi.spyOn(request, "text")
+
+    const response = await handleAnalyticsEvents(request, new FakeStore())
+
+    expect(response.status).toBe(204)
+    expect(text).not.toHaveBeenCalled()
+  })
+
   it("rejects cross-origin requests before reading their bodies", async () => {
     const fakeStore = new FakeStore()
     const request = new Request("https://laflabs.co/api/analytics/events", {

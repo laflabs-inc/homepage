@@ -11,18 +11,20 @@ import {
 } from "@/lib/analytics/consent"
 import { createVisitorToken } from "@/lib/analytics/identity"
 import { WithdrawalFailedError, applyConsentChoice } from "@/lib/analytics/service"
+import { analyticsStore, type AnalyticsStore } from "@/lib/analytics/store"
 import { getAnalyticsEnv } from "@/lib/env"
+import { isSameOriginRequest } from "@/lib/http/same-origin"
+
+export { isSameOriginRequest }
 
 const consentRequestSchema = z.object({
   choice: z.enum(["essential", "analytics"]),
 }).strict()
 
-export function isSameOriginRequest(request: Request): boolean {
-  const origin = request.headers.get("origin")
-  return origin === null || origin === new URL(request.url).origin
-}
-
-export async function POST(request: Request) {
+export async function handleConsent(
+  request: Request,
+  store: AnalyticsStore = analyticsStore,
+) {
   if (!isSameOriginRequest(request)) {
     return Response.json({ error: "forbidden" }, { status: 403 })
   }
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
       requested: parsed.data.choice,
       dnt: request.headers.get("dnt") === "1",
       visitorToken,
-    })
+    }, store)
 
     if (applied.choice === "essential") {
       if (visitorToken) cookieStore.delete(VISITOR_COOKIE)
@@ -73,4 +75,8 @@ export async function POST(request: Request) {
     }
     throw error
   }
+}
+
+export async function POST(request: Request) {
+  return handleConsent(request)
 }
