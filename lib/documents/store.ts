@@ -179,6 +179,15 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           WHERE locked_revision."status" = 'draft'
             AND locked_revision."locale" = ${input.locale}::document_locale
             AND (
+              locked_revision."locale" <> 'en'
+              OR (
+                s."kind" = ${input.kind}::document_kind
+                AND s."slug" = ${input.slug}
+                AND s."category" IS NOT DISTINCT FROM ${values.category}
+                AND s."pinned" = ${values.pinned}
+              )
+            )
+            AND (
               (s."kind" = ${input.kind}::document_kind AND s."slug" = ${input.slug})
               OR NOT EXISTS (
                 SELECT 1 FROM ${documentRevisions} history

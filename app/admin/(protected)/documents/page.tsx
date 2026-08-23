@@ -3,13 +3,14 @@ import Link from "next/link"
 import styles from "@/app/admin/admin.module.css"
 import { DocumentList } from "@/components/admin/document-list"
 import { requireAdmin } from "@/lib/auth/require-admin"
+import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import { documentService } from "@/lib/documents/service"
 
 export const dynamic = "force-dynamic"
 
 export default async function DocumentsPage() {
   await requireAdmin()
-  const revisions = await documentService.listAdmin()
+  const rows = (await documentService.listAdmin()).map(toAdminDocumentListRow)
 
   return (
     <section className={styles.documentsPage}>
@@ -20,7 +21,7 @@ export default async function DocumentsPage() {
         </div>
         <Link className={styles.primaryLink} href="/admin/documents/new">New document</Link>
       </div>
-      <DocumentList revisions={revisions} />
+      <DocumentList rows={rows} />
     </section>
   )
 }

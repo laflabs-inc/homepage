@@ -185,6 +185,24 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("\"pinned\" =")
   })
 
+  it("rechecks every shared series field before updating an English draft", async () => {
+    execute.mockResolvedValue({ rows: [{ ...publishedRow, locale: "en", status: "draft", publishedAt: null }] })
+
+    await store.updateDraft(
+      publishedRow.id,
+      { ...draftInput, locale: "en" },
+      actor,
+    )
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("locked_revision.\"locale\" <> 'en'")
+    expect(normalizedSql).toContain("s.\"kind\" =")
+    expect(normalizedSql).toContain("s.\"slug\" =")
+    expect(normalizedSql).toContain("s.\"category\" is not distinct from")
+    expect(normalizedSql).toContain("s.\"pinned\" =")
+  })
+
   it("deletes an empty draft series and prevents deleting Korean while English exists", async () => {
     execute.mockResolvedValue({ rows: [{ id: publishedRow.id }] })
 

@@ -7,7 +7,8 @@ export const DIRTY_NAVIGATION_MESSAGE = "You have unsaved document changes. Leav
 export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): void {
   useEffect(() => {
     if (!dirty) return
-    let restoringHistory = false
+    const guardedUrl = window.location.href
+    const guardedState = window.history.state
 
     const beforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault()
@@ -46,16 +47,11 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): vo
     }
 
     const popState = () => {
-      if (restoringHistory) {
-        restoringHistory = false
-        return
-      }
       if (window.confirm(DIRTY_NAVIGATION_MESSAGE)) {
         discard()
         return
       }
-      restoringHistory = true
-      window.history.forward()
+      window.history.pushState(guardedState, "", guardedUrl)
     }
 
     window.addEventListener("beforeunload", beforeUnload)

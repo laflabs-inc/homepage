@@ -23,6 +23,7 @@ vi.mock("@/components/content/content.module.css", () => ({
 import { AdminNav } from "@/components/admin/admin-nav"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { DocumentList } from "@/components/admin/document-list"
+import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import type { DocumentRevision } from "@/lib/documents/types"
 
 const revision: DocumentRevision = {
@@ -84,7 +85,7 @@ describe("document admin", () => {
     render(
       <>
         <AdminNav />
-        <DocumentList revisions={[revision, { ...revision, id: "published-id", status: "published" }]} />
+        <DocumentList rows={[revision, { ...revision, id: "published-id", status: "published" as const }].map(toAdminDocumentListRow)} />
       </>,
     )
 
@@ -202,6 +203,36 @@ describe("document admin", () => {
     expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`)
   })
 
+  it("guards browser forward navigation while dirty", async () => {
+    const user = userEvent.setup()
+    vi.mocked(window.confirm).mockReturnValue(false)
+    window.history.pushState({}, "", "/admin/analytics")
+    window.history.back()
+    await waitFor(() => expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
+    window.history.forward()
+
+    await waitFor(() => expect(window.confirm).toHaveBeenCalledWith(
+      "You have unsaved document changes. Leave this page?",
+    ))
+    expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`)
+  })
+
+  it("allows confirmed browser navigation away from a dirty draft", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({}, "", "/admin/documents")
+    window.history.pushState({}, "", `/admin/documents/${revision.id}`)
+    render(<DocumentEditor revision={revision} />)
+
+    await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
+    window.history.back()
+
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/documents"))
+    expect(window.confirm).toHaveBeenCalledWith("You have unsaved document changes. Leave this page?")
+  })
+
   it("disables schedule and publish while edits are dirty and explains why", async () => {
     const user = userEvent.setup()
     render(<DocumentEditor revision={revision} />)
@@ -217,6 +248,15 @@ describe("document admin", () => {
   it("creates an English draft from explicit Korean-series context", async () => {
     const user = userEvent.setup()
     const fetchMock = vi.mocked(fetch)
+    const englishRevision: DocumentRevision = {
+      ...revision,
+      id: "f1f0c3ce-4b5f-46a0-b63d-f964b194d4d4",
+      locale: "en",
+      title: "Service update",
+      summary: "",
+      bodyMarkdown: "English body",
+    }
+    fetchMock.mockImplementationOnce(() => okResponse(englishRevision))
     render(<DocumentEditor seriesId={revision.seriesId} templateRevision={revision} />)
 
     expect(screen.getByRole("combobox", { name: "Locale" })).toHaveValue("en")
@@ -235,6 +275,11 @@ describe("document admin", () => {
       kind: revision.kind,
       slug: revision.slug,
     })
+    expect(await screen.findByText("Draft saved.")).toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Kind" })).toBeDisabled()
+    expect(screen.getByRole("textbox", { name: "Slug" })).toBeDisabled()
+    expect(screen.getByRole("combobox", { name: "Category" })).toBeDisabled()
+    expect(screen.getByRole("checkbox", { name: "Pinned" })).toBeDisabled()
   })
 
   it("links Korean revisions to explicit English creation context", () => {
@@ -276,7 +321,7 @@ describe("document admin", () => {
       publishedBy: "publisher-77",
       publishedAt: new Date("2026-08-24T12:00:00.000Z"),
     }
-    render(<DocumentList revisions={[revision, published]} />)
+    render(<DocumentList rows={[revision, published].map(toAdminDocumentListRow)} />)
 
     expect(screen.getByRole("searchbox", { name: "Search documents" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Kind filter" })).toBeInTheDocument()

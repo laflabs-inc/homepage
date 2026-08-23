@@ -114,7 +114,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
 
   const categoryOptions = useMemo(() => categoriesByKind[values.kind], [values.kind])
   const editable = !revision || revision.status === "draft"
-  const englishSeriesDraft = !revision && Boolean(seriesId && templateRevision)
+  const englishSeriesFieldsLocked = values.locale === "en"
 
   function update<K extends keyof EditorValues>(key: K, value: EditorValues[K]) {
     setValues((current) => ({ ...current, [key]: value }))
@@ -291,7 +291,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
         >
           <div className={styles.editorFieldGrid}>
             <label>Kind
-              <select disabled={englishSeriesDraft} value={values.kind} onChange={(event) => {
+              <select disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
                 const kind = event.target.value as DocumentKind
                 setValues((current) => ({ ...current, kind, category: categoriesByKind[kind][0] }))
                 setDirty(true)
@@ -308,15 +308,15 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
               </select>
             </label>
             <label>Slug
-              <input disabled={englishSeriesDraft} required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
+              <input disabled={englishSeriesFieldsLocked} required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
             </label>
             <label>Category
-              <select disabled={englishSeriesDraft} value={values.category} onChange={(event) => update("category", event.target.value)}>
+              <select disabled={englishSeriesFieldsLocked} value={values.category} onChange={(event) => update("category", event.target.value)}>
                 {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
               </select>
             </label>
             <label className={styles.checkboxField}>
-              <input disabled={englishSeriesDraft} type="checkbox" checked={values.pinned} onChange={(event) => update("pinned", event.target.checked)} />
+              <input disabled={englishSeriesFieldsLocked} type="checkbox" checked={values.pinned} onChange={(event) => update("pinned", event.target.checked)} />
               Pinned
             </label>
             <label>Effective date

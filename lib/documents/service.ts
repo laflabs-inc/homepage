@@ -135,6 +135,17 @@ export function createDocumentService(repository: DocumentRepository) {
       if (validInput.locale !== revision.locale) {
         throw new DocumentServiceError("conflict", "A revision locale cannot be changed")
       }
+      if (
+        revision.locale === "en"
+        && (
+          validInput.kind !== revision.kind
+          || validInput.slug !== revision.slug
+          || (validInput.category ?? null) !== revision.category
+          || (validInput.pinned ?? false) !== revision.pinned
+        )
+      ) {
+        throw new DocumentServiceError("conflict", "English revisions cannot change shared series metadata")
+      }
 
       const series = await repository.listAdmin({ seriesId: revision.seriesId })
       const hasPublished = series.some(({ status }) => status === "published" || status === "archived")

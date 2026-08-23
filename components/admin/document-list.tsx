@@ -4,28 +4,19 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
-import type { DocumentRevision } from "@/lib/documents/types"
+import type { AdminDocumentListRow } from "@/lib/documents/admin-list"
 
-export function DocumentList({ revisions }: { revisions: DocumentRevision[] }) {
+export function DocumentList({ rows }: { rows: AdminDocumentListRow[] }) {
   const [search, setSearch] = useState("")
   const [kind, setKind] = useState("")
   const [status, setStatus] = useState("")
   const [locale, setLocale] = useState("")
-  const filtered = useMemo(() => revisions.filter((revision) => (
+  const filtered = useMemo(() => rows.filter((revision) => (
     (!search || revision.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
     && (!kind || revision.kind === kind)
     && (!status || revision.status === status)
     && (!locale || revision.locale === locale)
-  )), [kind, locale, revisions, search, status])
-
-  function relevantDate(revision: DocumentRevision) {
-    const [label, value] = revision.status === "scheduled"
-      ? ["Scheduled", revision.scheduledAt]
-      : revision.status === "published"
-        ? ["Published", revision.publishedAt]
-        : ["Updated", revision.updatedAt]
-    return `${label} ${new Date(value ?? revision.updatedAt).toISOString().slice(0, 10)}`
-  }
+  )), [kind, locale, rows, search, status])
 
   return (
     <div className={styles.documentListWorkspace}>
@@ -61,8 +52,8 @@ export function DocumentList({ revisions }: { revisions: DocumentRevision[] }) {
       </div>
       {filtered.length === 0 ? (
         <div className={styles.documentEmpty}>
-          <h2>{revisions.length === 0 ? "No documents yet" : "No documents match these filters."}</h2>
-          {revisions.length === 0 ? <p>Create the first Korean document draft to begin a publication series.</p> : null}
+          <h2>{rows.length === 0 ? "No documents yet" : "No documents match these filters."}</h2>
+          {rows.length === 0 ? <p>Create the first Korean document draft to begin a publication series.</p> : null}
         </div>
       ) : (
         <ul className={styles.documentList}>
@@ -71,8 +62,8 @@ export function DocumentList({ revisions }: { revisions: DocumentRevision[] }) {
               <Link href={`/admin/documents/${revision.id}`}>
                 <span className={styles.documentListTitle}>{revision.title}</span>
                 <span>{revision.kind} / {revision.locale} / r{revision.revision}</span>
-                <span>By {revision.publishedBy ?? revision.updatedBy}</span>
-                <span>{relevantDate(revision)}</span>
+                <span>By {revision.publisher}</span>
+                <span>{revision.dateLabel} {revision.relevantAt.slice(0, 10)}</span>
                 <span className={styles.statusBadge}>{revision.status}</span>
               </Link>
             </li>

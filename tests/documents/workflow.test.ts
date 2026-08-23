@@ -280,6 +280,36 @@ describe("document workflow service", () => {
     )).rejects.toMatchObject({ code: "conflict" })
   })
 
+  it("rejects shared-series metadata changes through an existing English draft", async () => {
+    repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+    const english = repository.seed({
+      seriesId: "series-1",
+      locale: "en",
+      status: "draft",
+      title: "Service update",
+      summary: "English summary",
+      bodyMarkdown: "English body",
+    })
+
+    await expect(service.updateDraft(english.id, {
+      ...input,
+      locale: "en",
+      kind: "design",
+      slug: "changed-through-english",
+      category: "foundation",
+      pinned: true,
+      title: english.title,
+      summary: english.summary,
+      bodyMarkdown: english.bodyMarkdown,
+    }, actor)).rejects.toMatchObject({ code: "conflict" })
+    expect(english).toMatchObject({
+      kind: "notice",
+      slug: "service-update",
+      category: "service",
+      pinned: false,
+    })
+  })
+
   it("requires published Korean content before publishing English", async () => {
     repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
     const english = repository.seed({
