@@ -14,7 +14,7 @@ import {
 } from "@/lib/analytics/consent"
 import type { ConsentState } from "@/lib/analytics/types"
 import { siteUrl } from "@/lib/content"
-import { defaultLocale, LOCALE_COOKIE, pickLocale, type Locale } from "@/lib/i18n"
+import { LOCALE_COOKIE, resolveRequestLocale, type Locale } from "@/lib/i18n"
 import { getAnalyticsEnv } from "@/lib/env"
 import "./globals.css"
 
@@ -75,14 +75,10 @@ function resolveLocale(
   cookieStore: Awaited<ReturnType<typeof cookies>>,
   requestHeaders: Awaited<ReturnType<typeof headers>>,
 ): Locale {
-  const saved = pickLocale(cookieStore.get(LOCALE_COOKIE)?.value)
-  if (saved) return saved
-
-  for (const tag of (requestHeaders.get("accept-language") ?? "").split(",")) {
-    const candidate = pickLocale(tag.split(";")[0].trim())
-    if (candidate) return candidate
-  }
-  return defaultLocale
+  return resolveRequestLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    requestHeaders.get("accept-language"),
+  )
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

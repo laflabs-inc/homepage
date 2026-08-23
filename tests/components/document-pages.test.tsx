@@ -1,5 +1,15 @@
 import { render, screen, within } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import userEvent from "@testing-library/user-event"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+const navigationMocks = vi.hoisted(() => ({ replace: vi.fn() }))
+
+vi.mock("next/navigation", () => ({
+  notFound: () => { throw new Error("NEXT_NOT_FOUND") },
+  usePathname: () => window.location.pathname,
+  useRouter: () => ({ replace: navigationMocks.replace }),
+  useSearchParams: () => new URLSearchParams(window.location.search),
+}))
 
 vi.mock("@/components/content/content.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
@@ -13,7 +23,9 @@ import { DocumentIndex } from "@/components/content/document-index"
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { SiteFooter } from "@/components/layout/site-footer"
+import { SiteHeader } from "@/components/layout/site-header"
 import { buildSitemap } from "@/app/sitemap"
+import DocumentLayout from "@/app/(documents)/layout"
 import { documentSections, siteUrl } from "@/lib/content"
 import type { DocumentRepository, PublishedDocument, PublishedDocumentFilter } from "@/lib/documents/types"
 
@@ -40,6 +52,11 @@ function repository(overrides: Partial<Pick<DocumentRepository, "listPublished" 
     ...overrides,
   } as Pick<DocumentRepository, "listPublished" | "getPublished">
 }
+
+beforeEach(() => {
+  navigationMocks.replace.mockReset()
+  window.history.replaceState({}, "", "/")
+})
 
 describe("public document pages", () => {
   it("renders an honest Korean empty state when nothing is published", async () => {
@@ -94,6 +111,46 @@ describe("public document pages", () => {
     expect(within(contents).getByRole("link", { name: "적용 대상" })).toHaveAttribute("href", "#적용-대상")
     expect(within(article).getByRole("heading", { level: 2, name: "변경 사항" })).toHaveAttribute("id", "변경-사항")
     expect(within(article).getByText("본문입니다.")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "← 목록으로" })).toHaveAttribute("href", "/notices?locale=ko")
+  })
+
+  it("preserves the selected locale in document detail links", async () => {
+    const english = { ...published, locale: "en" as const, title: "Service update" }
+
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "en",
+      section: documentSections.notice,
+      repository: repository({ listPublished: vi.fn().mockResolvedValue([english]) }),
+    }))
+
+    expect(screen.getByRole("link", { name: /Service update/ })).toHaveAttribute(
+      "href",
+      "/notices/service-update?locale=en",
+    )
+  })
+
+  it("preserves the selected locale in cursor pagination links", async () => {
+    const documents = Array.from({ length: 21 }, (_, index) => ({
+      ...published,
+      id: `8ca55b3d-a4fc-4a41-b922-${String(index + 1).padStart(12, "0")}`,
+      locale: "en" as const,
+      slug: `service-update-${index + 1}`,
+      title: `Service update ${index + 1}`,
+      publishedAt: new Date(published.publishedAt.getTime() - index * 1_000),
+    }))
+
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "en",
+      section: documentSections.notice,
+      repository: repository({ listPublished: vi.fn().mockResolvedValue(documents) }),
+    }))
+
+    expect(screen.getByRole("link", { name: "More documents" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/notices\?locale=en&cursor=/),
+    )
   })
 
   it("builds localized metadata only from the requested published revision", async () => {
@@ -136,6 +193,60 @@ describe("public document pages", () => {
     expect(screen.getByRole("link", { name: "디자인 가이드" })).toHaveAttribute("href", "/design")
   })
 
+  it("keeps homepage chrome fragment navigation unchanged", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <SiteHeader />
+          <SiteFooter />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("link", { name: "LafLabs" })).toHaveAttribute("href", "#top")
+    expect(screen.getByRole("link", { name: "Products" })).toHaveAttribute("href", "#products")
+    for (const link of screen.getAllByRole("link", { name: "Principles" })) {
+      expect(link).toHaveAttribute("href", "#principles")
+    }
+  })
+
+  it("uses homepage URLs for document-layout chrome navigation", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <DocumentLayout><p>Document</p></DocumentLayout>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("link", { name: "LafLabs" })).toHaveAttribute("href", "/")
+    expect(screen.getByRole("link", { name: "Products" })).toHaveAttribute("href", "/#products")
+    expect(screen.getByRole("link", { name: "Open source" })).toHaveAttribute("href", "/#open-source")
+    for (const link of screen.getAllByRole("link", { name: "Principles" })) {
+      expect(link).toHaveAttribute("href", "/#principles")
+    }
+    expect(screen.getByRole("link", { name: "Laf ID" })).toHaveAttribute("href", "/#products")
+  })
+
+  it("navigates document routes to the selected locale and drops the old cursor", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({}, "", "/notices/service-update?locale=en&cursor=old&category=service")
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <DocumentLayout><p>Document</p></DocumentLayout>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "KO" }))
+
+    expect(navigationMocks.replace).toHaveBeenCalledWith(
+      "/notices/service-update?locale=ko&category=service",
+      { scroll: false },
+    )
+  })
+
   it("keeps the homepage in the sitemap when document storage is unavailable", async () => {
     const store = repository({ listPublished: vi.fn().mockRejectedValue(new Error("database unavailable")) })
 
@@ -162,5 +273,25 @@ describe("public document pages", () => {
         priority: 0.6,
       },
     ])
+  })
+
+  it("paginates the sitemap past fifty published series", async () => {
+    const documents = Array.from({ length: 51 }, (_, index) => ({
+      ...published,
+      id: `8ca55b3d-a4fc-4a41-b922-${String(index + 1).padStart(12, "0")}`,
+      slug: `service-update-${index + 1}`,
+      publishedAt: new Date(published.publishedAt.getTime() - index * 1_000),
+    }))
+    const store = repository({
+      listPublished: vi.fn().mockImplementation(async (filter: PublishedDocumentFilter) => {
+        if (filter.kind !== "notice") return []
+        return filter.before ? documents.slice(50) : documents.slice(0, 50)
+      }),
+    })
+
+    const entries = await buildSitemap(store)
+
+    expect(entries).toHaveLength(52)
+    expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

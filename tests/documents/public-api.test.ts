@@ -130,6 +130,28 @@ describe("public content list API", () => {
       }),
     })
   })
+
+  it("uses weak If-None-Match comparison for list revalidation", async () => {
+    const url = "https://laflabs.co/api/content?kind=notice&locale=ko"
+    const initial = await handleContentList(new Request(url), repository())
+    const etag = initial.headers.get("etag")!
+
+    for (const validator of [etag, `W/${etag}`, `"different", W/${etag}`, "*"]) {
+      const response = await handleContentList(
+        new Request(url, { headers: { "if-none-match": validator } }),
+        repository(),
+      )
+      expect(response.status, validator).toBe(304)
+      expect(response.headers.get("etag")).toBe(etag)
+      expect(await response.text()).toBe("")
+    }
+
+    const changed = await handleContentList(
+      new Request(url, { headers: { "if-none-match": "W/\"different\"" } }),
+      repository(),
+    )
+    expect(changed.status).toBe(200)
+  })
 })
 
 describe("public content detail API", () => {
@@ -177,7 +199,7 @@ describe("public content detail API", () => {
     expect(repeated.headers.get("etag")).toBe(etag)
 
     const conditional = await handleContentDetail(
-      new Request(request.url, { headers: { "if-none-match": etag! } }),
+      new Request(request.url, { headers: { "if-none-match": `"other", W/${etag}` } }),
       { kind: "notice", slug: "service-update" },
       repository(),
     )

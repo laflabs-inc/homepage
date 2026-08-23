@@ -58,7 +58,7 @@ export async function DocumentIndex({
         <div className={styles.documentList}>
           {visible.map((document) => (
             <article key={document.id} className={styles.documentCard}>
-              <a href={`${section.path}/${document.slug}`}>
+              <a href={`${section.path}/${document.slug}?locale=${locale}`}>
                 <div className={styles.cardMeta}>
                   {document.pinned ? <span>{locale === "ko" ? "고정" : "Pinned"}</span> : null}
                   {document.category ? <span>{document.category}</span> : null}
@@ -73,7 +73,7 @@ export async function DocumentIndex({
       )}
 
       {nextCursor ? (
-        <a className={styles.nextPage} href={`${section.path}?cursor=${encodeURIComponent(nextCursor)}${category ? `&category=${encodeURIComponent(category)}` : ""}`}>
+        <a className={styles.nextPage} href={`${section.path}?locale=${locale}&cursor=${encodeURIComponent(nextCursor)}${category ? `&category=${encodeURIComponent(category)}` : ""}`}>
           {locale === "ko" ? "다음 문서" : "More documents"}
         </a>
       ) : null}

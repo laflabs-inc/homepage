@@ -64,7 +64,7 @@ export async function DocumentDetail({
 
   return (
     <section className={styles.detailPage}>
-      <a className={styles.backLink} href={section.path}>← {copy.back}</a>
+      <a className={styles.backLink} href={`${section.path}?locale=${locale}`}>← {copy.back}</a>
       <MarkdownDocument
         source={document.bodyMarkdown}
         title={document.title}

@@ -22,6 +22,7 @@ vi.mock("@/lib/analytics/reload", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => window.location.pathname,
+  useRouter: () => ({ replace: vi.fn() }),
 }))
 
 vi.mock("@/components/analytics/consent-panel.module.css", () => ({

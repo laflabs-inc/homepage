@@ -1,10 +1,13 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 
-import { defaultLocale, LOCALE_COOKIE, pickLocale, type Locale } from "@/lib/i18n"
+import { LOCALE_COOKIE, pickLocale, resolveRequestLocale, type Locale } from "@/lib/i18n"
 
 export async function resolveDocumentPageLocale(
   searchParams: Promise<{ locale?: string }>,
 ): Promise<Locale> {
-  const [query, cookieStore] = await Promise.all([searchParams, cookies()])
-  return pickLocale(query.locale) ?? pickLocale(cookieStore.get(LOCALE_COOKIE)?.value) ?? defaultLocale
+  const [query, cookieStore, requestHeaders] = await Promise.all([searchParams, cookies(), headers()])
+  return pickLocale(query.locale) ?? resolveRequestLocale(
+    cookieStore.get(LOCALE_COOKIE)?.value,
+    requestHeaders.get("accept-language"),
+  )
 }

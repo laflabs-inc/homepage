@@ -1,16 +1,17 @@
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { PublishedDocument } from "@/lib/documents/types"
 
 const mocks = vi.hoisted(() => ({
   listPublished: vi.fn(),
   getPublished: vi.fn(),
+  unstableCache: vi.fn((callback: () => Promise<unknown>) => async () => (
+    JSON.parse(JSON.stringify(await callback()))
+  )),
 }))
 
 vi.mock("next/cache", () => ({
-  unstable_cache: (callback: () => Promise<unknown>) => async () => (
-    JSON.parse(JSON.stringify(await callback()))
-  ),
+  unstable_cache: mocks.unstableCache,
 }))
 
 vi.mock("@/lib/documents/store", () => ({
@@ -38,6 +39,12 @@ const published: PublishedDocument = {
   publishedAt: new Date("2026-08-23T12:00:00.000Z"),
 }
 
+beforeEach(() => {
+  mocks.listPublished.mockReset()
+  mocks.getPublished.mockReset()
+  mocks.unstableCache.mockClear()
+})
+
 describe("published document cache boundary", () => {
   it("restores repository dates after a serialized list cache hit", async () => {
     mocks.listPublished.mockResolvedValue([published])
@@ -58,5 +65,40 @@ describe("published document cache boundary", () => {
     expect(result.document?.publishedAt).toBeInstanceOf(Date)
     expect(result.document?.effectiveAt).toBeInstanceOf(Date)
     expect(result.availableLocales).toEqual(["ko"])
+  })
+
+  it("configures list reads with kind, locale, and sitemap tags", async () => {
+    mocks.listPublished.mockResolvedValue([published])
+
+    await listPublishedDocuments({ kind: "notice", locale: "ko", limit: 20 })
+
+    expect(mocks.unstableCache).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["published-documents", "notice", "ko", "", "20", "", "", ""],
+      {
+        revalidate: 60,
+        tags: ["documents", "documents:sitemap", "documents:index:notice", "documents:index:notice:ko"],
+      },
+    )
+  })
+
+  it("configures detail reads with kind, slug, locale, and sitemap tags", async () => {
+    mocks.getPublished.mockResolvedValue({ document: published, availableLocales: ["ko"] })
+
+    await getPublishedDocument("notice", "service-update", "ko")
+
+    expect(mocks.unstableCache).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["published-document", "notice", "service-update", "ko"],
+      {
+        revalidate: 60,
+        tags: [
+          "documents",
+          "documents:sitemap",
+          "documents:detail:notice:service-update",
+          "documents:detail:notice:service-update:ko",
+        ],
+      },
+    )
   })
 })

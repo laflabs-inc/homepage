@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
+import { usePathname, useRouter } from "next/navigation"
 
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { Logo } from "@/components/ui/logo"
 import { contactEmail, copy, githubOrg } from "@/lib/content"
 import { locales } from "@/lib/i18n"
 
-function LanguageToggle() {
+function LanguageToggle({ navigateDocumentLocale = false }: { navigateDocumentLocale?: boolean }) {
   const locale = useLocale()
   const setLocale = useSetLocale()
   const reduced = useReducedMotion()
+  const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <div className="lang-toggle" role="group" aria-label="Language">
@@ -33,7 +36,16 @@ function LanguageToggle() {
             data-active={active}
             aria-pressed={active}
             onClick={() => {
-              if (!active) setLocale(value)
+              if (!active) {
+                setLocale(value)
+                if (navigateDocumentLocale) {
+                  const params = new URLSearchParams(window.location.search)
+                  params.set("locale", value)
+                  params.delete("cursor")
+                  const query = params.toString()
+                  router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false })
+                }
+              }
             }}
           >
             <span>{value.toUpperCase()}</span>
@@ -44,7 +56,7 @@ function LanguageToggle() {
   )
 }
 
-export function SiteHeader() {
+export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
   const locale = useLocale()
   const t = copy[locale].nav
   const [stuck, setStuck] = useState(false)
@@ -59,14 +71,14 @@ export function SiteHeader() {
   return (
     <header className="site-header" data-stuck={stuck}>
       <div className="header-inner">
-        <a href="#top" aria-label="LafLabs">
+        <a href={homeHref ?? "#top"} aria-label="LafLabs">
           <Logo />
         </a>
 
         <nav className="header-nav">
-          <a href="#products">{t.products}</a>
-          <a href="#open-source">{t.open}</a>
-          <a href="#principles">{t.principles}</a>
+          <a href={homeHref ? `${homeHref}#products` : "#products"}>{t.products}</a>
+          <a href={homeHref ? `${homeHref}#open-source` : "#open-source"}>{t.open}</a>
+          <a href={homeHref ? `${homeHref}#principles` : "#principles"}>{t.principles}</a>
           <a
             href={`mailto:${contactEmail}`}
             data-analytics-event="contact_click"
@@ -75,7 +87,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="header-actions">
-          <LanguageToggle />
+          <LanguageToggle navigateDocumentLocale={Boolean(homeHref)} />
           <a
             href={githubOrg}
             target="_blank"

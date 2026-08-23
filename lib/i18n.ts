@@ -16,3 +16,17 @@ export function pickLocale(value: string | null | undefined): Locale | undefined
   const tag = value.toLowerCase().split("-")[0]
   return isLocale(tag) ? tag : undefined
 }
+
+export function resolveRequestLocale(
+  savedValue: string | null | undefined,
+  acceptLanguage: string | null | undefined,
+): Locale {
+  const saved = pickLocale(savedValue)
+  if (saved) return saved
+
+  for (const tag of (acceptLanguage ?? "").split(",")) {
+    const candidate = pickLocale(tag.split(";")[0].trim())
+    if (candidate) return candidate
+  }
+  return defaultLocale
+}

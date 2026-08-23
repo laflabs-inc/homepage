@@ -36,7 +36,11 @@ function responseWithEtag(request: Request, body: unknown): Response {
   const json = JSON.stringify(body)
   const etag = `"${createHash("sha256").update(json).digest("hex")}"`
   const headers = { "Cache-Control": cacheControl, ETag: etag }
-  if (request.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers })
+  const validators = request.headers.get("if-none-match")
+  const matches = validators?.trim() === "*" || validators?.split(",").some((validator) => (
+    validator.trim().replace(/^W\//, "") === etag
+  ))
+  if (matches) return new Response(null, { status: 304, headers })
   return new Response(json, { status: 200, headers: { ...headers, "Content-Type": "application/json" } })
 }
 
