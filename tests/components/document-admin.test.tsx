@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const navigationMocks = vi.hoisted(() => ({ replace: vi.fn() }))
@@ -47,6 +48,32 @@ const revision: DocumentRevision = {
   publishedBy: null,
   createdAt: new Date("2026-08-23T09:00:00.000Z"),
   updatedAt: new Date("2026-08-23T09:00:00.000Z"),
+}
+const revisionPath = `/admin/documents/${revision.id}`
+
+function AppRouterTreeHarness() {
+  const [tree, setTree] = useState({ path: revisionPath, traversals: 0 })
+
+  useEffect(() => {
+    navigationMocks.replace.mockImplementation((href: string) => {
+      window.history.replaceState(window.history.state, "", href)
+      setTree((current) => ({ ...current, path: new URL(href, window.location.href).pathname }))
+    })
+    const traverse = () => setTree((current) => ({
+      path: window.location.pathname,
+      traversals: current.traversals + 1,
+    }))
+    window.addEventListener("popstate", traverse)
+    return () => window.removeEventListener("popstate", traverse)
+  }, [])
+
+  return (
+    <div data-testid="app-router-tree" data-path={tree.path} data-traversals={tree.traversals}>
+      {tree.path === revisionPath
+        ? <DocumentEditor revision={revision} />
+        : <p>Destination route tree</p>}
+    </div>
+  )
 }
 
 function okResponse(nextRevision: DocumentRevision = revision) {
@@ -190,34 +217,38 @@ describe("document admin", () => {
   it("guards browser back navigation while dirty", async () => {
     const user = userEvent.setup()
     vi.mocked(window.confirm).mockReturnValue(false)
-    window.history.replaceState({}, "", "/admin/documents")
-    window.history.pushState({}, "", `/admin/documents/${revision.id}`)
-    render(<DocumentEditor revision={revision} />)
+    const guardedUrl = `${revisionPath}?tab=source#markdown`
+    window.history.replaceState({ __NA: true, tree: "list" }, "", "/admin/documents")
+    window.history.pushState({ __NA: true, tree: "editor" }, "", guardedUrl)
+    render(<AppRouterTreeHarness />)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
     window.history.back()
 
-    await waitFor(() => expect(window.confirm).toHaveBeenCalledWith(
-      "You have unsaved document changes. Leave this page?",
-    ))
-    expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`)
+    await waitFor(() => expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-traversals", "1"))
+    expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-path", revisionPath)
+    expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("변경 사항을 안내합니다. 추가")
+    expect(screen.queryByText("Destination route tree")).not.toBeInTheDocument()
+    expect(`${window.location.pathname}${window.location.search}${window.location.hash}`).toBe(guardedUrl)
   })
 
   it("guards browser forward navigation while dirty", async () => {
     const user = userEvent.setup()
     vi.mocked(window.confirm).mockReturnValue(false)
-    window.history.pushState({}, "", "/admin/analytics")
+    window.history.replaceState({ __NA: true, tree: "editor" }, "", revisionPath)
+    window.history.pushState({ __NA: true, tree: "analytics" }, "", "/admin/analytics")
     window.history.back()
-    await waitFor(() => expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`))
-    render(<DocumentEditor revision={revision} />)
+    await waitFor(() => expect(window.location.pathname).toBe(revisionPath))
+    render(<AppRouterTreeHarness />)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
     window.history.forward()
 
-    await waitFor(() => expect(window.confirm).toHaveBeenCalledWith(
-      "You have unsaved document changes. Leave this page?",
-    ))
-    expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`)
+    await waitFor(() => expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-traversals", "1"))
+    expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-path", revisionPath)
+    expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("변경 사항을 안내합니다. 추가")
+    expect(screen.queryByText("Destination route tree")).not.toBeInTheDocument()
+    expect(window.location.pathname).toBe(revisionPath)
   })
 
   it("allows confirmed browser navigation away from a dirty draft", async () => {

@@ -168,27 +168,32 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       const values = inputValues(input)
       const result = await database.execute(sql`
         WITH locked_revision AS (
-          SELECT r."id", r."series_id", r."locale", r."status"
+          SELECT r."id", r."series_id", r."locale", r."status",
+            s."kind" AS "series_kind", s."slug" AS "series_slug",
+            s."category" AS "series_category", s."pinned" AS "series_pinned"
           FROM ${documentRevisions} r
+          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
           WHERE r."id" = ${revisionId}::uuid
-          FOR UPDATE
+          FOR UPDATE OF r, s
         ), eligible AS (
           SELECT locked_revision.*
           FROM locked_revision
-          INNER JOIN ${documentSeries} s ON s."id" = locked_revision."series_id"
           WHERE locked_revision."status" = 'draft'
             AND locked_revision."locale" = ${input.locale}::document_locale
             AND (
               locked_revision."locale" <> 'en'
               OR (
-                s."kind" = ${input.kind}::document_kind
-                AND s."slug" = ${input.slug}
-                AND s."category" IS NOT DISTINCT FROM ${values.category}
-                AND s."pinned" = ${values.pinned}
+                locked_revision."series_kind" = ${input.kind}::document_kind
+                AND locked_revision."series_slug" = ${input.slug}
+                AND locked_revision."series_category" IS NOT DISTINCT FROM ${values.category}
+                AND locked_revision."series_pinned" = ${values.pinned}
               )
             )
             AND (
-              (s."kind" = ${input.kind}::document_kind AND s."slug" = ${input.slug})
+              (
+                locked_revision."series_kind" = ${input.kind}::document_kind
+                AND locked_revision."series_slug" = ${input.slug}
+              )
               OR NOT EXISTS (
                 SELECT 1 FROM ${documentRevisions} history
                 WHERE history."series_id" = locked_revision."series_id"

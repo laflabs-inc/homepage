@@ -196,11 +196,21 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    const lockedSql = normalizedSql.slice(
+      normalizedSql.indexOf("with locked_revision as"),
+      normalizedSql.indexOf("), eligible as"),
+    )
+    expect(lockedSql).toContain("inner join \"document_series\" s")
+    expect(lockedSql).toContain("s.\"kind\" as \"series_kind\"")
+    expect(lockedSql).toContain("s.\"slug\" as \"series_slug\"")
+    expect(lockedSql).toContain("s.\"category\" as \"series_category\"")
+    expect(lockedSql).toContain("s.\"pinned\" as \"series_pinned\"")
+    expect(lockedSql).toContain("for update of r, s")
     expect(normalizedSql).toContain("locked_revision.\"locale\" <> 'en'")
-    expect(normalizedSql).toContain("s.\"kind\" =")
-    expect(normalizedSql).toContain("s.\"slug\" =")
-    expect(normalizedSql).toContain("s.\"category\" is not distinct from")
-    expect(normalizedSql).toContain("s.\"pinned\" =")
+    expect(normalizedSql).toContain("locked_revision.\"series_kind\" =")
+    expect(normalizedSql).toContain("locked_revision.\"series_slug\" =")
+    expect(normalizedSql).toContain("locked_revision.\"series_category\" is not distinct from")
+    expect(normalizedSql).toContain("locked_revision.\"series_pinned\" =")
   })
 
   it("deletes an empty draft series and prevents deleting Korean while English exists", async () => {

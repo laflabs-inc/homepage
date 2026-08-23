@@ -1,14 +1,16 @@
 "use client"
 
 import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export const DIRTY_NAVIGATION_MESSAGE = "You have unsaved document changes. Leave this page?"
 
 export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): void {
+  const router = useRouter()
+
   useEffect(() => {
     if (!dirty) return
-    const guardedUrl = window.location.href
-    const guardedState = window.history.state
+    const guardedUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
 
     const beforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault()
@@ -51,7 +53,7 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): vo
         discard()
         return
       }
-      window.history.pushState(guardedState, "", guardedUrl)
+      router.replace(guardedUrl, { scroll: false })
     }
 
     window.addEventListener("beforeunload", beforeUnload)
@@ -62,5 +64,5 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): vo
       window.removeEventListener("popstate", popState)
       document.removeEventListener("click", click, true)
     }
-  }, [dirty, discard])
+  }, [dirty, discard, router])
 }
