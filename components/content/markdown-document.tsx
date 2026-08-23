@@ -42,7 +42,14 @@ function transformDocumentUrl(url: string, key: string) {
 }
 
 function isExternalLink(href: string | undefined) {
-  return href?.startsWith("http:") || href?.startsWith("https:")
+  if (!href) return false
+
+  try {
+    const protocol = new URL(href).protocol
+    return protocol === "http:" || protocol === "https:"
+  } catch {
+    return false
+  }
 }
 
 function withoutNode<T extends { node?: unknown }>({ node, ...props }: T): Omit<T, "node"> {

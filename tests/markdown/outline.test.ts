@@ -10,4 +10,18 @@ describe("buildDocumentOutline", () => {
       { depth: 2, id: "시작-1", text: "시작" },
     ])
   })
+
+  it("reserves slugs for headings outside the table of contents", () => {
+    expect(buildDocumentOutline("# Same\n\n## Same\n\n#### Same\n\n### Same")).toEqual([
+      { depth: 2, id: "same-1", text: "Same" },
+      { depth: 3, id: "same-3", text: "Same" },
+    ])
+  })
+
+  it("uses the renderer's GFM heading text semantics", () => {
+    expect(buildDocumentOutline("## ![alt](/image.png)\n\n### ~~struck~~ text")).toEqual([
+      { depth: 2, id: "", text: "" },
+      { depth: 3, id: "struck-text", text: "struck text" },
+    ])
+  })
 })

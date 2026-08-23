@@ -1,6 +1,8 @@
 import GithubSlugger from "github-slugger"
-import { toString } from "mdast-util-to-string"
+import { toString } from "hast-util-to-string"
+import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
+import remarkRehype from "remark-rehype"
 import { unified } from "unified"
 import { visit } from "unist-util-visit"
 
@@ -11,17 +13,22 @@ export type DocumentOutlineItem = {
 }
 
 export function buildDocumentOutline(source: string): DocumentOutlineItem[] {
-  const tree = unified().use(remarkParse).parse(source)
+  const processor = unified().use(remarkParse).use(remarkGfm).use(remarkRehype)
+  const tree = processor.runSync(processor.parse(source))
   const slugger = new GithubSlugger()
   const outline: DocumentOutlineItem[] = []
 
-  visit(tree, "heading", (node) => {
-    if (node.depth !== 2 && node.depth !== 3) return
+  visit(tree, "element", (node) => {
+    const depth = /^h([1-6])$/.exec(node.tagName)?.[1]
+    if (!depth) return
 
     const text = toString(node)
+    const id = slugger.slug(text)
+    if (depth !== "2" && depth !== "3") return
+
     outline.push({
-      depth: node.depth,
-      id: slugger.slug(text),
+      depth: Number(depth) as 2 | 3,
+      id,
       text,
     })
   })
