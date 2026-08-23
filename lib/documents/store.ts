@@ -238,6 +238,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           WHERE locked_revision."status" = 'draft'
             AND NOT (
               locked_revision."locale" = 'ko'
+              AND NOT EXISTS (
+                SELECT 1 FROM ${documentRevisions} other_korean
+                WHERE other_korean."series_id" = locked_revision."series_id"
+                  AND other_korean."locale" = 'ko'
+                  AND other_korean."id" <> locked_revision."id"
+                  AND other_korean."status" IN ('scheduled', 'published', 'archived')
+              )
               AND EXISTS (
                 SELECT 1 FROM ${documentRevisions} english
                 WHERE english."series_id" = locked_revision."series_id"

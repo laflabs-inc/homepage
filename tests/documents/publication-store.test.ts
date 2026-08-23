@@ -182,6 +182,18 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("only_revision")
   })
 
+  it("protects only the last Korean revision when English revisions exist", async () => {
+    execute.mockResolvedValue({ rows: [{ id: publishedRow.id }] })
+
+    await store.deleteDraft(publishedRow.id, actor)
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("not exists ( select 1 from \"document_revisions\" other_korean")
+    expect(normalizedSql).toContain("other_korean.\"id\" <> locked_revision.\"id\"")
+    expect(normalizedSql).toContain("other_korean.\"status\" in ('scheduled', 'published', 'archived')")
+  })
+
   it("rechecks complete stored content while locking a draft for scheduling", async () => {
     execute.mockResolvedValue({
       rows: [{ ...publishedRow, status: "scheduled", scheduledAt: new Date(now.getTime() + 60_000), publishedAt: null }],

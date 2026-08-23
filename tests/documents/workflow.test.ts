@@ -94,6 +94,16 @@ class MemoryDocumentRepository implements DocumentRepository {
   async deleteDraft(revisionId: string, admin: AdminActor): Promise<void> {
     const revision = await this.required(revisionId)
     if (revision.status !== "draft") throw new Error("immutable")
+    const hasEnglish = this.revisions.some((item) => item.seriesId === revision.seriesId && item.locale === "en")
+    const hasKoreanHistory = this.revisions.some((item) => (
+      item.id !== revision.id
+      && item.seriesId === revision.seriesId
+      && item.locale === "ko"
+      && item.status !== "draft"
+    ))
+    if (revision.locale === "ko" && hasEnglish && !hasKoreanHistory) {
+      throw Object.assign(new Error("korean required"), { code: "conflict" })
+    }
     this.revisions = this.revisions.filter(({ id }) => id !== revisionId)
     this.audits.push({ action: "document.delete", targetType: "document_revision", targetId: revisionId, actor: admin })
   }
@@ -230,6 +240,24 @@ describe("document workflow service", () => {
     const published = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
 
     await expect(service.updateDraft(published.id, input, actor)).rejects.toMatchObject({ code: "immutable_revision" })
+  })
+
+  it("protects the sole Korean revision while English revisions exist", async () => {
+    const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+    repository.seed({ seriesId: "series-1", locale: "en", status: "archived" })
+
+    await expect(service.deleteDraft(korean.id, actor)).rejects.toMatchObject({ code: "conflict" })
+    expect(repository.revisions).toContainEqual(korean)
+  })
+
+  it("allows a Korean replacement draft to be deleted when Korean history remains", async () => {
+    const published = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
+    repository.seed({ seriesId: "series-1", locale: "en", status: "published" })
+    const replacement = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft", revision: 2 })
+
+    await expect(service.deleteDraft(replacement.id, actor)).resolves.toBeUndefined()
+    expect(repository.revisions).toContainEqual(published)
+    expect(repository.revisions).not.toContainEqual(replacement)
   })
 
   it("requires a Korean revision before creating an English draft", async () => {
