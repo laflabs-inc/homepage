@@ -5,8 +5,11 @@ import { sql, type SQL } from "drizzle-orm"
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { getDb } from "@/lib/db"
 import { adminAuditLog, documentRevisions, documentSeries } from "@/lib/db/schema"
+import { documentLocales } from "@/lib/documents/types"
 import type {
   AdminDocumentFilter,
+  AdminDocumentSummary,
+  AdminDocumentSummaryFilter,
   DocumentDraftInput,
   DocumentKind,
   DocumentRepository,
@@ -32,7 +35,19 @@ export class DocumentStoreError extends Error {
 }
 
 type RevisionRow = DocumentRevision
-type PublishedRow = PublishedDocument & { availableLocales?: Locale[] }
+type PublishedRow = PublishedDocument
+
+function mapAvailableLocales(value: unknown): Locale[] {
+  const candidates = Array.isArray(value)
+    ? value
+    : typeof value === "string" && /^\{[^{}]*\}$/.test(value)
+      ? value.slice(1, -1).split(",").filter(Boolean)
+      : []
+  if (!candidates.every((locale) => (
+    typeof locale === "string" && (documentLocales as readonly string[]).includes(locale)
+  ))) return []
+  return candidates as Locale[]
+}
 
 function mapRevision(value: unknown): DocumentRevision {
   const row = value as RevisionRow
@@ -102,6 +117,31 @@ const publicSelect = sql.raw(`
   r."summary" AS "summary", r."body_markdown" AS "bodyMarkdown",
   r."effective_at" AS "effectiveAt", r."published_at" AS "publishedAt"
 `)
+
+const adminSummarySelect = sql.raw(`
+  r."id" AS "id", s."kind" AS "kind", r."locale" AS "locale",
+  r."revision" AS "revision", r."title" AS "title", r."status" AS "status",
+  r."scheduled_at" AS "scheduledAt", r."published_at" AS "publishedAt",
+  r."updated_at" AS "updatedAt", r."updated_by" AS "updatedBy",
+  r."published_by" AS "publishedBy"
+`)
+
+function mapAdminSummary(value: unknown): AdminDocumentSummary {
+  const row = value as AdminDocumentSummary
+  return {
+    id: row.id,
+    kind: row.kind,
+    locale: row.locale,
+    revision: row.revision,
+    title: row.title,
+    status: row.status,
+    scheduledAt: row.scheduledAt,
+    publishedAt: row.publishedAt,
+    updatedAt: row.updatedAt,
+    updatedBy: row.updatedBy,
+    publishedBy: row.publishedBy,
+  }
+}
 
 function inputValues(input: DocumentDraftInput) {
   return {
@@ -181,23 +221,20 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           WHERE locked_revision."status" = 'draft'
             AND locked_revision."locale" = ${input.locale}::document_locale
             AND (
-              locked_revision."locale" <> 'en'
-              OR (
+              (
                 locked_revision."series_kind" = ${input.kind}::document_kind
                 AND locked_revision."series_slug" = ${input.slug}
                 AND locked_revision."series_category" IS NOT DISTINCT FROM ${values.category}
                 AND locked_revision."series_pinned" = ${values.pinned}
               )
-            )
-            AND (
-              (
-                locked_revision."series_kind" = ${input.kind}::document_kind
-                AND locked_revision."series_slug" = ${input.slug}
-              )
-              OR NOT EXISTS (
-                SELECT 1 FROM ${documentRevisions} history
-                WHERE history."series_id" = locked_revision."series_id"
-                  AND history."status" IN ('published', 'archived')
+              OR (
+                locked_revision."locale" = 'ko'
+                AND NOT EXISTS (
+                  SELECT 1 FROM ${documentRevisions} sibling
+                  WHERE sibling."series_id" = locked_revision."series_id"
+                    AND sibling."id" <> locked_revision."id"
+                    AND sibling."status" IN ('scheduled', 'published', 'archived')
+                )
               )
             )
         ), updated_series AS (
@@ -369,7 +406,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND char_length(locked_revision."slug") BETWEEN 1 AND 160
             AND locked_revision."slug" ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
             AND char_length(locked_revision."title") BETWEEN 1 AND 160
-            AND char_length(locked_revision."summary") BETWEEN 1 AND 240
+            AND char_length(btrim(locked_revision."summary")) BETWEEN 1 AND 240
+            AND locked_revision."summary" !~ E'[\\r\\n]'
             AND char_length(locked_revision."body_markdown") BETWEEN 1 AND 200000
             AND (
               (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
@@ -450,7 +488,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           FROM locked_revision
           WHERE locked_revision."status" IN ('draft', 'scheduled')
             AND char_length(locked_revision."title") BETWEEN 1 AND 160
-            AND char_length(locked_revision."summary") BETWEEN 1 AND 240
+            AND char_length(btrim(locked_revision."summary")) BETWEEN 1 AND 240
+            AND locked_revision."summary" !~ E'[\\r\\n]'
             AND char_length(locked_revision."body_markdown") BETWEEN 1 AND 200000
             AND (
               (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
@@ -503,18 +542,32 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async archiveCurrent(seriesId, locale, expectedRevisionId, actor, now) {
       const result = await database.execute(sql`
-        WITH locked_revision AS (
-          SELECT "id", "series_id", "locale", "status"
-          FROM ${documentRevisions}
+        WITH locked_revisions AS (
+          SELECT r."id", r."series_id", r."locale", r."status"
+          FROM ${documentRevisions} r
+          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+          WHERE r."series_id" = ${seriesId}::uuid
+          FOR UPDATE OF r, s
+        ), locked_revision AS (
+          SELECT * FROM locked_revisions
           WHERE "id" = ${expectedRevisionId}::uuid
-            AND "series_id" = ${seriesId}::uuid AND "locale" = ${locale}::document_locale
+            AND "locale" = ${locale}::document_locale
             AND "status" = 'published'
-          FOR UPDATE
+        ), eligible AS (
+          SELECT locked_revision.*
+          FROM locked_revision
+          WHERE NOT (
+            locked_revision."locale" = 'ko'
+            AND EXISTS (
+              SELECT 1 FROM locked_revisions english
+              WHERE english."locale" = 'en' AND english."status" = 'published'
+            )
+          )
         ), archived_revision AS (
           UPDATE ${documentRevisions} r
           SET "status" = 'archived', "updated_by" = ${actor.githubId}, "updated_at" = ${now}
-          FROM locked_revision
-          WHERE r."id" = locked_revision."id" AND locked_revision."status" = 'published'
+          FROM eligible
+          WHERE r."id" = eligible."id"
           RETURNING r.*
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
@@ -549,6 +602,35 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         ORDER BY r."updated_at" DESC, r."id" DESC
       `)
       return result.rows.map(mapRevision)
+    },
+
+    async listAdminSummaries(filter: AdminDocumentSummaryFilter = {}) {
+      const conditions: SQL[] = []
+      if (filter.seriesId) conditions.push(sql`r."series_id" = ${filter.seriesId}::uuid`)
+      if (filter.kind) conditions.push(sql`s."kind" = ${filter.kind}::document_kind`)
+      if (filter.locale) conditions.push(sql`r."locale" = ${filter.locale}::document_locale`)
+      if (filter.status) conditions.push(sql`r."status" = ${filter.status}::document_status`)
+      if (filter.before) {
+        conditions.push(sql`(r."updated_at", r."id") < (${filter.before.updatedAt}, ${filter.before.id}::uuid)`)
+      }
+      const where = conditions.length ? sql`WHERE ${sql.join(conditions, sql` AND `)}` : sql``
+      const limit = Math.min(100, Math.max(1, filter.limit ?? 50))
+      const result = await database.execute(sql`
+        SELECT ${adminSummarySelect}
+        FROM ${documentRevisions} r
+        INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+        ${where}
+        ORDER BY r."updated_at" DESC, r."id" DESC
+        LIMIT ${limit + 1}
+      `)
+      const items = result.rows.slice(0, limit).map(mapAdminSummary)
+      const last = items.at(-1)
+      return {
+        items,
+        nextCursor: result.rows.length > limit && last
+          ? { updatedAt: last.updatedAt, id: last.id }
+          : null,
+      }
     },
 
     async listPublished(filter: PublishedDocumentFilter) {
@@ -586,7 +668,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           localized."title" AS "title", localized."summary" AS "summary",
           localized."body_markdown" AS "bodyMarkdown", localized."effective_at" AS "effectiveAt",
           localized."published_at" AS "publishedAt",
-          COALESCE(available."locales", ARRAY[]::document_locale[]) AS "availableLocales"
+          COALESCE(available."locales", ARRAY[]::text[]) AS "availableLocales"
         FROM ${documentSeries} s
         LEFT JOIN LATERAL (
           SELECT r."id", r."locale", r."revision", r."title", r."summary",
@@ -597,7 +679,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           LIMIT 1
         ) localized ON true
         LEFT JOIN LATERAL (
-          SELECT array_agg(r."locale" ORDER BY r."locale") AS locales
+          SELECT array_agg(r."locale"::text ORDER BY r."locale") AS locales
           FROM ${documentRevisions} r
           WHERE r."series_id" = s."id" AND r."status" = 'published'
         ) available ON true
@@ -605,11 +687,11 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           AND s."archived_at" IS NULL
         LIMIT 1
       `)
-      const row = result.rows[0] as (PublishedRow & { id: string | null; availableLocales: Locale[] }) | undefined
+      const row = result.rows[0] as (PublishedRow & { id: string | null; availableLocales?: unknown }) | undefined
       if (!row) return { document: null, availableLocales: [] }
       return {
         document: row.id ? mapPublished(row) : null,
-        availableLocales: row.availableLocales,
+        availableLocales: mapAvailableLocales(row.availableLocales),
       }
     },
 

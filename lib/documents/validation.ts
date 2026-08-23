@@ -1,4 +1,7 @@
 import { z } from "zod"
+import { unified } from "unified"
+import remarkParse from "remark-parse"
+import { visit } from "unist-util-visit"
 
 import { documentKinds, documentLocales } from "@/lib/documents/types"
 
@@ -17,6 +20,7 @@ const slugSchema = z.string()
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 
 const nullableDateSchema = z.coerce.date().nullable().optional()
+const markdownParser = unified().use(remarkParse)
 
 const draftFields = {
   kind: z.enum(documentKinds),
@@ -42,10 +46,23 @@ export const documentDraftSchema = z.object(draftFields).strict().refine(categor
 
 export const publishDocumentSchema = z.object({
   ...draftFields,
-  summary: z.string().min(1).max(240),
+  summary: z.string().trim().min(1).max(240).regex(/^[^\r\n]*$/),
 }).strict().refine(categoryMatchesKind, {
   message: "Category is not allowed for this document kind",
   path: ["category"],
+}).superRefine(({ bodyMarkdown }, context) => {
+  const tree = markdownParser.parse(bodyMarkdown)
+  visit(tree, (node) => {
+    if (node.type !== "image" && node.type !== "imageReference") return
+    const alt = (node as { alt?: unknown }).alt
+    if (typeof alt !== "string" || alt.trim().length === 0) {
+      context.addIssue({
+        code: "custom",
+        message: "Markdown images require meaningful alternative text",
+        path: ["bodyMarkdown"],
+      })
+    }
+  })
 })
 
 export const scheduleDocumentSchema = z.object({

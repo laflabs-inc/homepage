@@ -34,6 +34,40 @@ describe("document validation", () => {
     expect(publishDocumentSchema.safeParse(validDraft).success).toBe(true)
   })
 
+  it("trims publication summaries and rejects whitespace or line breaks", () => {
+    expect(publishDocumentSchema.safeParse({ ...validDraft, summary: "   " }).success).toBe(false)
+    expect(publishDocumentSchema.safeParse({ ...validDraft, summary: "line one\nline two" }).success).toBe(false)
+    expect(publishDocumentSchema.safeParse({ ...validDraft, summary: "line one\rline two" }).success).toBe(false)
+    expect(publishDocumentSchema.parse({ ...validDraft, summary: "  visible summary  " }).summary).toBe("visible summary")
+    expect(publishDocumentSchema.safeParse({ ...validDraft, summary: `  ${"가".repeat(240)}  ` }).success).toBe(true)
+  })
+
+  it("requires meaningful alt text on Markdown images before publication", () => {
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: "![서비스 상태 화면](https://example.com/status.png)",
+    }).success).toBe(true)
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: "![](https://example.com/decorative.png)",
+    }).success).toBe(false)
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: "![   ](https://example.com/decorative.png)",
+    }).success).toBe(false)
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: "![][logo]\n\n[logo]: https://example.com/logo.png",
+    }).success).toBe(false)
+  })
+
+  it("ignores raw HTML images because raw HTML is not rendered", () => {
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: "<img src=\"https://example.com/inert.png\">",
+    }).success).toBe(true)
+  })
+
   it.each([
     ["title", "가".repeat(160), true],
     ["title", "가".repeat(161), false],

@@ -4,6 +4,9 @@ import type { AdminActor } from "@/lib/auth/admin-api"
 import { createDocumentService } from "@/lib/documents/service"
 import type {
   AdminDocumentFilter,
+  AdminDocumentSummary,
+  AdminDocumentSummaryFilter,
+  AdminDocumentSummaryPage,
   AuditAction,
   DocumentDraftInput,
   DocumentRepository,
@@ -178,6 +181,9 @@ class MemoryDocumentRepository implements DocumentRepository {
       if (prior) prior.status = "archived"
       this.seed({ seriesId, locale, status: "published", revision: (prior?.revision ?? 0) + 1 })
     }
+    if (locale === "ko" && this.revisions.some((item) => (
+      item.seriesId === seriesId && item.locale === "en" && item.status === "published"
+    ))) return null
     const revision = this.revisions.find((item) => (
       item.id === expectedRevisionId
       && item.seriesId === seriesId
@@ -190,6 +196,36 @@ class MemoryDocumentRepository implements DocumentRepository {
 
   async listAdmin(filter: AdminDocumentFilter = {}): Promise<DocumentRevision[]> {
     return this.revisions.filter((revision) => Object.entries(filter).every(([key, value]) => revision[key as keyof DocumentRevision] === value))
+  }
+
+  async listAdminSummaries(filter: AdminDocumentSummaryFilter = {}): Promise<AdminDocumentSummaryPage> {
+    const limit = filter.limit ?? 50
+    const { before, limit: _limit, ...adminFilter } = filter
+    void _limit
+    const revisions = (await this.listAdmin(adminFilter))
+      .filter((revision) => !before || (
+        revision.updatedAt.getTime() < before.updatedAt.getTime()
+        || (revision.updatedAt.getTime() === before.updatedAt.getTime() && revision.id < before.id)
+      ))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime() || b.id.localeCompare(a.id))
+    const items: AdminDocumentSummary[] = revisions.slice(0, limit).map((revision) => ({
+      id: revision.id,
+      kind: revision.kind,
+      locale: revision.locale,
+      revision: revision.revision,
+      title: revision.title,
+      status: revision.status,
+      scheduledAt: revision.scheduledAt,
+      publishedAt: revision.publishedAt,
+      updatedAt: revision.updatedAt,
+      updatedBy: revision.updatedBy,
+      publishedBy: revision.publishedBy,
+    }))
+    const last = items.at(-1)
+    return {
+      items,
+      nextCursor: revisions.length > limit && last ? { updatedAt: last.updatedAt, id: last.id } : null,
+    }
   }
 
   async listPublished(filter: PublishedDocumentFilter): Promise<PublishedDocument[]> {
@@ -310,6 +346,53 @@ describe("document workflow service", () => {
     })
   })
 
+  it.each(["scheduled", "published", "archived"] as const)(
+    "rejects Korean shared metadata changes when a %s sibling exists",
+    async (status) => {
+      const koreanDraft = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft", revision: 2 })
+      repository.seed({
+        seriesId: "series-1",
+        locale: status === "scheduled" ? "en" : "ko",
+        status,
+        revision: 1,
+        scheduledAt: status === "scheduled" ? new Date(now.getTime() + 60_000) : null,
+      })
+
+      await expect(service.updateDraft(koreanDraft.id, {
+        ...input,
+        category: "maintenance",
+        pinned: true,
+      }, actor)).rejects.toMatchObject({ code: "conflict" })
+    },
+  )
+
+  it("allows Korean shared metadata changes while every sibling remains a draft", async () => {
+    const koreanDraft = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+    repository.seed({ seriesId: "series-1", locale: "en", status: "draft" })
+
+    await expect(service.updateDraft(koreanDraft.id, {
+      ...input,
+      category: "maintenance",
+      pinned: true,
+    }, actor)).resolves.toMatchObject({ category: "maintenance", pinned: true })
+  })
+
+  it("allows Korean content edits without changing frozen shared metadata", async () => {
+    const koreanDraft = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft", revision: 2 })
+    repository.seed({ seriesId: "series-1", locale: "ko", status: "published", revision: 1 })
+
+    await expect(service.updateDraft(koreanDraft.id, {
+      ...input,
+      title: "수정 제목",
+      summary: "수정 요약",
+      bodyMarkdown: "수정 본문",
+    }, actor)).resolves.toMatchObject({
+      title: "수정 제목",
+      summary: "수정 요약",
+      bodyMarkdown: "수정 본문",
+    })
+  })
+
   it("requires published Korean content before publishing English", async () => {
     repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
     const english = repository.seed({
@@ -393,6 +476,21 @@ describe("document workflow service", () => {
     expect(repository.revisions.find(({ revision }) => revision === 2)).toMatchObject({ status: "published" })
   })
 
+  it("does not archive published Korean while English is published", async () => {
+    const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
+    repository.seed({ seriesId: "series-1", locale: "en", status: "published" })
+
+    await expect(service.archive(korean.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
+    expect(korean.status).toBe("published")
+  })
+
+  it("allows English archival while Korean remains published", async () => {
+    repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
+    const english = repository.seed({ seriesId: "series-1", locale: "en", status: "published" })
+
+    await expect(service.archive(english.id, actor, now)).resolves.toMatchObject({ status: "archived" })
+  })
+
   it("returns a scheduled snapshot to an editable draft", async () => {
     const scheduled = repository.seed({
       seriesId: "series-1",
@@ -435,5 +533,12 @@ describe("document workflow service", () => {
     await expect(service.updateDraft("revision-1", input, actor)).rejects.toMatchObject({
       code: "conflict",
     })
+  })
+
+  it("loads one complete revision directly without an admin list scan", async () => {
+    const revision = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+
+    await expect(service.getRevision(revision.id)).resolves.toEqual(revision)
+    await expect(service.getRevision("missing")).resolves.toBeNull()
   })
 })

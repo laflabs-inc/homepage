@@ -73,6 +73,31 @@ export type AdminDocumentFilter = {
   status?: DocumentStatus
 }
 
+export type AdminDocumentSummary = Pick<
+  DocumentRevision,
+  | "id"
+  | "kind"
+  | "locale"
+  | "revision"
+  | "title"
+  | "status"
+  | "scheduledAt"
+  | "publishedAt"
+  | "updatedAt"
+  | "updatedBy"
+  | "publishedBy"
+>
+
+export type AdminDocumentSummaryFilter = AdminDocumentFilter & {
+  limit?: number
+  before?: { updatedAt: Date; id: string }
+}
+
+export type AdminDocumentSummaryPage = {
+  items: AdminDocumentSummary[]
+  nextCursor: { updatedAt: Date; id: string } | null
+}
+
 export type PublishedDocumentFilter = {
   kind: DocumentKind
   locale: Locale
@@ -107,6 +132,7 @@ export interface DocumentRepository {
   publishRevision(revisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision>
   archiveCurrent(seriesId: string, locale: Locale, expectedRevisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision | null>
   listAdmin(filter?: AdminDocumentFilter): Promise<DocumentRevision[]>
+  listAdminSummaries(filter?: AdminDocumentSummaryFilter): Promise<AdminDocumentSummaryPage>
   listPublished(filter: PublishedDocumentFilter): Promise<PublishedDocument[]>
   getPublished(kind: DocumentKind, slug: string, locale: Locale): Promise<PublishedLookup>
   publishDue(now: Date, actor: AdminActor): Promise<PublishDueResult>

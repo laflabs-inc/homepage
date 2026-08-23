@@ -66,6 +66,13 @@ function requirePublishable(revision: DocumentRevision): void {
   }
 }
 
+function sharedMetadataChanged(revision: DocumentRevision, input: DocumentDraftInput): boolean {
+  return input.kind !== revision.kind
+    || input.slug !== revision.slug
+    || (input.category ?? null) !== revision.category
+    || (input.pinned ?? false) !== revision.pinned
+}
+
 function withStableRepositoryErrors(repository: DocumentRepository): DocumentRepository {
   return new Proxy(repository, {
     get(target, property, receiver) {
@@ -135,22 +142,13 @@ export function createDocumentService(repository: DocumentRepository) {
       if (validInput.locale !== revision.locale) {
         throw new DocumentServiceError("conflict", "A revision locale cannot be changed")
       }
-      if (
-        revision.locale === "en"
-        && (
-          validInput.kind !== revision.kind
-          || validInput.slug !== revision.slug
-          || (validInput.category ?? null) !== revision.category
-          || (validInput.pinned ?? false) !== revision.pinned
-        )
-      ) {
-        throw new DocumentServiceError("conflict", "English revisions cannot change shared series metadata")
-      }
-
       const series = await repository.listAdmin({ seriesId: revision.seriesId })
-      const hasPublished = series.some(({ status }) => status === "published" || status === "archived")
-      if (hasPublished && (validInput.kind !== revision.kind || validInput.slug !== revision.slug)) {
-        throw new DocumentServiceError("conflict", "Kind and slug cannot change after first publication")
+      const sharedMetadataFrozen = series.some(({ id, status }) => (
+        id !== revision.id
+        && (status === "scheduled" || status === "published" || status === "archived")
+      ))
+      if (sharedMetadataChanged(revision, validInput) && (revision.locale === "en" || sharedMetadataFrozen)) {
+        throw new DocumentServiceError("conflict", "Shared series metadata cannot be changed")
       }
       return repository.updateDraft(revisionId, validInput, actor)
     },
@@ -218,12 +216,20 @@ export function createDocumentService(repository: DocumentRepository) {
       if (revision.status !== "published") {
         throw new DocumentServiceError("conflict", "Only the current published revision may be archived")
       }
+      if (revision.locale === "ko") {
+        const series = await repository.listAdmin({ seriesId: revision.seriesId, locale: "en", status: "published" })
+        if (series.length > 0) {
+          throw new DocumentServiceError("conflict", "Archive the published English revision first")
+        }
+      }
       const archived = await repository.archiveCurrent(revision.seriesId, revision.locale, revision.id, actor, now)
       if (!archived) throw new DocumentServiceError("conflict", "The published revision changed")
       return archived
     },
 
     listAdmin: repository.listAdmin.bind(repository),
+    listAdminSummaries: repository.listAdminSummaries.bind(repository),
+    getRevision: repository.getRevision.bind(repository),
 
     async publishDue(now = new Date()): Promise<PublishDueResult> {
       return repository.publishDue(now, { githubId: "system:scheduler", name: "Document scheduler" })
