@@ -276,6 +276,59 @@ describe("admin document collection", () => {
 })
 
 describe("admin document revision actions", () => {
+  it("rejects malformed revision IDs before dispatching any service method", async () => {
+    const deps = dependencies()
+    const malformedId = "not-a-uuid"
+    const responses = [
+      await handleGetDocument(
+        new Request(`https://laflabs.co/api/admin/documents/${malformedId}`),
+        malformedId,
+        deps,
+      ),
+      await handleUpdateDocument(
+        jsonRequest(`/api/admin/documents/${malformedId}`, draftInput, { method: "PATCH" }),
+        malformedId,
+        deps,
+      ),
+      await handleDeleteDocument(
+        jsonRequest(`/api/admin/documents/${malformedId}`, {}, { method: "DELETE" }),
+        malformedId,
+        deps,
+      ),
+      await handleScheduleDocument(
+        jsonRequest(`/api/admin/documents/${malformedId}/schedule`, { scheduledAt: "2099-01-01T00:00:00.000Z" }),
+        malformedId,
+        deps,
+      ),
+      await handleUnscheduleDocument(
+        jsonRequest(`/api/admin/documents/${malformedId}/unschedule`, {}),
+        malformedId,
+        deps,
+      ),
+      await handlePublishDocument(
+        jsonRequest(`/api/admin/documents/${malformedId}/publish`, {}),
+        malformedId,
+        deps,
+      ),
+      await handleArchiveDocument(
+        jsonRequest(`/api/admin/documents/${malformedId}/archive`, {}),
+        malformedId,
+        deps,
+      ),
+      await handleNewRevision(
+        jsonRequest(`/api/admin/documents/${malformedId}/new-revision`, {}),
+        malformedId,
+        deps,
+      ),
+    ]
+
+    expect(responses.map(({ status }) => status)).toEqual([400, 400, 400, 400, 400, 400, 400, 400])
+    for (const response of responses) {
+      await expect(response.json()).resolves.toEqual({ error: "invalid_request" })
+    }
+    for (const method of Object.values(deps.service)) expect(method).not.toHaveBeenCalled()
+  })
+
   it("gets one revision through the authenticated admin reader", async () => {
     const deps = dependencies()
     const response = await handleGetDocument(

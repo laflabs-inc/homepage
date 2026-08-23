@@ -47,12 +47,15 @@ function request(secret = "cron-secret-that-is-long-enough") {
   })
 }
 
-function service(result = { publishedIds: [dueId], failedIds: [] as string[] }) {
+function reference(value: DocumentRevision) {
+  return { id: value.id, kind: value.kind, locale: value.locale, slug: value.slug }
+}
+
+function service(result = {
+  publishedRevisions: [reference(scheduled(dueId, new Date(now.getTime() - 60_000)))],
+  failedIds: [] as string[],
+}) {
   return {
-    listAdmin: vi.fn().mockResolvedValue([
-      scheduled(dueId, new Date(now.getTime() - 60_000)),
-      scheduled(futureId, new Date(now.getTime() + 60_000)),
-    ]),
     publishDue: vi.fn().mockResolvedValue(result),
   }
 }
@@ -87,19 +90,20 @@ describe("document publication cron", () => {
     await expect(response.json()).resolves.toEqual({
       publishedCount: 1,
       failedCount: 0,
+      revalidationFailedCount: 0,
       publishedIds: [dueId],
       failedIds: [],
+      revalidationFailedIds: [],
     })
     expect(revalidate.mock.calls.flatMap(([tag]) => tag)).not.toContain(`documents:detail:notice:notice-${futureId.at(-1)}:ko`)
   })
 
   it("does not hide successful IDs when another due publication fails", async () => {
     vi.stubEnv("CRON_SECRET", "cron-secret-that-is-long-enough")
-    const documentService = service({ publishedIds: [dueId], failedIds: [failedId] })
-    documentService.listAdmin.mockResolvedValue([
-      scheduled(dueId, new Date(now.getTime() - 60_000)),
-      scheduled(failedId, new Date(now.getTime() - 30_000)),
-    ])
+    const documentService = service({
+      publishedRevisions: [reference(scheduled(dueId, new Date(now.getTime() - 60_000)))],
+      failedIds: [failedId],
+    })
     const revalidate = vi.fn()
 
     const response = await handleDocumentPublication(request(), documentService, now, revalidate)
@@ -109,8 +113,10 @@ describe("document publication cron", () => {
     expect(payload).toEqual({
       publishedCount: 1,
       failedCount: 1,
+      revalidationFailedCount: 0,
       publishedIds: [dueId],
       failedIds: [failedId],
+      revalidationFailedIds: [],
     })
     expect(revalidate.mock.calls.some(([tag]) => String(tag).includes(`notice-${dueId.at(-1)}`))).toBe(true)
     expect(revalidate.mock.calls.some(([tag]) => String(tag).includes(`notice-${failedId.at(-1)}`))).toBe(false)
@@ -118,17 +124,23 @@ describe("document publication cron", () => {
 
   it("returns only allowlisted counts and IDs, never errors or document content", async () => {
     vi.stubEnv("CRON_SECRET", "cron-secret-that-is-long-enough")
-    const documentService = service({ publishedIds: [dueId], failedIds: [failedId] })
-    documentService.listAdmin.mockResolvedValue([
-      scheduled(dueId, new Date(now.getTime() - 60_000)),
-      scheduled(failedId, new Date(now.getTime() - 30_000)),
-    ])
+    const documentService = service({
+      publishedRevisions: [reference(scheduled(dueId, new Date(now.getTime() - 60_000)))],
+      failedIds: [failedId],
+    })
 
     const response = await handleDocumentPublication(request(), documentService, now, vi.fn())
     const raw = await response.text()
     const payload = JSON.parse(raw) as Record<string, unknown>
 
-    expect(Object.keys(payload).sort()).toEqual(["failedCount", "failedIds", "publishedCount", "publishedIds"])
+    expect(Object.keys(payload).sort()).toEqual([
+      "failedCount",
+      "failedIds",
+      "publishedCount",
+      "publishedIds",
+      "revalidationFailedCount",
+      "revalidationFailedIds",
+    ])
     expect(raw).not.toContain("Sensitive")
     expect(raw).not.toContain("contents")
     expect(raw).not.toContain("error")
@@ -142,7 +154,27 @@ describe("document publication cron", () => {
     const response = await handleDocumentPublication(request(), service(), now, revalidate)
 
     expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toMatchObject({ publishedIds: [dueId] })
+    await expect(response.json()).resolves.toMatchObject({
+      publishedIds: [dueId],
+      revalidationFailedCount: 1,
+      revalidationFailedIds: [dueId],
+    })
+  })
+
+  it("uses committed publication metadata for exact tags when a separate metadata read fails", async () => {
+    vi.stubEnv("CRON_SECRET", "cron-secret-that-is-long-enough")
+    const documentService = service({
+      publishedRevisions: [{ id: dueId, kind: "notice", locale: "ko", slug: "notice-1" }],
+      failedIds: [],
+    })
+    const revalidate = vi.fn()
+
+    const response = await handleDocumentPublication(request(), documentService, now, revalidate)
+
+    expect(response.status).toBe(200)
+    expect(revalidate).toHaveBeenCalledWith("documents:index:notice:ko", "max")
+    expect(revalidate).toHaveBeenCalledWith("documents:detail:notice:notice-1:ko", "max")
+    expect(revalidate).toHaveBeenCalledTimes(6)
   })
 
   it("returns a safe 503 when publication storage fails", async () => {

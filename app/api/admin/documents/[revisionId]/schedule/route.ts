@@ -1,6 +1,7 @@
 import {
   adminDocumentDependencies,
   authorizeMutation,
+  invalidRevisionIdResponse,
   serviceErrorResponse,
   type AdminDocumentDependencies,
 } from "@/lib/http/admin-documents"
@@ -18,6 +19,8 @@ export async function handleScheduleDocument(
   if (!body.ok) return body.response
   const parsed = scheduleDocumentSchema.safeParse(body.value)
   if (!parsed.success) return jsonNoStore({ error: "invalid_request" }, { status: 400 })
+  const invalidRevisionId = invalidRevisionIdResponse(revisionId)
+  if (invalidRevisionId) return invalidRevisionId
 
   try {
     const revision = await dependencies.service.schedule(

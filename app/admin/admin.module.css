@@ -80,7 +80,8 @@
 }
 
 .primaryLink,
-.editorActions button {
+.editorActions button,
+.editorActions a {
   min-height: 46px;
   padding: 0 18px;
   display: inline-grid;
@@ -90,6 +91,40 @@
   border: 1px solid var(--ink);
   font: 650 11px var(--font-geist-mono), monospace;
   cursor: pointer;
+}
+
+.documentListWorkspace {
+  display: grid;
+  gap: 24px;
+}
+
+.documentFilters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, auto));
+  border: 1px solid var(--ink);
+}
+
+.documentFilters label {
+  padding: 12px;
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font: 600 10px var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+}
+
+.documentFilters label + label {
+  border-left: 1px solid var(--ink);
+}
+
+.documentFilters input,
+.documentFilters select {
+  min-height: 38px;
+  padding: 0 10px;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--ink);
+  border-radius: 0;
 }
 
 .documentList {
@@ -107,7 +142,7 @@
   min-height: 88px;
   padding: 18px 22px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) repeat(4, auto);
   align-items: center;
   gap: 24px;
   color: var(--muted);
@@ -243,6 +278,20 @@
   opacity: 0.45;
 }
 
+.editorActions .dangerButton {
+  color: #9b1c1c;
+  background: white;
+}
+
+.editorGuidance {
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--muted);
+  background: #fffbea;
+  border: 1px solid var(--ink);
+  font-size: 12px;
+}
+
 .scheduleField {
   min-width: 220px;
 }
@@ -312,7 +361,8 @@
 
 .immutableDocument > .editorActions,
 .immutableDocument > .formAlert,
-.immutableDocument > .formNotice {
+.immutableDocument > .formNotice,
+.immutableDocument > .editorGuidance {
   grid-column: 1 / -1;
   padding: 20px 30px;
   border-top: 1px solid var(--ink);
@@ -816,6 +866,19 @@
     grid-template-columns: 1fr;
   }
 
+  .documentFilters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .documentFilters label:nth-child(3) {
+    border-top: 1px solid var(--ink);
+    border-left: 0;
+  }
+
+  .documentFilters label:nth-child(4) {
+    border-top: 1px solid var(--ink);
+  }
+
   .editorPreview,
   .immutableMeta {
     border-top: 1px solid var(--ink);
@@ -910,6 +973,16 @@
   .documentList a {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
+  }
+
+  .documentFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .documentFilters label + label,
+  .documentFilters label:nth-child(4) {
+    border-top: 1px solid var(--ink);
+    border-left: 0;
   }
 
   .documentList a > span:nth-child(2) {

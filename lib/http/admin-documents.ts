@@ -3,7 +3,8 @@ import { revalidateTag } from "next/cache"
 import { authorizeAdminApi, type AdminActor, type AdminApiAuthorization } from "@/lib/auth/admin-api"
 import { documentCacheTags } from "@/lib/documents/cache"
 import { documentService, DocumentServiceError } from "@/lib/documents/service"
-import type { DocumentRevision } from "@/lib/documents/types"
+import type { PublishedRevisionReference } from "@/lib/documents/types"
+import { revisionIdSchema } from "@/lib/documents/validation"
 import { jsonNoStore, withNoStore } from "@/lib/http/json-body"
 import { isSameOriginRequest } from "@/lib/http/same-origin"
 
@@ -66,19 +67,28 @@ export function serviceErrorResponse(error: unknown): Response {
   return jsonNoStore({ error: "unavailable" }, { status: 503 })
 }
 
+export function invalidRevisionIdResponse(revisionId: string): Response | null {
+  return revisionIdSchema.safeParse(revisionId).success
+    ? null
+    : jsonNoStore({ error: "invalid_request" }, { status: 400 })
+}
+
 export function revalidatePublicRevision(
-  revision: DocumentRevision,
+  revision: PublishedRevisionReference,
   revalidate: AdminDocumentDependencies["revalidate"],
-): void {
+): boolean {
   const tags = new Set([
     ...documentCacheTags.index(revision.kind, revision.locale),
     ...documentCacheTags.detail(revision.kind, revision.slug, revision.locale),
   ])
+  let succeeded = true
   for (const tag of tags) {
     try {
       revalidate(tag, "max")
     } catch {
+      succeeded = false
       // The public change is already committed. A cache failure must not report the mutation as failed.
     }
   }
+  return succeeded
 }

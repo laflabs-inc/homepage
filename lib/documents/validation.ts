@@ -2,6 +2,8 @@ import { z } from "zod"
 
 import { documentKinds, documentLocales } from "@/lib/documents/types"
 
+export const revisionIdSchema = z.uuid()
+
 export const categoriesByKind = {
   notice: ["general", "service", "maintenance", "security"],
   legal: ["privacy", "terms", "cookies", "policy"],

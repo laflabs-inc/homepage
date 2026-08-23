@@ -5,6 +5,7 @@ import {
   adminDocumentDependencies,
   authorizeMutation,
   authorizeRead,
+  invalidRevisionIdResponse,
   serviceErrorResponse,
   type AdminDocumentDependencies,
 } from "@/lib/http/admin-documents"
@@ -19,6 +20,8 @@ export async function handleGetDocument(
 ): Promise<Response> {
   const authorization = await authorizeRead(dependencies)
   if (!authorization.ok) return authorization.response
+  const invalidRevisionId = invalidRevisionIdResponse(revisionId)
+  if (invalidRevisionId) return invalidRevisionId
 
   try {
     const revision = (await dependencies.service.listAdmin()).find(({ id }) => id === revisionId)
@@ -41,6 +44,8 @@ export async function handleUpdateDocument(
   if (!body.ok) return body.response
   const parsed = documentDraftSchema.safeParse(body.value)
   if (!parsed.success) return jsonNoStore({ error: "invalid_request" }, { status: 400 })
+  const invalidRevisionId = invalidRevisionIdResponse(revisionId)
+  if (invalidRevisionId) return invalidRevisionId
 
   try {
     const revision = await dependencies.service.updateDraft(revisionId, parsed.data, authorization.actor)
@@ -62,6 +67,8 @@ export async function handleDeleteDocument(
   if (!emptyBodySchema.safeParse(body.value).success) {
     return jsonNoStore({ error: "invalid_request" }, { status: 400 })
   }
+  const invalidRevisionId = invalidRevisionIdResponse(revisionId)
+  if (invalidRevisionId) return invalidRevisionId
 
   try {
     await dependencies.service.deleteDraft(revisionId, authorization.actor)

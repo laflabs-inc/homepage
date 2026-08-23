@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   adminDocumentDependencies,
   authorizeMutation,
+  invalidRevisionIdResponse,
   serviceErrorResponse,
   type AdminDocumentDependencies,
 } from "@/lib/http/admin-documents"
@@ -22,6 +23,8 @@ export async function handleNewRevision(
   if (!requestSchema.safeParse(body.value).success) {
     return jsonNoStore({ error: "invalid_request" }, { status: 400 })
   }
+  const invalidRevisionId = invalidRevisionIdResponse(revisionId)
+  if (invalidRevisionId) return invalidRevisionId
 
   try {
     const revision = await dependencies.service.createNextDraft(revisionId, authorization.actor)

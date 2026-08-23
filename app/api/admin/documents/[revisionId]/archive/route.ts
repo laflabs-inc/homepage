@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   adminDocumentDependencies,
   authorizeMutation,
+  invalidRevisionIdResponse,
   revalidatePublicRevision,
   serviceErrorResponse,
   type AdminDocumentDependencies,
@@ -23,6 +24,8 @@ export async function handleArchiveDocument(
   if (!requestSchema.safeParse(body.value).success) {
     return jsonNoStore({ error: "invalid_request" }, { status: 400 })
   }
+  const invalidRevisionId = invalidRevisionIdResponse(revisionId)
+  if (invalidRevisionId) return invalidRevisionId
 
   try {
     const revision = await dependencies.service.archive(revisionId, authorization.actor)

@@ -49,6 +49,22 @@ beforeEach(() => {
 })
 
 describe("document publication store boundary", () => {
+  it("returns exact cache metadata for each committed scheduled publication", async () => {
+    execute
+      .mockResolvedValueOnce({ rows: [{ id: publishedRow.id }] })
+      .mockResolvedValueOnce({ rows: [publishedRow] })
+
+    await expect(store.publishDue(now, actor)).resolves.toEqual({
+      publishedRevisions: [{
+        id: publishedRow.id,
+        kind: publishedRow.kind,
+        locale: publishedRow.locale,
+        slug: publishedRow.slug,
+      }],
+      failedIds: [],
+    })
+  })
+
   it("locks, rechecks, archives, publishes, and audits in one atomic statement", async () => {
     execute.mockResolvedValue({ rows: [publishedRow] })
 

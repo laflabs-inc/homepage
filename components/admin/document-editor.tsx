@@ -1,10 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import styles from "@/app/admin/admin.module.css"
 import { DocumentPreview } from "@/components/admin/document-preview"
+import { useDirtyNavigationGuard } from "@/components/admin/use-dirty-navigation-guard"
 import { categoriesByKind } from "@/lib/documents/validation"
 import type { DocumentDraftInput, DocumentKind, DocumentRevision, Locale } from "@/lib/documents/types"
 
@@ -23,6 +25,7 @@ type EditorValues = {
 type DocumentEditorProps = {
   revision?: DocumentRevision
   seriesId?: string
+  templateRevision?: DocumentRevision
 }
 
 const blankValues: EditorValues = {
@@ -44,7 +47,7 @@ function dateInputValue(value: Date | string | null): string {
 }
 
 function valuesFromRevision(revision?: DocumentRevision): EditorValues {
-  if (!revision) return blankValues
+  if (!revision) return { ...blankValues }
   return {
     kind: revision.kind,
     locale: revision.locale,
@@ -55,6 +58,23 @@ function valuesFromRevision(revision?: DocumentRevision): EditorValues {
     summary: revision.summary,
     bodyMarkdown: revision.bodyMarkdown,
     effectiveAt: dateInputValue(revision.effectiveAt),
+  }
+}
+
+function initialValues(
+  revision?: DocumentRevision,
+  seriesId?: string,
+  templateRevision?: DocumentRevision,
+): EditorValues {
+  if (revision) return valuesFromRevision(revision)
+  if (!seriesId || !templateRevision) return { ...blankValues }
+  return {
+    ...valuesFromRevision(templateRevision),
+    locale: "en",
+    title: "",
+    summary: "",
+    bodyMarkdown: "",
+    effectiveAt: "",
   }
 }
 
@@ -78,10 +98,10 @@ function displayDate(value: Date | string | null): string {
   return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : "—"
 }
 
-export function DocumentEditor({ revision: initialRevision, seriesId }: DocumentEditorProps) {
+export function DocumentEditor({ revision: initialRevision, seriesId, templateRevision }: DocumentEditorProps) {
   const router = useRouter()
   const [revision, setRevision] = useState(initialRevision)
-  const [values, setValues] = useState(() => valuesFromRevision(initialRevision))
+  const [values, setValues] = useState(() => initialValues(initialRevision, seriesId, templateRevision))
   const [dirty, setDirty] = useState(false)
   const [activeTab, setActiveTab] = useState<"source" | "preview">("source")
   const [scheduledAt, setScheduledAt] = useState("")
@@ -89,18 +109,12 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!dirty) return
-    const warn = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-      event.returnValue = ""
-    }
-    window.addEventListener("beforeunload", warn)
-    return () => window.removeEventListener("beforeunload", warn)
-  }, [dirty])
+  const discardChanges = useCallback(() => setDirty(false), [])
+  useDirtyNavigationGuard(dirty, discardChanges)
 
   const categoryOptions = useMemo(() => categoriesByKind[values.kind], [values.kind])
   const editable = !revision || revision.status === "draft"
+  const englishSeriesDraft = !revision && Boolean(seriesId && templateRevision)
 
   function update<K extends keyof EditorValues>(key: K, value: EditorValues[K]) {
     setValues((current) => ({ ...current, [key]: value }))
@@ -156,6 +170,33 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
     if (action === "new-revision") router.replace(`/admin/documents/${updated.id}`)
   }
 
+  async function deleteDraft() {
+    if (!revision || !window.confirm("Delete this draft permanently?")) return
+    setPending(true)
+    setError(null)
+    setNotice(null)
+    try {
+      const response = await fetch(`/api/admin/documents/${revision.id}`, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      })
+      if (!response.ok) throw new Error("request failed")
+      const payload = await response.json() as { ok?: boolean }
+      if (payload.ok !== true) throw new Error("invalid response")
+      setDirty(false)
+      router.replace("/admin/documents")
+    } catch {
+      setError("The document could not be updated. Please try again.")
+    } finally {
+      setPending(false)
+    }
+  }
+
+  const englishCreationLink = revision?.locale === "ko"
+    ? `/admin/documents/new?seriesId=${revision.seriesId}&sourceRevisionId=${revision.id}`
+    : null
+
   if (!editable && revision) {
     return (
       <section className={styles.immutableDocument} aria-labelledby="document-title">
@@ -172,6 +213,9 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
         <div className={styles.immutablePreview}>
           <DocumentPreview title={revision.title} source={revision.bodyMarkdown} />
         </div>
+        {revision.locale === "en" && revision.status === "scheduled" ? (
+          <p className={styles.editorGuidance}>English publication requires a published Korean counterpart.</p>
+        ) : null}
         {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
         {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
         <div className={styles.editorActions}>
@@ -184,7 +228,9 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
                 "Schedule removed.",
               )}>Return to draft</button>
               <button disabled={pending} type="button" onClick={() => confirmedAction(
-                "Publish this document now?",
+                revision.locale === "en"
+                  ? "Publish this English document now? A published Korean counterpart is required."
+                  : "Publish this document now?",
                 "publish",
                 {},
                 "Document published.",
@@ -207,6 +253,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
               "New revision created.",
             )}>Create new revision</button>
           ) : null}
+          {englishCreationLink ? <Link href={englishCreationLink}>Create English revision</Link> : null}
         </div>
       </section>
     )
@@ -244,7 +291,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
         >
           <div className={styles.editorFieldGrid}>
             <label>Kind
-              <select value={values.kind} onChange={(event) => {
+              <select disabled={englishSeriesDraft} value={values.kind} onChange={(event) => {
                 const kind = event.target.value as DocumentKind
                 setValues((current) => ({ ...current, kind, category: categoriesByKind[kind][0] }))
                 setDirty(true)
@@ -256,21 +303,20 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
               </select>
             </label>
             <label>Locale
-              <select value={values.locale} onChange={(event) => update("locale", event.target.value as Locale)}>
-                <option value="ko">Korean</option>
-                <option value="en">English</option>
+              <select disabled value={values.locale} onChange={(event) => update("locale", event.target.value as Locale)}>
+                <option value={values.locale}>{values.locale === "ko" ? "Korean" : "English"}</option>
               </select>
             </label>
             <label>Slug
-              <input required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
+              <input disabled={englishSeriesDraft} required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
             </label>
             <label>Category
-              <select value={values.category} onChange={(event) => update("category", event.target.value)}>
+              <select disabled={englishSeriesDraft} value={values.category} onChange={(event) => update("category", event.target.value)}>
                 {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
               </select>
             </label>
             <label className={styles.checkboxField}>
-              <input type="checkbox" checked={values.pinned} onChange={(event) => update("pinned", event.target.checked)} />
+              <input disabled={englishSeriesDraft} type="checkbox" checked={values.pinned} onChange={(event) => update("pinned", event.target.checked)} />
               Pinned
             </label>
             <label>Effective date
@@ -288,6 +334,12 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
           </label>
           {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
           {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
+          {revision?.locale === "en" ? (
+            <p className={styles.editorGuidance}>English publication requires a published Korean counterpart.</p>
+          ) : null}
+          {dirty && revision ? (
+            <p className={styles.editorGuidance}>Save the draft before scheduling or publishing.</p>
+          ) : null}
           <div className={styles.editorActions}>
             <button disabled={pending} type="submit">Save draft</button>
             {revision ? (
@@ -295,18 +347,24 @@ export function DocumentEditor({ revision: initialRevision, seriesId }: Document
                 <label className={styles.scheduleField}>Schedule time
                   <input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
                 </label>
-                <button disabled={pending || !scheduledAt} type="button" onClick={() => confirmedAction(
+                <button disabled={pending || dirty || !scheduledAt} type="button" onClick={() => confirmedAction(
                   "Schedule this document for publication?",
                   "schedule",
                   { scheduledAt: new Date(scheduledAt).toISOString() },
                   "Document scheduled.",
                 )}>Schedule</button>
-                <button disabled={pending} type="button" onClick={() => confirmedAction(
-                  "Publish this document now?",
+                <button disabled={pending || dirty} type="button" onClick={() => confirmedAction(
+                  revision.locale === "en"
+                    ? "Publish this English document now? A published Korean counterpart is required."
+                    : "Publish this document now?",
                   "publish",
                   {},
                   "Document published.",
                 )}>Publish now</button>
+                <button className={styles.dangerButton} disabled={pending} type="button" onClick={() => void deleteDraft()}>
+                  Delete draft
+                </button>
+                {englishCreationLink ? <Link href={englishCreationLink}>Create English revision</Link> : null}
               </>
             ) : null}
           </div>

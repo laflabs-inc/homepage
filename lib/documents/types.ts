@@ -89,8 +89,10 @@ export type AuditAction = {
   metadata?: Record<string, unknown>
 }
 
+export type PublishedRevisionReference = Pick<DocumentRevision, "id" | "kind" | "locale" | "slug">
+
 export type PublishDueResult = {
-  publishedIds: string[]
+  publishedRevisions: PublishedRevisionReference[]
   failedIds: string[]
 }
 

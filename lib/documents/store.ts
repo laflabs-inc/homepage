@@ -605,17 +605,22 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         WHERE "status" = 'scheduled' AND "scheduled_at" <= ${now}
         ORDER BY "scheduled_at" ASC, CASE "locale" WHEN 'ko' THEN 0 ELSE 1 END, "id" ASC
       `)
-      const publishedIds: string[] = []
+      const publishedRevisions: PublishDueResult["publishedRevisions"] = []
       const failedIds: string[] = []
       for (const row of due.rows as Array<{ id: string }>) {
         try {
-          await this.publishRevision(row.id, actor, now)
-          publishedIds.push(row.id)
+          const published = await this.publishRevision(row.id, actor, now)
+          publishedRevisions.push({
+            id: published.id,
+            kind: published.kind,
+            locale: published.locale,
+            slug: published.slug,
+          })
         } catch {
           failedIds.push(row.id)
         }
       }
-      return { publishedIds, failedIds }
+      return { publishedRevisions, failedIds }
     },
   }
 }

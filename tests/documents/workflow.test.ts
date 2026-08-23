@@ -208,7 +208,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   }
 
   async publishDue(): Promise<PublishDueResult> {
-    return { publishedIds: [], failedIds: [] }
+    return { publishedRevisions: [], failedIds: [] }
   }
 
   private async required(revisionId: string): Promise<DocumentRevision> {
