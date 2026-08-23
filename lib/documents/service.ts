@@ -3,6 +3,7 @@ import type {
   DocumentDraftInput,
   DocumentRepository,
   DocumentRevision,
+  PublicationTransitionSnapshot,
   PublishDueResult,
 } from "@/lib/documents/types"
 import { documentDraftSchema, publishDocumentSchema } from "@/lib/documents/validation"
@@ -60,9 +61,22 @@ function requireValidDraft(input: DocumentDraftInput): DocumentDraftInput {
   return result.data
 }
 
-function requirePublishable(revision: DocumentRevision): void {
-  if (!publishDocumentSchema.safeParse(publicInput(revision)).success) {
+function requirePublishable(revision: DocumentRevision): PublicationTransitionSnapshot {
+  const result = publishDocumentSchema.safeParse(publicInput(revision))
+  if (!result.success) {
     throw new DocumentServiceError("conflict", "Document is incomplete and cannot be published")
+  }
+  return {
+    kind: revision.kind,
+    locale: revision.locale,
+    slug: revision.slug,
+    category: revision.category,
+    pinned: revision.pinned,
+    title: revision.title,
+    summary: revision.summary,
+    normalizedSummary: result.data.summary,
+    bodyMarkdown: revision.bodyMarkdown,
+    effectiveAt: revision.effectiveAt,
   }
 }
 
@@ -142,12 +156,9 @@ export function createDocumentService(repository: DocumentRepository) {
       if (validInput.locale !== revision.locale) {
         throw new DocumentServiceError("conflict", "A revision locale cannot be changed")
       }
-      const series = await repository.listAdmin({ seriesId: revision.seriesId })
-      const sharedMetadataFrozen = series.some(({ id, status }) => (
-        id !== revision.id
-        && (status === "scheduled" || status === "published" || status === "archived")
-      ))
-      if (sharedMetadataChanged(revision, validInput) && (revision.locale === "en" || sharedMetadataFrozen)) {
+      const seriesState = await repository.getSeriesState(revision.seriesId)
+      if (!seriesState) throw new DocumentServiceError("conflict", "The document series changed")
+      if (sharedMetadataChanged(revision, validInput) && (revision.locale === "en" || seriesState.metadataLocked)) {
         throw new DocumentServiceError("conflict", "Shared series metadata cannot be changed")
       }
       return repository.updateDraft(revisionId, validInput, actor)
@@ -179,11 +190,11 @@ export function createDocumentService(repository: DocumentRepository) {
     ): Promise<DocumentRevision> {
       const revision = await requireRevision(repository, revisionId)
       requireDraft(revision)
-      requirePublishable(revision)
+      const snapshot = requirePublishable(revision)
       if (!Number.isFinite(scheduledAt.getTime()) || scheduledAt.getTime() <= now.getTime()) {
         throw new DocumentServiceError("invalid_schedule", "Scheduled publication must be in the future")
       }
-      return repository.scheduleRevision(revisionId, scheduledAt, actor)
+      return repository.scheduleRevision(revisionId, scheduledAt, snapshot, actor)
     },
 
     async returnScheduledToDraft(
@@ -206,9 +217,9 @@ export function createDocumentService(repository: DocumentRepository) {
       if (revision.status !== "draft" && revision.status !== "scheduled") {
         throw new DocumentServiceError("immutable_revision", "Only draft or scheduled revisions may publish")
       }
-      requirePublishable(revision)
+      const snapshot = requirePublishable(revision)
       if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
-      return repository.publishRevision(revisionId, actor, now)
+      return repository.publishRevision(revisionId, snapshot, actor, now)
     },
 
     async archive(revisionId: string, actor: AdminActor, now = new Date()): Promise<DocumentRevision> {

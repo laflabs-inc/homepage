@@ -15,6 +15,7 @@ import type {
   PublishedDocument,
   PublishedDocumentFilter,
   PublishedLookup,
+  PublicationTransitionSnapshot,
   PublishDueResult,
 } from "@/lib/documents/types"
 
@@ -35,8 +36,10 @@ const input: DocumentDraftInput = {
 class MemoryDocumentRepository implements DocumentRepository {
   revisions: DocumentRevision[] = []
   audits: AuditAction[] = []
+  metadataLockedSeries = new Set<string>()
   readFailure: Error | null = null
   replaceBeforeArchive = false
+  transitionMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown" | "effectiveAt">> | null = null
   private nextId = 1
 
   seed(values: Partial<DocumentRevision> & Pick<DocumentRevision, "seriesId" | "locale" | "status">): DocumentRevision {
@@ -65,6 +68,7 @@ class MemoryDocumentRepository implements DocumentRepository {
       ...overrides,
     }
     this.revisions.push(revision)
+    if (status !== "draft") this.metadataLockedSeries.add(seriesId)
     return revision
   }
 
@@ -85,6 +89,12 @@ class MemoryDocumentRepository implements DocumentRepository {
   async getRevision(revisionId: string): Promise<DocumentRevision | null> {
     if (this.readFailure) throw this.readFailure
     return this.revisions.find(({ id }) => id === revisionId) ?? null
+  }
+
+  async getSeriesState(seriesId: string) {
+    return this.revisions.some((revision) => revision.seriesId === seriesId)
+      ? { id: seriesId, metadataLocked: this.metadataLockedSeries.has(seriesId) }
+      : null
   }
 
   async updateDraft(revisionId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
@@ -127,10 +137,24 @@ class MemoryDocumentRepository implements DocumentRepository {
     })
   }
 
-  async scheduleRevision(revisionId: string, scheduledAt: Date, admin: AdminActor): Promise<DocumentRevision> {
+  async scheduleRevision(
+    revisionId: string,
+    scheduledAt: Date,
+    snapshot: PublicationTransitionSnapshot,
+    admin: AdminActor,
+  ): Promise<DocumentRevision> {
     const revision = await this.required(revisionId)
+    if (this.transitionMutation) Object.assign(revision, this.transitionMutation)
     if (revision.status !== "draft") throw new Error("immutable")
-    Object.assign(revision, { status: "scheduled", scheduledAt, updatedBy: admin.githubId, updatedAt: now })
+    this.requireSnapshot(revision, snapshot)
+    Object.assign(revision, {
+      status: "scheduled",
+      summary: snapshot.normalizedSummary,
+      scheduledAt,
+      updatedBy: admin.githubId,
+      updatedAt: now,
+    })
+    this.metadataLockedSeries.add(revision.seriesId)
     return revision
   }
 
@@ -141,9 +165,16 @@ class MemoryDocumentRepository implements DocumentRepository {
     return revision
   }
 
-  async publishRevision(revisionId: string, admin: AdminActor, publishedAt: Date): Promise<DocumentRevision> {
+  async publishRevision(
+    revisionId: string,
+    snapshot: PublicationTransitionSnapshot,
+    admin: AdminActor,
+    publishedAt: Date,
+  ): Promise<DocumentRevision> {
     const revision = await this.required(revisionId)
+    if (this.transitionMutation) Object.assign(revision, this.transitionMutation)
     if (revision.status !== "draft" && revision.status !== "scheduled") throw new Error("immutable")
+    this.requireSnapshot(revision, snapshot)
 
     for (const prior of this.revisions) {
       if (prior.seriesId === revision.seriesId && prior.locale === revision.locale && prior.status === "published") {
@@ -152,12 +183,14 @@ class MemoryDocumentRepository implements DocumentRepository {
     }
     Object.assign(revision, {
       status: "published",
+      summary: snapshot.normalizedSummary,
       scheduledAt: null,
       publishedAt,
       publishedBy: admin.githubId,
       updatedBy: admin.githubId,
       updatedAt: publishedAt,
     })
+    this.metadataLockedSeries.add(revision.seriesId)
     this.audits.push({
       action: "document.publish",
       targetType: "document_revision",
@@ -251,6 +284,24 @@ class MemoryDocumentRepository implements DocumentRepository {
     const revision = await this.getRevision(revisionId)
     if (!revision) throw new Error("missing")
     return revision
+  }
+
+
+  private requireSnapshot(revision: DocumentRevision, snapshot: PublicationTransitionSnapshot): void {
+    const effectiveAtMatches = revision.effectiveAt === null
+      ? snapshot.effectiveAt === null
+      : snapshot.effectiveAt !== null && revision.effectiveAt.getTime() === snapshot.effectiveAt.getTime()
+    if (
+      revision.kind !== snapshot.kind
+      || revision.locale !== snapshot.locale
+      || revision.slug !== snapshot.slug
+      || revision.category !== snapshot.category
+      || revision.pinned !== snapshot.pinned
+      || revision.title !== snapshot.title
+      || revision.summary !== snapshot.summary
+      || revision.bodyMarkdown !== snapshot.bodyMarkdown
+      || !effectiveAtMatches
+    ) throw Object.assign(new Error("revision changed"), { code: "conflict" })
   }
 }
 
@@ -393,6 +444,22 @@ describe("document workflow service", () => {
     })
   })
 
+  it("keeps shared metadata permanently frozen after returning a schedule to draft", async () => {
+    const scheduled = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "scheduled",
+      scheduledAt: new Date(now.getTime() + 60_000),
+    })
+    await service.returnScheduledToDraft(scheduled.id, actor, now)
+
+    await expect(service.updateDraft(scheduled.id, {
+      ...input,
+      category: "maintenance",
+      pinned: true,
+    }, actor)).rejects.toMatchObject({ code: "conflict" })
+  })
+
   it("requires published Korean content before publishing English", async () => {
     repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
     const english = repository.seed({
@@ -433,6 +500,64 @@ describe("document workflow service", () => {
       status: "scheduled",
       scheduledAt,
     })
+  })
+
+  it("persists and returns the normalized publication summary when scheduling", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      summary: "  요약 문장  ",
+    })
+
+    await expect(service.schedule(
+      draft.id,
+      new Date(now.getTime() + 60_000),
+      actor,
+      now,
+    )).resolves.toMatchObject({ summary: "요약 문장" })
+    expect(repository.revisions.find(({ id }) => id === draft.id)?.summary).toBe("요약 문장")
+  })
+
+  it("persists and returns the normalized publication summary when publishing directly", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      summary: "  즉시 공개 요약  ",
+    })
+
+    await expect(service.publish(draft.id, actor, now)).resolves.toMatchObject({ summary: "즉시 공개 요약" })
+    expect(repository.revisions.find(({ id }) => id === draft.id)?.summary).toBe("즉시 공개 요약")
+  })
+
+  it.each([
+    ["title", "동시에 바뀐 제목"],
+    ["summary", "동시에 바뀐 요약"],
+    ["bodyMarkdown", "동시에 바뀐 본문"],
+    ["effectiveAt", new Date("2026-09-01T00:00:00.000Z")],
+  ] as const)("rejects scheduling when %s changes after validation", async (field, value) => {
+    const draft = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+    repository.transitionMutation = { [field]: value }
+
+    await expect(service.schedule(
+      draft.id,
+      new Date(now.getTime() + 60_000),
+      actor,
+      now,
+    )).rejects.toMatchObject({ code: "conflict" })
+  })
+
+  it.each([
+    ["title", "동시에 바뀐 제목"],
+    ["summary", "동시에 바뀐 요약"],
+    ["bodyMarkdown", "동시에 바뀐 본문"],
+    ["effectiveAt", new Date("2026-09-01T00:00:00.000Z")],
+  ] as const)("rejects publication when %s changes after validation", async (field, value) => {
+    const draft = repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+    repository.transitionMutation = { [field]: value }
+
+    await expect(service.publish(draft.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
   })
 
   it("publishes a complete replacement atomically without changing prior content", async () => {

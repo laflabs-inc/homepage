@@ -121,15 +121,36 @@ export type PublishDueResult = {
   failedIds: string[]
 }
 
+export type PublicationTransitionSnapshot = Pick<
+  DocumentRevision,
+  | "kind"
+  | "locale"
+  | "slug"
+  | "category"
+  | "pinned"
+  | "title"
+  | "summary"
+  | "bodyMarkdown"
+  | "effectiveAt"
+> & {
+  normalizedSummary: string
+}
+
+export type DocumentSeriesState = {
+  id: string
+  metadataLocked: boolean
+}
+
 export interface DocumentRepository {
   createDraft(input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
   getRevision(revisionId: string): Promise<DocumentRevision | null>
+  getSeriesState(seriesId: string): Promise<DocumentSeriesState | null>
   updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
   deleteDraft(revisionId: string, actor: AdminActor): Promise<void>
   createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
-  scheduleRevision(revisionId: string, scheduledAt: Date, actor: AdminActor): Promise<DocumentRevision>
+  scheduleRevision(revisionId: string, scheduledAt: Date, snapshot: PublicationTransitionSnapshot, actor: AdminActor): Promise<DocumentRevision>
   returnScheduledToDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision>
-  publishRevision(revisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision>
+  publishRevision(revisionId: string, snapshot: PublicationTransitionSnapshot, actor: AdminActor, now: Date): Promise<DocumentRevision>
   archiveCurrent(seriesId: string, locale: Locale, expectedRevisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision | null>
   listAdmin(filter?: AdminDocumentFilter): Promise<DocumentRevision[]>
   listAdminSummaries(filter?: AdminDocumentSummaryFilter): Promise<AdminDocumentSummaryPage>

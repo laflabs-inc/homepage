@@ -1,0 +1,1 @@
+ALTER TABLE "document_series" ADD COLUMN "metadata_locked" boolean DEFAULT false NOT NULL;

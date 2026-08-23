@@ -44,6 +44,7 @@ export const documentSeries = pgTable("document_series", {
   slug: text("slug").notNull(),
   category: text("category"),
   pinned: boolean("pinned").default(false).notNull(),
+  metadataLocked: boolean("metadata_locked").default(false).notNull(),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
   createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

@@ -5,7 +5,7 @@ import { adminAuditLog, documentRevisions, documentSeries } from "@/lib/db/schem
 describe("document schema", () => {
   it("separates stable series from immutable localized revisions", () => {
     expect(getTableConfig(documentSeries).columns.map((c) => c.name)).toEqual([
-      "id", "kind", "slug", "category", "pinned", "archived_at",
+      "id", "kind", "slug", "category", "pinned", "metadata_locked", "archived_at",
       "created_by", "created_at", "updated_at",
     ])
     expect(getTableConfig(documentRevisions).columns.map((c) => c.name)).toEqual([

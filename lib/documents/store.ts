@@ -204,17 +204,36 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return result.rows[0] ? mapRevision(result.rows[0]) : null
     },
 
+    async getSeriesState(seriesId) {
+      const result = await database.execute(sql`
+        SELECT "id", "metadata_locked" AS "metadataLocked"
+        FROM ${documentSeries}
+        WHERE "id" = ${seriesId}::uuid
+        LIMIT 1
+      `)
+      const row = result.rows[0] as { id: string; metadataLocked: boolean } | undefined
+      return row ? { id: row.id, metadataLocked: row.metadataLocked } : null
+    },
+
     async updateDraft(revisionId, input, actor) {
       const values = inputValues(input)
       const result = await database.execute(sql`
-        WITH locked_revision AS (
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = (
+            SELECT r."series_id" FROM ${documentRevisions} r WHERE r."id" = ${revisionId}::uuid
+          )
+          FOR UPDATE
+        ), locked_revision AS (
           SELECT r."id", r."series_id", r."locale", r."status",
-            s."kind" AS "series_kind", s."slug" AS "series_slug",
-            s."category" AS "series_category", s."pinned" AS "series_pinned"
+            locked_series."kind" AS "series_kind", locked_series."slug" AS "series_slug",
+            locked_series."category" AS "series_category", locked_series."pinned" AS "series_pinned",
+            locked_series."metadata_locked"
           FROM ${documentRevisions} r
-          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
           WHERE r."id" = ${revisionId}::uuid
-          FOR UPDATE OF r, s
+          FOR UPDATE OF r
         ), eligible AS (
           SELECT locked_revision.*
           FROM locked_revision
@@ -229,12 +248,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
               )
               OR (
                 locked_revision."locale" = 'ko'
-                AND NOT EXISTS (
-                  SELECT 1 FROM ${documentRevisions} sibling
-                  WHERE sibling."series_id" = locked_revision."series_id"
-                    AND sibling."id" <> locked_revision."id"
-                    AND sibling."status" IN ('scheduled', 'published', 'archived')
-                )
+                AND NOT locked_revision."metadata_locked"
               )
             )
         ), updated_series AS (
@@ -273,16 +287,23 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async deleteDraft(revisionId, actor) {
       const result = await database.execute(sql`
-        WITH locked_revision AS (
-          SELECT r."id", r."series_id", r."locale", r."status",
-            NOT EXISTS (
-              SELECT 1 FROM ${documentRevisions} sibling
-              WHERE sibling."series_id" = r."series_id" AND sibling."id" <> r."id"
-            ) AS only_revision
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = (
+            SELECT r."series_id" FROM ${documentRevisions} r WHERE r."id" = ${revisionId}::uuid
+          )
+          FOR UPDATE
+        ), locked_revisions AS (
+          SELECT r."id", r."series_id", r."locale", r."status"
           FROM ${documentRevisions} r
-          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
-          WHERE r."id" = ${revisionId}::uuid
-          FOR UPDATE OF r, s
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
+        ), locked_revision AS (
+          SELECT locked_revisions.*,
+            (SELECT count(*) FROM locked_revisions) = 1 AS only_revision
+          FROM locked_revisions
+          WHERE locked_revisions."id" = ${revisionId}::uuid
         ), deletable_revision AS (
           SELECT locked_revision.*
           FROM locked_revision
@@ -290,16 +311,14 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND NOT (
               locked_revision."locale" = 'ko'
               AND NOT EXISTS (
-                SELECT 1 FROM ${documentRevisions} other_korean
-                WHERE other_korean."series_id" = locked_revision."series_id"
-                  AND other_korean."locale" = 'ko'
+                SELECT 1 FROM locked_revisions other_korean
+                WHERE other_korean."locale" = 'ko'
                   AND other_korean."id" <> locked_revision."id"
                   AND other_korean."status" IN ('scheduled', 'published', 'archived')
               )
               AND EXISTS (
-                SELECT 1 FROM ${documentRevisions} english
-                WHERE english."series_id" = locked_revision."series_id"
-                  AND english."locale" = 'en'
+                SELECT 1 FROM locked_revisions english
+                WHERE english."locale" = 'en'
               )
             )
         ), deleted_revision AS (
@@ -342,27 +361,30 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND "category" IS NOT DISTINCT FROM ${values.category}
             AND "pinned" = ${values.pinned}
           FOR UPDATE
+        ), locked_revisions AS (
+          SELECT r.*
+          FROM ${documentRevisions} r
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
         ), eligible_series AS (
           SELECT locked_series.*
           FROM locked_series
           WHERE NOT EXISTS (
-            SELECT 1 FROM ${documentRevisions} editable
-            WHERE editable."series_id" = locked_series."id"
-              AND editable."locale" = ${input.locale}::document_locale
+            SELECT 1 FROM locked_revisions editable
+            WHERE editable."locale" = ${input.locale}::document_locale
               AND editable."status" IN ('draft', 'scheduled')
           )
             AND (
               ${input.locale}::document_locale <> 'en'
               OR EXISTS (
-                SELECT 1 FROM ${documentRevisions} korean
-                WHERE korean."series_id" = locked_series."id"
-                  AND korean."locale" = 'ko'
+                SELECT 1 FROM locked_revisions korean
+                WHERE korean."locale" = 'ko'
               )
             )
         ), next_number AS (
           SELECT COALESCE(max(r."revision"), 0) + 1 AS revision
-          FROM ${documentRevisions} r, eligible_series
-          WHERE r."series_id" = eligible_series."id" AND r."locale" = ${input.locale}::document_locale
+          FROM locked_revisions r, eligible_series
+          WHERE r."locale" = ${input.locale}::document_locale
         ), created_revision AS (
           INSERT INTO ${documentRevisions} (
             "series_id", "locale", "revision", "title", "summary", "body_markdown",
@@ -391,37 +413,62 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return requiredRevision(result.rows, "A new draft could not be created")
     },
 
-    async scheduleRevision(revisionId, scheduledAt, actor) {
+    async scheduleRevision(revisionId, scheduledAt, snapshot, actor) {
       const result = await database.execute(sql`
-        WITH locked_revision AS (
-          SELECT r.*, s."kind", s."slug", s."category"
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = (
+            SELECT r."series_id" FROM ${documentRevisions} r WHERE r."id" = ${revisionId}::uuid
+          )
+          FOR UPDATE
+        ), locked_revisions AS (
+          SELECT r.*, locked_series."kind", locked_series."slug", locked_series."category",
+            locked_series."pinned"
           FROM ${documentRevisions} r
-          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
-          WHERE r."id" = ${revisionId}::uuid
-          FOR UPDATE OF r, s
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
+        ), locked_revision AS (
+          SELECT * FROM locked_revisions WHERE "id" = ${revisionId}::uuid
         ), eligible AS (
           SELECT locked_revision.*
           FROM locked_revision
           WHERE locked_revision."status" = 'draft'
+            AND ${scheduledAt} > statement_timestamp()
             AND char_length(locked_revision."slug") BETWEEN 1 AND 160
             AND locked_revision."slug" ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
             AND char_length(locked_revision."title") BETWEEN 1 AND 160
             AND char_length(btrim(locked_revision."summary")) BETWEEN 1 AND 240
             AND locked_revision."summary" !~ E'[\\r\\n]'
             AND char_length(locked_revision."body_markdown") BETWEEN 1 AND 200000
+            AND locked_revision."title" = ${snapshot.title}
+            AND locked_revision."summary" = ${snapshot.summary}
+            AND locked_revision."body_markdown" = ${snapshot.bodyMarkdown}
+            AND locked_revision."effective_at" IS NOT DISTINCT FROM ${snapshot.effectiveAt}
+            AND locked_revision."kind" = ${snapshot.kind}::document_kind
+            AND locked_revision."locale" = ${snapshot.locale}::document_locale
+            AND locked_revision."slug" = ${snapshot.slug}
+            AND locked_revision."category" IS NOT DISTINCT FROM ${snapshot.category}
+            AND locked_revision."pinned" = ${snapshot.pinned}
             AND (
               (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
               OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
               OR (locked_revision."kind" = 'disclosure' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('corporate', 'financial', 'governance', 'material')))
               OR (locked_revision."kind" = 'design' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('foundation', 'brand', 'component', 'resource')))
             )
+        ), locked_metadata AS (
+          UPDATE ${documentSeries} s
+          SET "metadata_locked" = true
+          FROM eligible
+          WHERE s."id" = eligible."series_id"
+          RETURNING s."id"
         ), scheduled_revision AS (
           UPDATE ${documentRevisions} r
           SET "status" = 'scheduled', "scheduled_at" = ${scheduledAt},
+            "summary" = ${snapshot.normalizedSummary},
             "updated_by" = ${actor.githubId}, "updated_at" = statement_timestamp()
-          FROM eligible
+          FROM eligible, locked_metadata
           WHERE r."id" = eligible."id"
-            AND ${scheduledAt} > statement_timestamp()
           RETURNING r.*
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
@@ -443,11 +490,20 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async returnScheduledToDraft(revisionId, actor) {
       const result = await database.execute(sql`
-        WITH locked_revision AS (
-          SELECT "id", "series_id", "locale", "status", "scheduled_at"
-          FROM ${documentRevisions}
-          WHERE "id" = ${revisionId}::uuid
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = (
+            SELECT r."series_id" FROM ${documentRevisions} r WHERE r."id" = ${revisionId}::uuid
+          )
           FOR UPDATE
+        ), locked_revisions AS (
+          SELECT r."id", r."series_id", r."locale", r."status", r."scheduled_at"
+          FROM ${documentRevisions} r
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
+        ), locked_revision AS (
+          SELECT * FROM locked_revisions WHERE "id" = ${revisionId}::uuid
         ), draft_revision AS (
           UPDATE ${documentRevisions} r
           SET "status" = 'draft', "scheduled_at" = NULL,
@@ -475,14 +531,23 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return requiredRevision(result.rows, "Scheduled revision could not return to draft")
     },
 
-    async publishRevision(revisionId, actor, now) {
+    async publishRevision(revisionId, snapshot, actor, now) {
       const result = await database.execute(sql`
-        WITH locked_revision AS (
-          SELECT r.*, s."kind", s."slug", s."category", s."pinned"
-          FROM ${documentRevisions} r
-          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
-          WHERE r."id" = ${revisionId}::uuid
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = (
+            SELECT r."series_id" FROM ${documentRevisions} r WHERE r."id" = ${revisionId}::uuid
+          )
           FOR UPDATE
+        ), locked_revisions AS (
+          SELECT r.*, locked_series."kind", locked_series."slug",
+            locked_series."category", locked_series."pinned"
+          FROM ${documentRevisions} r
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
+        ), locked_revision AS (
+          SELECT * FROM locked_revisions WHERE "id" = ${revisionId}::uuid
         ), eligible AS (
           SELECT locked_revision.*
           FROM locked_revision
@@ -491,6 +556,15 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND char_length(btrim(locked_revision."summary")) BETWEEN 1 AND 240
             AND locked_revision."summary" !~ E'[\\r\\n]'
             AND char_length(locked_revision."body_markdown") BETWEEN 1 AND 200000
+            AND locked_revision."title" = ${snapshot.title}
+            AND locked_revision."summary" = ${snapshot.summary}
+            AND locked_revision."body_markdown" = ${snapshot.bodyMarkdown}
+            AND locked_revision."effective_at" IS NOT DISTINCT FROM ${snapshot.effectiveAt}
+            AND locked_revision."kind" = ${snapshot.kind}::document_kind
+            AND locked_revision."locale" = ${snapshot.locale}::document_locale
+            AND locked_revision."slug" = ${snapshot.slug}
+            AND locked_revision."category" IS NOT DISTINCT FROM ${snapshot.category}
+            AND locked_revision."pinned" = ${snapshot.pinned}
             AND (
               (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
               OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
@@ -500,15 +574,20 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND (
               locked_revision."locale" = 'ko'
               OR EXISTS (
-                SELECT 1 FROM ${documentRevisions} korean
-                WHERE korean."series_id" = locked_revision."series_id"
-                  AND korean."locale" = 'ko' AND korean."status" = 'published'
+                SELECT 1 FROM locked_revisions korean
+                WHERE korean."locale" = 'ko' AND korean."status" = 'published'
               )
             )
+        ), locked_metadata AS (
+          UPDATE ${documentSeries} s
+          SET "metadata_locked" = true
+          FROM eligible
+          WHERE s."id" = eligible."series_id"
+          RETURNING s."id"
         ), archived_previous AS (
           UPDATE ${documentRevisions} previous
           SET "status" = 'archived', "updated_by" = ${actor.githubId}, "updated_at" = ${now}
-          FROM eligible
+          FROM eligible, locked_metadata
           WHERE previous."series_id" = eligible."series_id"
             AND previous."locale" = eligible."locale"
             AND previous."status" = 'published'
@@ -517,6 +596,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         ), published_revision AS (
           UPDATE ${documentRevisions} r
           SET "status" = 'published', "scheduled_at" = NULL, "published_at" = ${now},
+            "summary" = ${snapshot.normalizedSummary},
             "published_by" = ${actor.githubId}, "updated_by" = ${actor.githubId}, "updated_at" = ${now}
           FROM eligible
           WHERE r."id" = eligible."id"
@@ -542,12 +622,16 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async archiveCurrent(seriesId, locale, expectedRevisionId, actor, now) {
       const result = await database.execute(sql`
-        WITH locked_revisions AS (
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = ${seriesId}::uuid
+          FOR UPDATE
+        ), locked_revisions AS (
           SELECT r."id", r."series_id", r."locale", r."status"
           FROM ${documentRevisions} r
-          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
-          WHERE r."series_id" = ${seriesId}::uuid
-          FOR UPDATE OF r, s
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
         ), locked_revision AS (
           SELECT * FROM locked_revisions
           WHERE "id" = ${expectedRevisionId}::uuid
@@ -697,15 +781,41 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async publishDue(now: Date, actor: AdminActor): Promise<PublishDueResult> {
       const due = await database.execute(sql`
-        SELECT "id" FROM ${documentRevisions}
-        WHERE "status" = 'scheduled' AND "scheduled_at" <= ${now}
-        ORDER BY "scheduled_at" ASC, CASE "locale" WHEN 'ko' THEN 0 ELSE 1 END, "id" ASC
+        SELECT r."id", s."kind", r."locale", s."slug", s."category", s."pinned",
+          r."title", r."summary", r."body_markdown" AS "bodyMarkdown",
+          r."effective_at" AS "effectiveAt"
+        FROM ${documentRevisions} r
+        INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+        WHERE r."status" = 'scheduled' AND r."scheduled_at" <= ${now}
+        ORDER BY r."scheduled_at" ASC, CASE r."locale" WHEN 'ko' THEN 0 ELSE 1 END, r."id" ASC
       `)
       const publishedRevisions: PublishDueResult["publishedRevisions"] = []
       const failedIds: string[] = []
-      for (const row of due.rows as Array<{ id: string }>) {
+      for (const row of due.rows as Array<{
+        id: string
+        kind: DocumentKind
+        locale: Locale
+        slug: string
+        category: string | null
+        pinned: boolean
+        title: string
+        summary: string
+        bodyMarkdown: string
+        effectiveAt: Date | null
+      }>) {
         try {
-          const published = await this.publishRevision(row.id, actor, now)
+          const published = await this.publishRevision(row.id, {
+            kind: row.kind,
+            locale: row.locale,
+            slug: row.slug,
+            category: row.category,
+            pinned: row.pinned,
+            title: row.title,
+            summary: row.summary,
+            normalizedSummary: row.summary.trim(),
+            bodyMarkdown: row.bodyMarkdown,
+            effectiveAt: row.effectiveAt,
+          }, actor, now)
           publishedRevisions.push({
             id: published.id,
             kind: published.kind,

@@ -12,8 +12,8 @@ const now = new Date("2026-08-23T12:00:00.000Z")
 const publishedRow = {
   id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131",
   seriesId: "c5bcf607-a48f-42b9-af99-55c70ef48640",
-  kind: "notice",
-  locale: "ko",
+  kind: "notice" as const,
+  locale: "ko" as const,
   slug: "service-update",
   category: "service",
   pinned: false,
@@ -44,6 +44,19 @@ const draftInput = {
   effectiveAt: null,
 }
 
+const publicationSnapshot = {
+  kind: publishedRow.kind,
+  locale: publishedRow.locale,
+  slug: publishedRow.slug,
+  category: publishedRow.category,
+  pinned: publishedRow.pinned,
+  title: publishedRow.title,
+  summary: publishedRow.summary,
+  normalizedSummary: publishedRow.summary.trim(),
+  bodyMarkdown: publishedRow.bodyMarkdown,
+  effectiveAt: publishedRow.effectiveAt,
+}
+
 beforeEach(() => {
   execute.mockReset()
 })
@@ -51,7 +64,18 @@ beforeEach(() => {
 describe("document publication store boundary", () => {
   it("returns exact cache metadata for each committed scheduled publication", async () => {
     execute
-      .mockResolvedValueOnce({ rows: [{ id: publishedRow.id }] })
+      .mockResolvedValueOnce({ rows: [{
+        id: publishedRow.id,
+        kind: publishedRow.kind,
+        locale: publishedRow.locale,
+        slug: publishedRow.slug,
+        category: publishedRow.category,
+        pinned: publishedRow.pinned,
+        title: publishedRow.title,
+        summary: publishedRow.summary,
+        bodyMarkdown: publishedRow.bodyMarkdown,
+        effectiveAt: publishedRow.effectiveAt,
+      }] })
       .mockResolvedValueOnce({ rows: [publishedRow] })
 
     await expect(store.publishDue(now, actor)).resolves.toEqual({
@@ -68,13 +92,15 @@ describe("document publication store boundary", () => {
   it("locks, rechecks, archives, publishes, and audits in one atomic statement", async () => {
     execute.mockResolvedValue({ rows: [publishedRow] })
 
-    await expect(store.publishRevision(publishedRow.id, actor, now)).resolves.toEqual(publishedRow)
+    await expect(store.publishRevision(publishedRow.id, publicationSnapshot, actor, now)).resolves.toEqual(publishedRow)
 
     expect(execute).toHaveBeenCalledTimes(1)
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
 
-    expect(normalizedSql).toContain("with locked_revision as")
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("for update")
     expect(normalizedSql).toContain("\"status\" in ('draft', 'scheduled')")
     expect(normalizedSql).toContain("char_length(btrim(locked_revision.\"summary\")) between 1 and 240")
@@ -91,23 +117,36 @@ describe("document publication store boundary", () => {
       normalizedSql.indexOf("published_revision as"),
     )
     expect(archiveSql).toContain("\"updated_by\"")
+    expect(normalizedSql).toContain("from locked_revisions korean")
+    expect(normalizedSql).toContain("\"metadata_locked\" = true")
+    expect(normalizedSql).toContain("locked_revision.\"title\" =")
+    expect(normalizedSql).toContain("locked_revision.\"summary\" =")
+    expect(normalizedSql).toContain("locked_revision.\"body_markdown\" =")
+    expect(normalizedSql).toContain("locked_revision.\"effective_at\" is not distinct from")
+    expect(normalizedSql).toContain("locked_revision.\"kind\" =")
+    expect(normalizedSql).toContain("locked_revision.\"locale\" =")
+    expect(normalizedSql).toContain("locked_revision.\"slug\" =")
+    expect(normalizedSql).toContain("locked_revision.\"category\" is not distinct from")
+    expect(normalizedSql).toContain("locked_revision.\"pinned\" =")
+    expect(normalizedSql).toContain("\"summary\" =")
 
     expect(compiled.params).toEqual(expect.arrayContaining([
       publishedRow.id,
       actor.githubId,
       actor.name,
       now,
+      publishedRow.title,
+      publishedRow.summary,
+      publishedRow.bodyMarkdown,
     ]))
     expect(JSON.stringify(compiled.params)).toContain("document.publish")
     expect(normalizedSql).toContain("jsonb_build_object('seriesid', published_revision.\"series_id\"")
-    expect(JSON.stringify(compiled.params)).not.toContain(publishedRow.title)
-    expect(JSON.stringify(compiled.params)).not.toContain(publishedRow.bodyMarkdown)
   })
 
   it("reports a mutation conflict when the locked revision is no longer publishable", async () => {
     execute.mockResolvedValue({ rows: [] })
 
-    await expect(store.publishRevision(publishedRow.id, actor, now)).rejects.toMatchObject({
+    await expect(store.publishRevision(publishedRow.id, publicationSnapshot, actor, now)).rejects.toMatchObject({
       code: "conflict",
     })
   })
@@ -202,13 +241,16 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("korean.\"locale\" = 'ko'")
-    expect(normalizedSql).toContain("exists ( select 1 from \"document_revisions\" korean")
+    expect(normalizedSql).toContain("exists ( select 1 from locked_revisions korean")
     expect(normalizedSql).toContain("\"category\" is not distinct from")
     expect(normalizedSql).toContain("\"pinned\" =")
   })
 
-  it("freezes every shared series field after any immutable or scheduled sibling", async () => {
+  it("permits shared metadata updates only while the permanently locked flag is false", async () => {
     execute.mockResolvedValue({ rows: [{ ...publishedRow, status: "draft", publishedAt: null }] })
 
     await store.updateDraft(publishedRow.id, {
@@ -219,13 +261,15 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("sibling.\"id\" <> locked_revision.\"id\"")
-    expect(normalizedSql).toContain("sibling.\"status\" in ('scheduled', 'published', 'archived')")
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series.\"metadata_locked\"")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revision as"))
+    expect(normalizedSql).not.toContain("from \"document_revisions\" sibling")
     expect(normalizedSql).toContain("locked_revision.\"series_kind\" =")
     expect(normalizedSql).toContain("locked_revision.\"series_slug\" =")
     expect(normalizedSql).toContain("locked_revision.\"series_category\" is not distinct from")
     expect(normalizedSql).toContain("locked_revision.\"series_pinned\" =")
-    expect(normalizedSql).toContain("for update of r, s")
+    expect(normalizedSql).toContain("for update of r")
   })
 
   it("rechecks every shared series field before updating an English draft", async () => {
@@ -240,15 +284,13 @@ describe("document publication store boundary", () => {
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
     const lockedSql = normalizedSql.slice(
-      normalizedSql.indexOf("with locked_revision as"),
+      normalizedSql.indexOf("locked_revision as"),
       normalizedSql.indexOf("), eligible as"),
     )
-    expect(lockedSql).toContain("inner join \"document_series\" s")
-    expect(lockedSql).toContain("s.\"kind\" as \"series_kind\"")
-    expect(lockedSql).toContain("s.\"slug\" as \"series_slug\"")
-    expect(lockedSql).toContain("s.\"category\" as \"series_category\"")
-    expect(lockedSql).toContain("s.\"pinned\" as \"series_pinned\"")
-    expect(lockedSql).toContain("for update of r, s")
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(lockedSql).toContain("from \"document_revisions\" r")
+    expect(lockedSql).toContain("locked_series")
+    expect(lockedSql).toContain("for update of r")
     expect(normalizedSql).toContain("locked_revision.\"locale\" = 'ko'")
     expect(normalizedSql).toContain("locked_revision.\"series_kind\" =")
     expect(normalizedSql).toContain("locked_revision.\"series_slug\" =")
@@ -263,6 +305,9 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("deleted_series as")
     expect(normalizedSql).toContain("delete from \"document_series\"")
     expect(normalizedSql).toContain("english.\"locale\" = 'en'")
@@ -276,7 +321,7 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("not exists ( select 1 from \"document_revisions\" other_korean")
+    expect(normalizedSql).toContain("not exists ( select 1 from locked_revisions other_korean")
     expect(normalizedSql).toContain("other_korean.\"id\" <> locked_revision.\"id\"")
     expect(normalizedSql).toContain("other_korean.\"status\" in ('scheduled', 'published', 'archived')")
   })
@@ -286,7 +331,12 @@ describe("document publication store boundary", () => {
       rows: [{ ...publishedRow, status: "scheduled", scheduledAt: new Date(now.getTime() + 60_000), publishedAt: null }],
     })
 
-    await store.scheduleRevision(publishedRow.id, new Date(now.getTime() + 60_000), actor)
+    await store.scheduleRevision(
+      publishedRow.id,
+      new Date(now.getTime() + 60_000),
+      publicationSnapshot,
+      actor,
+    )
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
@@ -295,6 +345,32 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("locked_revision.\"summary\" !~")
     expect(normalizedSql).toContain("char_length(locked_revision.\"body_markdown\") between 1 and 200000")
     expect(normalizedSql).toContain("locked_revision.\"category\" in ('general', 'service', 'maintenance', 'security')")
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
+    expect(normalizedSql).toContain("locked_revision.\"title\" =")
+    expect(normalizedSql).toContain("locked_revision.\"summary\" =")
+    expect(normalizedSql).toContain("locked_revision.\"body_markdown\" =")
+    expect(normalizedSql).toContain("locked_revision.\"effective_at\" is not distinct from")
+    expect(normalizedSql).toContain("locked_revision.\"kind\" =")
+    expect(normalizedSql).toContain("locked_revision.\"locale\" =")
+    expect(normalizedSql).toContain("locked_revision.\"slug\" =")
+    expect(normalizedSql).toContain("locked_revision.\"category\" is not distinct from")
+    expect(normalizedSql).toContain("locked_revision.\"pinned\" =")
+    expect(normalizedSql).toContain("\"metadata_locked\" = true")
+  })
+
+  it("locks the series before revisions when returning a schedule to draft", async () => {
+    execute.mockResolvedValue({ rows: [{ ...publishedRow, status: "draft", publishedAt: null }] })
+
+    await store.returnScheduledToDraft(publishedRow.id, actor)
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
+    expect(normalizedSql).toContain("for update of r")
   })
 
   it("archives only the expected current revision under the same row lock", async () => {
@@ -327,9 +403,11 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("with locked_revisions as")
-    expect(normalizedSql).toContain("where r.\"series_id\" =")
-    expect(normalizedSql).toContain("for update of r, s")
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
+    expect(normalizedSql).toContain("locked_series on locked_series.\"id\" = r.\"series_id\"")
+    expect(normalizedSql).toContain("for update of r")
     expect(normalizedSql).toContain("from locked_revisions english")
     expect(normalizedSql).toContain("english.\"locale\" = 'en'")
     expect(normalizedSql).toContain("english.\"status\" = 'published'")
