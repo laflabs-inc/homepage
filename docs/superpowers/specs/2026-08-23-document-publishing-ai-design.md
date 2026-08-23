@@ -280,6 +280,7 @@ No WYSIWYG abstraction is introduced. Markdown remains the source of truth and m
 | Input price | unset USD per million tokens | Required before AI can be enabled |
 | Output price | unset USD per million tokens | Required before AI can be enabled |
 | Daily reset timezone | `Asia/Seoul` | Valid IANA timezone |
+| Daily reset time | `00:00` | Minute precision, stored as 0–1,439 minutes after local midnight |
 | AI identity-cookie retention | 180 days | 1–365 days |
 | Summary policy | `review` | `review` or `automatic` |
 
@@ -365,7 +366,7 @@ The assistant UI shows remaining daily questions and tokens before submission, a
 
 ## 14. Quotas, Cost Guard, and Usage Records
 
-`ai_usage_daily` is keyed by HMAC-hashed AI identity plus the date bucket calculated in the configured timezone. It stores request count and actual input, output, and total tokens.
+`ai_usage_daily` is keyed by HMAC-hashed AI identity plus the date bucket calculated from the configured timezone and daily reset time. For example, `Asia/Seoul` with `04:00` keeps usage before 04:00 in the preceding quota day. It stores request count and actual input, output, and total tokens.
 
 `ai_usage_monthly` is keyed by calendar month and stores summary/Q&A request counts, actual tokens, and estimated cost in integer micro-US-dollars.
 
