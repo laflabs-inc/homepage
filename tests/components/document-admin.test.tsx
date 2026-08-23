@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -214,25 +214,34 @@ describe("document admin", () => {
     expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`)
   })
 
-  it("guards browser back navigation while dirty", async () => {
+  it("cancels Back without destroying its destination and replays it after confirmation", async () => {
     const user = userEvent.setup()
-    vi.mocked(window.confirm).mockReturnValue(false)
+    vi.mocked(window.confirm).mockReturnValueOnce(false).mockReturnValueOnce(true)
     const guardedUrl = `${revisionPath}?tab=source#markdown`
     window.history.replaceState({ __NA: true, tree: "list" }, "", "/admin/documents")
     window.history.pushState({ __NA: true, tree: "editor" }, "", guardedUrl)
+    const lengthBeforeDirty = window.history.length
     render(<AppRouterTreeHarness />)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
+    await waitFor(() => expect(window.history.length).toBe(lengthBeforeDirty + 1))
     window.history.back()
 
-    await waitFor(() => expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-traversals", "1"))
+    await waitFor(() => expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-traversals", "2"))
     expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-path", revisionPath)
     expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("변경 사항을 안내합니다. 추가")
     expect(screen.queryByText("Destination route tree")).not.toBeInTheDocument()
     expect(`${window.location.pathname}${window.location.search}${window.location.hash}`).toBe(guardedUrl)
+
+    window.history.back()
+
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/documents"))
+    expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-path", "/admin/documents")
+    expect(screen.getByText("Destination route tree")).toBeInTheDocument()
+    expect(window.confirm).toHaveBeenCalledTimes(2)
   })
 
-  it("guards browser forward navigation while dirty", async () => {
+  it("keeps dirty data when sentinel installation replaces a pre-existing Forward branch", async () => {
     const user = userEvent.setup()
     vi.mocked(window.confirm).mockReturnValue(false)
     window.history.replaceState({ __NA: true, tree: "editor" }, "", revisionPath)
@@ -242,13 +251,17 @@ describe("document admin", () => {
     render(<AppRouterTreeHarness />)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
-    window.history.forward()
+    vi.mocked(window.confirm).mockClear()
+    await act(async () => {
+      window.history.forward()
+      await new Promise((resolve) => setTimeout(resolve, 20))
+    })
 
-    await waitFor(() => expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-traversals", "1"))
     expect(screen.getByTestId("app-router-tree")).toHaveAttribute("data-path", revisionPath)
     expect(screen.getByRole("textbox", { name: "Summary" })).toHaveValue("변경 사항을 안내합니다. 추가")
     expect(screen.queryByText("Destination route tree")).not.toBeInTheDocument()
     expect(window.location.pathname).toBe(revisionPath)
+    expect(window.confirm).not.toHaveBeenCalled()
   })
 
   it("allows confirmed browser navigation away from a dirty draft", async () => {
@@ -274,6 +287,30 @@ describe("document admin", () => {
     expect(screen.getByRole("button", { name: "Schedule" })).toBeDisabled()
     expect(screen.getByRole("button", { name: "Publish now" })).toBeDisabled()
     expect(screen.getByText("Save the draft before scheduling or publishing.")).toBeInTheDocument()
+  })
+
+  it("preserves newer edits when an earlier save response arrives late", async () => {
+    const user = userEvent.setup()
+    let resolveSave!: (response: Response) => void
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise<Response>((resolve) => {
+      resolveSave = resolve
+    }))
+    render(<DocumentEditor revision={revision} />)
+
+    const title = screen.getByRole("textbox", { name: "Title" })
+    await user.clear(title)
+    await user.type(title, "Submitted title")
+    await user.click(screen.getByRole("button", { name: "Save draft" }))
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1))
+    await user.type(title, " with newer edits")
+    await act(async () => resolveSave(new Response(JSON.stringify({
+      revision: { ...revision, title: "Submitted title" },
+    }), { status: 200, headers: { "content-type": "application/json" } })))
+
+    expect(title).toHaveValue("Submitted title with newer edits")
+    expect(screen.getByText("Draft saved. Newer edits are not saved.")).toBeInTheDocument()
+    expect(screen.getByText("Save the draft before scheduling or publishing.")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Publish now" })).toBeDisabled()
   })
 
   it("creates an English draft from explicit Korean-series context", async () => {

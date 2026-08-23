@@ -2,6 +2,7 @@ import styles from "@/app/admin/admin.module.css"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { requireAdmin } from "@/lib/auth/require-admin"
 import { documentService } from "@/lib/documents/service"
+import type { DocumentRevision } from "@/lib/documents/types"
 import { revisionIdSchema } from "@/lib/documents/validation"
 
 export default async function NewDocumentPage({
@@ -13,11 +14,14 @@ export default async function NewDocumentPage({
   const query = await searchParams
   const seriesId = typeof query.seriesId === "string" ? query.seriesId : undefined
   const sourceRevisionId = typeof query.sourceRevisionId === "string" ? query.sourceRevisionId : undefined
-  let templateRevision
-  if (revisionIdSchema.safeParse(seriesId).success && revisionIdSchema.safeParse(sourceRevisionId).success) {
-    templateRevision = (await documentService.listAdmin({ seriesId })).find((candidate) => (
-      candidate.id === sourceRevisionId && candidate.locale === "ko"
-    ))
+  let templateRevision: DocumentRevision | undefined
+  const parsedSeriesId = revisionIdSchema.safeParse(seriesId)
+  const parsedSourceRevisionId = revisionIdSchema.safeParse(sourceRevisionId)
+  if (parsedSeriesId.success && parsedSourceRevisionId.success) {
+    const candidate = await documentService.getRevision(parsedSourceRevisionId.data)
+    templateRevision = candidate?.seriesId === parsedSeriesId.data && candidate.locale === "ko"
+      ? candidate
+      : undefined
   }
 
   return (

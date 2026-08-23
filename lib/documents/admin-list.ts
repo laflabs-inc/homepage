@@ -1,4 +1,4 @@
-import type { DocumentKind, DocumentRevision, DocumentStatus, Locale } from "@/lib/documents/types"
+import type { AdminDocumentSummary, DocumentKind, DocumentStatus, Locale } from "@/lib/documents/types"
 
 export type AdminDocumentListRow = {
   id: string
@@ -12,7 +12,7 @@ export type AdminDocumentListRow = {
   relevantAt: string
 }
 
-export function toAdminDocumentListRow(revision: DocumentRevision): AdminDocumentListRow {
+export function toAdminDocumentListRow(revision: AdminDocumentSummary): AdminDocumentListRow {
   const [dateLabel, relevantAt] = revision.status === "scheduled"
     ? ["Scheduled" as const, revision.scheduledAt]
     : revision.status === "published"

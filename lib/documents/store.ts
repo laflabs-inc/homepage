@@ -694,6 +694,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       if (filter.kind) conditions.push(sql`s."kind" = ${filter.kind}::document_kind`)
       if (filter.locale) conditions.push(sql`r."locale" = ${filter.locale}::document_locale`)
       if (filter.status) conditions.push(sql`r."status" = ${filter.status}::document_status`)
+      if (filter.search) conditions.push(sql`r."title" ILIKE ${`%${filter.search}%`}`)
       if (filter.before) {
         conditions.push(sql`(r."updated_at", r."id") < (${filter.before.updatedAt}, ${filter.before.id}::uuid)`)
       }

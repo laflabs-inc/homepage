@@ -6,17 +6,41 @@ import { useMemo, useState } from "react"
 import styles from "@/app/admin/admin.module.css"
 import type { AdminDocumentListRow } from "@/lib/documents/admin-list"
 
-export function DocumentList({ rows }: { rows: AdminDocumentListRow[] }) {
-  const [search, setSearch] = useState("")
-  const [kind, setKind] = useState("")
-  const [status, setStatus] = useState("")
-  const [locale, setLocale] = useState("")
+type DocumentListProps = {
+  rows: AdminDocumentListRow[]
+  nextCursor?: string | null
+  limit?: number
+  initialFilters?: { search?: string; kind?: string; status?: string; locale?: string }
+}
+const emptyFilters: NonNullable<DocumentListProps["initialFilters"]> = {}
+
+export function DocumentList({
+  rows,
+  nextCursor = null,
+  limit = 50,
+  initialFilters = emptyFilters,
+}: DocumentListProps) {
+  const [search, setSearch] = useState(initialFilters.search ?? "")
+  const [kind, setKind] = useState(initialFilters.kind ?? "")
+  const [status, setStatus] = useState(initialFilters.status ?? "")
+  const [locale, setLocale] = useState(initialFilters.locale ?? "")
   const filtered = useMemo(() => rows.filter((revision) => (
     (!search || revision.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
     && (!kind || revision.kind === kind)
     && (!status || revision.status === status)
     && (!locale || revision.locale === locale)
   )), [kind, locale, rows, search, status])
+
+  function pageHref(cursor?: string): string {
+    const query = new URLSearchParams()
+    if (search) query.set("search", search)
+    if (kind) query.set("kind", kind)
+    if (status) query.set("status", status)
+    if (locale) query.set("locale", locale)
+    query.set("limit", String(limit))
+    if (cursor) query.set("cursor", cursor)
+    return `/admin/documents?${query.toString()}`
+  }
 
   return (
     <div className={styles.documentListWorkspace}>
@@ -49,6 +73,10 @@ export function DocumentList({ rows }: { rows: AdminDocumentListRow[] }) {
             <option value="en">English</option>
           </select>
         </label>
+      </div>
+      <div className={styles.editorActions}>
+        <Link href={pageHref()}>Apply filters</Link>
+        {nextCursor ? <Link href={pageHref(nextCursor)}>Next page</Link> : null}
       </div>
       {filtered.length === 0 ? (
         <div className={styles.documentEmpty}>

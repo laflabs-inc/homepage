@@ -8,6 +8,7 @@ import {
   type AdminDocumentDependencies,
 } from "@/lib/http/admin-documents"
 import { jsonNoStore, readBoundedJson } from "@/lib/http/json-body"
+import { decodeAdminDocumentCursor, encodeAdminDocumentCursor } from "@/lib/http/cursor"
 import { documentDraftSchema } from "@/lib/documents/validation"
 import { documentKinds, documentLocales, documentStatuses } from "@/lib/documents/types"
 
@@ -16,6 +17,9 @@ const listQuerySchema = z.object({
   locale: z.enum(documentLocales).optional(),
   status: z.enum(documentStatuses).optional(),
   seriesId: z.uuid().optional(),
+  search: z.string().trim().min(1).max(160).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().max(512).optional(),
 }).strict()
 
 const seriesIdSchema = z.uuid()
@@ -35,9 +39,16 @@ export async function handleListDocuments(
   }
   const parsed = listQuerySchema.safeParse(query)
   if (!parsed.success) return jsonNoStore({ error: "invalid_request" }, { status: 400 })
+  const { cursor, ...filter } = parsed.data
+  const before = cursor ? decodeAdminDocumentCursor(cursor) : undefined
+  if (cursor && !before) return jsonNoStore({ error: "invalid_request" }, { status: 400 })
 
   try {
-    return jsonNoStore({ revisions: await dependencies.service.listAdmin(parsed.data) })
+    const page = await dependencies.service.listAdminSummaries(before ? { ...filter, before } : filter)
+    return jsonNoStore({
+      revisions: page.items,
+      nextCursor: page.nextCursor ? encodeAdminDocumentCursor(page.nextCursor) : null,
+    })
   } catch (error) {
     return serviceErrorResponse(error)
   }

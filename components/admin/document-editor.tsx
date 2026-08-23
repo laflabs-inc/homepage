@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -98,10 +98,23 @@ function displayDate(value: Date | string | null): string {
   return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : "—"
 }
 
+function editorValuesEqual(left: EditorValues, right: EditorValues): boolean {
+  return left.kind === right.kind
+    && left.locale === right.locale
+    && left.slug === right.slug
+    && left.category === right.category
+    && left.pinned === right.pinned
+    && left.title === right.title
+    && left.summary === right.summary
+    && left.bodyMarkdown === right.bodyMarkdown
+    && left.effectiveAt === right.effectiveAt
+}
+
 export function DocumentEditor({ revision: initialRevision, seriesId, templateRevision }: DocumentEditorProps) {
   const router = useRouter()
   const [revision, setRevision] = useState(initialRevision)
   const [values, setValues] = useState(() => initialValues(initialRevision, seriesId, templateRevision))
+  const valuesRef = useRef(values)
   const [dirty, setDirty] = useState(false)
   const [activeTab, setActiveTab] = useState<"source" | "preview">("source")
   const [scheduledAt, setScheduledAt] = useState("")
@@ -117,12 +130,19 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   const englishSeriesFieldsLocked = values.locale === "en"
 
   function update<K extends keyof EditorValues>(key: K, value: EditorValues[K]) {
-    setValues((current) => ({ ...current, [key]: value }))
+    const next = { ...valuesRef.current, [key]: value }
+    valuesRef.current = next
+    setValues(next)
     setDirty(true)
     setNotice(null)
   }
 
-  async function requestMutation(path: string, method: "POST" | "PATCH", body: unknown) {
+  async function requestMutation(
+    path: string,
+    method: "POST" | "PATCH",
+    body: unknown,
+    submittedValues?: EditorValues,
+  ) {
     setPending(true)
     setError(null)
     setNotice(null)
@@ -135,10 +155,17 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
       if (!response.ok) throw new Error("request failed")
       const payload = await response.json() as { revision?: DocumentRevision }
       if (!payload.revision) throw new Error("invalid response")
+      const newerEdits = submittedValues !== undefined && !editorValuesEqual(valuesRef.current, submittedValues)
       setRevision(payload.revision)
-      setValues(valuesFromRevision(payload.revision))
-      setDirty(false)
-      return payload.revision
+      if (!newerEdits) {
+        const serverValues = valuesFromRevision(payload.revision)
+        valuesRef.current = serverValues
+        setValues(serverValues)
+        setDirty(false)
+      } else {
+        setDirty(true)
+      }
+      return { revision: payload.revision, newerEdits }
     } catch {
       setError("The document could not be updated. Please try again.")
       return null
@@ -148,13 +175,14 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   }
 
   async function saveDraft() {
-    const payload = draftPayload(values)
+    const submittedValues = { ...valuesRef.current }
+    const payload = draftPayload(submittedValues)
     const path = revision ? `/api/admin/documents/${revision.id}` : "/api/admin/documents"
     const body = !revision && seriesId ? { ...payload, seriesId } : payload
-    const saved = await requestMutation(path, revision ? "PATCH" : "POST", body)
+    const saved = await requestMutation(path, revision ? "PATCH" : "POST", body, submittedValues)
     if (!saved) return
-    setNotice("Draft saved.")
-    if (!revision) router.replace(`/admin/documents/${saved.id}`)
+    setNotice(saved.newerEdits ? "Draft saved. Newer edits are not saved." : "Draft saved.")
+    if (!revision && !saved.newerEdits) router.replace(`/admin/documents/${saved.revision.id}`)
   }
 
   async function confirmedAction(
@@ -167,7 +195,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
     const updated = await requestMutation(`/api/admin/documents/${revision.id}/${action}`, "POST", body)
     if (!updated) return
     setNotice(success)
-    if (action === "new-revision") router.replace(`/admin/documents/${updated.id}`)
+    if (action === "new-revision") router.replace(`/admin/documents/${updated.revision.id}`)
   }
 
   async function deleteDraft() {
@@ -293,7 +321,9 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
             <label>Kind
               <select disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
                 const kind = event.target.value as DocumentKind
-                setValues((current) => ({ ...current, kind, category: categoriesByKind[kind][0] }))
+                const next = { ...valuesRef.current, kind, category: categoriesByKind[kind][0] }
+                valuesRef.current = next
+                setValues(next)
                 setDirty(true)
               }}>
                 <option value="notice">Notice</option>

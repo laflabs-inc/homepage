@@ -18,7 +18,8 @@ export type AdminDocumentService = Pick<typeof documentService,
   | "publish"
   | "archive"
   | "createNextDraft"
-  | "listAdmin"
+  | "listAdminSummaries"
+  | "getRevision"
 >
 
 export type AdminDocumentDependencies = {

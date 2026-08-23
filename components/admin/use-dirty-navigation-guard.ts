@@ -1,16 +1,23 @@
 "use client"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useId } from "react"
 
 export const DIRTY_NAVIGATION_MESSAGE = "You have unsaved document changes. Leave this page?"
+const DIRTY_SENTINEL_KEY = "__laf_document_dirty_sentinel"
 
 export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): void {
-  const router = useRouter()
+  const sentinelId = useId()
 
   useEffect(() => {
     if (!dirty) return
     const guardedUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`
+    const state = typeof window.history.state === "object" && window.history.state !== null
+      ? window.history.state as Record<string, unknown>
+      : {}
+    if (state[DIRTY_SENTINEL_KEY] !== sentinelId) {
+      window.history.pushState({ ...state, [DIRTY_SENTINEL_KEY]: sentinelId }, "", guardedUrl)
+    }
+    let suppressNextPop = false
 
     const beforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault()
@@ -49,11 +56,18 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): vo
     }
 
     const popState = () => {
-      if (window.confirm(DIRTY_NAVIGATION_MESSAGE)) {
-        discard()
+      if (suppressNextPop) {
+        suppressNextPop = false
         return
       }
-      router.replace(guardedUrl, { scroll: false })
+      if (window.confirm(DIRTY_NAVIGATION_MESSAGE)) {
+        discard()
+        suppressNextPop = true
+        window.history.back()
+        return
+      }
+      suppressNextPop = true
+      window.history.forward()
     }
 
     window.addEventListener("beforeunload", beforeUnload)
@@ -64,5 +78,5 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): vo
       window.removeEventListener("popstate", popState)
       document.removeEventListener("click", click, true)
     }
-  }, [dirty, discard, router])
+  }, [dirty, discard, sentinelId])
 }

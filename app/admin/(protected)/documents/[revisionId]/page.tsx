@@ -14,7 +14,7 @@ export default async function DocumentRevisionPage({
 }) {
   await requireAdmin()
   const { revisionId } = await params
-  const revision = (await documentService.listAdmin()).find(({ id }) => id === revisionId)
+  const revision = await documentService.getRevision(revisionId)
   if (!revision) notFound()
 
   return (

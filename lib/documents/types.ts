@@ -89,6 +89,7 @@ export type AdminDocumentSummary = Pick<
 >
 
 export type AdminDocumentSummaryFilter = AdminDocumentFilter & {
+  search?: string
   limit?: number
   before?: { updatedAt: Date; id: string }
 }

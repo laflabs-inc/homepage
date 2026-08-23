@@ -45,6 +45,20 @@ const revision: DocumentRevision = {
   createdAt: new Date("2026-08-23T09:00:00.000Z"),
   updatedAt: new Date("2026-08-23T09:00:00.000Z"),
 }
+const summary = {
+  id: revision.id,
+  kind: revision.kind,
+  locale: revision.locale,
+  revision: revision.revision,
+  title: revision.title,
+  status: revision.status,
+  scheduledAt: revision.scheduledAt,
+  publishedAt: revision.publishedAt,
+  updatedAt: revision.updatedAt,
+  updatedBy: revision.updatedBy,
+  publishedBy: revision.publishedBy,
+}
+const summaryPayload = { ...summary, updatedAt: revision.updatedAt.toISOString() }
 
 const draftInput = {
   kind: "notice",
@@ -82,6 +96,8 @@ function dependencies(overrides: Record<string, unknown> = {}) {
       archive: vi.fn().mockResolvedValue({ ...revision, status: "archived" }),
       createNextDraft: vi.fn().mockResolvedValue({ ...revision, revision: 2 }),
       listAdmin: vi.fn().mockResolvedValue([revision]),
+      listAdminSummaries: vi.fn().mockResolvedValue({ items: [summary], nextCursor: null }),
+      getRevision: vi.fn().mockResolvedValue(revision),
     },
     revalidate: vi.fn(),
     ...overrides,
@@ -95,7 +111,7 @@ async function expectNoStore(response: Response) {
 beforeEach(() => vi.restoreAllMocks())
 
 describe("admin document collection", () => {
-  it("authenticates list reads and returns only revisions with no-store", async () => {
+  it("authenticates list reads and returns a bounded minimal summary page with no-store", async () => {
     const deps = dependencies()
     const response = await handleListDocuments(
       new Request("https://laflabs.co/api/admin/documents?kind=notice&locale=ko&status=draft"),
@@ -103,9 +119,72 @@ describe("admin document collection", () => {
     )
 
     expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toEqual({ revisions: [expect.objectContaining({ id: revisionId })] })
-    expect(deps.service.listAdmin).toHaveBeenCalledWith({ kind: "notice", locale: "ko", status: "draft" })
+    const payload = await response.json()
+    expect(payload).toEqual({ revisions: [summaryPayload], nextCursor: null })
+    expect(JSON.stringify(payload)).not.toContain(revision.bodyMarkdown)
+    expect(JSON.stringify(payload)).not.toContain(revision.summary)
+    expect(deps.service.listAdminSummaries).toHaveBeenCalledWith({
+      kind: "notice",
+      locale: "ko",
+      status: "draft",
+      limit: 50,
+    })
+    expect(deps.service.listAdmin).not.toHaveBeenCalled()
     await expectNoStore(response)
+  })
+
+  it("decodes bounded pagination/search input and returns an opaque next cursor", async () => {
+    const deps = dependencies()
+    const cursorId = "f1f0c3ce-4b5f-46a0-b63d-f964b194d4d4"
+    const cursorDate = "2026-08-22T08:30:00.000Z"
+    const cursor = Buffer.from(JSON.stringify({ updatedAt: cursorDate, id: cursorId }), "utf8").toString("base64url")
+    const nextId = "2558f5d0-2f26-44a2-a901-ad4e961bd248"
+    const nextDate = new Date("2026-08-21T07:00:00.000Z")
+    const expectedNextCursor = Buffer.from(JSON.stringify({
+      updatedAt: nextDate.toISOString(),
+      id: nextId,
+    }), "utf8").toString("base64url")
+    deps.service.listAdminSummaries.mockResolvedValue({
+      items: [summary],
+      nextCursor: { updatedAt: nextDate, id: nextId },
+    })
+
+    const response = await handleListDocuments(new Request(
+      `https://laflabs.co/api/admin/documents?kind=legal&locale=en&status=published&search=Privacy&limit=25&cursor=${cursor}`,
+    ), deps)
+
+    expect(response.status).toBe(200)
+    expect(deps.service.listAdminSummaries).toHaveBeenCalledWith({
+      kind: "legal",
+      locale: "en",
+      status: "published",
+      search: "Privacy",
+      limit: 25,
+      before: { updatedAt: new Date(cursorDate), id: cursorId },
+    })
+    await expect(response.json()).resolves.toEqual({
+      revisions: [summaryPayload],
+      nextCursor: expectedNextCursor,
+    })
+  })
+
+  it.each([
+    "limit=0",
+    "limit=101",
+    "limit=2.5",
+    "cursor=not-base64!",
+    `cursor=${Buffer.from(JSON.stringify({ updatedAt: "not-a-date", id: revisionId })).toString("base64url")}`,
+    `search=${"x".repeat(161)}`,
+  ])("rejects invalid pagination input %s without querying", async (query) => {
+    const deps = dependencies()
+
+    const response = await handleListDocuments(
+      new Request(`https://laflabs.co/api/admin/documents?${query}`),
+      deps,
+    )
+
+    expect(response.status).toBe(400)
+    expect(deps.service.listAdminSummaries).not.toHaveBeenCalled()
   })
 
   it("returns the existing 401 decision before checking origin or reading the body", async () => {
@@ -339,7 +418,24 @@ describe("admin document revision actions", () => {
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ revision: expect.objectContaining({ id: revisionId }) })
+    expect(deps.service.getRevision).toHaveBeenCalledWith(revisionId)
+    expect(deps.service.listAdmin).not.toHaveBeenCalled()
     await expectNoStore(response)
+  })
+
+  it("returns not found from a direct revision lookup without scanning the collection", async () => {
+    const deps = dependencies()
+    deps.service.getRevision.mockResolvedValue(null)
+
+    const response = await handleGetDocument(
+      new Request(`https://laflabs.co/api/admin/documents/${revisionId}`),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(404)
+    expect(deps.service.getRevision).toHaveBeenCalledWith(revisionId)
+    expect(deps.service.listAdmin).not.toHaveBeenCalled()
   })
 
   it("maps immutable updates to a safe conflict without leaking the service message", async () => {

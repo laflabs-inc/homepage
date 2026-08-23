@@ -24,7 +24,7 @@ export async function handleGetDocument(
   if (invalidRevisionId) return invalidRevisionId
 
   try {
-    const revision = (await dependencies.service.listAdmin()).find(({ id }) => id === revisionId)
+    const revision = await dependencies.service.getRevision(revisionId)
     return revision
       ? jsonNoStore({ revision })
       : jsonNoStore({ error: "not_found" }, { status: 404 })

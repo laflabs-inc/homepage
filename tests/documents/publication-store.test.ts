@@ -488,6 +488,20 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("limit")
     expect(compiled.params).toContain(3)
   })
+
+  it("applies title search inside the bounded admin summary query", async () => {
+    execute.mockResolvedValue({ rows: [] })
+    const filter = { search: "Privacy", limit: 25 } as Parameters<typeof store.listAdminSummaries>[0] & {
+      search: string
+    }
+
+    await store.listAdminSummaries(filter)
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("r.\"title\" ilike")
+    expect(compiled.params).toContain("%Privacy%")
+  })
 })
 
 describe("audit metadata safety", () => {
