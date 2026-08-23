@@ -3,11 +3,11 @@
 import Link from "next/link"
 
 import styles from "@/components/content/content.module.css"
-import { useLocale } from "@/components/i18n/locale-provider"
 import { documentRouteStateCopy } from "@/lib/content"
+import { useDocumentRouteLocale } from "./client-locale"
 
 export default function DocumentNotFound() {
-  const locale = useLocale()
+  const locale = useDocumentRouteLocale()
   const copy = documentRouteStateCopy[locale]
   return (
     <section className={styles.page} lang={locale}>

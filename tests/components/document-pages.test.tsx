@@ -338,9 +338,10 @@ describe("public document pages", () => {
     )
   })
 
-  it("localizes document errors and not-found states from the active English context", () => {
+  it("gives a valid explicit locale precedence over the Korean root context in document boundaries", () => {
+    window.history.replaceState({}, "", "/notices/missing?locale=en")
     render(
-      <LocaleProvider initialLocale="en">
+      <LocaleProvider initialLocale="ko">
         <DocumentError error={new Error("hidden")} reset={vi.fn()} />
         <DocumentNotFound />
       </LocaleProvider>,
@@ -350,6 +351,19 @@ describe("public document pages", () => {
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Document not found." }).closest("section")).toHaveAttribute("lang", "en")
     expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/")
+  })
+
+  it("falls back to the root locale when the explicit boundary locale is invalid", () => {
+    window.history.replaceState({}, "", "/notices/missing?locale=fr")
+    render(
+      <LocaleProvider initialLocale="ko">
+        <DocumentError error={new Error("hidden")} reset={vi.fn()} />
+        <DocumentNotFound />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("heading", { name: "문서를 불러오지 못했습니다." }).closest("section")).toHaveAttribute("lang", "ko")
+    expect(screen.getByRole("heading", { name: "문서를 찾을 수 없습니다." }).closest("section")).toHaveAttribute("lang", "ko")
   })
 
   it("keeps the homepage in the sitemap when document storage is unavailable", async () => {
