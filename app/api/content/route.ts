@@ -1,0 +1,87 @@
+import { createHash } from "node:crypto"
+
+import { z } from "zod"
+
+import { listPublishedDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
+import { documentStore } from "@/lib/documents/store"
+import { documentKinds, documentLocales, type PublishedDocument } from "@/lib/documents/types"
+import { decodePublishedCursor, encodePublishedCursor } from "@/lib/http/cursor"
+
+const cacheControl = "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
+
+const listQuerySchema = z.object({
+  kind: z.enum(documentKinds),
+  locale: z.enum(documentLocales),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+  cursor: z.string().min(1).max(512).optional(),
+}).strict()
+
+function listItem(document: PublishedDocument) {
+  return {
+    id: document.id,
+    kind: document.kind,
+    locale: document.locale,
+    slug: document.slug,
+    category: document.category,
+    pinned: document.pinned,
+    revision: document.revision,
+    title: document.title,
+    summary: document.summary,
+    effectiveAt: document.effectiveAt?.toISOString() ?? null,
+    publishedAt: document.publishedAt.toISOString(),
+  }
+}
+
+function responseWithEtag(request: Request, body: unknown): Response {
+  const json = JSON.stringify(body)
+  const etag = `"${createHash("sha256").update(json).digest("hex")}"`
+  const headers = { "Cache-Control": cacheControl, ETag: etag }
+  if (request.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers })
+  return new Response(json, { status: 200, headers: { ...headers, "Content-Type": "application/json" } })
+}
+
+export async function handleContentList(
+  request: Request,
+  repository: PublishedDocumentReader = documentStore,
+): Promise<Response> {
+  const url = new URL(request.url)
+  const parsed = listQuerySchema.safeParse({
+    kind: url.searchParams.get("kind") ?? undefined,
+    locale: url.searchParams.get("locale") ?? undefined,
+    limit: url.searchParams.get("limit") ?? undefined,
+    cursor: url.searchParams.get("cursor") ?? undefined,
+  })
+  if (!parsed.success) return Response.json({ error: "invalid_request" }, { status: 400 })
+
+  let before
+  if (parsed.data.cursor) {
+    const decoded = decodePublishedCursor(parsed.data.cursor)
+    if (!decoded) return Response.json({ error: "invalid_request" }, { status: 400 })
+    before = decoded
+  }
+
+  const fetchLimit = Math.min(50, parsed.data.limit + 1)
+  const documents = await listPublishedDocuments({
+    kind: parsed.data.kind,
+    locale: parsed.data.locale,
+    limit: fetchLimit,
+    before,
+  }, repository)
+  const items = documents.slice(0, parsed.data.limit)
+  const last = items.at(-1)
+  const hasNext = documents.length > parsed.data.limit
+    || (parsed.data.limit === 50 && documents.length === 50)
+
+  return responseWithEtag(request, {
+    items: items.map(listItem),
+    nextCursor: hasNext && last
+      ? encodePublishedCursor({ pinned: last.pinned, publishedAt: last.publishedAt, id: last.id })
+      : null,
+  })
+}
+
+export async function GET(request: Request): Promise<Response> {
+  return handleContentList(request)
+}
+
+export { cacheControl as publicContentCacheControl, responseWithEtag }

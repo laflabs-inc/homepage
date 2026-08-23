@@ -8,6 +8,7 @@ import styles from "./content.module.css"
 type MarkdownDocumentProps = {
   source: string
   title: string
+  intro?: React.ReactNode
 }
 
 type CalloutProperties = {
@@ -61,10 +62,11 @@ function classNames(...names: Array<string | undefined>) {
   return names.filter(Boolean).join(" ")
 }
 
-export function MarkdownDocument({ source, title }: MarkdownDocumentProps) {
+export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps) {
   return (
     <article className={styles.document}>
       <h1 className={styles.title}>{title}</h1>
+      {intro}
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkLafCallouts]}
         rehypePlugins={[rehypeSlug]}

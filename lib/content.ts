@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n"
+import type { DocumentKind } from "@/lib/documents/types"
 
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laflabs.co"
 export const contactEmail = "contact@laflabs.co"
@@ -85,7 +86,16 @@ type Copy = {
     products: string
     open: string
     company: string
-    links: { principles: string; contact: string; github: string }
+    documents: string
+    links: {
+      principles: string
+      contact: string
+      github: string
+      notices: string
+      legal: string
+      disclosures: string
+      design: string
+    }
     rights: string
     location: string
     cookieSettings: string
@@ -171,7 +181,16 @@ const ko: Copy = {
     products: "제품",
     open: "오픈소스",
     company: "회사",
-    links: { principles: "원칙", contact: "문의하기", github: "GitHub" },
+    documents: "문서",
+    links: {
+      principles: "원칙",
+      contact: "문의하기",
+      github: "GitHub",
+      notices: "공지사항",
+      legal: "법적 고지",
+      disclosures: "공시",
+      design: "디자인 가이드",
+    },
     rights: "All rights reserved.",
     location: "Seoul, South Korea",
     cookieSettings: "쿠키 설정",
@@ -257,7 +276,16 @@ const en: Copy = {
     products: "Products",
     open: "Open source",
     company: "Company",
-    links: { principles: "Principles", contact: "Contact", github: "GitHub" },
+    documents: "Documents",
+    links: {
+      principles: "Principles",
+      contact: "Contact",
+      github: "GitHub",
+      notices: "Notices",
+      legal: "Legal",
+      disclosures: "Disclosures",
+      design: "Design guide",
+    },
     rights: "All rights reserved.",
     location: "Seoul, South Korea",
     cookieSettings: "Cookie settings",
@@ -265,3 +293,74 @@ const en: Copy = {
 }
 
 export const copy: Record<Locale, Copy> = { ko, en }
+
+type LocalizedDocumentCopy = {
+  eyebrow: string
+  title: string
+  description: string
+  empty: string
+  unavailableTitle: string
+  unavailableBody: string
+  koreanLink: string
+  contents: string
+  published: string
+  effective: string
+  back: string
+}
+
+export type DocumentSectionCopy = {
+  path: `/${string}`
+  localized: Record<Locale, LocalizedDocumentCopy>
+}
+
+const commonDocumentCopy = {
+  ko: {
+    unavailableTitle: "이 문서는 선택한 언어로 제공되지 않습니다.",
+    unavailableBody: "한국어 문서는 게시되어 있습니다.",
+    koreanLink: "한국어 문서 보기",
+    contents: "목차",
+    published: "게시",
+    effective: "시행",
+    back: "목록으로",
+  },
+  en: {
+    unavailableTitle: "This document is not available in English.",
+    unavailableBody: "A Korean version of this document is available.",
+    koreanLink: "Read the Korean version",
+    contents: "Contents",
+    published: "Published",
+    effective: "Effective",
+    back: "Back to list",
+  },
+} as const
+
+export const documentSections: Record<DocumentKind, DocumentSectionCopy> = {
+  notice: {
+    path: "/notices",
+    localized: {
+      ko: { ...commonDocumentCopy.ko, eyebrow: "회사 소식", title: "공지사항", description: "LafLabs의 서비스와 운영 소식을 전합니다.", empty: "아직 게시된 공지사항이 없습니다." },
+      en: { ...commonDocumentCopy.en, eyebrow: "Company updates", title: "Notices", description: "Service and operational updates from LafLabs.", empty: "There are no published notices yet." },
+    },
+  },
+  legal: {
+    path: "/legal",
+    localized: {
+      ko: { ...commonDocumentCopy.ko, eyebrow: "정책과 약관", title: "법적 고지", description: "LafLabs의 약관과 정책을 확인하세요.", empty: "아직 게시된 법적 고지가 없습니다." },
+      en: { ...commonDocumentCopy.en, eyebrow: "Policies and terms", title: "Legal", description: "Terms, policies, and other legal notices from LafLabs.", empty: "There are no published legal notices yet." },
+    },
+  },
+  disclosure: {
+    path: "/disclosures",
+    localized: {
+      ko: { ...commonDocumentCopy.ko, eyebrow: "회사 정보", title: "공시", description: "LafLabs의 주요 회사 정보를 공개합니다.", empty: "아직 게시된 공시가 없습니다." },
+      en: { ...commonDocumentCopy.en, eyebrow: "Company information", title: "Disclosures", description: "Published corporate information from LafLabs.", empty: "There are no published disclosures yet." },
+    },
+  },
+  design: {
+    path: "/design",
+    localized: {
+      ko: { ...commonDocumentCopy.ko, eyebrow: "브랜드와 인터페이스", title: "디자인 가이드", description: "LafLabs의 디자인 원칙과 리소스를 소개합니다.", empty: "아직 게시된 디자인 가이드가 없습니다." },
+      en: { ...commonDocumentCopy.en, eyebrow: "Brand and interface", title: "Design guide", description: "Design principles and resources from LafLabs.", empty: "There are no published design guides yet." },
+    },
+  },
+}
