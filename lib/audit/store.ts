@@ -10,14 +10,25 @@ type SqlExecutor = {
   execute(query: SQL): Promise<{ rows: unknown[] }>
 }
 
-const forbiddenMetadataKeys = /(?:body|markdown|api.?key|ciphertext|prompt|answer)/i
+const forbiddenMetadataKeys = /(?:body|markdown|api.?key|credential|secret|token|ciphertext|prompt|answer|password|authorization)/i
 
-export function serializeAuditMetadata(metadata: Record<string, unknown> = {}): string {
-  for (const key of Object.keys(metadata)) {
+function assertSafeMetadata(value: unknown): void {
+  if (Array.isArray(value)) {
+    for (const item of value) assertSafeMetadata(item)
+    return
+  }
+  if (typeof value !== "object" || value === null) return
+
+  for (const [key, nestedValue] of Object.entries(value)) {
     if (forbiddenMetadataKeys.test(key)) {
       throw new Error(`Sensitive audit metadata key: ${key}`)
     }
+    assertSafeMetadata(nestedValue)
   }
+}
+
+export function serializeAuditMetadata(metadata: Record<string, unknown> = {}): string {
+  assertSafeMetadata(metadata)
   return JSON.stringify(metadata)
 }
 

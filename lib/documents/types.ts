@@ -78,7 +78,7 @@ export type PublishedDocumentFilter = {
   locale: Locale
   category?: string
   limit?: number
-  before?: { publishedAt: Date; id: string }
+  before?: { pinned: boolean; publishedAt: Date; id: string }
 }
 
 export type AuditAction = {
@@ -103,7 +103,7 @@ export interface DocumentRepository {
   scheduleRevision(revisionId: string, scheduledAt: Date, actor: AdminActor): Promise<DocumentRevision>
   returnScheduledToDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision>
   publishRevision(revisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision>
-  archiveCurrent(seriesId: string, locale: Locale, actor: AdminActor, now: Date): Promise<DocumentRevision | null>
+  archiveCurrent(seriesId: string, locale: Locale, expectedRevisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision | null>
   listAdmin(filter?: AdminDocumentFilter): Promise<DocumentRevision[]>
   listPublished(filter: PublishedDocumentFilter): Promise<PublishedDocument[]>
   getPublished(kind: DocumentKind, slug: string, locale: Locale): Promise<PublishedLookup>

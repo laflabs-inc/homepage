@@ -223,15 +223,38 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
     async deleteDraft(revisionId, actor) {
       const result = await database.execute(sql`
         WITH locked_revision AS (
-          SELECT "id", "series_id", "locale", "status"
-          FROM ${documentRevisions}
-          WHERE "id" = ${revisionId}::uuid
-          FOR UPDATE
+          SELECT r."id", r."series_id", r."locale", r."status",
+            NOT EXISTS (
+              SELECT 1 FROM ${documentRevisions} sibling
+              WHERE sibling."series_id" = r."series_id" AND sibling."id" <> r."id"
+            ) AS only_revision
+          FROM ${documentRevisions} r
+          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+          WHERE r."id" = ${revisionId}::uuid
+          FOR UPDATE OF r, s
+        ), deletable_revision AS (
+          SELECT locked_revision.*
+          FROM locked_revision
+          WHERE locked_revision."status" = 'draft'
+            AND NOT (
+              locked_revision."locale" = 'ko'
+              AND EXISTS (
+                SELECT 1 FROM ${documentRevisions} english
+                WHERE english."series_id" = locked_revision."series_id"
+                  AND english."locale" = 'en'
+              )
+            )
         ), deleted_revision AS (
           DELETE FROM ${documentRevisions} r
-          USING locked_revision
-          WHERE r."id" = locked_revision."id" AND locked_revision."status" = 'draft'
+          USING deletable_revision
+          WHERE r."id" = deletable_revision."id"
           RETURNING r."id", r."series_id", r."locale"
+        ), deleted_series AS (
+          DELETE FROM ${documentSeries} s
+          USING deletable_revision, deleted_revision
+          WHERE s."id" = deleted_revision."series_id"
+            AND deletable_revision.only_revision
+          RETURNING s."id"
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
             "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
@@ -244,7 +267,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         )
         SELECT deleted_revision."id"
         FROM deleted_revision
-        WHERE (SELECT count(*) FROM audit_entry) >= 0
+        WHERE (SELECT count(*) FROM deleted_series) >= 0
+          AND (SELECT count(*) FROM audit_entry) >= 0
       `)
       if (!result.rows[0]) throw new DocumentStoreError("conflict", "Only a current draft may be deleted")
     },
@@ -257,6 +281,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           WHERE "id" = ${seriesId}::uuid
             AND "kind" = ${input.kind}::document_kind
             AND "slug" = ${input.slug}
+            AND "category" IS NOT DISTINCT FROM ${values.category}
+            AND "pinned" = ${values.pinned}
           FOR UPDATE
         ), eligible_series AS (
           SELECT locked_series.*
@@ -267,6 +293,14 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
               AND editable."locale" = ${input.locale}::document_locale
               AND editable."status" IN ('draft', 'scheduled')
           )
+            AND (
+              ${input.locale}::document_locale <> 'en'
+              OR EXISTS (
+                SELECT 1 FROM ${documentRevisions} korean
+                WHERE korean."series_id" = locked_series."id"
+                  AND korean."locale" = 'ko'
+              )
+            )
         ), next_number AS (
           SELECT COALESCE(max(r."revision"), 0) + 1 AS revision
           FROM ${documentRevisions} r, eligible_series
@@ -276,7 +310,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             "series_id", "locale", "revision", "title", "summary", "body_markdown",
             "status", "effective_at", "created_by", "updated_by", "updated_at"
           )
-          SELECT locked_series."id", ${input.locale}::document_locale, next_number.revision,
+          SELECT eligible_series."id", ${input.locale}::document_locale, next_number.revision,
             ${input.title}, ${input.summary}, ${input.bodyMarkdown}, 'draft', ${values.effectiveAt},
             ${actor.githubId}, ${actor.githubId}, statement_timestamp()
           FROM eligible_series, next_number
@@ -302,17 +336,32 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
     async scheduleRevision(revisionId, scheduledAt, actor) {
       const result = await database.execute(sql`
         WITH locked_revision AS (
-          SELECT r."id", r."series_id", r."locale", r."revision", r."status"
+          SELECT r.*, s."kind", s."slug", s."category"
           FROM ${documentRevisions} r
+          INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
           WHERE r."id" = ${revisionId}::uuid
-          FOR UPDATE
+          FOR UPDATE OF r, s
+        ), eligible AS (
+          SELECT locked_revision.*
+          FROM locked_revision
+          WHERE locked_revision."status" = 'draft'
+            AND char_length(locked_revision."slug") BETWEEN 1 AND 160
+            AND locked_revision."slug" ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+            AND char_length(locked_revision."title") BETWEEN 1 AND 160
+            AND char_length(locked_revision."summary") BETWEEN 1 AND 240
+            AND char_length(locked_revision."body_markdown") BETWEEN 1 AND 200000
+            AND (
+              (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
+              OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
+              OR (locked_revision."kind" = 'disclosure' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('corporate', 'financial', 'governance', 'material')))
+              OR (locked_revision."kind" = 'design' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('foundation', 'brand', 'component', 'resource')))
+            )
         ), scheduled_revision AS (
           UPDATE ${documentRevisions} r
           SET "status" = 'scheduled', "scheduled_at" = ${scheduledAt},
             "updated_by" = ${actor.githubId}, "updated_at" = statement_timestamp()
-          FROM locked_revision
-          WHERE r."id" = locked_revision."id"
-            AND locked_revision."status" = 'draft'
+          FROM eligible
+          WHERE r."id" = eligible."id"
             AND ${scheduledAt} > statement_timestamp()
           RETURNING r.*
         ), audit_entry AS (
@@ -398,7 +447,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             )
         ), archived_previous AS (
           UPDATE ${documentRevisions} previous
-          SET "status" = 'archived', "updated_at" = ${now}
+          SET "status" = 'archived', "updated_by" = ${actor.githubId}, "updated_at" = ${now}
           FROM eligible
           WHERE previous."series_id" = eligible."series_id"
             AND previous."locale" = eligible."locale"
@@ -431,12 +480,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return requiredRevision(result.rows, "Revision changed before it could be published")
     },
 
-    async archiveCurrent(seriesId, locale, actor, now) {
+    async archiveCurrent(seriesId, locale, expectedRevisionId, actor, now) {
       const result = await database.execute(sql`
         WITH locked_revision AS (
           SELECT "id", "series_id", "locale", "status"
           FROM ${documentRevisions}
-          WHERE "series_id" = ${seriesId}::uuid AND "locale" = ${locale}::document_locale
+          WHERE "id" = ${expectedRevisionId}::uuid
+            AND "series_id" = ${seriesId}::uuid AND "locale" = ${locale}::document_locale
             AND "status" = 'published'
           FOR UPDATE
         ), archived_revision AS (
@@ -483,7 +533,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
     async listPublished(filter: PublishedDocumentFilter) {
       const category = filter.category ? sql`AND s."category" = ${filter.category}` : sql``
       const before = filter.before
-        ? sql`AND (r."published_at", r."id") < (${filter.before.publishedAt}, ${filter.before.id}::uuid)`
+        ? sql`AND (
+            (s."pinned" = false AND ${filter.before.pinned} = true)
+            OR (
+              s."pinned" = ${filter.before.pinned}
+              AND (r."published_at", r."id") < (${filter.before.publishedAt}, ${filter.before.id}::uuid)
+            )
+          )`
         : sql``
       const limit = Math.min(50, Math.max(1, filter.limit ?? 20))
       const result = await database.execute(sql`

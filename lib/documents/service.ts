@@ -114,8 +114,13 @@ export function createDocumentService(repository: DocumentRepository) {
       if (validInput.locale !== "en") {
         throw new DocumentServiceError("conflict", "An English draft must use the English locale")
       }
-      if (validInput.kind !== korean.kind || validInput.slug !== korean.slug) {
-        throw new DocumentServiceError("conflict", "Localized revisions must share their series kind and slug")
+      if (
+        validInput.kind !== korean.kind
+        || validInput.slug !== korean.slug
+        || (validInput.category ?? null) !== korean.category
+        || (validInput.pinned ?? false) !== korean.pinned
+      ) {
+        throw new DocumentServiceError("conflict", "Localized revisions must share their series metadata")
       }
       if (series.some(({ locale, status }) => locale === "en" && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable English revision already exists")
@@ -169,7 +174,6 @@ export function createDocumentService(repository: DocumentRepository) {
       if (!Number.isFinite(scheduledAt.getTime()) || scheduledAt.getTime() <= now.getTime()) {
         throw new DocumentServiceError("invalid_schedule", "Scheduled publication must be in the future")
       }
-      if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
       return repository.scheduleRevision(revisionId, scheduledAt, actor)
     },
 
@@ -203,7 +207,7 @@ export function createDocumentService(repository: DocumentRepository) {
       if (revision.status !== "published") {
         throw new DocumentServiceError("conflict", "Only the current published revision may be archived")
       }
-      const archived = await repository.archiveCurrent(revision.seriesId, revision.locale, actor, now)
+      const archived = await repository.archiveCurrent(revision.seriesId, revision.locale, revision.id, actor, now)
       if (!archived) throw new DocumentServiceError("conflict", "The published revision changed")
       return archived
     },

@@ -33,6 +33,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   revisions: DocumentRevision[] = []
   audits: AuditAction[] = []
   readFailure: Error | null = null
+  replaceBeforeArchive = false
   private nextId = 1
 
   seed(values: Partial<DocumentRevision> & Pick<DocumentRevision, "seriesId" | "locale" | "status">): DocumentRevision {
@@ -154,8 +155,25 @@ class MemoryDocumentRepository implements DocumentRepository {
     return revision
   }
 
-  async archiveCurrent(seriesId: string, locale: Locale, admin: AdminActor, archivedAt: Date): Promise<DocumentRevision | null> {
-    const revision = this.revisions.find((item) => item.seriesId === seriesId && item.locale === locale && item.status === "published") ?? null
+  async archiveCurrent(
+    seriesId: string,
+    locale: Locale,
+    expectedRevisionId: string,
+    admin: AdminActor,
+    archivedAt: Date,
+  ): Promise<DocumentRevision | null> {
+    if (this.replaceBeforeArchive) {
+      this.replaceBeforeArchive = false
+      const prior = this.revisions.find((item) => item.seriesId === seriesId && item.locale === locale && item.status === "published")
+      if (prior) prior.status = "archived"
+      this.seed({ seriesId, locale, status: "published", revision: (prior?.revision ?? 0) + 1 })
+    }
+    const revision = this.revisions.find((item) => (
+      item.id === expectedRevisionId
+      && item.seriesId === seriesId
+      && item.locale === locale
+      && item.status === "published"
+    )) ?? null
     if (revision) Object.assign(revision, { status: "archived", updatedBy: admin.githubId, updatedAt: archivedAt })
     return revision
   }
@@ -224,6 +242,16 @@ describe("document workflow service", () => {
     )).rejects.toMatchObject({ code: "korean_required" })
   })
 
+  it("rejects English draft metadata that differs from its shared series", async () => {
+    repository.seed({ seriesId: "series-1", locale: "ko", status: "draft", pinned: false })
+
+    await expect(service.createEnglishDraft(
+      "series-1",
+      { ...input, locale: "en", pinned: true },
+      actor,
+    )).rejects.toMatchObject({ code: "conflict" })
+  })
+
   it("requires published Korean content before publishing English", async () => {
     repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
     const english = repository.seed({
@@ -245,6 +273,25 @@ describe("document workflow service", () => {
       actor,
       now,
     )).rejects.toMatchObject({ code: "invalid_schedule" })
+  })
+
+  it("allows an English revision to be scheduled independently of Korean publication", async () => {
+    repository.seed({ seriesId: "series-1", locale: "ko", status: "draft" })
+    const english = repository.seed({
+      seriesId: "series-1",
+      locale: "en",
+      status: "draft",
+      title: "English title",
+      summary: "English summary",
+      bodyMarkdown: "English body",
+    })
+    const scheduledAt = new Date(now.getTime() + 60_000)
+
+    await expect(service.schedule(english.id, scheduledAt, actor, now)).resolves.toMatchObject({
+      id: english.id,
+      status: "scheduled",
+      scheduledAt,
+    })
   })
 
   it("publishes a complete replacement atomically without changing prior content", async () => {
@@ -278,6 +325,14 @@ describe("document workflow service", () => {
     })
     expect(JSON.stringify(repository.audits)).not.toContain("새 본문")
     expect(JSON.stringify(repository.audits)).not.toContain("보존할 본문")
+  })
+
+  it("does not archive a replacement that publishes after the requested revision is read", async () => {
+    const requested = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
+    repository.replaceBeforeArchive = true
+
+    await expect(service.archive(requested.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
+    expect(repository.revisions.find(({ revision }) => revision === 2)).toMatchObject({ status: "published" })
   })
 
   it("returns a scheduled snapshot to an editable draft", async () => {

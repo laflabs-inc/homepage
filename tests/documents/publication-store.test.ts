@@ -1,6 +1,7 @@
 import { PgDialect } from "drizzle-orm/pg-core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import { serializeAuditMetadata } from "@/lib/audit/store"
 import { createDocumentStore } from "@/lib/documents/store"
 
 const execute = vi.fn()
@@ -31,6 +32,18 @@ const publishedRow = {
   updatedAt: now,
 }
 
+const draftInput = {
+  kind: "notice" as const,
+  locale: "ko" as const,
+  slug: "service-update",
+  category: "service",
+  pinned: false,
+  title: "서비스 업데이트",
+  summary: "변경 사항을 안내합니다.",
+  bodyMarkdown: "## 변경 사항\n본문",
+  effectiveAt: null,
+}
+
 beforeEach(() => {
   execute.mockReset()
 })
@@ -55,6 +68,11 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("insert into \"admin_audit_log\"")
     expect(normalizedSql.indexOf("archived_previous as")).toBeLessThan(normalizedSql.indexOf("published_revision as"))
     expect(normalizedSql.indexOf("published_revision as")).toBeLessThan(normalizedSql.indexOf("audit_entry as"))
+    const archiveSql = normalizedSql.slice(
+      normalizedSql.indexOf("archived_previous as"),
+      normalizedSql.indexOf("published_revision as"),
+    )
+    expect(archiveSql).toContain("\"updated_by\"")
 
     expect(compiled.params).toEqual(expect.arrayContaining([
       publishedRow.id,
@@ -132,5 +150,94 @@ describe("document publication store boundary", () => {
       document: null,
       availableLocales: [],
     })
+  })
+
+  it("atomically rechecks Korean existence and shared metadata before creating English", async () => {
+    execute.mockResolvedValue({ rows: [{ ...publishedRow, locale: "en", status: "draft", publishedAt: null }] })
+
+    await store.createNextDraft(
+      publishedRow.seriesId,
+      { ...draftInput, locale: "en" },
+      actor,
+    )
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("korean.\"locale\" = 'ko'")
+    expect(normalizedSql).toContain("exists ( select 1 from \"document_revisions\" korean")
+    expect(normalizedSql).toContain("\"category\" is not distinct from")
+    expect(normalizedSql).toContain("\"pinned\" =")
+  })
+
+  it("deletes an empty draft series and prevents deleting Korean while English exists", async () => {
+    execute.mockResolvedValue({ rows: [{ id: publishedRow.id }] })
+
+    await store.deleteDraft(publishedRow.id, actor)
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("deleted_series as")
+    expect(normalizedSql).toContain("delete from \"document_series\"")
+    expect(normalizedSql).toContain("english.\"locale\" = 'en'")
+    expect(normalizedSql).toContain("only_revision")
+  })
+
+  it("rechecks complete stored content while locking a draft for scheduling", async () => {
+    execute.mockResolvedValue({
+      rows: [{ ...publishedRow, status: "scheduled", scheduledAt: new Date(now.getTime() + 60_000), publishedAt: null }],
+    })
+
+    await store.scheduleRevision(publishedRow.id, new Date(now.getTime() + 60_000), actor)
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("char_length(locked_revision.\"title\") between 1 and 160")
+    expect(normalizedSql).toContain("char_length(locked_revision.\"summary\") between 1 and 240")
+    expect(normalizedSql).toContain("char_length(locked_revision.\"body_markdown\") between 1 and 200000")
+    expect(normalizedSql).toContain("locked_revision.\"category\" in ('general', 'service', 'maintenance', 'security')")
+  })
+
+  it("archives only the expected current revision under the same row lock", async () => {
+    execute.mockResolvedValue({ rows: [publishedRow] })
+
+    await store.archiveCurrent(
+      publishedRow.seriesId,
+      "ko",
+      publishedRow.id,
+      actor,
+      now,
+    )
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("\"id\" =")
+    expect(compiled.params).toContain(publishedRow.id)
+  })
+
+  it("uses pinned state in both the public ordering and cursor boundary", async () => {
+    execute.mockResolvedValue({ rows: [] })
+
+    await store.listPublished({
+      kind: "notice",
+      locale: "ko",
+      before: { pinned: true, publishedAt: now, id: publishedRow.id },
+    })
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("s.\"pinned\" = false and")
+    expect(normalizedSql).toContain("s.\"pinned\" =")
+    expect(compiled.params).toContain(true)
+    expect(normalizedSql).toContain("order by s.\"pinned\" desc, r.\"published_at\" desc, r.\"id\" desc")
+  })
+})
+
+describe("audit metadata safety", () => {
+  it("rejects credential metadata", () => {
+    expect(() => serializeAuditMetadata({ credential: "sk-secret" })).toThrow(/sensitive audit metadata/i)
+  })
+
+  it("rejects nested prompt metadata", () => {
+    expect(() => serializeAuditMetadata({ context: { prompt: "private question" } })).toThrow(/sensitive audit metadata/i)
   })
 })
