@@ -29,6 +29,16 @@ function repository(overrides: Partial<Pick<DocumentRepository, "listPublished" 
   } as Pick<DocumentRepository, "listPublished" | "getPublished">
 }
 
+function publishedDocuments(count: number): PublishedDocument[] {
+  return Array.from({ length: count }, (_, index) => ({
+    ...first,
+    id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    slug: `document-${index + 1}`,
+    pinned: index < 2,
+    publishedAt: new Date(Date.UTC(2026, 7, 23, 12, 0, -index)),
+  }))
+}
+
 describe("public content list API", () => {
   it.each([
     ["/api/content?locale=ko", "missing kind"],
@@ -60,6 +70,76 @@ describe("public content list API", () => {
       )
       expect(response.status).toBe(400)
     }
+  })
+
+  it("rejects categories outside the selected kind before reading", async () => {
+    const store = repository()
+    const response = await handleContentList(
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=financial"),
+      store,
+    )
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toEqual({ error: "invalid_request" })
+    expect(store.listPublished).not.toHaveBeenCalled()
+  })
+
+  it("passes an exact valid category to the repository", async () => {
+    const store = repository()
+    const response = await handleContentList(
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=service"),
+      store,
+    )
+
+    expect(response.status).toBe(200)
+    expect(store.listPublished).toHaveBeenCalledWith({
+      kind: "notice",
+      locale: "ko",
+      category: "service",
+      limit: 21,
+      before: undefined,
+    })
+  })
+
+  it.each([49, 50, 51])("only emits a next cursor when record %i has a successor", async (count) => {
+    const documents = publishedDocuments(count)
+    const listPublished = vi.fn(async (filter: Parameters<DocumentRepository["listPublished"]>[0]) => {
+      const start = filter.before
+        ? documents.findIndex((document) => document.id === filter.before?.id) + 1
+        : 0
+      return documents.slice(start, start + (filter.limit ?? 20))
+    })
+    const response = await handleContentList(
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&limit=50"),
+      repository({ listPublished }),
+    )
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.items).toHaveLength(Math.min(count, 50))
+    if (count <= 50) {
+      expect(body.nextCursor).toBeNull()
+    } else {
+      expect(decodePublishedCursor(body.nextCursor)).toEqual({
+        pinned: documents[49].pinned,
+        publishedAt: documents[49].publishedAt,
+        id: documents[49].id,
+      })
+    }
+  })
+
+  it("normalizes repository failures without exposing their messages", async () => {
+    const store = repository({ listPublished: vi.fn().mockRejectedValue(new Error("database password leaked")) })
+    const response = await handleContentList(
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko"),
+      store,
+    )
+
+    expect(response.status).toBe(503)
+    expect(response.headers.get("cache-control")).toBe("no-store")
+    const body = await response.text()
+    expect(JSON.parse(body)).toEqual({ error: "unavailable" })
+    expect(body).not.toContain("password")
   })
 
   it("roundtrips the complete repository ordering key through the opaque cursor", async () => {
@@ -155,6 +235,21 @@ describe("public content list API", () => {
 })
 
 describe("public content detail API", () => {
+  it("normalizes repository failures without exposing their messages", async () => {
+    const store = repository({ getPublished: vi.fn().mockRejectedValue(new Error("connection secret")) })
+    const response = await handleContentDetail(
+      new Request("https://laflabs.co/api/content/notice/service-update?locale=ko"),
+      { kind: "notice", slug: "service-update" },
+      store,
+    )
+
+    expect(response.status).toBe(503)
+    expect(response.headers.get("cache-control")).toBe("no-store")
+    const body = await response.text()
+    expect(JSON.parse(body)).toEqual({ error: "unavailable" })
+    expect(body).not.toContain("secret")
+  })
+
   it("returns 404 instead of falling back when the requested locale is unpublished", async () => {
     const store = repository({
       getPublished: vi.fn().mockResolvedValue({ document: null, availableLocales: ["ko"] }),

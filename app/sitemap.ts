@@ -1,9 +1,8 @@
 import type { MetadataRoute } from "next"
 
 import { documentSections, siteUrl } from "@/lib/content"
-import { listPublishedDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
+import { listPublishedSitemapDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
-import { documentKinds } from "@/lib/documents/types"
 
 const homepage: MetadataRoute.Sitemap[number] = {
   url: siteUrl,
@@ -17,23 +16,14 @@ export async function buildSitemap(
   try {
     const entries: MetadataRoute.Sitemap = [homepage]
 
-    for (const kind of documentKinds) {
-      let before: { pinned: boolean; publishedAt: Date; id: string } | undefined
-      do {
-        const documents = await listPublishedDocuments({ kind, locale: "ko", limit: 50, before }, repository)
-        for (const document of documents) {
-          entries.push({
-            url: `${siteUrl}${documentSections[kind].path}/${document.slug}`,
-            lastModified: document.publishedAt,
-            changeFrequency: "monthly",
-            priority: 0.6,
-          })
-        }
-        const last = documents.at(-1)
-        before = documents.length === 50 && last
-          ? { pinned: last.pinned, publishedAt: last.publishedAt, id: last.id }
-          : undefined
-      } while (before)
+    const documents = await listPublishedSitemapDocuments(repository)
+    for (const document of documents) {
+      entries.push({
+        url: `${siteUrl}${documentSections[document.kind].path}/${document.slug}`,
+        lastModified: document.publishedAt,
+        changeFrequency: "monthly",
+        priority: 0.6,
+      })
     }
 
     return entries

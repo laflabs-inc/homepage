@@ -172,9 +172,10 @@ describe("document publication cron", () => {
     const response = await handleDocumentPublication(request(), documentService, now, revalidate)
 
     expect(response.status).toBe(200)
+    expect(revalidate).toHaveBeenCalledWith("documents:sitemap", "max")
     expect(revalidate).toHaveBeenCalledWith("documents:index:notice:ko", "max")
     expect(revalidate).toHaveBeenCalledWith("documents:detail:notice:notice-1:ko", "max")
-    expect(revalidate).toHaveBeenCalledTimes(6)
+    expect(revalidate).toHaveBeenCalledTimes(5)
   })
 
   it("returns a safe 503 when publication storage fails", async () => {

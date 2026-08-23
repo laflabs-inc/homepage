@@ -5,6 +5,7 @@ import { z } from "zod"
 import { listPublishedDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
 import { documentKinds, documentLocales, type PublishedDocument } from "@/lib/documents/types"
+import { categoriesByKind } from "@/lib/documents/validation"
 import { decodePublishedCursor, encodePublishedCursor } from "@/lib/http/cursor"
 
 const cacheControl = "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
@@ -12,9 +13,14 @@ const cacheControl = "public, max-age=60, s-maxage=300, stale-while-revalidate=6
 const listQuerySchema = z.object({
   kind: z.enum(documentKinds),
   locale: z.enum(documentLocales),
+  category: z.string().min(1).max(40).optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
   cursor: z.string().min(1).max(512).optional(),
-}).strict()
+}).strict().superRefine(({ kind, category }, context) => {
+  if (category && !(categoriesByKind[kind] as readonly string[]).includes(category)) {
+    context.addIssue({ code: "custom", path: ["category"], message: "Category is not allowed for this kind" })
+  }
+})
 
 function listItem(document: PublishedDocument) {
   return {
@@ -52,6 +58,7 @@ export async function handleContentList(
   const parsed = listQuerySchema.safeParse({
     kind: url.searchParams.get("kind") ?? undefined,
     locale: url.searchParams.get("locale") ?? undefined,
+    category: url.searchParams.get("category") ?? undefined,
     limit: url.searchParams.get("limit") ?? undefined,
     cursor: url.searchParams.get("cursor") ?? undefined,
   })
@@ -64,24 +71,43 @@ export async function handleContentList(
     before = decoded
   }
 
-  const fetchLimit = Math.min(50, parsed.data.limit + 1)
-  const documents = await listPublishedDocuments({
-    kind: parsed.data.kind,
-    locale: parsed.data.locale,
-    limit: fetchLimit,
-    before,
-  }, repository)
-  const items = documents.slice(0, parsed.data.limit)
-  const last = items.at(-1)
-  const hasNext = documents.length > parsed.data.limit
-    || (parsed.data.limit === 50 && documents.length === 50)
+  try {
+    const baseFilter = {
+      kind: parsed.data.kind,
+      locale: parsed.data.locale,
+      ...(parsed.data.category ? { category: parsed.data.category } : {}),
+    }
+    const fetchLimit = Math.min(50, parsed.data.limit + 1)
+    const documents = await listPublishedDocuments({
+      ...baseFilter,
+      limit: fetchLimit,
+      before,
+    }, repository)
+    const items = documents.slice(0, parsed.data.limit)
+    const last = items.at(-1)
+    let hasNext = documents.length > parsed.data.limit
 
-  return responseWithEtag(request, {
-    items: items.map(listItem),
-    nextCursor: hasNext && last
-      ? encodePublishedCursor({ pinned: last.pinned, publishedAt: last.publishedAt, id: last.id })
-      : null,
-  })
+    if (!hasNext && parsed.data.limit === 50 && documents.length === 50 && last) {
+      const successor = await listPublishedDocuments({
+        ...baseFilter,
+        limit: 1,
+        before: { pinned: last.pinned, publishedAt: last.publishedAt, id: last.id },
+      }, repository)
+      hasNext = successor.length > 0
+    }
+
+    return responseWithEtag(request, {
+      items: items.map(listItem),
+      nextCursor: hasNext && last
+        ? encodePublishedCursor({ pinned: last.pinned, publishedAt: last.publishedAt, id: last.id })
+        : null,
+    })
+  } catch {
+    return Response.json(
+      { error: "unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    )
+  }
 }
 
 export async function GET(request: Request): Promise<Response> {

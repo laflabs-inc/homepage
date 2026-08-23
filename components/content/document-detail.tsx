@@ -6,6 +6,7 @@ import type { DocumentSectionCopy } from "@/lib/content"
 import { getPublishedDocument, type PublishedDocumentReader } from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
 import type { DocumentKind, Locale } from "@/lib/documents/types"
+import { categoriesByKind } from "@/lib/documents/validation"
 import { buildDocumentOutline } from "@/lib/markdown/outline"
 import styles from "./content.module.css"
 
@@ -14,6 +15,7 @@ type DocumentDetailProps = {
   slug: string
   locale: Locale
   section: DocumentSectionCopy
+  category?: string
   repository?: PublishedDocumentReader
 }
 
@@ -29,10 +31,15 @@ export async function DocumentDetail({
   slug,
   locale,
   section,
+  category,
   repository = documentStore,
 }: DocumentDetailProps) {
   const lookup = await getPublishedDocument(kind, slug, locale, repository)
   const copy = section.localized[locale]
+  const selectedCategory = category && (categoriesByKind[kind] as readonly string[]).includes(category)
+    ? category
+    : undefined
+  const categoryQuery = selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : ""
 
   if (!lookup.document) {
     if (lookup.availableLocales.length === 0) notFound()
@@ -44,7 +51,7 @@ export async function DocumentDetail({
           <h1>{copy.unavailableTitle}</h1>
           <p>{copy.unavailableBody}</p>
           {lookup.availableLocales.includes("ko") ? (
-            <a href={`${section.path}/${slug}?locale=ko`} hrefLang="ko">{copy.koreanLink}</a>
+            <a href={`${section.path}/${slug}?locale=ko${categoryQuery}`} hrefLang="ko">{copy.koreanLink}</a>
           ) : null}
         </div>
       </section>
@@ -64,7 +71,7 @@ export async function DocumentDetail({
 
   return (
     <section className={styles.detailPage}>
-      <a className={styles.backLink} href={`${section.path}?locale=${locale}`}>← {copy.back}</a>
+      <a className={styles.backLink} href={`${section.path}?locale=${locale}${categoryQuery}`}>← {copy.back}</a>
       <MarkdownDocument
         source={document.bodyMarkdown}
         title={document.title}

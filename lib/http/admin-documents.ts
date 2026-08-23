@@ -78,6 +78,7 @@ export function revalidatePublicRevision(
   revalidate: AdminDocumentDependencies["revalidate"],
 ): boolean {
   const tags = new Set([
+    documentCacheTags.sitemap,
     ...documentCacheTags.index(revision.kind, revision.locale),
     ...documentCacheTags.detail(revision.kind, revision.slug, revision.locale),
   ])

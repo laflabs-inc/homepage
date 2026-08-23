@@ -22,6 +22,7 @@ vi.mock("@/lib/documents/store", () => ({
 }))
 
 import { getPublishedDocument, listPublishedDocuments } from "@/lib/documents/cache"
+import { buildSitemap } from "@/app/sitemap"
 
 const published: PublishedDocument = {
   id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131",
@@ -67,7 +68,7 @@ describe("published document cache boundary", () => {
     expect(result.availableLocales).toEqual(["ko"])
   })
 
-  it("configures list reads with kind, locale, and sitemap tags", async () => {
+  it("configures list reads with only exact kind and locale tags", async () => {
     mocks.listPublished.mockResolvedValue([published])
 
     await listPublishedDocuments({ kind: "notice", locale: "ko", limit: 20 })
@@ -77,12 +78,12 @@ describe("published document cache boundary", () => {
       ["published-documents", "notice", "ko", "", "20", "", "", ""],
       {
         revalidate: 60,
-        tags: ["documents", "documents:sitemap", "documents:index:notice", "documents:index:notice:ko"],
+        tags: ["documents:index:notice", "documents:index:notice:ko"],
       },
     )
   })
 
-  it("configures detail reads with kind, slug, locale, and sitemap tags", async () => {
+  it("configures detail reads with only exact slug and locale tags", async () => {
     mocks.getPublished.mockResolvedValue({ document: published, availableLocales: ["ko"] })
 
     await getPublishedDocument("notice", "service-update", "ko")
@@ -93,12 +94,23 @@ describe("published document cache boundary", () => {
       {
         revalidate: 60,
         tags: [
-          "documents",
-          "documents:sitemap",
           "documents:detail:notice:service-update",
           "documents:detail:notice:service-update:ko",
         ],
       },
+    )
+  })
+
+  it("uses one dedicated sitemap cache dependency and tag", async () => {
+    mocks.listPublished.mockResolvedValue([])
+
+    await buildSitemap()
+
+    expect(mocks.unstableCache).toHaveBeenCalledTimes(1)
+    expect(mocks.unstableCache).toHaveBeenCalledWith(
+      expect.any(Function),
+      ["published-document-sitemap"],
+      { revalidate: 60, tags: ["documents:sitemap"] },
     )
   })
 })

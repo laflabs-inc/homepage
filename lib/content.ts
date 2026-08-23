@@ -313,6 +313,84 @@ export type DocumentSectionCopy = {
   localized: Record<Locale, LocalizedDocumentCopy>
 }
 
+export const documentCategoryCopy = {
+  ko: {
+    all: "전체",
+    uncategorized: "기타",
+    filterLabel: {
+      notice: "공지사항 카테고리 필터",
+      legal: "법적 고지 카테고리 필터",
+      disclosure: "공시 카테고리 필터",
+      design: "디자인 가이드 카테고리 필터",
+    },
+    labels: {
+      general: "일반",
+      service: "서비스",
+      maintenance: "점검",
+      security: "보안",
+      privacy: "개인정보",
+      terms: "이용약관",
+      cookies: "쿠키",
+      policy: "정책",
+      corporate: "기업",
+      financial: "재무",
+      governance: "지배구조",
+      material: "주요사항",
+      foundation: "기초",
+      brand: "브랜드",
+      component: "컴포넌트",
+      resource: "리소스",
+    },
+  },
+  en: {
+    all: "All",
+    uncategorized: "Other",
+    filterLabel: {
+      notice: "Filter notices by category",
+      legal: "Filter legal documents by category",
+      disclosure: "Filter disclosures by category",
+      design: "Filter design documents by category",
+    },
+    labels: {
+      general: "General",
+      service: "Service",
+      maintenance: "Maintenance",
+      security: "Security",
+      privacy: "Privacy",
+      terms: "Terms",
+      cookies: "Cookies",
+      policy: "Policy",
+      corporate: "Corporate",
+      financial: "Financial",
+      governance: "Governance",
+      material: "Material",
+      foundation: "Foundation",
+      brand: "Brand",
+      component: "Components",
+      resource: "Resources",
+    },
+  },
+} as const
+
+export const documentRouteStateCopy = {
+  ko: {
+    errorTitle: "문서를 불러오지 못했습니다.",
+    errorBody: "잠시 후 다시 시도해 주세요. 홈페이지와 다른 서비스는 계속 이용할 수 있습니다.",
+    retry: "다시 시도",
+    notFoundTitle: "문서를 찾을 수 없습니다.",
+    notFoundBody: "게시되지 않았거나 더 이상 제공되지 않는 문서입니다.",
+    home: "홈으로 돌아가기",
+  },
+  en: {
+    errorTitle: "We could not load this document.",
+    errorBody: "Please try again shortly. The homepage and other services remain available.",
+    retry: "Try again",
+    notFoundTitle: "Document not found.",
+    notFoundBody: "This document is unpublished or no longer available.",
+    home: "Back to home",
+  },
+} as const
+
 const commonDocumentCopy = {
   ko: {
     unavailableTitle: "이 문서는 선택한 언어로 제공되지 않습니다.",

@@ -4,7 +4,7 @@ import { DocumentDetail, buildDocumentMetadata } from "@/components/content/docu
 import { documentSections } from "@/lib/content"
 import { resolveDocumentPageLocale } from "../../locale"
 
-type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ locale?: string }> }
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ locale?: string; category?: string }> }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, resolveDocumentPageLocale(searchParams)])
@@ -12,6 +12,6 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 }
 
 export default async function DisclosurePage({ params, searchParams }: Props) {
-  const [{ slug }, locale] = await Promise.all([params, resolveDocumentPageLocale(searchParams)])
-  return <DocumentDetail kind="disclosure" slug={slug} locale={locale} section={documentSections.disclosure} />
+  const [{ slug }, query, locale] = await Promise.all([params, searchParams, resolveDocumentPageLocale(searchParams)])
+  return <DocumentDetail kind="disclosure" slug={slug} locale={locale} section={documentSections.disclosure} category={query.category} />
 }

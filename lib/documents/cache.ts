@@ -10,6 +10,7 @@ import type {
   PublishedDocument,
   PublishedDocumentFilter,
 } from "@/lib/documents/types"
+import { documentKinds } from "@/lib/documents/types"
 
 export type PublishedDocumentReader = Pick<DocumentRepository, "listPublished" | "getPublished">
 
@@ -22,12 +23,29 @@ function restorePublishedDates(document: PublishedDocument): PublishedDocument {
 }
 
 export const documentCacheTags = {
+  sitemap: "documents:sitemap",
   index(kind: DocumentKind, locale: Locale) {
-    return ["documents", "documents:sitemap", `documents:index:${kind}`, `documents:index:${kind}:${locale}`]
+    return [`documents:index:${kind}`, `documents:index:${kind}:${locale}`]
   },
   detail(kind: DocumentKind, slug: string, locale: Locale) {
-    return ["documents", "documents:sitemap", `documents:detail:${kind}:${slug}`, `documents:detail:${kind}:${slug}:${locale}`]
+    return [`documents:detail:${kind}:${slug}`, `documents:detail:${kind}:${slug}:${locale}`]
   },
+}
+
+async function readPublishedSitemapDocuments(repository: PublishedDocumentReader) {
+  const documents: PublishedDocument[] = []
+  for (const kind of documentKinds) {
+    let before: PublishedDocumentFilter["before"]
+    do {
+      const page = await repository.listPublished({ kind, locale: "ko", limit: 50, before })
+      documents.push(...page)
+      const last = page.at(-1)
+      before = page.length === 50 && last
+        ? { pinned: last.pinned, publishedAt: last.publishedAt, id: last.id }
+        : undefined
+    } while (before)
+  }
+  return documents
 }
 
 export async function listPublishedDocuments(
@@ -71,4 +89,17 @@ export async function getPublishedDocument(
     ...lookup,
     document: lookup.document ? restorePublishedDates(lookup.document) : null,
   }
+}
+
+export async function listPublishedSitemapDocuments(
+  repository: PublishedDocumentReader = documentStore,
+) {
+  if (repository !== documentStore) return readPublishedSitemapDocuments(repository)
+
+  const documents = await unstable_cache(
+    () => readPublishedSitemapDocuments(documentStore),
+    ["published-document-sitemap"],
+    { revalidate: 60, tags: [documentCacheTags.sitemap] },
+  )()
+  return documents.map(restorePublishedDates)
 }

@@ -26,6 +26,8 @@ import { SiteFooter } from "@/components/layout/site-footer"
 import { SiteHeader } from "@/components/layout/site-header"
 import { buildSitemap } from "@/app/sitemap"
 import DocumentLayout from "@/app/(documents)/layout"
+import DocumentError from "@/app/(documents)/error"
+import DocumentNotFound from "@/app/(documents)/not-found"
 import { documentSections, siteUrl } from "@/lib/content"
 import type { DocumentRepository, PublishedDocument, PublishedDocumentFilter } from "@/lib/documents/types"
 
@@ -127,6 +129,95 @@ describe("public document pages", () => {
     expect(screen.getByRole("link", { name: /Service update/ })).toHaveAttribute(
       "href",
       "/notices/service-update?locale=en",
+    )
+  })
+
+  it.each([
+    ["notice", "en", "Filter notices by category", "Service"],
+    ["disclosure", "ko", "공시 카테고리 필터", "재무"],
+  ] as const)("renders localized category filters for %s", async (kind, locale, filterLabel, categoryLabel) => {
+    const section = documentSections[kind]
+    render(await DocumentIndex({
+      kind,
+      locale,
+      section,
+      repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
+    }))
+
+    const filters = screen.getByRole("navigation", { name: filterLabel })
+    expect(within(filters).getByRole("link", { name: categoryLabel })).toHaveAttribute(
+      "href",
+      `${section.path}?locale=${locale}&category=${kind === "notice" ? "service" : "financial"}`,
+    )
+  })
+
+  it.each([
+    ["legal", "en", "Privacy"],
+    ["design", "ko", "브랜드"],
+  ] as const)("visibly groups %s documents by category", async (kind, locale, categoryHeading) => {
+    const category = kind === "legal" ? "privacy" : "brand"
+    render(await DocumentIndex({
+      kind,
+      locale,
+      section: documentSections[kind],
+      repository: repository({ listPublished: vi.fn().mockResolvedValue([{ ...published, kind, locale, category }]) }),
+    }))
+
+    expect(screen.getByRole("heading", { level: 2, name: categoryHeading })).toBeInTheDocument()
+  })
+
+  it("ignores an invalid page category before cache/repository lookup and link creation", async () => {
+    const store = repository()
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "ko",
+      section: documentSections.notice,
+      category: "financial",
+      repository: store,
+    }))
+
+    expect(store.listPublished).toHaveBeenCalledWith(expect.objectContaining({ category: undefined }))
+    expect(screen.getAllByRole("link", { name: /서비스 업데이트/ })[0]).toHaveAttribute(
+      "href",
+      "/notices/service-update?locale=ko",
+    )
+  })
+
+  it("preserves a valid category through detail, pagination, and back links", async () => {
+    const documents = Array.from({ length: 21 }, (_, index) => ({
+      ...published,
+      id: `8ca55b3d-a4fc-4a41-b922-${String(index + 1).padStart(12, "0")}`,
+      slug: `service-update-${index + 1}`,
+      publishedAt: new Date(published.publishedAt.getTime() - index * 1_000),
+    }))
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "ko",
+      section: documentSections.notice,
+      category: "service",
+      repository: repository({ listPublished: vi.fn().mockResolvedValue(documents) }),
+    }))
+
+    expect(screen.getAllByRole("link", { name: /서비스 업데이트/ })[0]).toHaveAttribute(
+      "href",
+      "/notices/service-update-1?locale=ko&category=service",
+    )
+    expect(screen.getByRole("link", { name: "다음 문서" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/notices\?locale=ko&cursor=.*&category=service$/),
+    )
+
+    render(await DocumentDetail({
+      kind: "notice",
+      slug: "service-update",
+      locale: "ko",
+      section: documentSections.notice,
+      category: "service",
+      repository: repository(),
+    }))
+    expect(screen.getByRole("link", { name: "← 목록으로" })).toHaveAttribute(
+      "href",
+      "/notices?locale=ko&category=service",
     )
   })
 
@@ -245,6 +336,20 @@ describe("public document pages", () => {
       "/notices/service-update?locale=ko&category=service",
       { scroll: false },
     )
+  })
+
+  it("localizes document errors and not-found states from the active English context", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <DocumentError error={new Error("hidden")} reset={vi.fn()} />
+        <DocumentNotFound />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("heading", { name: "We could not load this document." }).closest("section")).toHaveAttribute("lang", "en")
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Document not found." }).closest("section")).toHaveAttribute("lang", "en")
+    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/")
   })
 
   it("keeps the homepage in the sitemap when document storage is unavailable", async () => {

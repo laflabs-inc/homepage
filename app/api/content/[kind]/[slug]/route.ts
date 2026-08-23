@@ -39,23 +39,30 @@ export async function handleContentDetail(
     return Response.json({ error: "invalid_request" }, { status: 400 })
   }
 
-  const lookup = await getPublishedDocument(
-    params.data.kind,
-    params.data.slug,
-    locale.data,
-    repository,
-  )
-  if (!lookup.document) {
+  try {
+    const lookup = await getPublishedDocument(
+      params.data.kind,
+      params.data.slug,
+      locale.data,
+      repository,
+    )
+    if (!lookup.document) {
+      return Response.json(
+        { error: "not_found" },
+        { status: 404, headers: { "Cache-Control": publicContentCacheControl } },
+      )
+    }
+
+    return responseWithEtag(request, {
+      document: detailDocument(lookup.document),
+      availableLocales: lookup.availableLocales,
+    })
+  } catch {
     return Response.json(
-      { error: "not_found" },
-      { status: 404, headers: { "Cache-Control": publicContentCacheControl } },
+      { error: "unavailable" },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
     )
   }
-
-  return responseWithEtag(request, {
-    document: detailDocument(lookup.document),
-    availableLocales: lookup.availableLocales,
-  })
 }
 
 export async function GET(

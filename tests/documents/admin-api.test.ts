@@ -416,7 +416,6 @@ describe("admin document revision actions", () => {
     expect(deps.service.publish).toHaveBeenCalledWith(revisionId, actor)
     expect(events[0]).toBe("commit")
     expect(events.slice(1)).toEqual([
-      "documents",
       "documents:sitemap",
       "documents:index:notice",
       "documents:index:notice:ko",
@@ -450,7 +449,7 @@ describe("admin document revision actions", () => {
 
     expect(response.status).toBe(200)
     expect(deps.service.archive).toHaveBeenCalledWith(revisionId, actor)
-    expect(deps.revalidate).toHaveBeenCalledTimes(6)
+    expect(deps.revalidate).toHaveBeenCalledTimes(5)
   })
 
   it("creates a new editable revision from immutable content", async () => {
