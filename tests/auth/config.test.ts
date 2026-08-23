@@ -73,6 +73,34 @@ describe("createAuthConfig", () => {
     )
   })
 
+  it("copies the GitHub provider account ID into the JWT", async () => {
+    membershipMock.mockResolvedValue(true)
+    const jwtCallback = createAuthConfig().callbacks?.jwt
+
+    const token = await jwtCallback?.({
+      token: {},
+      account: { providerAccountId: "4242", access_token: "token" },
+    } as never)
+
+    expect(token).toMatchObject({ githubId: "4242" })
+  })
+
+  it("preserves the GitHub ID when refreshing a JWT without an account", async () => {
+    membershipMock.mockResolvedValue(true)
+    const jwtCallback = createAuthConfig().callbacks?.jwt
+
+    const token = await jwtCallback?.({
+      token: {
+        githubId: "4242",
+        githubAccessToken: "token",
+        orgMember: true,
+        membershipCheckedAt: now,
+      },
+    } as never)
+
+    expect(token).toMatchObject({ githubId: "4242" })
+  })
+
   it("exposes membership but never the OAuth token in the session", async () => {
     const sessionCallback = createAuthConfig().callbacks?.session
 
@@ -82,6 +110,7 @@ describe("createAuthConfig", () => {
         expires: "2026-08-22T14:00:00.000Z",
       },
       token: {
+        githubId: "4242",
         githubAccessToken: "must-stay-server-side",
         orgMember: true,
       },
@@ -91,6 +120,7 @@ describe("createAuthConfig", () => {
       user: {
         name: "Admin",
         email: "admin@example.com",
+        githubId: "4242",
         orgMember: true,
       },
       expires: "2026-08-22T14:00:00.000Z",
