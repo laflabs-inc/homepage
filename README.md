@@ -91,5 +91,5 @@ Provision Neon, register the exact GitHub callback, migrate preview before
 production, and complete legal review of consent/privacy copy by following
 [docs/analytics-operations.md](docs/analytics-operations.md).
 
-AI configuration and credential procedures are in the
-[Agent operations runbook](docs/agent-operations.md).
+AI summary configuration, credential, retention, and production procedures are
+in the [AI summary operations runbook](docs/ai-operations.md).

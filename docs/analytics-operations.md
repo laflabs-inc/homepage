@@ -190,6 +190,8 @@ show a retryable error and preserve the visitor cookie for retry.
 
 ## 8. Verify consent, DNT, and public failure isolation
 
+Vercel Analytics and Speed Insights mount only after analytics consent and never when the browser sends `DNT: 1`. They do not mount for an unknown or essential-only choice.
+
 Use a clean browser profile and open the Network panel before loading the page:
 
 1. Confirm the bilingual panel is visible and the page remains scrollable.
