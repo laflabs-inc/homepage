@@ -43,6 +43,24 @@ describe("usageBuckets", () => {
       .toBe("2026-11-01")
   })
 
+  it("uses the first occurrence of a repeated New York 01:30 reset", () => {
+    expect(usageBuckets(new Date("2026-11-01T05:29:00.000Z"), "America/New_York", 90).day)
+      .toBe("2026-10-31")
+    expect(usageBuckets(new Date("2026-11-01T05:30:00.000Z"), "America/New_York", 90).day)
+      .toBe("2026-11-01")
+    expect(usageBuckets(new Date("2026-11-01T06:15:00.000Z"), "America/New_York", 90).day)
+      .toBe("2026-11-01")
+    expect(usageBuckets(new Date("2026-11-01T06:30:00.000Z"), "America/New_York", 90).day)
+      .toBe("2026-11-01")
+  })
+
+  it("advances a nonexistent New York 02:30 reset to the first valid minute", () => {
+    expect(usageBuckets(new Date("2026-03-08T06:59:00.000Z"), "America/New_York", 150).day)
+      .toBe("2026-03-07")
+    expect(usageBuckets(new Date("2026-03-08T07:00:00.000Z"), "America/New_York", 150).day)
+      .toBe("2026-03-08")
+  })
+
   it.each([-1, 1_440, 1.5])("rejects an invalid reset minute: %s", (minute) => {
     expect(() => usageBuckets(new Date("2026-08-22T00:00:00.000Z"), "UTC", minute)).toThrow(RangeError)
   })

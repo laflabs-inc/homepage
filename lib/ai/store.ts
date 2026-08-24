@@ -15,30 +15,39 @@ type SqlExecutor = {
   execute(query: SQL): Promise<{ rows: unknown[] }>
 }
 
+type SqlTransactionExecutor = SqlExecutor & {
+  transaction(queries: readonly [SQL, SQL]): Promise<readonly [
+    { rows: unknown[] },
+    { rows: unknown[] },
+  ]>
+}
+
 function safeInteger(value: unknown, name: string): number {
   const number = Number(value)
   if (!Number.isSafeInteger(number) || number < 0) throw new RangeError(`${name} is outside the safe integer range`)
   return number
 }
 
-export function createAiQuotaStore(database: SqlExecutor): AiQuotaStore {
+export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaStore {
   return {
     async reserveSummary(input: SummaryReservationInput) {
-      const result = await database.execute(sql`
+      const month = input.monthBucket.toISOString().slice(0, 7)
+      const [, result] = await database.transaction([sql`
+        SELECT pg_advisory_xact_lock(hashtextextended(${month}, 0)) AS "locked"
+      `, sql`
         WITH expired_reservations AS (
           DELETE FROM ${aiUsageReservations}
           WHERE "expires_at" <= ${input.now}
           RETURNING "id"
-        ), locked_settings AS (
+        ), settings AS (
           SELECT "monthly_cost_limit_microusd"
           FROM ${agentSettings}
           WHERE "id" = 'default'
-          FOR UPDATE
         ), monthly_usage AS (
           SELECT
             COALESCE(max(u."estimated_cost_microusd"), 0) AS "actualCostMicrousd",
             COALESCE(sum(r."reserved_cost_microusd"), 0) AS "reservedCostMicrousd"
-          FROM locked_settings
+          FROM settings
           LEFT JOIN ${aiUsageMonthly} u ON u."month_bucket" = ${input.monthBucket}
           LEFT JOIN ${aiUsageReservations} r
             ON r."month_bucket" = ${input.monthBucket}
@@ -50,18 +59,18 @@ export function createAiQuotaStore(database: SqlExecutor): AiQuotaStore {
           )
           SELECT NULL, NULL, ${input.monthBucket}, 'summary',
             ${input.reservedTokens}, ${input.reservedCostMicrousd}, ${input.expiresAt}, ${input.now}
-          FROM monthly_usage, locked_settings
+          FROM monthly_usage, settings
           WHERE monthly_usage."actualCostMicrousd" + monthly_usage."reservedCostMicrousd"
-              < locked_settings."monthly_cost_limit_microusd"
+              < settings."monthly_cost_limit_microusd"
             AND monthly_usage."actualCostMicrousd" + monthly_usage."reservedCostMicrousd"
-              + ${input.reservedCostMicrousd} <= locked_settings."monthly_cost_limit_microusd"
+              + ${input.reservedCostMicrousd} <= settings."monthly_cost_limit_microusd"
             AND (SELECT count(*) FROM expired_reservations) >= 0
           RETURNING "id"
         )
         SELECT inserted_reservation."id" AS "reservationId"
         FROM monthly_usage
         LEFT JOIN inserted_reservation ON true
-      `)
+      `])
       const row = result.rows[0] as { reservationId?: unknown } | undefined
       if (!row) throw new Error("Agent settings are unavailable")
       return typeof row.reservationId === "string"
@@ -139,5 +148,12 @@ export function createAiQuotaStore(database: SqlExecutor): AiQuotaStore {
 export const aiQuotaStore = createAiQuotaStore({
   execute(query) {
     return getDb().execute(query)
+  },
+  transaction(queries) {
+    const database = getDb()
+    return database.batch([
+      database.execute(queries[0]),
+      database.execute(queries[1]),
+    ])
   },
 })

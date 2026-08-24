@@ -4,13 +4,43 @@ function pad(value: number): string {
   return String(value).padStart(2, "0")
 }
 
+type LocalParts = { year: number; month: number; day: number; minute: number }
+
+function localParts(formatter: Intl.DateTimeFormat, instant: Date): LocalParts {
+  const values = Object.fromEntries(formatter.formatToParts(instant).map(({ type, value }) => [type, value]))
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day),
+    minute: Number(values.hour) * 60 + Number(values.minute),
+  }
+}
+
+function firstResetInstant(
+  formatter: Intl.DateTimeFormat,
+  { year, month, day }: LocalParts,
+  resetMinute: number,
+): number {
+  const nominal = Date.UTC(year, month - 1, day, Math.floor(resetMinute / 60), resetMinute % 60)
+  for (let instant = nominal - 15 * 60 * 60_000; instant <= nominal + 15 * 60 * 60_000; instant += 60_000) {
+    const candidate = localParts(formatter, new Date(instant))
+    if (
+      candidate.year === year
+      && candidate.month === month
+      && candidate.day === day
+      && candidate.minute >= resetMinute
+    ) return instant
+  }
+  return Number.POSITIVE_INFINITY
+}
+
 export function usageBuckets(now: Date, timeZone: string, dailyResetMinute: number): UsageBuckets {
   if (!Number.isFinite(now.getTime())) throw new RangeError("now must be a valid date")
   if (!Number.isSafeInteger(dailyResetMinute) || dailyResetMinute < 0 || dailyResetMinute > 1_439) {
     throw new RangeError("dailyResetMinute must be between 0 and 1439")
   }
 
-  const parts = new Intl.DateTimeFormat("en-US", {
+  const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone,
     calendar: "iso8601",
     numberingSystem: "latn",
@@ -20,15 +50,12 @@ export function usageBuckets(now: Date, timeZone: string, dailyResetMinute: numb
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
-  }).formatToParts(now)
-  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]))
-  const year = Number(values.year)
-  const month = Number(values.month)
-  const day = Number(values.day)
-  const localMinute = Number(values.hour) * 60 + Number(values.minute)
+  })
+  const current = localParts(formatter, now)
+  const { year, month, day } = current
   const monthBucket = `${year}-${pad(month)}`
 
-  if (localMinute >= dailyResetMinute) {
+  if (now.getTime() >= firstResetInstant(formatter, current, dailyResetMinute)) {
     return { day: `${monthBucket}-${pad(day)}`, month: monthBucket }
   }
 

@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { createAiQuotaStore } from "@/lib/ai/store"
 
 const execute = vi.fn()
-const store = createAiQuotaStore({ execute })
+const transaction = vi.fn()
+const store = createAiQuotaStore({ execute, transaction })
 const now = new Date("2026-08-24T10:00:00.000Z")
 const expiresAt = new Date("2026-08-24T10:01:30.000Z")
 const monthBucket = new Date("2026-08-01T00:00:00.000Z")
@@ -14,11 +15,21 @@ function compiledCall(index = 0) {
   return new PgDialect().sqlToQuery(execute.mock.calls[index][0])
 }
 
-beforeEach(() => execute.mockReset())
+function compiledTransactionCall(statement: number, transactionCall = 0) {
+  return new PgDialect().sqlToQuery(transaction.mock.calls[transactionCall][0][statement])
+}
+
+beforeEach(() => {
+  execute.mockReset()
+  transaction.mockReset()
+})
 
 describe("AI summary quota store", () => {
-  it("deletes expiry, locks settings, totals actual and live reservations, and conditionally inserts in one statement", async () => {
-    execute.mockResolvedValue({ rows: [{ reservationId }] })
+  it("locks the month before cleanup and reservation in the same transaction", async () => {
+    transaction.mockResolvedValue([
+      { rows: [{ locked: null }] },
+      { rows: [{ reservationId }] },
+    ])
 
     await expect(store.reserveSummary({
       monthBucket,
@@ -28,17 +39,26 @@ describe("AI summary quota store", () => {
       expiresAt,
     })).resolves.toEqual({ status: "reserved", id: reservationId })
 
-    expect(execute).toHaveBeenCalledTimes(1)
-    const compiled = compiledCall()
+    expect(execute).not.toHaveBeenCalled()
+    expect(transaction).toHaveBeenCalledTimes(1)
+    expect(transaction.mock.calls[0][0]).toHaveLength(2)
+
+    const lock = compiledTransactionCall(0)
+    const normalizedLock = lock.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedLock).toContain("select pg_advisory_xact_lock(hashtextextended(")
+    expect(lock.params).toEqual(["2026-08"])
+
+    const compiled = compiledTransactionCall(1)
     const normalized = compiled.sql.replace(/\s+/g, " ").toLowerCase()
     expect(normalized).toContain("with expired_reservations as ( delete from \"ai_usage_reservations\"")
-    expect(normalized).toContain("locked_settings as")
-    expect(normalized).toContain("for update")
+    expect(normalized).toContain("settings as")
+    expect(normalized).not.toContain("for update")
+    expect(normalized).not.toContain("pg_advisory")
     expect(normalized).toContain("coalesce(sum(r.\"reserved_cost_microusd\"), 0)")
     expect(normalized).toContain("r.\"expires_at\" >")
     expect(normalized).toContain("u.\"estimated_cost_microusd\"")
-    expect(normalized).toContain("< locked_settings.\"monthly_cost_limit_microusd\"")
-    expect(normalized).toContain("<= locked_settings.\"monthly_cost_limit_microusd\"")
+    expect(normalized).toContain("< settings.\"monthly_cost_limit_microusd\"")
+    expect(normalized).toContain("<= settings.\"monthly_cost_limit_microusd\"")
     expect(normalized).toContain("insert into \"ai_usage_reservations\"")
     expect(normalized).toContain("select null, null,")
     expect(normalized).toContain("'summary'")
@@ -52,7 +72,10 @@ describe("AI summary quota store", () => {
   })
 
   it("maps a rejected conditional insert to the monthly limit", async () => {
-    execute.mockResolvedValue({ rows: [{ reservationId: null }] })
+    transaction.mockResolvedValue([
+      { rows: [{ locked: null }] },
+      { rows: [{ reservationId: null }] },
+    ])
 
     await expect(store.reserveSummary({
       monthBucket,
@@ -61,6 +84,39 @@ describe("AI summary quota store", () => {
       now,
       expiresAt,
     })).resolves.toEqual({ status: "monthly_limit" })
+  })
+
+  it("gives concurrent attempts the same month-only lock before either reservation query", async () => {
+    transaction
+      .mockResolvedValueOnce([
+        { rows: [{ locked: null }] },
+        { rows: [{ reservationId }] },
+      ])
+      .mockResolvedValueOnce([
+        { rows: [{ locked: null }] },
+        { rows: [{ reservationId: null }] },
+      ])
+
+    const input = {
+      monthBucket,
+      reservedTokens: 1_115,
+      reservedCostMicrousd: 1_715,
+      now,
+      expiresAt,
+    }
+    const results = await Promise.all([store.reserveSummary(input), store.reserveSummary(input)])
+
+    expect(results).toEqual([
+      { status: "reserved", id: reservationId },
+      { status: "monthly_limit" },
+    ])
+    expect(transaction).toHaveBeenCalledTimes(2)
+    for (const call of [0, 1]) {
+      expect(transaction.mock.calls[call][0]).toHaveLength(2)
+      expect(compiledTransactionCall(0, call).params).toEqual(["2026-08"])
+      expect(compiledTransactionCall(0, call).sql.toLowerCase()).toContain("pg_advisory_xact_lock")
+      expect(compiledTransactionCall(1, call).sql.toLowerCase()).toContain("insert into")
+    }
   })
 
   it("deletes exactly one summary reservation and upserts actual monthly usage once", async () => {
