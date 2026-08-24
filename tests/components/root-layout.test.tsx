@@ -31,12 +31,12 @@ vi.mock("@/components/i18n/locale-provider", () => ({
 import RootLayout, { metadata } from "@/app/layout"
 
 describe("RootLayout", () => {
-  it("loads Vercel Web Analytics and Speed Insights for every route", async () => {
+  it("does not mount Vercel telemetry outside the consent boundary", async () => {
     const layout = await RootLayout({ children: <main>Homepage</main> })
     const html = renderToStaticMarkup(layout)
 
-    expect(html).toContain('data-vercel-analytics="enabled"')
-    expect(html).toContain('data-vercel-speed-insights="enabled"')
+    expect(html).not.toContain('data-vercel-analytics="enabled"')
+    expect(html).not.toContain('data-vercel-speed-insights="enabled"')
   })
 
   it("uses the official LafLabs mark as the browser icon", () => {

@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/client"
@@ -164,6 +166,12 @@ export function ConsentProvider({
         onChoose={choose}
         onClose={state === "unknown" ? null : closeSettings}
       />
+      {!dnt && state === "analytics" ? (
+        <>
+          <Analytics />
+          <SpeedInsights />
+        </>
+      ) : null}
     </ConsentContext.Provider>
   )
 }

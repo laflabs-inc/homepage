@@ -1,13 +1,20 @@
 # Task 2 report
 
-Implemented the AI credential security boundary on base `f5a6d8c`.
+Task 2 was narrowed by the user to the existing Vercel telemetry consent bugfix.
 
-- Added lazy `getAiSecurityEnv()` validation: canonical base64 decoding to exactly 32 bytes, independent cookie secret of at least 32 characters, and no secret values in validation messages.
-- Added AES-256-GCM credential encryption with a fresh 12-byte IV, 16-byte authentication tag, normalized `CredentialDecryptionError`, and 12-character SHA-256 fingerprints.
-- Updated `.env.example` with variable names and generation guidance only; no credential or API-key material was added.
+- Moved Vercel Analytics and Speed Insights inside the existing consent provider.
+- Both integrations mount only for active analytics consent with DNT disabled.
+- Changing from essential-only to analytics consent mounts both integrations without a reload.
+- Kept consent policy version 1 and the existing analytics copy unchanged.
+
+Deferred with the postponed public AI question functionality:
+
+- policy version 2 and AI disclosure copy;
+- `requestConsent()`;
+- independent AI identity tokens and cookies; and
+- AI identity tests.
 
 Verification:
 
-- `npm run test:unit -- tests/agent/crypto.test.ts tests/agent/env.test.ts` — 9 passed.
-- `npm run typecheck && npm run lint && npm run test:unit` — 447 passed.
-- `npm run build` — passed with AI security variables absent.
+- `npm run test:unit -- tests/analytics tests/components/consent-panel.test.tsx tests/components/root-layout.test.tsx` — 171 passed.
+- `npm run test` — typecheck, lint, 544 unit tests, and production build passed.
