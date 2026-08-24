@@ -7,13 +7,13 @@ import { getDb } from "@/lib/db"
 import { adminAuditLog, documentRevisions, documentSeries } from "@/lib/db/schema"
 import { documentLocales } from "@/lib/documents/types"
 import type {
-  AdminDocumentFilter,
   AdminDocumentSummary,
   AdminDocumentSummaryFilter,
   DocumentDraftInput,
   DocumentKind,
   DocumentRepository,
   DocumentRevision,
+  DocumentSeriesRevisionState,
   Locale,
   PublishedDocument,
   PublishedDocumentFilter,
@@ -213,6 +213,30 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       `)
       const row = result.rows[0] as { id: string; metadataLocked: boolean } | undefined
       return row ? { id: row.id, metadataLocked: row.metadataLocked } : null
+    },
+
+    async listSeriesRevisionStates(seriesId) {
+      const result = await database.execute(sql`
+        SELECT r."id" AS "id", r."series_id" AS "seriesId", s."kind" AS "kind",
+          r."locale" AS "locale", s."slug" AS "slug", s."category" AS "category",
+          s."pinned" AS "pinned", r."status" AS "status"
+        FROM ${documentRevisions} r
+        INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+        WHERE r."series_id" = ${seriesId}::uuid
+      `)
+      return result.rows.map((row) => {
+        const state = row as DocumentSeriesRevisionState
+        return {
+          id: state.id,
+          seriesId: state.seriesId,
+          kind: state.kind,
+          locale: state.locale,
+          slug: state.slug,
+          category: state.category,
+          pinned: state.pinned,
+          status: state.status,
+        }
+      })
     },
 
     async updateDraft(revisionId, input, actor) {
@@ -671,30 +695,15 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return result.rows[0] ? mapRevision(result.rows[0]) : null
     },
 
-    async listAdmin(filter: AdminDocumentFilter = {}) {
-      const conditions: SQL[] = []
-      if (filter.seriesId) conditions.push(sql`r."series_id" = ${filter.seriesId}::uuid`)
-      if (filter.kind) conditions.push(sql`s."kind" = ${filter.kind}::document_kind`)
-      if (filter.locale) conditions.push(sql`r."locale" = ${filter.locale}::document_locale`)
-      if (filter.status) conditions.push(sql`r."status" = ${filter.status}::document_status`)
-      const where = conditions.length ? sql`WHERE ${sql.join(conditions, sql` AND `)}` : sql``
-      const result = await database.execute(sql`
-        SELECT ${revisionSelect}
-        FROM ${documentRevisions} r
-        INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
-        ${where}
-        ORDER BY r."updated_at" DESC, r."id" DESC
-      `)
-      return result.rows.map(mapRevision)
-    },
-
     async listAdminSummaries(filter: AdminDocumentSummaryFilter = {}) {
       const conditions: SQL[] = []
       if (filter.seriesId) conditions.push(sql`r."series_id" = ${filter.seriesId}::uuid`)
       if (filter.kind) conditions.push(sql`s."kind" = ${filter.kind}::document_kind`)
       if (filter.locale) conditions.push(sql`r."locale" = ${filter.locale}::document_locale`)
       if (filter.status) conditions.push(sql`r."status" = ${filter.status}::document_status`)
-      if (filter.search) conditions.push(sql`r."title" ILIKE ${`%${filter.search}%`}`)
+      if (filter.search) {
+        conditions.push(sql`r."title" ILIKE ${`%${filter.search.replace(/[\\%_]/g, "\\$&")}%`} ESCAPE '\\'`)
+      }
       if (filter.before) {
         conditions.push(sql`(r."updated_at", r."id") < (${filter.before.updatedAt}, ${filter.before.id}::uuid)`)
       }

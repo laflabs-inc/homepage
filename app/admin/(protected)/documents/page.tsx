@@ -16,7 +16,7 @@ const pageQuerySchema = z.object({
   kind: z.enum(documentKinds).optional(),
   locale: z.enum(documentLocales).optional(),
   status: z.enum(documentStatuses).optional(),
-  search: z.string().trim().min(1).max(160).optional(),
+  search: z.string().trim().max(160).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   cursor: z.string().max(512).optional(),
 }).strict()
@@ -29,13 +29,14 @@ export default async function DocumentsPage({
   await requireAdmin()
   const parsed = pageQuerySchema.safeParse(await searchParams)
   if (!parsed.success) notFound()
-  const { cursor, ...filter } = parsed.data
+  const { cursor, search, ...baseFilter } = parsed.data
+  const filter = search ? { ...baseFilter, search } : baseFilter
   const before = cursor ? decodeAdminDocumentCursor(cursor) : undefined
   if (cursor && !before) notFound()
   const page = await documentService.listAdminSummaries(before ? { ...filter, before } : filter)
   const rows = page.items.map(toAdminDocumentListRow)
   const initialFilters = {
-    search: filter.search,
+    search: search || undefined,
     kind: filter.kind,
     status: filter.status,
     locale: filter.locale,

@@ -31,12 +31,15 @@ export function DocumentList({
     && (!locale || revision.locale === locale)
   )), [kind, locale, rows, search, status])
 
-  function pageHref(cursor?: string): string {
+  function pageHref(
+    filters: NonNullable<DocumentListProps["initialFilters"]>,
+    cursor?: string,
+  ): string {
     const query = new URLSearchParams()
-    if (search) query.set("search", search)
-    if (kind) query.set("kind", kind)
-    if (status) query.set("status", status)
-    if (locale) query.set("locale", locale)
+    if (filters.search) query.set("search", filters.search)
+    if (filters.kind) query.set("kind", filters.kind)
+    if (filters.status) query.set("status", filters.status)
+    if (filters.locale) query.set("locale", filters.locale)
     query.set("limit", String(limit))
     if (cursor) query.set("cursor", cursor)
     return `/admin/documents?${query.toString()}`
@@ -75,8 +78,8 @@ export function DocumentList({
         </label>
       </div>
       <div className={styles.editorActions}>
-        <Link href={pageHref()}>Apply filters</Link>
-        {nextCursor ? <Link href={pageHref(nextCursor)}>Next page</Link> : null}
+        <Link href={pageHref({ search, kind, status, locale })}>Apply filters</Link>
+        {nextCursor ? <Link href={pageHref(initialFilters, nextCursor)}>Next page</Link> : null}
       </div>
       {filtered.length === 0 ? (
         <div className={styles.documentEmpty}>

@@ -17,7 +17,7 @@ const listQuerySchema = z.object({
   locale: z.enum(documentLocales).optional(),
   status: z.enum(documentStatuses).optional(),
   seriesId: z.uuid().optional(),
-  search: z.string().trim().min(1).max(160).optional(),
+  search: z.string().trim().max(160).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   cursor: z.string().max(512).optional(),
 }).strict()
@@ -39,7 +39,8 @@ export async function handleListDocuments(
   }
   const parsed = listQuerySchema.safeParse(query)
   if (!parsed.success) return jsonNoStore({ error: "invalid_request" }, { status: 400 })
-  const { cursor, ...filter } = parsed.data
+  const { cursor, search, ...baseFilter } = parsed.data
+  const filter = search ? { ...baseFilter, search } : baseFilter
   const before = cursor ? decodeAdminDocumentCursor(cursor) : undefined
   if (cursor && !before) return jsonNoStore({ error: "invalid_request" }, { status: 400 })
 

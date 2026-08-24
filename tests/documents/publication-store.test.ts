@@ -489,9 +489,23 @@ describe("document publication store boundary", () => {
     expect(compiled.params).toContain(3)
   })
 
-  it("applies title search inside the bounded admin summary query", async () => {
+  it("loads only series-scoped invariant state without document bodies or summaries", async () => {
     execute.mockResolvedValue({ rows: [] })
-    const filter = { search: "Privacy", limit: 25 } as Parameters<typeof store.listAdminSummaries>[0] & {
+
+    await store.listSeriesRevisionStates("c5bcf607-a48f-42b9-af99-55c70ef48640")
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain('where r."series_id" =')
+    expect(normalizedSql).not.toContain("body_markdown")
+    expect(normalizedSql).not.toContain('r."summary"')
+    expect(normalizedSql).not.toContain('r."title"')
+    expect(normalizedSql).not.toContain('r."created_by"')
+  })
+
+  it("applies escaped literal title search inside the bounded admin summary query", async () => {
+    execute.mockResolvedValue({ rows: [] })
+    const filter = { search: String.raw`50%_off\today`, limit: 25 } as Parameters<typeof store.listAdminSummaries>[0] & {
       search: string
     }
 
@@ -499,8 +513,9 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("r.\"title\" ilike")
-    expect(compiled.params).toContain("%Privacy%")
+    expect(normalizedSql).toContain('r."title" ilike')
+    expect(normalizedSql).toContain("escape '\\'")
+    expect(compiled.params).toContain(String.raw`%50\%\_off\\today%`)
   })
 })
 

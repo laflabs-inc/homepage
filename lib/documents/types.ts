@@ -142,10 +142,16 @@ export type DocumentSeriesState = {
   metadataLocked: boolean
 }
 
+export type DocumentSeriesRevisionState = Pick<
+  DocumentRevision,
+  "id" | "seriesId" | "kind" | "locale" | "slug" | "category" | "pinned" | "status"
+>
+
 export interface DocumentRepository {
   createDraft(input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
   getRevision(revisionId: string): Promise<DocumentRevision | null>
   getSeriesState(seriesId: string): Promise<DocumentSeriesState | null>
+  listSeriesRevisionStates(seriesId: string): Promise<DocumentSeriesRevisionState[]>
   updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
   deleteDraft(revisionId: string, actor: AdminActor): Promise<void>
   createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
@@ -153,7 +159,6 @@ export interface DocumentRepository {
   returnScheduledToDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision>
   publishRevision(revisionId: string, snapshot: PublicationTransitionSnapshot, actor: AdminActor, now: Date): Promise<DocumentRevision>
   archiveCurrent(seriesId: string, locale: Locale, expectedRevisionId: string, actor: AdminActor, now: Date): Promise<DocumentRevision | null>
-  listAdmin(filter?: AdminDocumentFilter): Promise<DocumentRevision[]>
   listAdminSummaries(filter?: AdminDocumentSummaryFilter): Promise<AdminDocumentSummaryPage>
   listPublished(filter: PublishedDocumentFilter): Promise<PublishedDocument[]>
   getPublished(kind: DocumentKind, slug: string, locale: Locale): Promise<PublishedLookup>

@@ -3,10 +3,10 @@ import userEvent from "@testing-library/user-event"
 import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const navigationMocks = vi.hoisted(() => ({ replace: vi.fn() }))
+const navigationMocks = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }))
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: navigationMocks.replace }),
+  useRouter: () => navigationMocks,
 }))
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) => (
@@ -55,6 +55,10 @@ function AppRouterTreeHarness() {
   const [tree, setTree] = useState({ path: revisionPath, traversals: 0 })
 
   useEffect(() => {
+    navigationMocks.push.mockImplementation((href: string) => {
+      window.history.pushState(window.history.state, "", href)
+      setTree((current) => ({ ...current, path: new URL(href, window.location.href).pathname }))
+    })
     navigationMocks.replace.mockImplementation((href: string) => {
       window.history.replaceState(window.history.state, "", href)
       setTree((current) => ({ ...current, path: new URL(href, window.location.href).pathname }))
@@ -93,6 +97,7 @@ function okDeleteResponse() {
 beforeEach(() => {
   vi.restoreAllMocks()
   navigationMocks.replace.mockReset()
+  navigationMocks.push.mockReset()
   window.history.replaceState({}, "", `/admin/documents/${revision.id}`)
   vi.stubGlobal("fetch", vi.fn((input: string | URL | Request, init?: RequestInit) => {
     const path = String(input)
@@ -214,6 +219,21 @@ describe("document admin", () => {
     expect(window.location.pathname).toBe(`/admin/documents/${revision.id}`)
   })
 
+  it("retires the sentinel before confirmed persistent admin-link navigation", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({ __NA: true, tree: "list" }, "", "/admin/documents")
+    window.history.pushState({ __NA: true, tree: "editor" }, "", revisionPath)
+    render(<><AdminNav /><AppRouterTreeHarness /></>)
+
+    await user.type(screen.getByRole("textbox", { name: "Summary" }), " discard")
+    await user.click(screen.getByRole("link", { name: "Analytics" }))
+
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/analytics"))
+    expect(screen.getByText("Destination route tree")).toBeInTheDocument()
+    expect(window.history.state).not.toHaveProperty("__laf_document_dirty_sentinel")
+    expect(navigationMocks.push).toHaveBeenCalledWith("/admin/analytics")
+  })
+
   it("cancels Back without destroying its destination and replays it after confirmation", async () => {
     const user = userEvent.setup()
     vi.mocked(window.confirm).mockReturnValueOnce(false).mockReturnValueOnce(true)
@@ -313,6 +333,24 @@ describe("document admin", () => {
     expect(screen.getByRole("button", { name: "Publish now" })).toBeDisabled()
   })
 
+  it("retires the dirty sentinel after save so one Back reaches the original destination", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({ __NA: true, tree: "analytics" }, "", "/admin/analytics")
+    window.history.pushState({ __NA: true, tree: "editor" }, "", revisionPath)
+    render(<AppRouterTreeHarness />)
+
+    await user.type(screen.getByRole("textbox", { name: "Summary" }), " saved")
+    await user.click(screen.getByRole("button", { name: "Save draft" }))
+    expect(await screen.findByText("Draft saved.")).toBeInTheDocument()
+    await waitFor(() => expect(window.history.state).not.toHaveProperty("__laf_document_dirty_sentinel"))
+
+    window.history.back()
+
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/analytics"))
+    expect(screen.getByText("Destination route tree")).toBeInTheDocument()
+    expect(window.confirm).not.toHaveBeenCalled()
+  })
+
   it("creates an English draft from explicit Korean-series context", async () => {
     const user = userEvent.setup()
     const fetchMock = vi.mocked(fetch)
@@ -405,6 +443,29 @@ describe("document admin", () => {
     expect(screen.getByText("No documents match these filters.")).toBeInTheDocument()
   })
 
+  it("keeps Next pagination on applied filters while controls have unapplied edits", async () => {
+    const user = userEvent.setup()
+    render(<DocumentList
+      rows={[revision].map(toAdminDocumentListRow)}
+      nextCursor="opaque-next"
+      limit={25}
+      initialFilters={{ search: "service", kind: "notice", locale: "ko", status: "draft" }}
+    />)
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
+    await user.clear(screen.getByRole("searchbox", { name: "Search documents" }))
+    await user.type(screen.getByRole("searchbox", { name: "Search documents" }), "privacy")
+
+    expect(screen.getByRole("link", { name: "Apply filters" })).toHaveAttribute(
+      "href",
+      "/admin/documents?search=privacy&kind=legal&status=draft&locale=ko&limit=25",
+    )
+    expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute(
+      "href",
+      "/admin/documents?search=service&kind=notice&status=draft&locale=ko&limit=25&cursor=opaque-next",
+    )
+  })
+
   it("confirms draft deletion and navigates safely to the document list", async () => {
     const user = userEvent.setup()
     const fetchMock = vi.mocked(fetch)
@@ -419,6 +480,22 @@ describe("document admin", () => {
       body: "{}",
     })
     expect(navigationMocks.replace).toHaveBeenCalledWith("/admin/documents")
+  })
+
+  it("retires a dirty sentinel before delete navigation so Back cannot reopen the deleted editor", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({ __NA: true, tree: "analytics" }, "", "/admin/analytics")
+    window.history.pushState({ __NA: true, tree: "editor" }, "", revisionPath)
+    render(<AppRouterTreeHarness />)
+
+    await user.type(screen.getByRole("textbox", { name: "Summary" }), " delete me")
+    await user.click(screen.getByRole("button", { name: "Delete draft" }))
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/documents"))
+
+    window.history.back()
+
+    await waitFor(() => expect(window.location.pathname).toBe("/admin/analytics"))
+    expect(screen.queryByRole("textbox", { name: "Title" })).not.toBeInTheDocument()
   })
 
   it("renders published content as immutable metadata with revision actions", () => {

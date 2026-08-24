@@ -127,12 +127,30 @@ describe("protected admin document queries", () => {
     )
   })
 
+  it("canonicalizes whitespace-only search to an absent filter", async () => {
+    const renderPage = DocumentsPage as unknown as (props: {
+      searchParams: Promise<Record<string, string>>
+    }) => ReturnType<typeof DocumentsPage>
+
+    render(await renderPage({ searchParams: Promise.resolve({ search: "   " }) }))
+
+    expect(serviceMocks.listAdminSummaries).toHaveBeenCalledWith({ limit: 50 })
+    expect(screen.getByRole("searchbox", { name: "Search documents" })).toHaveValue("")
+  })
+
   it("loads a revision detail directly by ID", async () => {
     render(await DocumentRevisionPage({ params: Promise.resolve({ revisionId: revision.id }) }))
 
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(revision.title)
     expect(serviceMocks.getRevision).toHaveBeenCalledWith(revision.id)
     expect(serviceMocks.listAdmin).not.toHaveBeenCalled()
+  })
+
+  it("rejects a malformed revision detail ID before querying storage", async () => {
+    await expect(DocumentRevisionPage({ params: Promise.resolve({ revisionId: "not-a-uuid" }) }))
+      .rejects.toThrow("not found")
+
+    expect(serviceMocks.getRevision).not.toHaveBeenCalled()
   })
 
   it("loads the Korean English-template source directly by ID", async () => {

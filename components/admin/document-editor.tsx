@@ -123,7 +123,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   const [notice, setNotice] = useState<string | null>(null)
 
   const discardChanges = useCallback(() => setDirty(false), [])
-  useDirtyNavigationGuard(dirty, discardChanges)
+  const retireDirtyNavigationGuard = useDirtyNavigationGuard(dirty, discardChanges)
 
   const categoryOptions = useMemo(() => categoriesByKind[values.kind], [values.kind])
   const editable = !revision || revision.status === "draft"
@@ -182,7 +182,10 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
     const saved = await requestMutation(path, revision ? "PATCH" : "POST", body, submittedValues)
     if (!saved) return
     setNotice(saved.newerEdits ? "Draft saved. Newer edits are not saved." : "Draft saved.")
-    if (!revision && !saved.newerEdits) router.replace(`/admin/documents/${saved.revision.id}`)
+    if (!revision && !saved.newerEdits) {
+      await retireDirtyNavigationGuard()
+      router.replace(`/admin/documents/${saved.revision.id}`)
+    }
   }
 
   async function confirmedAction(
@@ -212,6 +215,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
       if (!response.ok) throw new Error("request failed")
       const payload = await response.json() as { ok?: boolean }
       if (payload.ok !== true) throw new Error("invalid response")
+      await retireDirtyNavigationGuard()
       setDirty(false)
       router.replace("/admin/documents")
     } catch {

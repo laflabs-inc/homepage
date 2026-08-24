@@ -127,7 +127,7 @@ export function createDocumentService(repository: DocumentRepository) {
 
     async createEnglishDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
       const validInput = requireValidDraft(input)
-      const series = await repository.listAdmin({ seriesId })
+      const series = await repository.listSeriesRevisionStates(seriesId)
       const korean = series.find(({ locale }) => locale === "ko")
       if (!korean) {
         throw new DocumentServiceError("korean_required", "Create the Korean revision first")
@@ -175,7 +175,7 @@ export function createDocumentService(repository: DocumentRepository) {
       if (source.status !== "published" && source.status !== "archived") {
         throw new DocumentServiceError("conflict", "A new revision must begin from immutable content")
       }
-      const series = await repository.listAdmin({ seriesId: source.seriesId })
+      const series = await repository.listSeriesRevisionStates(source.seriesId)
       if (series.some(({ locale, status }) => locale === source.locale && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable revision already exists")
       }
@@ -228,8 +228,8 @@ export function createDocumentService(repository: DocumentRepository) {
         throw new DocumentServiceError("conflict", "Only the current published revision may be archived")
       }
       if (revision.locale === "ko") {
-        const series = await repository.listAdmin({ seriesId: revision.seriesId, locale: "en", status: "published" })
-        if (series.length > 0) {
+        const series = await repository.listSeriesRevisionStates(revision.seriesId)
+        if (series.some(({ locale, status }) => locale === "en" && status === "published")) {
           throw new DocumentServiceError("conflict", "Archive the published English revision first")
         }
       }
@@ -238,7 +238,6 @@ export function createDocumentService(repository: DocumentRepository) {
       return archived
     },
 
-    listAdmin: repository.listAdmin.bind(repository),
     listAdminSummaries: repository.listAdminSummaries.bind(repository),
     getRevision: repository.getRevision.bind(repository),
 
@@ -251,8 +250,8 @@ export function createDocumentService(repository: DocumentRepository) {
 export const documentService = createDocumentService(documentStore)
 
 async function requirePublishedKorean(repository: DocumentRepository, seriesId: string): Promise<void> {
-  const series = await repository.listAdmin({ seriesId, locale: "ko" })
-  if (!series.some(({ status }) => status === "published")) {
+  const series = await repository.listSeriesRevisionStates(seriesId)
+  if (!series.some(({ locale, status }) => locale === "ko" && status === "published")) {
     throw new DocumentServiceError("korean_not_published", "Publish the Korean revision first")
   }
 }

@@ -168,6 +168,18 @@ describe("admin document collection", () => {
     })
   })
 
+  it("canonicalizes whitespace-only search to an absent filter", async () => {
+    const deps = dependencies()
+
+    const response = await handleListDocuments(
+      new Request("https://laflabs.co/api/admin/documents?search=%20%20%20"),
+      deps,
+    )
+
+    expect(response.status).toBe(200)
+    expect(deps.service.listAdminSummaries).toHaveBeenCalledWith({ limit: 50 })
+  })
+
   it.each([
     "limit=0",
     "limit=101",

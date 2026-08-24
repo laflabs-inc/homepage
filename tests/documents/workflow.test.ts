@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it } from "vitest"
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { createDocumentService } from "@/lib/documents/service"
 import type {
-  AdminDocumentFilter,
   AdminDocumentSummary,
   AdminDocumentSummaryFilter,
   AdminDocumentSummaryPage,
@@ -11,6 +10,7 @@ import type {
   DocumentDraftInput,
   DocumentRepository,
   DocumentRevision,
+  DocumentSeriesRevisionState,
   Locale,
   PublishedDocument,
   PublishedDocumentFilter,
@@ -38,6 +38,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   audits: AuditAction[] = []
   metadataLockedSeries = new Set<string>()
   readFailure: Error | null = null
+  seriesStateReads: string[] = []
   replaceBeforeArchive = false
   transitionMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown" | "effectiveAt">> | null = null
   private nextId = 1
@@ -95,6 +96,22 @@ class MemoryDocumentRepository implements DocumentRepository {
     return this.revisions.some((revision) => revision.seriesId === seriesId)
       ? { id: seriesId, metadataLocked: this.metadataLockedSeries.has(seriesId) }
       : null
+  }
+
+  async listSeriesRevisionStates(seriesId: string): Promise<DocumentSeriesRevisionState[]> {
+    this.seriesStateReads.push(seriesId)
+    return this.revisions
+      .filter((revision) => revision.seriesId === seriesId)
+      .map(({ id, seriesId: revisionSeriesId, kind, locale, slug, category, pinned, status }) => ({
+        id,
+        seriesId: revisionSeriesId,
+        kind,
+        locale,
+        slug,
+        category,
+        pinned,
+        status,
+      }))
   }
 
   async updateDraft(revisionId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
@@ -227,15 +244,13 @@ class MemoryDocumentRepository implements DocumentRepository {
     return revision
   }
 
-  async listAdmin(filter: AdminDocumentFilter = {}): Promise<DocumentRevision[]> {
-    return this.revisions.filter((revision) => Object.entries(filter).every(([key, value]) => revision[key as keyof DocumentRevision] === value))
-  }
-
   async listAdminSummaries(filter: AdminDocumentSummaryFilter = {}): Promise<AdminDocumentSummaryPage> {
     const limit = filter.limit ?? 50
-    const { before, limit: _limit, ...adminFilter } = filter
+    const { before, limit: _limit, search, ...adminFilter } = filter
     void _limit
-    const revisions = (await this.listAdmin(adminFilter))
+    const revisions = this.revisions
+      .filter((revision) => Object.entries(adminFilter).every(([key, value]) => revision[key as keyof DocumentRevision] === value))
+      .filter((revision) => !search || revision.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
       .filter((revision) => !before || (
         revision.updatedAt.getTime() < before.updatedAt.getTime()
         || (revision.updatedAt.getTime() === before.updatedAt.getTime() && revision.id < before.id)
@@ -323,6 +338,19 @@ beforeEach(() => {
 })
 
 describe("document workflow service", () => {
+  it("uses series-scoped state projections for cross-revision mutation invariants", async () => {
+    const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
+    await service.createEnglishDraft("series-1", { ...input, locale: "en" }, actor)
+    const english = repository.revisions.find((item) => item.locale === "en")
+    if (!english) expect.unreachable("English draft was not created")
+    await service.publish(english.id, actor, now)
+    await service.createNextDraft(korean.id, actor)
+    await service.archive(english.id, actor, now)
+    await service.archive(korean.id, actor, now)
+
+    expect(repository.seriesStateReads).toEqual(["series-1", "series-1", "series-1", "series-1"])
+  })
+
   it("rejects edits to immutable published revisions", async () => {
     const published = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
 
