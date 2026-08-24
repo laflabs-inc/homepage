@@ -43,6 +43,13 @@
       "when": 1787565472296,
       "tag": "0005_agent_control_plane",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787567439830,
+      "tag": "0006_invalidate_agent_verification",
+      "breakpoints": true
     }
   ]
 }

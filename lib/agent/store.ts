@@ -110,16 +110,49 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
           SELECT * FROM ${agentSettings}
           WHERE "id" = 'default'
           FOR UPDATE
+        ), locked_credential AS (
+          SELECT * FROM ${aiProviderCredentials}
+          WHERE "provider" = 'openai'
+          FOR UPDATE
+        ), update_decision AS (
+          SELECT CASE
+            WHEN locked_settings."version" <> ${input.version} THEN 'version_conflict'
+            WHEN ${input.enabled} AND locked_credential."provider" IS NULL THEN 'credential_unavailable'
+            WHEN ${input.enabled} AND (
+              locked_credential."verification_status" <> 'verified'
+              OR locked_credential."verified_model" IS DISTINCT FROM ${input.model}
+            ) THEN 'model_unverified'
+            ELSE 'updated'
+          END AS "updateStatus"
+          FROM locked_settings
+          LEFT JOIN locked_credential ON true
+        ), invalidated_credential AS (
+          UPDATE ${aiProviderCredentials} c
+          SET "verification_status" = 'failed', "verified_model" = NULL,
+            "verified_at" = NULL, "updated_at" = statement_timestamp()
+          FROM locked_settings, update_decision
+          WHERE c."provider" = 'openai'
+            AND update_decision."updateStatus" = 'updated'
+            AND locked_settings."model" IS DISTINCT FROM ${input.model}
+          RETURNING c."provider"
         ), updated_settings AS (
           UPDATE ${agentSettings} s
-          SET "enabled" = ${input.enabled}, "model" = ${input.model},
+          SET "enabled" = CASE
+                WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN false
+                ELSE ${input.enabled} END,
+            "model" = ${input.model},
             "daily_token_limit" = ${input.dailyTokenLimit},
             "daily_question_limit" = ${input.dailyQuestionLimit},
             "max_output_tokens" = ${input.maxOutputTokens},
             "monthly_cost_limit_microusd" = ${input.monthlyCostLimitMicrousd},
-            "input_price_microusd_per_million" = ${input.inputPriceMicrousdPerMillion},
-            "output_price_microusd_per_million" = ${input.outputPriceMicrousdPerMillion},
+            "input_price_microusd_per_million" = CASE
+              WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN NULL
+              ELSE ${input.inputPriceMicrousdPerMillion} END,
+            "output_price_microusd_per_million" = CASE
+              WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN NULL
+              ELSE ${input.outputPriceMicrousdPerMillion} END,
             "pricing_checked_at" = CASE
+              WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN NULL
               WHEN locked_settings."input_price_microusd_per_million" IS DISTINCT FROM ${input.inputPriceMicrousdPerMillion}
                 OR locked_settings."output_price_microusd_per_million" IS DISTINCT FROM ${input.outputPriceMicrousdPerMillion}
               THEN statement_timestamp() ELSE locked_settings."pricing_checked_at" END,
@@ -129,9 +162,10 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
             "summary_policy" = ${input.summaryPolicy}::summary_policy,
             "version" = locked_settings."version" + 1,
             "updated_by" = ${actor.githubId}, "updated_at" = statement_timestamp()
-          FROM locked_settings
+          FROM locked_settings, update_decision
           WHERE s."id" = locked_settings."id"
-            AND locked_settings."version" = ${input.version}
+            AND update_decision."updateStatus" = 'updated'
+            AND (SELECT count(*) FROM invalidated_credential) >= 0
           RETURNING s.*
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
@@ -148,11 +182,17 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
           INNER JOIN locked_settings ON locked_settings."id" = updated_settings."id"
           RETURNING "id"
         )
-        SELECT ${settingsSelect}
-        FROM updated_settings s
+        SELECT update_decision."updateStatus", ${settingsSelect}
+        FROM update_decision
+        LEFT JOIN updated_settings s ON true
         WHERE (SELECT count(*) FROM audit_entry) >= 0
       `)
-      return result.rows[0] ? mapSettings(result.rows[0]) : null
+      const row = result.rows[0] as { updateStatus?: unknown } | undefined
+      if (!row || row.updateStatus === "version_conflict") return { status: "version_conflict" }
+      if (row.updateStatus === "credential_unavailable") return { status: "credential_unavailable" }
+      if (row.updateStatus === "model_unverified") return { status: "model_unverified" }
+      if (row.updateStatus !== "updated") throw new Error("Agent settings update returned an invalid status")
+      return { status: "updated", settings: mapSettings(row) }
     },
 
     async replaceCredential(input, actor, replacing) {
@@ -205,8 +245,10 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
           RETURNING "id"
         ), updated_credential AS (
           UPDATE ${aiProviderCredentials}
-          SET "verified_model" = ${model}, "verification_status" = ${verificationStatus},
-            "verified_at" = ${verifiedAt}, "updated_at" = statement_timestamp()
+          SET "verified_model" = CASE WHEN ${verificationStatus} = 'verified' THEN ${model} ELSE NULL END,
+            "verification_status" = ${verificationStatus},
+            "verified_at" = CASE WHEN ${verificationStatus} = 'verified' THEN ${verifiedAt} ELSE NULL END,
+            "updated_at" = statement_timestamp()
           WHERE "provider" = 'openai'
             AND (SELECT count(*) FROM disabled_settings) >= 0
           RETURNING *
@@ -217,7 +259,7 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
           SELECT 'agent.credential.test', 'ai_provider_credential', updated_credential."provider",
             ${actor.githubId}, ${actor.name}, jsonb_build_object(
               'provider', updated_credential."provider", 'fingerprint', updated_credential."fingerprint",
-              'model', updated_credential."verified_model", 'result', updated_credential."verification_status"
+              'model', ${model}, 'result', updated_credential."verification_status"
             )
           FROM updated_credential
           RETURNING "id"

@@ -20,7 +20,7 @@ import type {
 } from "@/lib/agent/types"
 import { credentialInputSchema } from "@/lib/agent/validation"
 import { getAiSecurityEnv } from "@/lib/env"
-import { verifyOpenAICredential } from "@/lib/agent/provider"
+import { CredentialVerificationError, verifyOpenAICredential } from "@/lib/agent/provider"
 
 export type AgentServiceErrorCode =
   | "invalid_settings"
@@ -130,17 +130,15 @@ function requireEncryptionKey(dependencies: AgentServiceDependencies): Buffer {
   }
 }
 
-function validateEnablement(input: AgentSettingsUpdate, credential: StoredCredential | null): void {
+function validateEnablementSettings(input: AgentSettingsUpdate): void {
   if (!input.enabled) return
   if (!input.model || input.inputPriceMicrousdPerMillion === null || input.outputPriceMicrousdPerMillion === null) {
     throw new AgentServiceError("invalid_settings", "Model and prices are required before enabling AI")
   }
-  if (!credential) {
-    throw new AgentServiceError("credential_unavailable", "An OpenAI credential is required before enabling AI")
-  }
-  if (credential.verificationStatus !== "verified" || credential.verifiedModel !== input.model) {
-    throw new AgentServiceError("model_unverified", "The configured model must pass a connection test")
-  }
+}
+
+function verificationServiceCode(error: unknown): "credential_invalid" | "provider_unavailable" {
+  return error instanceof CredentialVerificationError ? error.code : "provider_unavailable"
 }
 
 export function createAgentService(
@@ -161,16 +159,27 @@ export function createAgentService(
     async updateSettings(input: AgentSettingsUpdate, actor: AdminActor): Promise<AgentConfiguration> {
       const current = await repository.getSettings()
       const modelChanged = input.model !== current.model
-      const next = modelChanged ? { ...input, enabled: false } : input
-      const credential = await repository.getCredential()
-      validateEnablement(next, credential)
+      const next = modelChanged ? {
+        ...input,
+        enabled: false,
+        inputPriceMicrousdPerMillion: null,
+        outputPriceMicrousdPerMillion: null,
+      } : input
+      validateEnablementSettings(next)
 
       const changedSettings = settingNames.filter((name) => next[name] !== current[name])
-      const updated = await repository.updateSettings(next, actor, changedSettings)
-      if (!updated) {
+      if (modelChanged) changedSettings.push("pricingCheckedAt" as typeof changedSettings[number])
+      const result = await repository.updateSettings(next, actor, changedSettings)
+      if (result.status === "version_conflict") {
         throw new AgentServiceError("version_conflict", "Agent settings changed before they could be updated")
       }
-      return configuration(updated, credential)
+      if (result.status === "credential_unavailable") {
+        throw new AgentServiceError("credential_unavailable", "An OpenAI credential is required before enabling AI")
+      }
+      if (result.status === "model_unverified") {
+        throw new AgentServiceError("model_unverified", "The configured model must pass a connection test")
+      }
+      return configuration(result.settings, await repository.getCredential())
     },
 
     async replaceCredential(apiKeyInput: string, actor: AdminActor): Promise<AgentConfiguration> {
@@ -188,7 +197,10 @@ export function createAgentService(
       try {
         await dependencies.verify(parsed.data.apiKey, settings.model)
       } catch (error) {
-        throw new AgentServiceError("credential_invalid", "The OpenAI credential or model could not be verified", { cause: error })
+        const code = verificationServiceCode(error)
+        throw new AgentServiceError(code, code === "credential_invalid"
+          ? "The OpenAI credential or model could not be verified"
+          : "OpenAI verification is unavailable")
       }
 
       const encrypted = encryptCredential(parsed.data.apiKey, requireEncryptionKey(dependencies))
@@ -225,7 +237,10 @@ export function createAgentService(
         await dependencies.verify(apiKey, settings.model)
       } catch (error) {
         await repository.recordCredentialTest(settings.model, "failed", actor, verifiedAt)
-        throw new AgentServiceError("provider_unavailable", "OpenAI verification failed", { cause: error })
+        const code = verificationServiceCode(error)
+        throw new AgentServiceError(code, code === "credential_invalid"
+          ? "The OpenAI credential or model could not be verified"
+          : "OpenAI verification is unavailable")
       }
       const verified = await repository.recordCredentialTest(settings.model, "verified", actor, verifiedAt)
       if (!verified) throw new AgentServiceError("credential_unavailable", "The OpenAI credential was removed")

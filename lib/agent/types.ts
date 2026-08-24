@@ -31,9 +31,9 @@ export type AgentSettingsDto = Omit<AgentSettings, "id">
 export type StoredCredential = CredentialEnvelope & {
   provider: "openai"
   fingerprint: string
-  verifiedModel: string
+  verifiedModel: string | null
   verificationStatus: VerificationStatus
-  verifiedAt: Date
+  verifiedAt: Date | null
   createdBy: string
   createdAt: Date
   updatedAt: Date
@@ -74,8 +74,18 @@ export type AgentSettingsUpdate = Pick<
 
 export type CredentialReplacement = Pick<
   StoredCredential,
-  "provider" | "ciphertext" | "iv" | "authTag" | "fingerprint" | "verifiedModel" | "verificationStatus" | "verifiedAt"
->
+  "provider" | "ciphertext" | "iv" | "authTag" | "fingerprint"
+> & {
+  verifiedModel: string
+  verificationStatus: "verified"
+  verifiedAt: Date
+}
+
+export type AgentSettingsUpdateResult =
+  | { status: "updated"; settings: AgentSettings }
+  | { status: "version_conflict" }
+  | { status: "credential_unavailable" }
+  | { status: "model_unverified" }
 
 export type CredentialVerifier = (apiKey: string, modelId: string) => Promise<void>
 export type TextModelFactory = (apiKey: string, modelId: string) => LanguageModel
@@ -87,7 +97,7 @@ export interface AgentRepository {
     input: AgentSettingsUpdate,
     actor: AdminActor,
     changedSettings: string[],
-  ): Promise<AgentSettings | null>
+  ): Promise<AgentSettingsUpdateResult>
   replaceCredential(input: CredentialReplacement, actor: AdminActor, replacing: boolean): Promise<StoredCredential>
   recordCredentialTest(
     model: string,

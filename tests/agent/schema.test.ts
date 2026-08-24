@@ -28,6 +28,9 @@ describe("agent schema", () => {
       "verified_model", "verification_status", "verified_at", "created_by",
       "created_at", "updated_at",
     ])
+    const credentialColumns = getTableConfig(aiProviderCredentials).columns
+    expect(credentialColumns.find(({ name }) => name === "verified_model")?.notNull).toBe(false)
+    expect(credentialColumns.find(({ name }) => name === "verified_at")?.notNull).toBe(false)
   })
 
   it("provides the safe singleton defaults", () => {
