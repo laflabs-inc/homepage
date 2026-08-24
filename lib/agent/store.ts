@@ -113,6 +113,7 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
         ), locked_credential AS (
           SELECT * FROM ${aiProviderCredentials}
           WHERE "provider" = 'openai'
+            AND (SELECT count(*) FROM locked_settings) >= 0
           FOR UPDATE
         ), update_decision AS (
           SELECT CASE
@@ -235,23 +236,46 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
       return mapCredential(result.rows[0])
     },
 
-    async recordCredentialTest(model, verificationStatus, actor, verifiedAt) {
+    async recordCredentialTest(model, verificationStatus, expected, actor, verifiedAt) {
       const result = await database.execute(sql`
-        WITH disabled_settings AS (
-          UPDATE ${agentSettings}
+        WITH locked_settings AS (
+          SELECT * FROM ${agentSettings}
+          WHERE "id" = 'default'
+          FOR UPDATE
+        ), locked_credential AS (
+          SELECT * FROM ${aiProviderCredentials}
+          WHERE "provider" = 'openai'
+            AND (SELECT count(*) FROM locked_settings) >= 0
+          FOR UPDATE
+        ), record_decision AS (
+          SELECT CASE WHEN
+            locked_settings."model" IS NOT DISTINCT FROM ${model}
+            AND locked_credential."fingerprint" IS NOT DISTINCT FROM ${expected.fingerprint}
+            AND locked_credential."updated_at" IS NOT DISTINCT FROM ${expected.updatedAt}
+            THEN 'current' ELSE 'stale'
+          END AS "recordStatus"
+          FROM locked_settings
+          LEFT JOIN locked_credential ON true
+        ), disabled_settings AS (
+          UPDATE ${agentSettings} s
           SET "enabled" = false, "version" = "version" + 1,
             "updated_by" = ${actor.githubId}, "updated_at" = statement_timestamp()
-          WHERE "id" = 'default' AND ${verificationStatus} = 'failed' AND "enabled" = true
-          RETURNING "id"
+          FROM record_decision
+          WHERE s."id" = 'default'
+            AND record_decision."recordStatus" = 'current'
+            AND ${verificationStatus} = 'failed' AND s."enabled" = true
+          RETURNING s."id"
         ), updated_credential AS (
-          UPDATE ${aiProviderCredentials}
+          UPDATE ${aiProviderCredentials} c
           SET "verified_model" = CASE WHEN ${verificationStatus} = 'verified' THEN ${model} ELSE NULL END,
             "verification_status" = ${verificationStatus},
             "verified_at" = CASE WHEN ${verificationStatus} = 'verified' THEN ${verifiedAt} ELSE NULL END,
             "updated_at" = statement_timestamp()
-          WHERE "provider" = 'openai'
+          FROM record_decision
+          WHERE c."provider" = 'openai'
+            AND record_decision."recordStatus" = 'current'
             AND (SELECT count(*) FROM disabled_settings) >= 0
-          RETURNING *
+          RETURNING c.*
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
             "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
@@ -264,11 +288,16 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
           FROM updated_credential
           RETURNING "id"
         )
-        SELECT ${credentialSelect}
-        FROM updated_credential c
+        SELECT CASE WHEN updated_credential."provider" IS NULL THEN 'stale' ELSE 'updated' END AS "recordStatus",
+          ${credentialSelect}
+        FROM record_decision
+        LEFT JOIN updated_credential c ON true
         WHERE (SELECT count(*) FROM audit_entry) >= 0
       `)
-      return result.rows[0] ? mapCredential(result.rows[0]) : null
+      const row = result.rows[0] as { recordStatus?: unknown } | undefined
+      if (!row || row.recordStatus === "stale") return { status: "stale" }
+      if (row.recordStatus !== "updated") throw new Error("Credential test returned an invalid status")
+      return { status: "updated", credential: mapCredential(row) }
     },
 
     async disableAndDeleteCredential(actor) {

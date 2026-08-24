@@ -70,6 +70,11 @@ class MemoryAgentRepository implements AgentRepository {
   events: string[] = []
   audits: Array<{ action: string; metadata: Record<string, unknown> }> = []
   beforeUpdate?: () => void
+  private generation = 0
+
+  private touch() {
+    return new Date(now.getTime() + ++this.generation)
+  }
 
   async getSettings() { return this.settings }
   async getCredential() { return this.credential }
@@ -100,6 +105,7 @@ class MemoryAgentRepository implements AgentRepository {
         verificationStatus: "failed",
         verifiedModel: null,
         verifiedAt: null,
+        updatedAt: this.touch(),
       }
     }
     this.events.push("settings:update")
@@ -113,7 +119,7 @@ class MemoryAgentRepository implements AgentRepository {
       ...input,
       createdBy: admin.githubId,
       createdAt: now,
-      updatedAt: now,
+      updatedAt: this.touch(),
     }
     this.audits.push({
       action: replacing ? "agent.credential.replace" : "agent.credential.register",
@@ -127,16 +133,36 @@ class MemoryAgentRepository implements AgentRepository {
     return this.credential
   }
 
-  async recordCredentialTest(model: string, result: VerificationStatus, admin: AdminActor, verifiedAt: Date) {
-    void admin
-    if (!this.credential) return null
+  async recordCredentialTest(
+    model: string,
+    result: VerificationStatus,
+    expected: Pick<StoredCredential, "fingerprint" | "updatedAt">,
+    admin: AdminActor,
+    verifiedAt: Date,
+  ) {
+    this.events.push("test:lock-settings", "test:lock-credential")
+    if (
+      this.settings.model !== model
+      || !this.credential
+      || this.credential.fingerprint !== expected.fingerprint
+      || this.credential.updatedAt.getTime() !== expected.updatedAt.getTime()
+    ) return { status: "stale" as const }
     this.credential = {
       ...this.credential,
       verifiedModel: result === "verified" ? model : null,
       verificationStatus: result,
       verifiedAt: result === "verified" ? verifiedAt : null,
+      updatedAt: this.touch(),
     }
-    if (result === "failed") this.settings = { ...this.settings, enabled: false }
+    if (result === "failed" && this.settings.enabled) {
+      this.settings = {
+        ...this.settings,
+        enabled: false,
+        version: this.settings.version + 1,
+        updatedBy: admin.githubId,
+        updatedAt: this.touch(),
+      }
+    }
     this.audits.push({
       action: "agent.credential.test",
       metadata: {
@@ -146,7 +172,7 @@ class MemoryAgentRepository implements AgentRepository {
         result,
       },
     })
-    return this.credential
+    return { status: "updated" as const, credential: this.credential }
   }
 
   async disableAndDeleteCredential(admin: AdminActor) {
@@ -316,6 +342,75 @@ describe("Agent service", () => {
     expect(repository.credential).toMatchObject({ verifiedModel: null, verificationStatus: "failed", verifiedAt: null })
   })
 
+  it("disables AI when enable commits while a failing provider test is in flight", async () => {
+    const repository = new MemoryAgentRepository()
+    await service(repository).replaceCredential("sk-stored", actor)
+    let rejectVerification!: (error: Error) => void
+    let verificationStarted!: () => void
+    const started = new Promise<void>((resolve) => { verificationStarted = resolve })
+    const verify = vi.fn(() => new Promise<void>((_resolve, reject) => {
+      rejectVerification = reject
+      verificationStarted()
+    }))
+
+    const test = service(repository, verify).testCredential(actor)
+    await started
+    await service(repository).updateSettings(update(repository.settings, { enabled: true }), actor)
+    expect(repository.settings.enabled).toBe(true)
+    rejectVerification(new CredentialVerificationError("provider_unavailable"))
+
+    await expect(test).rejects.toMatchObject({ code: "provider_unavailable" })
+    expect(repository.settings.enabled).toBe(false)
+    expect(repository.events.slice(-2)).toEqual(["test:lock-settings", "test:lock-credential"])
+  })
+
+  it("does not let an in-flight failed test overwrite a replacement credential", async () => {
+    const repository = new MemoryAgentRepository()
+    await service(repository).replaceCredential("sk-prior", actor)
+    let rejectVerification!: (error: Error) => void
+    let verificationStarted!: () => void
+    const started = new Promise<void>((resolve) => { verificationStarted = resolve })
+    const verify = vi.fn(() => new Promise<void>((_resolve, reject) => {
+      rejectVerification = reject
+      verificationStarted()
+    }))
+
+    const test = service(repository, verify).testCredential(actor)
+    await started
+    await service(repository).replaceCredential("sk-replacement", actor)
+    const replacement = repository.credential
+    rejectVerification(new CredentialVerificationError("credential_invalid"))
+
+    await expect(test).rejects.toMatchObject({ code: "version_conflict" })
+    expect(repository.credential).toBe(replacement)
+    expect(repository.credential).toMatchObject({ verificationStatus: "verified", verifiedModel: "gpt-test" })
+  })
+
+  it("does not let an in-flight A test revalidate A after an A to B to A round trip", async () => {
+    const repository = new MemoryAgentRepository()
+    await service(repository).replaceCredential("sk-stored", actor)
+    let finishVerification!: () => void
+    let verificationStarted!: () => void
+    const started = new Promise<void>((resolve) => { verificationStarted = resolve })
+    const verify = vi.fn(() => new Promise<void>((resolve) => {
+      finishVerification = resolve
+      verificationStarted()
+    }))
+
+    const test = service(repository, verify).testCredential(actor)
+    await started
+    await service(repository).updateSettings(update(repository.settings, { model: "gpt-b" }), actor)
+    await service(repository).updateSettings(update(repository.settings, { model: "gpt-test" }), actor)
+    finishVerification()
+
+    await expect(test).rejects.toMatchObject({ code: "version_conflict" })
+    expect(repository.credential).toMatchObject({
+      verificationStatus: "failed",
+      verifiedModel: null,
+      verifiedAt: null,
+    })
+  })
+
   it("uses optimistic versions for settings updates", async () => {
     const repository = new MemoryAgentRepository()
 
@@ -406,6 +501,7 @@ describe("Agent store", () => {
 
     const { sql } = new PgDialect().sqlToQuery(execute.mock.calls[0]![0])
     expect(sql).toMatch(/FOR UPDATE[^]*ai_provider_credentials[^]*verification_status[^]*verified_model/)
+    expect(sql).toMatch(/locked_credential[^]*SELECT count\(\*\) FROM locked_settings[^]*FOR UPDATE/)
   })
 
   it("invalidates verification and clears prices in the same model-change statement", async () => {
@@ -422,6 +518,46 @@ describe("Agent store", () => {
     expect(sql).toMatch(/output_price_microusd_per_million[^]*THEN NULL/)
     expect(sql).toMatch(/pricing_checked_at[^]*THEN NULL/)
     expect(sql).toMatch(/verification_status[^]*verified_model[^]*verified_at/)
+  })
+
+  it("locks settings before credential for every test result and rejects stale generations", async () => {
+    const execute = vi.fn(async (query: SQL) => {
+      void query
+      return { rows: [{ recordStatus: "stale" }] }
+    })
+    const store = createAgentStore({ execute })
+    const credential = {
+      fingerprint: "123456789abc",
+      updatedAt: new Date("2026-08-24T09:00:00.000Z"),
+    }
+
+    expect(await store.recordCredentialTest("gpt-test", "failed", credential, actor, now))
+      .toEqual({ status: "stale" })
+
+    const { sql } = new PgDialect().sqlToQuery(execute.mock.calls[0]![0])
+    const settingsLock = sql.indexOf('FROM "agent_settings"')
+    const credentialLock = sql.indexOf('FROM "ai_provider_credentials"')
+    expect(settingsLock).toBeGreaterThan(-1)
+    expect(settingsLock).toBeLessThan(credentialLock)
+    expect(sql).toMatch(/locked_credential[^]*SELECT count\(\*\) FROM locked_settings[^]*FOR UPDATE/)
+    expect(sql).toMatch(/fingerprint[^]*updated_at[^]*recordStatus/)
+  })
+
+  it("makes valid failure disablement precede evidence invalidation", async () => {
+    const execute = vi.fn(async (query: SQL) => {
+      void query
+      return { rows: [{ recordStatus: "stale" }] }
+    })
+    const store = createAgentStore({ execute })
+
+    await store.recordCredentialTest("gpt-test", "failed", {
+      fingerprint: "123456789abc",
+      updatedAt: now,
+    }, actor, now)
+
+    const { sql } = new PgDialect().sqlToQuery(execute.mock.calls[0]![0])
+    expect(sql.indexOf('UPDATE "agent_settings"')).toBeLessThan(sql.indexOf('UPDATE "ai_provider_credentials"'))
+    expect(sql).toMatch(/updated_credential[^]*disabled_settings/)
   })
 
   it("makes credential deletion depend on disabling settings first", async () => {

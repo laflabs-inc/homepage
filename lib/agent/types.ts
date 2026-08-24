@@ -87,6 +87,12 @@ export type AgentSettingsUpdateResult =
   | { status: "credential_unavailable" }
   | { status: "model_unverified" }
 
+export type CredentialTestGeneration = Pick<StoredCredential, "fingerprint" | "updatedAt">
+
+export type CredentialTestRecordResult =
+  | { status: "updated"; credential: StoredCredential }
+  | { status: "stale" }
+
 export type CredentialVerifier = (apiKey: string, modelId: string) => Promise<void>
 export type TextModelFactory = (apiKey: string, modelId: string) => LanguageModel
 
@@ -102,8 +108,9 @@ export interface AgentRepository {
   recordCredentialTest(
     model: string,
     result: VerificationStatus,
+    expected: CredentialTestGeneration,
     actor: AdminActor,
     verifiedAt: Date,
-  ): Promise<StoredCredential | null>
+  ): Promise<CredentialTestRecordResult>
   disableAndDeleteCredential(actor: AdminActor): Promise<AgentSettings>
 }

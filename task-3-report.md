@@ -20,3 +20,11 @@ Verification:
 - Added a safe typed verifier error that maps deterministic credential/model rejection to `credential_invalid` and timeout, rate-limit, server, abort, and network failures to `provider_unavailable` for both registration and retesting.
 - Added exact five-second abort configuration, concurrent enablement, and A→B→A model round-trip coverage.
 - Verification: `npm run test:unit -- tests/agent` passed 55 tests; `npm test` passed typecheck, lint, 490 unit tests, and the production build.
+
+## Fix round 2
+
+- Credential tests now capture the tested model plus credential fingerprint and `updatedAt` generation before inference.
+- Result recording always locks settings before credential, applies only to the captured current generation, and returns a stable `version_conflict` for replacement or A→B→A stale completions.
+- A current failed result atomically disables AI and invalidates evidence even when enablement committed during the provider call.
+- No schema, migration, dependency, DTO, audit, or provider-classification changes were needed.
+- Verification: `npm run test:unit -- tests/agent` passed 60 tests; `npm test` passed typecheck, lint, 495 unit tests, and the production build.

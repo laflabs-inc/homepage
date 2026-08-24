@@ -233,18 +233,24 @@ export function createAgentService(
       }
 
       const verifiedAt = dependencies.now()
+      const expected = { fingerprint: credential.fingerprint, updatedAt: credential.updatedAt }
       try {
         await dependencies.verify(apiKey, settings.model)
       } catch (error) {
-        await repository.recordCredentialTest(settings.model, "failed", actor, verifiedAt)
+        const recorded = await repository.recordCredentialTest(settings.model, "failed", expected, actor, verifiedAt)
+        if (recorded.status === "stale") {
+          throw new AgentServiceError("version_conflict", "Agent verification changed while the test was running")
+        }
         const code = verificationServiceCode(error)
         throw new AgentServiceError(code, code === "credential_invalid"
           ? "The OpenAI credential or model could not be verified"
           : "OpenAI verification is unavailable")
       }
-      const verified = await repository.recordCredentialTest(settings.model, "verified", actor, verifiedAt)
-      if (!verified) throw new AgentServiceError("credential_unavailable", "The OpenAI credential was removed")
-      return configuration(settings, verified)
+      const recorded = await repository.recordCredentialTest(settings.model, "verified", expected, actor, verifiedAt)
+      if (recorded.status === "stale") {
+        throw new AgentServiceError("version_conflict", "Agent verification changed while the test was running")
+      }
+      return configuration(await repository.getSettings(), recorded.credential)
     },
 
     async deleteCredential(actor: AdminActor): Promise<AgentConfiguration> {
