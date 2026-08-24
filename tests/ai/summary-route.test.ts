@@ -30,7 +30,10 @@ function dependencies() {
   return {
     authorize: vi.fn(async () => ({ ok: true as const, actor })),
     sameOrigin: vi.fn(() => true),
-    generate: vi.fn(async () => ({ summary: "Generated summary", remainingMonthlyBudget })),
+    generate: vi.fn(async () => ({
+      summary: "Generated summary",
+      remainingMonthlyBudget: remainingMonthlyBudget as typeof remainingMonthlyBudget | null,
+    })),
   }
 }
 
@@ -95,12 +98,24 @@ describe("admin document summary route", () => {
     expect(JSON.stringify(payload)).not.toContain("reservedCost")
   })
 
+  it("returns the saved summary with an unavailable advisory budget as success", async () => {
+    const deps = dependencies()
+    deps.generate.mockResolvedValue({ summary: "Saved summary", remainingMonthlyBudget: null })
+
+    const response = await handleGenerateDocumentSummary(request(), revisionId, deps)
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ summary: "Saved summary", remainingMonthlyBudget: null })
+  })
+
   it.each([
     [new SummaryGenerationError("not_found"), 404, "not_found"],
     [new SummaryGenerationError("not_draft"), 409, "not_draft"],
+    [new SummaryGenerationError("conflict"), 409, "conflict"],
     [new SummaryGenerationError("provider_unavailable"), 503, "provider_unavailable"],
     [new SummaryGenerationError("invalid_response"), 503, "invalid_response"],
     [new AiQuotaError("monthly_limit", "raw budget details"), 429, "monthly_limit"],
+    [new AiQuotaError("in_progress", "raw reservation details"), 409, "in_progress"],
     [new Error("raw provider response and draft"), 503, "unavailable"],
   ] as const)("maps failures to safe no-store responses", async (error, status, code) => {
     const deps = dependencies()

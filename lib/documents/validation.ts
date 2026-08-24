@@ -21,6 +21,15 @@ const slugSchema = z.string()
 
 const nullableDateSchema = z.coerce.date().nullable().optional()
 const markdownParser = unified().use(remarkParse)
+const SUMMARY_VISIBLE_CHARACTER_LIMIT = 240
+
+function hasBoundedVisibleLength(value: string): boolean {
+  return Array.from(value).length <= SUMMARY_VISIBLE_CHARACTER_LIMIT
+}
+
+export function truncateSummary(value: string): string {
+  return Array.from(value).slice(0, SUMMARY_VISIBLE_CHARACTER_LIMIT).join("")
+}
 
 const draftFields = {
   kind: z.enum(documentKinds),
@@ -29,7 +38,7 @@ const draftFields = {
   category: z.string().nullable().optional(),
   pinned: z.boolean().optional(),
   title: z.string().min(1).max(160),
-  summary: z.string().max(240),
+  summary: z.string().refine(hasBoundedVisibleLength),
   bodyMarkdown: z.string().min(1).max(200_000),
   effectiveAt: nullableDateSchema,
 }
@@ -44,7 +53,7 @@ export const documentDraftSchema = z.object(draftFields).strict().refine(categor
   path: ["category"],
 })
 
-export const generatedSummarySchema = z.string().trim().min(1).max(240).regex(/^[^\r\n]*$/)
+export const generatedSummarySchema = z.string().trim().min(1).regex(/^[^\r\n]*$/).refine(hasBoundedVisibleLength)
 
 export const publishDocumentSchema = z.object({
   ...draftFields,

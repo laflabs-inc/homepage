@@ -11,6 +11,7 @@ import {
 } from "@/lib/ai/quota"
 
 const now = new Date("2026-08-24T10:00:00.000Z")
+const summaryReservationId = "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131"
 
 function settings(overrides: Partial<AgentSettings> = {}): AgentSettings {
   return {
@@ -45,15 +46,14 @@ class MemorySummaryStore implements AiQuotaStore {
   inputTokens = 0
   outputTokens = 0
   totalTokens = 0
-  nextId = 1
-
   async reserveSummary(input: SummaryReservationInput) {
     this.reserveInputs.push(input)
     const used = this.usage.actualCostMicrousd + this.usage.reservedCostMicrousd
     if (used >= this.limit || used + input.reservedCostMicrousd > this.limit) {
       return { status: "monthly_limit" as const }
     }
-    const id = `00000000-0000-4000-8000-${String(this.nextId++).padStart(12, "0")}`
+    if (this.reservationCosts.has(input.reservationId)) return { status: "in_progress" as const }
+    const id = input.reservationId
     this.reservationCosts.set(id, input.reservedCostMicrousd)
     this.usage.reservedCostMicrousd += input.reservedCostMicrousd
     return { status: "reserved" as const, id }
@@ -96,7 +96,7 @@ describe("summary budget service", () => {
   it("reserves a conservative UTF-8 input estimate plus configured maximum output", async () => {
     const { quota, store } = service()
 
-    await expect(quota.reserveSummary({ prompt: "ab", source: "가" })).resolves.toMatchObject({
+    await expect(quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" })).resolves.toMatchObject({
       estimatedInputTokens: 515,
       maxOutputTokens: 256,
       reservedTokens: 771,
@@ -105,6 +105,7 @@ describe("summary budget service", () => {
 
     expect(store.reserveInputs).toEqual([{
       monthBucket: new Date("2026-08-01T00:00:00.000Z"),
+      reservationId: summaryReservationId,
       reservedTokens: 771,
       reservedCostMicrousd: 1_027,
       now,
@@ -122,7 +123,7 @@ describe("summary budget service", () => {
   ])("fails closed before storage when AI settings are unavailable", async (current) => {
     const { quota, store } = service(new MemorySummaryStore(), current)
 
-    await expect(quota.reserveSummary({ prompt: "prompt", source: "source" }))
+    await expect(quota.reserveSummary({ reservationId: summaryReservationId, prompt: "prompt", source: "source" }))
       .rejects.toBeInstanceOf(AiQuotaError)
     expect(store.reserveInputs).toEqual([])
   })
@@ -130,9 +131,9 @@ describe("summary budget service", () => {
   it("rejects prompt or source bytes outside the summary bounds", async () => {
     const { quota, store } = service()
 
-    await expect(quota.reserveSummary({ prompt: "p".repeat(16_385), source: "source" }))
+    await expect(quota.reserveSummary({ reservationId: summaryReservationId, prompt: "p".repeat(16_385), source: "source" }))
       .rejects.toMatchObject({ code: "content_too_large" })
-    await expect(quota.reserveSummary({ prompt: "prompt", source: "가".repeat(266_667) }))
+    await expect(quota.reserveSummary({ reservationId: summaryReservationId, prompt: "prompt", source: "가".repeat(266_667) }))
       .rejects.toMatchObject({ code: "content_too_large" })
     expect(store.reserveInputs).toEqual([])
   })
@@ -142,13 +143,13 @@ describe("summary budget service", () => {
     store.limit = 1_026
     const { quota } = service(store)
 
-    await expect(quota.reserveSummary({ prompt: "ab", source: "가" }))
+    await expect(quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" }))
       .rejects.toMatchObject({ code: "monthly_limit" })
   })
 
   it("reconciles provider usage once using the reservation price snapshot", async () => {
     const { quota, store } = service()
-    const reservation = await quota.reserveSummary({ prompt: "ab", source: "가" })
+    const reservation = await quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" })
     const usage = { inputTokens: 1_200, outputTokens: 200, totalTokens: 1_400 }
 
     await expect(quota.reconcileSummaryUsage(reservation, usage)).resolves.toBe(true)
@@ -165,7 +166,7 @@ describe("summary budget service", () => {
 
   it("rejects provider output beyond the reservation's configured maximum", async () => {
     const { quota } = service()
-    const reservation = await quota.reserveSummary({ prompt: "ab", source: "가" })
+    const reservation = await quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" })
 
     await expect(quota.reconcileSummaryUsage(reservation, {
       inputTokens: 500,
@@ -176,7 +177,7 @@ describe("summary budget service", () => {
 
   it("releases a reservation after a provider failure", async () => {
     const { quota, store } = service()
-    const reservation = await quota.reserveSummary({ prompt: "ab", source: "가" })
+    const reservation = await quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" })
 
     try {
       throw new Error("provider unavailable")
@@ -192,7 +193,7 @@ describe("summary budget service", () => {
     const store = new MemorySummaryStore()
     store.limit = 2_000
     const { quota } = service(store)
-    const reservation = await quota.reserveSummary({ prompt: "ab", source: "가" })
+    const reservation = await quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" })
 
     await quota.reconcileSummaryUsage(reservation, {
       inputTokens: 2_500,
@@ -208,7 +209,7 @@ describe("summary budget service", () => {
       remainingMicrousd: 0,
       exhausted: true,
     })
-    await expect(quota.reserveSummary({ prompt: "ab", source: "가" }))
+    await expect(quota.reserveSummary({ reservationId: summaryReservationId, prompt: "ab", source: "가" }))
       .rejects.toMatchObject({ code: "monthly_limit" })
   })
 })

@@ -309,14 +309,27 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return requiredRevision(result.rows, "Draft changed before it could be updated")
     },
 
-    async updateDraftSummary(revisionId, summary, actor, metadata) {
+    async updateDraftSummary(revisionId, summary, expected, actor, metadata) {
       const result = await database.execute(sql`
-        WITH updated_revision AS (
-          UPDATE ${documentRevisions}
+        WITH locked_revision AS (
+          SELECT *
+          FROM ${documentRevisions}
+          WHERE "id" = ${revisionId}::uuid
+          FOR UPDATE
+        ), eligible AS (
+          SELECT *
+          FROM locked_revision
+          WHERE locked_revision."status" = 'draft'
+            AND locked_revision."title" = ${expected.title}
+            AND locked_revision."body_markdown" = ${expected.bodyMarkdown}
+            AND locked_revision."summary" = ${expected.summary}
+        ), updated_revision AS (
+          UPDATE ${documentRevisions} r
           SET "summary" = ${summary}, "updated_by" = ${actor.githubId},
             "updated_at" = statement_timestamp()
-          WHERE "id" = ${revisionId}::uuid AND "status" = 'draft'
-          RETURNING *
+          FROM eligible
+          WHERE r."id" = eligible."id"
+          RETURNING r.*
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
             "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"

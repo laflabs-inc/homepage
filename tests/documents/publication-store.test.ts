@@ -68,6 +68,11 @@ describe("document publication store boundary", () => {
     await store.updateDraftSummary(
       publishedRow.id,
       "Generated summary",
+      {
+        title: publishedRow.title,
+        summary: publishedRow.summary,
+        bodyMarkdown: publishedRow.bodyMarkdown,
+      },
       actor,
       { model: "gpt-summary", generatedAt: now },
     )
@@ -75,13 +80,41 @@ describe("document publication store boundary", () => {
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
     expect(normalizedSql).toContain("update \"document_revisions\"")
+    expect(normalizedSql).toContain("with locked_revision as")
+    expect(normalizedSql).toContain("for update")
     expect(normalizedSql).toContain("set \"summary\" =")
     expect(normalizedSql).not.toContain("set \"title\" =")
-    expect(normalizedSql).not.toContain("\"body_markdown\" =")
+    const updateSql = normalizedSql.slice(normalizedSql.indexOf("updated_revision as"), normalizedSql.indexOf("audit_entry as"))
+    expect(updateSql).not.toContain("set \"body_markdown\" =")
     expect(normalizedSql).toContain("\"status\" = 'draft'")
+    expect(normalizedSql).toContain("locked_revision.\"title\" =")
+    expect(normalizedSql).toContain("locked_revision.\"body_markdown\" =")
+    expect(normalizedSql).toContain("locked_revision.\"summary\" =")
     expect(normalizedSql).toContain("'document.summary.generate'")
     expect(compiled.params).toContain("gpt-summary")
-    expect(compiled.params).not.toContain(publishedRow.bodyMarkdown)
+    expect(compiled.params).toContain(publishedRow.bodyMarkdown)
+    const auditSql = normalizedSql.slice(
+      normalizedSql.indexOf("audit_entry as"),
+      normalizedSql.indexOf("from updated_revision returning"),
+    )
+    expect(auditSql).not.toContain("body_markdown")
+    expect(auditSql).not.toContain("title")
+  })
+
+  it("returns a stable conflict when the summary compare-and-set updates no row", async () => {
+    execute.mockResolvedValue({ rows: [] })
+
+    await expect(store.updateDraftSummary(
+      publishedRow.id,
+      "Generated summary",
+      {
+        title: publishedRow.title,
+        summary: publishedRow.summary,
+        bodyMarkdown: publishedRow.bodyMarkdown,
+      },
+      actor,
+      { model: "gpt-summary", generatedAt: now },
+    )).rejects.toMatchObject({ code: "conflict" })
   })
 
   it("returns exact cache metadata for each committed scheduled publication", async () => {

@@ -8,6 +8,7 @@ const SUMMARY_MAX_OUTPUT_TOKENS = 256
 const RESERVATION_TTL_MS = 90_000
 
 export type SummaryReservationInput = {
+  reservationId: string
   monthBucket: Date
   reservedTokens: number
   reservedCostMicrousd: number
@@ -41,7 +42,7 @@ export type SummaryReservation = {
 
 export interface AiQuotaStore {
   reserveSummary(input: SummaryReservationInput): Promise<
-    { status: "reserved"; id: string } | { status: "monthly_limit" }
+    { status: "reserved"; id: string } | { status: "in_progress" } | { status: "monthly_limit" }
   >
   reconcileSummaryUsage(input: SummaryUsageInput): Promise<boolean>
   releaseReservation(reservationId: string): Promise<boolean>
@@ -52,7 +53,7 @@ type SettingsReader = Pick<{ getSettings(): Promise<AgentSettings> }, "getSettin
 
 export class AiQuotaError extends Error {
   constructor(
-    public readonly code: "disabled" | "misconfigured" | "content_too_large" | "monthly_limit",
+    public readonly code: "disabled" | "misconfigured" | "content_too_large" | "in_progress" | "monthly_limit",
     message: string,
   ) {
     super(message)
@@ -96,7 +97,7 @@ export function createAiQuotaService(
   dependencies: { now: () => Date } = { now: () => new Date() },
 ) {
   return {
-    async reserveSummary(input: { prompt: string; source: string }): Promise<SummaryReservation> {
+    async reserveSummary(input: { reservationId: string; prompt: string; source: string }): Promise<SummaryReservation> {
       const settings = await settingsReader.getSettings()
       const { maxOutputTokens, prices } = requireSummarySettings(settings)
       const estimatedInputTokens = summaryInputTokens(input.prompt, input.source)
@@ -108,6 +109,7 @@ export function createAiQuotaService(
       const now = dependencies.now()
       const month = usageBuckets(now, settings.resetTimezone, settings.dailyResetMinute).month
       const result = await store.reserveSummary({
+        reservationId: input.reservationId,
         monthBucket: monthDate(month),
         reservedTokens,
         reservedCostMicrousd,
@@ -116,6 +118,9 @@ export function createAiQuotaService(
       })
       if (result.status === "monthly_limit") {
         throw new AiQuotaError("monthly_limit", "The monthly AI cost limit has been reached")
+      }
+      if (result.status === "in_progress") {
+        throw new AiQuotaError("in_progress", "Summary generation is already in progress")
       }
       return {
         id: result.id,

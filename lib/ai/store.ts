@@ -54,10 +54,10 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
             AND r."expires_at" > ${input.now}
         ), inserted_reservation AS (
           INSERT INTO ${aiUsageReservations} (
-            "visitor_hash", "date_bucket", "month_bucket", "kind",
+            "id", "visitor_hash", "date_bucket", "month_bucket", "kind",
             "reserved_tokens", "reserved_cost_microusd", "expires_at", "created_at"
           )
-          SELECT NULL, NULL, ${input.monthBucket}, 'summary',
+          SELECT ${input.reservationId}::uuid, NULL, NULL, ${input.monthBucket}, 'summary',
             ${input.reservedTokens}, ${input.reservedCostMicrousd}, ${input.expiresAt}, ${input.now}
           FROM monthly_usage, settings
           WHERE monthly_usage."actualCostMicrousd" + monthly_usage."reservedCostMicrousd"
@@ -65,17 +65,21 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
             AND monthly_usage."actualCostMicrousd" + monthly_usage."reservedCostMicrousd"
               + ${input.reservedCostMicrousd} <= settings."monthly_cost_limit_microusd"
             AND (SELECT count(*) FROM expired_reservations) >= 0
+          ON CONFLICT ("id") DO NOTHING
           RETURNING "id"
         )
-        SELECT inserted_reservation."id" AS "reservationId"
+        SELECT inserted_reservation."id" AS "reservationId", EXISTS(
+          SELECT 1 FROM ${aiUsageReservations} existing
+          WHERE existing."id" = ${input.reservationId}::uuid
+            AND existing."expires_at" > ${input.now}
+        ) AS "duplicate"
         FROM monthly_usage
         LEFT JOIN inserted_reservation ON true
       `])
-      const row = result.rows[0] as { reservationId?: unknown } | undefined
+      const row = result.rows[0] as { reservationId?: unknown; duplicate?: unknown } | undefined
       if (!row) throw new Error("Agent settings are unavailable")
-      return typeof row.reservationId === "string"
-        ? { status: "reserved" as const, id: row.reservationId }
-        : { status: "monthly_limit" as const }
+      if (typeof row.reservationId === "string") return { status: "reserved" as const, id: row.reservationId }
+      return row.duplicate === true ? { status: "in_progress" as const } : { status: "monthly_limit" as const }
     },
 
     async reconcileSummaryUsage(input: SummaryUsageInput) {

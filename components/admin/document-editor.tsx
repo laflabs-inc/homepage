@@ -242,11 +242,12 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
       if (!response.ok) throw new Error("request failed")
       const payload = await response.json() as {
         summary?: unknown
-        remainingMonthlyBudget?: { remainingMicrousd?: unknown }
+        remainingMonthlyBudget?: { remainingMicrousd?: unknown } | null
       }
       if (
         typeof payload.summary !== "string"
-        || typeof payload.remainingMonthlyBudget?.remainingMicrousd !== "number"
+        || (payload.remainingMonthlyBudget !== null
+          && typeof payload.remainingMonthlyBudget?.remainingMicrousd !== "number")
       ) throw new Error("invalid response")
 
       const newerEdits = !editorValuesEqual(valuesRef.current, submittedValues)
@@ -259,10 +260,16 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
       } else {
         setDirty(true)
       }
-      const remainingUsd = payload.remainingMonthlyBudget.remainingMicrousd / 1_000_000
-      setNotice(newerEdits
-        ? `Summary generated and saved. Newer edits are not saved. Estimated monthly budget remaining: $${remainingUsd.toFixed(3)}.`
-        : `Summary generated and saved. Estimated monthly budget remaining: $${remainingUsd.toFixed(3)}.`)
+      if (payload.remainingMonthlyBudget === null) {
+        setNotice(newerEdits
+          ? "Summary generated and saved. Newer edits are not saved. Estimated monthly budget is temporarily unavailable."
+          : "Summary generated and saved. Estimated monthly budget is temporarily unavailable.")
+      } else {
+        const remainingUsd = payload.remainingMonthlyBudget.remainingMicrousd as number / 1_000_000
+        setNotice(newerEdits
+          ? `Summary generated and saved. Newer edits are not saved. Estimated monthly budget remaining: $${remainingUsd.toFixed(3)}.`
+          : `Summary generated and saved. Estimated monthly budget remaining: $${remainingUsd.toFixed(3)}.`)
+      }
     } catch {
       setError("The summary could not be generated. Save the draft and try again.")
     } finally {
@@ -408,10 +415,15 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
           </label>
           <div>
             <label>Summary
-              <textarea maxLength={240} rows={3} value={values.summary} onChange={(event) => update("summary", event.target.value)} />
+              <textarea rows={3} value={values.summary} onChange={(event) => update("summary", event.target.value)} />
             </label>
             {revision ? (
-              <button disabled={pending || dirty} type="button" onClick={() => void generateSummary()}>
+              <button
+                aria-busy={summaryPending}
+                disabled={pending || dirty}
+                type="button"
+                onClick={() => void generateSummary()}
+              >
                 {summaryPending ? "Generating…" : "Generate with AI"}
               </button>
             ) : null}

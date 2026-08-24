@@ -32,6 +32,7 @@ describe("AI summary quota store", () => {
     ])
 
     await expect(store.reserveSummary({
+      reservationId,
       monthBucket,
       reservedTokens: 1_115,
       reservedCostMicrousd: 1_715,
@@ -60,10 +61,12 @@ describe("AI summary quota store", () => {
     expect(normalized).toContain("< settings.\"monthly_cost_limit_microusd\"")
     expect(normalized).toContain("<= settings.\"monthly_cost_limit_microusd\"")
     expect(normalized).toContain("insert into \"ai_usage_reservations\"")
-    expect(normalized).toContain("select null, null,")
+    expect(normalized).toContain("on conflict (\"id\") do nothing")
+    expect(normalized).toContain("\"id\", \"visitor_hash\", \"date_bucket\"")
     expect(normalized).toContain("'summary'")
     expect(compiled.params).toEqual(expect.arrayContaining([
       monthBucket,
+      reservationId,
       1_115,
       1_715,
       now,
@@ -78,6 +81,7 @@ describe("AI summary quota store", () => {
     ])
 
     await expect(store.reserveSummary({
+      reservationId,
       monthBucket,
       reservedTokens: 1,
       reservedCostMicrousd: 1,
@@ -86,7 +90,7 @@ describe("AI summary quota store", () => {
     })).resolves.toEqual({ status: "monthly_limit" })
   })
 
-  it("gives concurrent attempts the same month-only lock before either reservation query", async () => {
+  it("returns in-progress when the same revision already has a live reservation", async () => {
     transaction
       .mockResolvedValueOnce([
         { rows: [{ locked: null }] },
@@ -94,10 +98,11 @@ describe("AI summary quota store", () => {
       ])
       .mockResolvedValueOnce([
         { rows: [{ locked: null }] },
-        { rows: [{ reservationId: null }] },
+        { rows: [{ reservationId: null, duplicate: true }] },
       ])
 
     const input = {
+      reservationId,
       monthBucket,
       reservedTokens: 1_115,
       reservedCostMicrousd: 1_715,
@@ -108,7 +113,7 @@ describe("AI summary quota store", () => {
 
     expect(results).toEqual([
       { status: "reserved", id: reservationId },
-      { status: "monthly_limit" },
+      { status: "in_progress" },
     ])
     expect(transaction).toHaveBeenCalledTimes(2)
     for (const call of [0, 1]) {

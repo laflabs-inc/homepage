@@ -42,6 +42,16 @@ describe("document validation", () => {
     expect(publishDocumentSchema.safeParse({ ...validDraft, summary: `  ${"가".repeat(240)}  ` }).success).toBe(true)
   })
 
+  it("counts summary limits by Unicode code point without splitting surrogate pairs", () => {
+    const boundary = `${"가".repeat(239)}😀`
+    const overflow = `${"가".repeat(240)}😀`
+
+    expect(documentDraftSchema.safeParse({ ...validDraft, summary: boundary }).success).toBe(true)
+    expect(publishDocumentSchema.safeParse({ ...validDraft, summary: boundary }).success).toBe(true)
+    expect(documentDraftSchema.safeParse({ ...validDraft, summary: overflow }).success).toBe(false)
+    expect(publishDocumentSchema.safeParse({ ...validDraft, summary: overflow }).success).toBe(false)
+  })
+
   it("requires meaningful alt text on Markdown images before publication", () => {
     expect(publishDocumentSchema.safeParse({
       ...validDraft,

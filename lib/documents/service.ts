@@ -6,6 +6,7 @@ import type {
   PublicationTransitionSnapshot,
   PublishDueResult,
   SummaryGenerationMetadata,
+  SummaryPromptSnapshot,
 } from "@/lib/documents/types"
 import { documentDraftSchema, generatedSummarySchema, publishDocumentSchema } from "@/lib/documents/validation"
 import { documentStore } from "@/lib/documents/store"
@@ -117,6 +118,29 @@ function withStableRepositoryErrors(repository: DocumentRepository): DocumentRep
 
 export function createDocumentService(repository: DocumentRepository) {
   repository = withStableRepositoryErrors(repository)
+
+  async function publishRevision(
+    revisionId: string,
+    actor: AdminActor,
+    now: Date,
+    expectedSummary?: SummaryPromptSnapshot,
+  ): Promise<DocumentRevision> {
+    const revision = await requireRevision(repository, revisionId)
+    if (revision.status !== "draft" && revision.status !== "scheduled") {
+      throw new DocumentServiceError("immutable_revision", "Only draft or scheduled revisions may publish")
+    }
+    if (expectedSummary && (
+      revision.title !== expectedSummary.title
+      || revision.summary !== expectedSummary.summary
+      || revision.bodyMarkdown !== expectedSummary.bodyMarkdown
+    )) {
+      throw new DocumentServiceError("conflict", "The document changed before publication")
+    }
+    const snapshot = requirePublishable(revision)
+    if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
+    return repository.publishRevision(revisionId, snapshot, actor, now)
+  }
+
   return {
     async createDraft(input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
       const validInput = requireValidDraft(input)
@@ -168,6 +192,7 @@ export function createDocumentService(repository: DocumentRepository) {
     async updateDraftSummary(
       revisionId: string,
       summary: string,
+      expected: SummaryPromptSnapshot,
       actor: AdminActor,
       metadata: SummaryGenerationMetadata,
     ): Promise<DocumentRevision> {
@@ -177,7 +202,7 @@ export function createDocumentService(repository: DocumentRepository) {
       if (!validSummary.success) {
         throw new DocumentServiceError("conflict", "Generated summary is invalid")
       }
-      return repository.updateDraftSummary(revisionId, validSummary.data, actor, metadata)
+      return repository.updateDraftSummary(revisionId, validSummary.data, expected, actor, metadata)
     },
 
     async deleteDraft(revisionId: string, actor: AdminActor): Promise<void> {
@@ -229,13 +254,16 @@ export function createDocumentService(repository: DocumentRepository) {
     },
 
     async publish(revisionId: string, actor: AdminActor, now = new Date()): Promise<DocumentRevision> {
-      const revision = await requireRevision(repository, revisionId)
-      if (revision.status !== "draft" && revision.status !== "scheduled") {
-        throw new DocumentServiceError("immutable_revision", "Only draft or scheduled revisions may publish")
-      }
-      const snapshot = requirePublishable(revision)
-      if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
-      return repository.publishRevision(revisionId, snapshot, actor, now)
+      return publishRevision(revisionId, actor, now)
+    },
+
+    async publishWithExpectedSummary(
+      revisionId: string,
+      expected: SummaryPromptSnapshot,
+      actor: AdminActor,
+      now = new Date(),
+    ): Promise<DocumentRevision> {
+      return publishRevision(revisionId, actor, now, expected)
     },
 
     async archive(revisionId: string, actor: AdminActor, now = new Date()): Promise<DocumentRevision> {

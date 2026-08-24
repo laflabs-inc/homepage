@@ -27,11 +27,11 @@ const publishDocumentDependencies: PublishDocumentDependencies = {
 
 function publishErrorResponse(error: unknown): Response {
   if (error instanceof SummaryGenerationError) {
-    const status = error.code === "not_found" ? 404 : error.code === "not_draft" ? 409 : 503
+    const status = error.code === "not_found" ? 404 : error.code === "not_draft" || error.code === "conflict" ? 409 : 503
     return jsonNoStore({ error: error.code }, { status })
   }
   if (error instanceof AiQuotaError) {
-    const status = error.code === "monthly_limit" ? 429 : error.code === "content_too_large" ? 400 : 503
+    const status = error.code === "monthly_limit" ? 429 : error.code === "content_too_large" ? 400 : error.code === "in_progress" ? 409 : 503
     return jsonNoStore({ error: error.code }, { status })
   }
   return serviceErrorResponse(error)

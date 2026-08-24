@@ -41,6 +41,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   seriesStateReads: string[] = []
   replaceBeforeArchive = false
   transitionMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown" | "effectiveAt">> | null = null
+  summaryMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown">> | null = null
   private nextId = 1
 
   seed(values: Partial<DocumentRevision> & Pick<DocumentRevision, "seriesId" | "locale" | "status">): DocumentRevision {
@@ -124,11 +125,18 @@ class MemoryDocumentRepository implements DocumentRepository {
   async updateDraftSummary(
     revisionId: string,
     summary: string,
+    expected: Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown">,
     admin: AdminActor,
     metadata: { model: string; generatedAt: Date },
   ): Promise<DocumentRevision> {
     const revision = await this.required(revisionId)
-    if (revision.status !== "draft") throw new Error("immutable")
+    if (this.summaryMutation) Object.assign(revision, this.summaryMutation)
+    if (
+      revision.status !== "draft"
+      || revision.title !== expected.title
+      || revision.summary !== expected.summary
+      || revision.bodyMarkdown !== expected.bodyMarkdown
+    ) throw Object.assign(new Error("summary snapshot changed"), { code: "conflict" })
     Object.assign(revision, { summary, updatedBy: admin.githubId, updatedAt: now })
     this.audits.push({
       action: "document.summary.generate",
@@ -367,7 +375,8 @@ describe("document workflow service", () => {
     })
     const metadata = { model: "gpt-summary", generatedAt: now }
 
-    await expect(service.updateDraftSummary(draft.id, "Generated summary", actor, metadata)).resolves.toMatchObject({
+    const expected = { title: draft.title, summary: draft.summary, bodyMarkdown: draft.bodyMarkdown }
+    await expect(service.updateDraftSummary(draft.id, "Generated summary", expected, actor, metadata)).resolves.toMatchObject({
       title: "Keep title",
       summary: "Generated summary",
       bodyMarkdown: "Keep body",
@@ -380,6 +389,59 @@ describe("document workflow service", () => {
       actor,
       metadata,
     })
+  })
+
+  it("rejects a generated summary when the prompt-relevant draft snapshot changes during persistence", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      title: "Expected title",
+      summary: "",
+      bodyMarkdown: "Expected body",
+    })
+    repository.summaryMutation = { bodyMarkdown: "Concurrent edit" }
+
+    await expect(service.updateDraftSummary(
+      draft.id,
+      "Generated summary",
+      { title: draft.title, summary: draft.summary, bodyMarkdown: draft.bodyMarkdown },
+      actor,
+      { model: "gpt-summary", generatedAt: now },
+    )).rejects.toMatchObject({ code: "conflict" })
+    expect(repository.audits).not.toContainEqual(expect.objectContaining({ action: "document.summary.generate" }))
+  })
+
+  it("publishes only when the generated-summary snapshot is still current", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      title: "Generated title",
+      summary: "Generated summary",
+      bodyMarkdown: "Generated body",
+    })
+    const expected = { title: draft.title, summary: draft.summary, bodyMarkdown: draft.bodyMarkdown }
+
+    await expect(service.publishWithExpectedSummary(draft.id, expected, actor, now)).resolves.toMatchObject({
+      status: "published",
+      summary: "Generated summary",
+    })
+
+    const stale = repository.seed({
+      seriesId: "series-2",
+      locale: "ko",
+      status: "draft",
+      title: "Old title",
+      summary: "Generated summary",
+      bodyMarkdown: "Body",
+    })
+    const staleExpected = { title: stale.title, summary: stale.summary, bodyMarkdown: stale.bodyMarkdown }
+    stale.title = "Concurrent title"
+
+    await expect(service.publishWithExpectedSummary(stale.id, staleExpected, actor, now))
+      .rejects.toMatchObject({ code: "conflict" })
+    expect(stale.status).toBe("draft")
   })
 
   it("uses series-scoped state projections for cross-revision mutation invariants", async () => {

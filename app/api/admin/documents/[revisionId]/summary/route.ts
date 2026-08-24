@@ -22,7 +22,7 @@ type SummaryRouteDependencies = {
       reservedCostMicrousd: number
       remainingMicrousd: number
       exhausted: boolean
-    }
+    } | null
   }>
 }
 
@@ -34,11 +34,11 @@ const defaultDependencies: SummaryRouteDependencies = {
 
 function errorResponse(error: unknown): Response {
   if (error instanceof SummaryGenerationError) {
-    const status = error.code === "not_found" ? 404 : error.code === "not_draft" ? 409 : 503
+    const status = error.code === "not_found" ? 404 : error.code === "not_draft" || error.code === "conflict" ? 409 : 503
     return jsonNoStore({ error: error.code }, { status })
   }
   if (error instanceof AiQuotaError) {
-    const status = error.code === "monthly_limit" ? 429 : error.code === "content_too_large" ? 400 : 503
+    const status = error.code === "monthly_limit" ? 429 : error.code === "content_too_large" ? 400 : error.code === "in_progress" ? 409 : 503
     return jsonNoStore({ error: error.code }, { status })
   }
   if (error instanceof DocumentServiceError) {
@@ -69,11 +69,11 @@ export async function handleGenerateDocumentSummary(
     const result = await dependencies.generate(revisionId, authorization.actor)
     return jsonNoStore({
       summary: result.summary,
-      remainingMonthlyBudget: {
+      remainingMonthlyBudget: result.remainingMonthlyBudget ? {
         month: result.remainingMonthlyBudget.month,
         remainingMicrousd: result.remainingMonthlyBudget.remainingMicrousd,
         exhausted: result.remainingMonthlyBudget.exhausted,
-      },
+      } : null,
     })
   } catch (error) {
     return errorResponse(error)

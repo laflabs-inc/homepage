@@ -120,6 +120,8 @@ export type SummaryGenerationMetadata = {
   generatedAt: Date
 }
 
+export type SummaryPromptSnapshot = Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown">
+
 export type PublishedRevisionReference = Pick<DocumentRevision, "id" | "kind" | "locale" | "slug">
 
 export type PublishDueResult = {
@@ -161,6 +163,7 @@ export interface DocumentRepository {
   updateDraftSummary(
     revisionId: string,
     summary: string,
+    expected: SummaryPromptSnapshot,
     actor: AdminActor,
     metadata: SummaryGenerationMetadata,
   ): Promise<DocumentRevision>

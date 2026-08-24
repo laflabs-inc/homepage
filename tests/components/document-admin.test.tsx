@@ -225,10 +225,28 @@ describe("document admin", () => {
     render(<DocumentEditor revision={revision} />)
 
     await user.click(screen.getByRole("button", { name: "Generate with AI" }))
+    expect(screen.getByRole("button", { name: "Generating…" })).toHaveAttribute("aria-busy", "true")
     expect(screen.getByRole("button", { name: "Generating…" })).toBeDisabled()
 
     await act(async () => resolveGeneration(Response.json({ error: "provider_unavailable" }, { status: 503 })))
     expect(await screen.findByRole("alert")).toHaveTextContent("The summary could not be generated. Save the draft and try again.")
+  })
+
+  it("keeps a generated summary successful when the budget estimate is unavailable", async () => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockImplementationOnce(async () => Response.json({
+      summary: "Saved AI summary",
+      remainingMonthlyBudget: null,
+    }))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Generate with AI" }))
+
+    expect(await screen.findByRole("textbox", { name: "Summary" })).toHaveValue("Saved AI summary")
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Summary generated and saved. Estimated monthly budget is temporarily unavailable.",
+    )
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
   })
 
   it("posts a new Korean draft to the collection endpoint", async () => {

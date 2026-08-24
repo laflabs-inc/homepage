@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
 import type { AgentSettings } from "@/lib/agent/types"
+import { AiQuotaError } from "@/lib/ai/quota"
 import { createSummaryService, SummaryGenerationError } from "@/lib/ai/summary"
 import type { DocumentRevision } from "@/lib/documents/types"
 
@@ -56,7 +57,7 @@ function settings(summaryPolicy: "review" | "automatic" = "review"): AgentSettin
 
 function dependencies(overrides: Record<string, unknown> = {}) {
   const reservation = {
-    id: "reservation-1",
+    id: revision.id,
     estimatedInputTokens: 600,
     maxOutputTokens: 600,
     reservedTokens: 1_200,
@@ -76,6 +77,11 @@ function dependencies(overrides: Record<string, unknown> = {}) {
       getRevision: vi.fn(async () => revision),
       updateDraftSummary: vi.fn(async (_id, summary) => ({ ...revision, summary })),
       publish: vi.fn(async () => ({ ...revision, summary: "Published summary", status: "published" as const })),
+      publishWithExpectedSummary: vi.fn(async () => ({
+        ...revision,
+        summary: "Published summary",
+        status: "published" as const,
+      })),
     },
     quota: {
       reserveSummary: vi.fn(async () => reservation),
@@ -122,9 +128,11 @@ describe("draft summary generation", () => {
       remainingMonthlyBudget: deps.remaining,
     })
     expect(order).toEqual(["reserve", "provider", "reconcile", "update"])
+    expect(deps.quota.reserveSummary).toHaveBeenCalledWith(expect.objectContaining({ reservationId: revision.id }))
     expect(deps.documents.updateDraftSummary).toHaveBeenCalledWith(
       revision.id,
       "변경 사항을 사실대로 요약합니다.",
+      { title: revision.title, bodyMarkdown: revision.bodyMarkdown, summary: revision.summary },
       actor,
       { model: "gpt-summary", generatedAt: now },
     )
@@ -174,9 +182,59 @@ describe("draft summary generation", () => {
     expect(long.documents.updateDraftSummary).toHaveBeenCalledWith(
       revision.id,
       `${"가".repeat(239)}😀`,
+      { title: revision.title, bodyMarkdown: revision.bodyMarkdown, summary: revision.summary },
       actor,
       expect.anything(),
     )
+  })
+
+  it("does not call the provider when this revision already has a live reservation", async () => {
+    const deps = dependencies()
+    deps.quota.reserveSummary.mockRejectedValue(new AiQuotaError("in_progress", "already generating"))
+
+    await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor))
+      .rejects.toMatchObject({ code: "in_progress" })
+    expect(deps.provider.generateSummary).not.toHaveBeenCalled()
+    expect(deps.documents.updateDraftSummary).not.toHaveBeenCalled()
+  })
+
+  it("releases without inference when the prompt-relevant draft snapshot changes after reservation", async () => {
+    const deps = dependencies()
+    deps.documents.getRevision
+      .mockResolvedValueOnce(revision)
+      .mockResolvedValueOnce({ ...revision, title: "Changed title" })
+
+    await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor))
+      .rejects.toMatchObject({ code: "conflict" })
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(revision.id)
+    expect(deps.provider.generateSummary).not.toHaveBeenCalled()
+    expect(deps.quota.reconcileSummaryUsage).not.toHaveBeenCalled()
+  })
+
+  it("releases without inference when post-reservation draft revalidation is unavailable", async () => {
+    const deps = dependencies()
+    deps.documents.getRevision
+      .mockResolvedValueOnce(revision)
+      .mockRejectedValueOnce(new Error("draft read unavailable"))
+
+    await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor)).rejects.toThrow()
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(revision.id)
+    expect(deps.provider.generateSummary).not.toHaveBeenCalled()
+    expect(deps.quota.reconcileSummaryUsage).not.toHaveBeenCalled()
+  })
+
+  it("keeps a saved summary successful when the advisory remaining-budget read fails", async () => {
+    const deps = dependencies()
+    deps.quota.getRemainingMonthlyBudget.mockRejectedValue(new Error("budget read unavailable"))
+
+    await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor)).resolves.toEqual({
+      summary: "변경 사항을 사실대로 요약합니다.",
+      remainingMonthlyBudget: null,
+    })
+    expect(deps.documents.updateDraftSummary).toHaveBeenCalledTimes(1)
+    expect(deps.provider.generateSummary).toHaveBeenCalledTimes(1)
+    expect(deps.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
+    expect(deps.quota.releaseReservation).not.toHaveBeenCalled()
   })
 
   it.each(["published", "archived", "scheduled"] as const)("rejects %s revisions before reserving", async (status) => {
@@ -224,7 +282,7 @@ describe("summary publication policy", () => {
       order.push("update")
       return { ...revision, summary }
     })
-    deps.documents.publish.mockImplementation(async () => {
+    deps.documents.publishWithExpectedSummary.mockImplementation(async () => {
       order.push("publish")
       return { ...revision, summary: "generated", status: "published" }
     })
@@ -233,6 +291,32 @@ describe("summary publication policy", () => {
 
     expect(order).toEqual(["update", "publish"])
     expect(deps.provider.generateSummary).toHaveBeenCalledTimes(1)
+    expect(deps.documents.publishWithExpectedSummary).toHaveBeenCalledWith(
+      revision.id,
+      {
+        title: revision.title,
+        bodyMarkdown: revision.bodyMarkdown,
+        summary: "변경 사항을 사실대로 요약합니다.",
+      },
+      actor,
+    )
+    expect(deps.documents.publish).not.toHaveBeenCalled()
+  })
+
+  it("bypasses automatic generation when a summary is saved after reservation", async () => {
+    const deps = dependencies({ settings: { getSettings: vi.fn(async () => settings("automatic")) } })
+    deps.documents.getRevision
+      .mockResolvedValueOnce(revision)
+      .mockResolvedValueOnce(revision)
+      .mockResolvedValueOnce({ ...revision, summary: "Concurrent manual summary" })
+
+    await createSummaryService(deps).publishWithSummaryPolicy(revision.id, actor)
+
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(revision.id)
+    expect(deps.provider.generateSummary).not.toHaveBeenCalled()
+    expect(deps.documents.updateDraftSummary).not.toHaveBeenCalled()
+    expect(deps.documents.publish).toHaveBeenCalledWith(revision.id, actor)
+    expect(deps.documents.publishWithExpectedSummary).not.toHaveBeenCalled()
   })
 
   it("does not publish when automatic generation or summary persistence fails", async () => {
@@ -245,5 +329,19 @@ describe("summary publication policy", () => {
     updateFailure.documents.updateDraftSummary.mockRejectedValue(new Error("draft update failure"))
     await expect(createSummaryService(updateFailure).publishWithSummaryPolicy(revision.id, actor)).rejects.toThrow()
     expect(updateFailure.documents.publish).not.toHaveBeenCalled()
+    expect(updateFailure.documents.publishWithExpectedSummary).not.toHaveBeenCalled()
+    expect(updateFailure.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not publish if the generated-summary publication snapshot becomes stale", async () => {
+    const deps = dependencies({ settings: { getSettings: vi.fn(async () => settings("automatic")) } })
+    deps.documents.publishWithExpectedSummary.mockRejectedValue(Object.assign(new Error("draft changed"), {
+      code: "conflict",
+    }))
+
+    await expect(createSummaryService(deps).publishWithSummaryPolicy(revision.id, actor))
+      .rejects.toMatchObject({ code: "conflict" })
+    expect(deps.documents.publish).not.toHaveBeenCalled()
+    expect(deps.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
   })
 })
