@@ -28,3 +28,11 @@ Verification:
 - A current failed result atomically disables AI and invalidates evidence even when enablement committed during the provider call.
 - No schema, migration, dependency, DTO, audit, or provider-classification changes were needed.
 - Verification: `npm run test:unit -- tests/agent` passed 60 tests; `npm test` passed typecheck, lint, 495 unit tests, and the production build.
+
+## Fix round 3
+
+- Replaced the JavaScript `Date` compare with one internal opaque generation string derived and compared in SQL from `updated_at` at PostgreSQL microsecond precision.
+- The generation remains server-internal and is excluded from the explicit credential DTO.
+- Added current and stale microsecond-token query coverage with a deterministic memory-store token.
+- No schema, migration, dependency, audit, or public DTO change was needed.
+- Verification: `npm run test:unit -- tests/agent` passed 61 tests; `npm test` passed typecheck, lint, 496 unit tests, and the production build.

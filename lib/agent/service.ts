@@ -233,7 +233,7 @@ export function createAgentService(
       }
 
       const verifiedAt = dependencies.now()
-      const expected = { fingerprint: credential.fingerprint, updatedAt: credential.updatedAt }
+      const expected = { fingerprint: credential.fingerprint, generation: credential.generation }
       try {
         await dependencies.verify(apiKey, settings.model)
       } catch (error) {

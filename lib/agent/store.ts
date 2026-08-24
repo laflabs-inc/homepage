@@ -32,7 +32,8 @@ const credentialSelect = sql.raw(`
   c."auth_tag" AS "authTag", c."fingerprint" AS "fingerprint",
   c."verified_model" AS "verifiedModel", c."verification_status" AS "verificationStatus",
   c."verified_at" AS "verifiedAt", c."created_by" AS "createdBy",
-  c."created_at" AS "createdAt", c."updated_at" AS "updatedAt"
+  c."created_at" AS "createdAt", c."updated_at" AS "updatedAt",
+  (extract(epoch FROM c."updated_at") * 1000000)::bigint::text AS "generation"
 `)
 
 function mapSettings(value: unknown): AgentSettings {
@@ -71,6 +72,7 @@ function mapCredential(value: unknown): StoredCredential {
     iv: row.iv,
     authTag: row.authTag,
     fingerprint: row.fingerprint,
+    generation: row.generation,
     verifiedModel: row.verifiedModel,
     verificationStatus: row.verificationStatus === "verified" ? "verified" : "failed",
     verifiedAt: row.verifiedAt,
@@ -251,7 +253,8 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
           SELECT CASE WHEN
             locked_settings."model" IS NOT DISTINCT FROM ${model}
             AND locked_credential."fingerprint" IS NOT DISTINCT FROM ${expected.fingerprint}
-            AND locked_credential."updated_at" IS NOT DISTINCT FROM ${expected.updatedAt}
+            AND (extract(epoch FROM locked_credential."updated_at") * 1000000)::bigint::text
+              IS NOT DISTINCT FROM ${expected.generation}
             THEN 'current' ELSE 'stale'
           END AS "recordStatus"
           FROM locked_settings

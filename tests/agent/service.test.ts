@@ -70,10 +70,14 @@ class MemoryAgentRepository implements AgentRepository {
   events: string[] = []
   audits: Array<{ action: string; metadata: Record<string, unknown> }> = []
   beforeUpdate?: () => void
-  private generation = 0
+  private generationCounter = 0
 
   private touch() {
-    return new Date(now.getTime() + ++this.generation)
+    return new Date(now.getTime() + ++this.generationCounter)
+  }
+
+  private generation() {
+    return `generation-${this.generationCounter}`
   }
 
   async getSettings() { return this.settings }
@@ -100,12 +104,14 @@ class MemoryAgentRepository implements AgentRepository {
       updatedAt: now,
     }
     if (modelChanged && this.credential) {
+      const updatedAt = this.touch()
       this.credential = {
         ...this.credential,
         verificationStatus: "failed",
         verifiedModel: null,
         verifiedAt: null,
-        updatedAt: this.touch(),
+        updatedAt,
+        generation: this.generation(),
       }
     }
     this.events.push("settings:update")
@@ -115,11 +121,13 @@ class MemoryAgentRepository implements AgentRepository {
 
   async replaceCredential(input: CredentialReplacement, admin: AdminActor, replacing: boolean) {
     this.events.push("credential:replace")
+    const updatedAt = this.touch()
     this.credential = {
       ...input,
       createdBy: admin.githubId,
       createdAt: now,
-      updatedAt: this.touch(),
+      updatedAt,
+      generation: this.generation(),
     }
     this.audits.push({
       action: replacing ? "agent.credential.replace" : "agent.credential.register",
@@ -136,7 +144,7 @@ class MemoryAgentRepository implements AgentRepository {
   async recordCredentialTest(
     model: string,
     result: VerificationStatus,
-    expected: Pick<StoredCredential, "fingerprint" | "updatedAt">,
+    expected: Pick<StoredCredential, "fingerprint" | "generation">,
     admin: AdminActor,
     verifiedAt: Date,
   ) {
@@ -145,14 +153,16 @@ class MemoryAgentRepository implements AgentRepository {
       this.settings.model !== model
       || !this.credential
       || this.credential.fingerprint !== expected.fingerprint
-      || this.credential.updatedAt.getTime() !== expected.updatedAt.getTime()
+      || this.credential.generation !== expected.generation
     ) return { status: "stale" as const }
+    const updatedAt = this.touch()
     this.credential = {
       ...this.credential,
       verifiedModel: result === "verified" ? model : null,
       verificationStatus: result,
       verifiedAt: result === "verified" ? verifiedAt : null,
-      updatedAt: this.touch(),
+      updatedAt,
+      generation: this.generation(),
     }
     if (result === "failed" && this.settings.enabled) {
       this.settings = {
@@ -247,7 +257,7 @@ describe("Agent service", () => {
     const dto = await service(repository).getConfiguration()
     const serialized = JSON.stringify(dto)
 
-    for (const forbidden of ["apiKey", "ciphertext", "iv", "authTag"]) {
+    for (const forbidden of ["apiKey", "ciphertext", "iv", "authTag", "generation"]) {
       expect(serialized).not.toContain(`\"${forbidden}\"`)
     }
     expect(dto.credential).toMatchObject({ configured: true, provider: "openai", verifiedModel: "gpt-test" })
@@ -528,7 +538,7 @@ describe("Agent store", () => {
     const store = createAgentStore({ execute })
     const credential = {
       fingerprint: "123456789abc",
-      updatedAt: new Date("2026-08-24T09:00:00.000Z"),
+      generation: "1787562000123456",
     }
 
     expect(await store.recordCredentialTest("gpt-test", "failed", credential, actor, now))
@@ -540,7 +550,42 @@ describe("Agent store", () => {
     expect(settingsLock).toBeGreaterThan(-1)
     expect(settingsLock).toBeLessThan(credentialLock)
     expect(sql).toMatch(/locked_credential[^]*SELECT count\(\*\) FROM locked_settings[^]*FOR UPDATE/)
-    expect(sql).toMatch(/fingerprint[^]*updated_at[^]*recordStatus/)
+    expect(sql).toMatch(/fingerprint[^]*extract\(epoch FROM locked_credential\."updated_at"\)[^]*recordStatus/)
+    expect(new PgDialect().sqlToQuery(execute.mock.calls[0]![0]).params).toContain("1787562000123456")
+  })
+
+  it("accepts a current microsecond-precision generation token and returns the next opaque token", async () => {
+    const execute = vi.fn(async (query: SQL) => {
+      void query
+      return { rows: [{
+        recordStatus: "updated",
+        provider: "openai",
+        ciphertext: "encrypted",
+        iv: "iv",
+        authTag: "tag",
+        fingerprint: "123456789abc",
+        verifiedModel: "gpt-test",
+        verificationStatus: "verified",
+        verifiedAt: now,
+        createdBy: actor.githubId,
+        createdAt: now,
+        updatedAt: now,
+        generation: "1787562000654321",
+      }] }
+    })
+    const store = createAgentStore({ execute })
+
+    await expect(store.recordCredentialTest("gpt-test", "verified", {
+      fingerprint: "123456789abc",
+      generation: "1787562000123456",
+    }, actor, now)).resolves.toMatchObject({
+      status: "updated",
+      credential: { generation: "1787562000654321" },
+    })
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0]![0])
+    expect(compiled.params).toContain("1787562000123456")
+    expect(compiled.sql).toMatch(/extract\(epoch FROM c\."updated_at"\)[^]*AS "generation"/)
   })
 
   it("makes valid failure disablement precede evidence invalidation", async () => {
@@ -552,7 +597,7 @@ describe("Agent store", () => {
 
     await store.recordCredentialTest("gpt-test", "failed", {
       fingerprint: "123456789abc",
-      updatedAt: now,
+      generation: "1787562000123456",
     }, actor, now)
 
     const { sql } = new PgDialect().sqlToQuery(execute.mock.calls[0]![0])

@@ -31,6 +31,7 @@ export type AgentSettingsDto = Omit<AgentSettings, "id">
 export type StoredCredential = CredentialEnvelope & {
   provider: "openai"
   fingerprint: string
+  generation: string
   verifiedModel: string | null
   verificationStatus: VerificationStatus
   verifiedAt: Date | null
@@ -87,7 +88,7 @@ export type AgentSettingsUpdateResult =
   | { status: "credential_unavailable" }
   | { status: "model_unverified" }
 
-export type CredentialTestGeneration = Pick<StoredCredential, "fingerprint" | "updatedAt">
+export type CredentialTestGeneration = Pick<StoredCredential, "fingerprint" | "generation">
 
 export type CredentialTestRecordResult =
   | { status: "updated"; credential: StoredCredential }
