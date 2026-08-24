@@ -36,6 +36,13 @@
       "when": 1787481548121,
       "tag": "0004_sad_skin",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787565472296,
+      "tag": "0005_agent_control_plane",
+      "breakpoints": true
     }
   ]
 }

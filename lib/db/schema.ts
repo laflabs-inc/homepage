@@ -1,4 +1,4 @@
-import { boolean, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 
 export const analyticsEvents = pgTable("analytics_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -37,6 +37,42 @@ export const analyticsWithdrawalGuards = pgTable("analytics_withdrawal_guards", 
 export const documentKindEnum = pgEnum("document_kind", ["notice", "legal", "disclosure", "design"])
 export const documentLocaleEnum = pgEnum("document_locale", ["ko", "en"])
 export const documentStatusEnum = pgEnum("document_status", ["draft", "scheduled", "published", "archived"])
+export const summaryPolicyEnum = pgEnum("summary_policy", ["review", "automatic"])
+
+export const agentSettings = pgTable("agent_settings", {
+  id: text("id").default("default").primaryKey(),
+  enabled: boolean("enabled").default(false).notNull(),
+  model: text("model"),
+  dailyTokenLimit: integer("daily_token_limit").default(20_000).notNull(),
+  dailyQuestionLimit: integer("daily_question_limit").default(10).notNull(),
+  maxOutputTokens: integer("max_output_tokens").default(600).notNull(),
+  monthlyCostLimitMicrousd: bigint("monthly_cost_limit_microusd", { mode: "number" }).default(50_000_000).notNull(),
+  inputPriceMicrousdPerMillion: bigint("input_price_microusd_per_million", { mode: "number" }),
+  outputPriceMicrousdPerMillion: bigint("output_price_microusd_per_million", { mode: "number" }),
+  pricingCheckedAt: timestamp("pricing_checked_at", { withTimezone: true }),
+  resetTimezone: text("reset_timezone").default("Asia/Seoul").notNull(),
+  dailyResetMinute: integer("daily_reset_minute").default(0).notNull(),
+  cookieRetentionDays: integer("cookie_retention_days").default(180).notNull(),
+  summaryPolicy: summaryPolicyEnum("summary_policy").default("review").notNull(),
+  version: integer("version").default(1).notNull(),
+  updatedBy: text("updated_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const aiProviderCredentials = pgTable("ai_provider_credentials", {
+  provider: text("provider").default("openai").primaryKey(),
+  ciphertext: text("ciphertext").notNull(),
+  iv: text("iv").notNull(),
+  authTag: text("auth_tag").notNull(),
+  fingerprint: text("fingerprint").notNull(),
+  verifiedModel: text("verified_model").notNull(),
+  verificationStatus: text("verification_status").default("verified").notNull(),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+})
 
 export const documentSeries = pgTable("document_series", {
   id: uuid("id").defaultRandom().primaryKey(),
