@@ -62,6 +62,28 @@ beforeEach(() => {
 })
 
 describe("document publication store boundary", () => {
+  it("updates only the draft summary and audits safe model metadata atomically", async () => {
+    execute.mockResolvedValue({ rows: [{ ...publishedRow, status: "draft", summary: "Generated summary" }] })
+
+    await store.updateDraftSummary(
+      publishedRow.id,
+      "Generated summary",
+      actor,
+      { model: "gpt-summary", generatedAt: now },
+    )
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("update \"document_revisions\"")
+    expect(normalizedSql).toContain("set \"summary\" =")
+    expect(normalizedSql).not.toContain("set \"title\" =")
+    expect(normalizedSql).not.toContain("\"body_markdown\" =")
+    expect(normalizedSql).toContain("\"status\" = 'draft'")
+    expect(normalizedSql).toContain("'document.summary.generate'")
+    expect(compiled.params).toContain("gpt-summary")
+    expect(compiled.params).not.toContain(publishedRow.bodyMarkdown)
+  })
+
   it("returns exact cache metadata for each committed scheduled publication", async () => {
     execute
       .mockResolvedValueOnce({ rows: [{

@@ -5,8 +5,9 @@ import type {
   DocumentRevision,
   PublicationTransitionSnapshot,
   PublishDueResult,
+  SummaryGenerationMetadata,
 } from "@/lib/documents/types"
-import { documentDraftSchema, publishDocumentSchema } from "@/lib/documents/validation"
+import { documentDraftSchema, generatedSummarySchema, publishDocumentSchema } from "@/lib/documents/validation"
 import { documentStore } from "@/lib/documents/store"
 
 export type DocumentServiceErrorCode =
@@ -162,6 +163,21 @@ export function createDocumentService(repository: DocumentRepository) {
         throw new DocumentServiceError("conflict", "Shared series metadata cannot be changed")
       }
       return repository.updateDraft(revisionId, validInput, actor)
+    },
+
+    async updateDraftSummary(
+      revisionId: string,
+      summary: string,
+      actor: AdminActor,
+      metadata: SummaryGenerationMetadata,
+    ): Promise<DocumentRevision> {
+      const revision = await requireRevision(repository, revisionId)
+      requireDraft(revision)
+      const validSummary = generatedSummarySchema.safeParse(summary)
+      if (!validSummary.success) {
+        throw new DocumentServiceError("conflict", "Generated summary is invalid")
+      }
+      return repository.updateDraftSummary(revisionId, validSummary.data, actor, metadata)
     },
 
     async deleteDraft(revisionId: string, actor: AdminActor): Promise<void> {

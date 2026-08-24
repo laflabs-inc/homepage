@@ -99,6 +99,7 @@ function dependencies(overrides: Record<string, unknown> = {}) {
       listAdminSummaries: vi.fn().mockResolvedValue({ items: [summary], nextCursor: null }),
       getRevision: vi.fn().mockResolvedValue(revision),
     },
+    publishWithSummaryPolicy: vi.fn().mockResolvedValue({ ...revision, status: "published" }),
     revalidate: vi.fn(),
     ...overrides,
   }
@@ -418,6 +419,7 @@ describe("admin document revision actions", () => {
       await expect(response.json()).resolves.toEqual({ error: "invalid_request" })
     }
     for (const method of Object.values(deps.service)) expect(method).not.toHaveBeenCalled()
+    expect(deps.publishWithSummaryPolicy).not.toHaveBeenCalled()
   })
 
   it("gets one revision through the authenticated admin reader", async () => {
@@ -509,7 +511,7 @@ describe("admin document revision actions", () => {
   it("invalidates exact public tags only after publication commits", async () => {
     const events: string[] = []
     const deps = dependencies({ revalidate: vi.fn((tag: string) => events.push(tag)) })
-    deps.service.publish.mockImplementation(async () => {
+    deps.publishWithSummaryPolicy.mockImplementation(async () => {
       events.push("commit")
       return { ...revision, status: "published" as const }
     })
@@ -521,7 +523,8 @@ describe("admin document revision actions", () => {
     )
 
     expect(response.status).toBe(200)
-    expect(deps.service.publish).toHaveBeenCalledWith(revisionId, actor)
+    expect(deps.publishWithSummaryPolicy).toHaveBeenCalledWith(revisionId, actor)
+    expect(deps.service.publish).not.toHaveBeenCalled()
     expect(events[0]).toBe("commit")
     expect(events.slice(1)).toEqual([
       "documents:sitemap",
@@ -535,7 +538,7 @@ describe("admin document revision actions", () => {
 
   it("does not invalidate public tags when publication fails", async () => {
     const deps = dependencies()
-    deps.service.publish.mockRejectedValue(new DocumentServiceError("conflict", "not ready"))
+    deps.publishWithSummaryPolicy.mockRejectedValue(new DocumentServiceError("conflict", "not ready"))
 
     const response = await handlePublishDocument(
       jsonRequest(`/api/admin/documents/${revisionId}/publish`, {}),

@@ -309,6 +309,33 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       return requiredRevision(result.rows, "Draft changed before it could be updated")
     },
 
+    async updateDraftSummary(revisionId, summary, actor, metadata) {
+      const result = await database.execute(sql`
+        WITH updated_revision AS (
+          UPDATE ${documentRevisions}
+          SET "summary" = ${summary}, "updated_by" = ${actor.githubId},
+            "updated_at" = statement_timestamp()
+          WHERE "id" = ${revisionId}::uuid AND "status" = 'draft'
+          RETURNING *
+        ), audit_entry AS (
+          INSERT INTO ${adminAuditLog} (
+            "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
+          )
+          SELECT 'document.summary.generate', 'document_revision', updated_revision."id"::text,
+            ${actor.githubId}, ${actor.name}, jsonb_build_object(
+              'model', ${metadata.model}, 'generatedAt', ${metadata.generatedAt}
+            )
+          FROM updated_revision
+          RETURNING "id"
+        )
+        SELECT ${revisionSelect}
+        FROM updated_revision r
+        INNER JOIN ${documentSeries} s ON s."id" = r."series_id"
+        WHERE (SELECT count(*) FROM audit_entry) >= 0
+      `)
+      return requiredRevision(result.rows, "Draft changed before its summary could be updated")
+    },
+
     async deleteDraft(revisionId, actor) {
       const result = await database.execute(sql`
         WITH locked_series AS (

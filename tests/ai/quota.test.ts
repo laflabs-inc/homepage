@@ -98,15 +98,15 @@ describe("summary budget service", () => {
 
     await expect(quota.reserveSummary({ prompt: "ab", source: "가" })).resolves.toMatchObject({
       estimatedInputTokens: 515,
-      maxOutputTokens: 600,
-      reservedTokens: 1_115,
-      reservedCostMicrousd: 1_715,
+      maxOutputTokens: 256,
+      reservedTokens: 771,
+      reservedCostMicrousd: 1_027,
     })
 
     expect(store.reserveInputs).toEqual([{
       monthBucket: new Date("2026-08-01T00:00:00.000Z"),
-      reservedTokens: 1_115,
-      reservedCostMicrousd: 1_715,
+      reservedTokens: 771,
+      reservedCostMicrousd: 1_027,
       now,
       expiresAt: new Date("2026-08-24T10:01:30.000Z"),
     }])
@@ -139,7 +139,7 @@ describe("summary budget service", () => {
 
   it("reports the monthly guard when actual plus live reservation cost cannot fit", async () => {
     const store = new MemorySummaryStore()
-    store.limit = 1_714
+    store.limit = 1_026
     const { quota } = service(store)
 
     await expect(quota.reserveSummary({ prompt: "ab", source: "가" }))
@@ -149,7 +149,7 @@ describe("summary budget service", () => {
   it("reconciles provider usage once using the reservation price snapshot", async () => {
     const { quota, store } = service()
     const reservation = await quota.reserveSummary({ prompt: "ab", source: "가" })
-    const usage = { inputTokens: 1_200, outputTokens: 400, totalTokens: 1_600 }
+    const usage = { inputTokens: 1_200, outputTokens: 200, totalTokens: 1_400 }
 
     await expect(quota.reconcileSummaryUsage(reservation, usage)).resolves.toBe(true)
     await expect(quota.reconcileSummaryUsage(reservation, usage)).resolves.toBe(false)
@@ -157,9 +157,9 @@ describe("summary budget service", () => {
     expect(store).toMatchObject({
       summaryCount: 1,
       inputTokens: 1_200,
-      outputTokens: 400,
-      totalTokens: 1_600,
-      usage: { actualCostMicrousd: 2_000, reservedCostMicrousd: 0 },
+      outputTokens: 200,
+      totalTokens: 1_400,
+      usage: { actualCostMicrousd: 1_600, reservedCostMicrousd: 0 },
     })
   })
 
@@ -169,8 +169,8 @@ describe("summary budget service", () => {
 
     await expect(quota.reconcileSummaryUsage(reservation, {
       inputTokens: 500,
-      outputTokens: 601,
-      totalTokens: 1_101,
+      outputTokens: 257,
+      totalTokens: 757,
     })).rejects.toThrow(RangeError)
   })
 

@@ -115,6 +115,11 @@ export type AuditAction = {
   metadata?: Record<string, unknown>
 }
 
+export type SummaryGenerationMetadata = {
+  model: string
+  generatedAt: Date
+}
+
 export type PublishedRevisionReference = Pick<DocumentRevision, "id" | "kind" | "locale" | "slug">
 
 export type PublishDueResult = {
@@ -153,6 +158,12 @@ export interface DocumentRepository {
   getSeriesState(seriesId: string): Promise<DocumentSeriesState | null>
   listSeriesRevisionStates(seriesId: string): Promise<DocumentSeriesRevisionState[]>
   updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
+  updateDraftSummary(
+    revisionId: string,
+    summary: string,
+    actor: AdminActor,
+    metadata: SummaryGenerationMetadata,
+  ): Promise<DocumentRevision>
   deleteDraft(revisionId: string, actor: AdminActor): Promise<void>
   createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
   scheduleRevision(revisionId: string, scheduledAt: Date, snapshot: PublicationTransitionSnapshot, actor: AdminActor): Promise<DocumentRevision>

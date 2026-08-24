@@ -184,6 +184,53 @@ describe("document admin", () => {
     expect(await screen.findByText("Draft saved.")).toBeInTheDocument()
   })
 
+  it("generates and server-saves an editable summary for a saved draft", async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.mocked(fetch)
+    fetchMock.mockImplementationOnce(async () => new Response(JSON.stringify({
+      summary: "AI generated summary",
+      remainingMonthlyBudget: {
+        month: "2026-08",
+        limitMicrousd: 50_000_000,
+        actualCostMicrousd: 1_000,
+        reservedCostMicrousd: 0,
+        remainingMicrousd: 49_999_000,
+        exhausted: false,
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } }))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Generate with AI" }))
+
+    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/documents/${revision.id}/summary`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    })
+    const summary = await screen.findByRole("textbox", { name: "Summary" })
+    expect(summary).toHaveValue("AI generated summary")
+    expect(screen.getByText("Summary generated and saved. Estimated monthly budget remaining: $49.999.")).toBeInTheDocument()
+
+    await user.type(summary, " edited")
+    expect(summary).toHaveValue("AI generated summary edited")
+    expect(screen.getByRole("button", { name: "Generate with AI" })).toBeDisabled()
+  })
+
+  it("announces loading and safe summary failures", async () => {
+    const user = userEvent.setup()
+    let resolveGeneration!: (response: Response) => void
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise<Response>((resolve) => {
+      resolveGeneration = resolve
+    }))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Generate with AI" }))
+    expect(screen.getByRole("button", { name: "Generating…" })).toBeDisabled()
+
+    await act(async () => resolveGeneration(Response.json({ error: "provider_unavailable" }, { status: 503 })))
+    expect(await screen.findByRole("alert")).toHaveTextContent("The summary could not be generated. Save the draft and try again.")
+  })
+
   it("posts a new Korean draft to the collection endpoint", async () => {
     const user = userEvent.setup()
     const fetchMock = vi.mocked(fetch)
@@ -307,7 +354,8 @@ describe("document admin", () => {
 
     expect(screen.getByRole("button", { name: "Schedule" })).toBeDisabled()
     expect(screen.getByRole("button", { name: "Publish now" })).toBeDisabled()
-    expect(screen.getByText("Save the draft before scheduling or publishing.")).toBeInTheDocument()
+    expect(screen.getByText("Save the draft before generating a summary, scheduling, or publishing.")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Generate with AI" })).toBeDisabled()
   })
 
   it("preserves newer edits when an earlier save response arrives late", async () => {
@@ -330,7 +378,7 @@ describe("document admin", () => {
 
     expect(title).toHaveValue("Submitted title with newer edits")
     expect(screen.getByText("Draft saved. Newer edits are not saved.")).toBeInTheDocument()
-    expect(screen.getByText("Save the draft before scheduling or publishing.")).toBeInTheDocument()
+    expect(screen.getByText("Save the draft before generating a summary, scheduling, or publishing.")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Publish now" })).toBeDisabled()
   })
 
@@ -512,6 +560,7 @@ describe("document admin", () => {
     expect(screen.getAllByText(/Published/)).toHaveLength(2)
     expect(screen.getByRole("button", { name: "Create new revision" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Archive" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Generate with AI" })).not.toBeInTheDocument()
   })
 
   it("confirms schedule, publish, unschedule, archive, and new-revision mutations", async () => {

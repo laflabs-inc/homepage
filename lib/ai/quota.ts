@@ -4,6 +4,7 @@ import { estimateCostMicrousd, type TokenPrices } from "@/lib/ai/cost"
 
 const SUMMARY_PROMPT_BYTE_LIMIT = 16_384
 const SUMMARY_SOURCE_BYTE_LIMIT = 800_000
+const SUMMARY_MAX_OUTPUT_TOKENS = 256
 const RESERVATION_TTL_MS = 90_000
 
 export type SummaryReservationInput = {
@@ -81,7 +82,7 @@ function requireSummarySettings(settings: AgentSettings) {
     || settings.outputPriceMicrousdPerMillion === null
   ) throw new AiQuotaError("misconfigured", "AI model and prices are required")
   return {
-    maxOutputTokens: settings.maxOutputTokens,
+    maxOutputTokens: Math.min(settings.maxOutputTokens, SUMMARY_MAX_OUTPUT_TOKENS),
     prices: {
       inputMicrousdPerMillion: settings.inputPriceMicrousdPerMillion,
       outputMicrousdPerMillion: settings.outputPriceMicrousdPerMillion,

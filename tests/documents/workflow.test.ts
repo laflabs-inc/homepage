@@ -121,6 +121,25 @@ class MemoryDocumentRepository implements DocumentRepository {
     return revision
   }
 
+  async updateDraftSummary(
+    revisionId: string,
+    summary: string,
+    admin: AdminActor,
+    metadata: { model: string; generatedAt: Date },
+  ): Promise<DocumentRevision> {
+    const revision = await this.required(revisionId)
+    if (revision.status !== "draft") throw new Error("immutable")
+    Object.assign(revision, { summary, updatedBy: admin.githubId, updatedAt: now })
+    this.audits.push({
+      action: "document.summary.generate",
+      targetType: "document_revision",
+      targetId: revisionId,
+      actor: admin,
+      metadata,
+    })
+    return revision
+  }
+
   async deleteDraft(revisionId: string, admin: AdminActor): Promise<void> {
     const revision = await this.required(revisionId)
     if (revision.status !== "draft") throw new Error("immutable")
@@ -338,6 +357,31 @@ beforeEach(() => {
 })
 
 describe("document workflow service", () => {
+  it("updates only a draft summary and preserves safe generation audit metadata", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      title: "Keep title",
+      bodyMarkdown: "Keep body",
+    })
+    const metadata = { model: "gpt-summary", generatedAt: now }
+
+    await expect(service.updateDraftSummary(draft.id, "Generated summary", actor, metadata)).resolves.toMatchObject({
+      title: "Keep title",
+      summary: "Generated summary",
+      bodyMarkdown: "Keep body",
+      updatedBy: actor.githubId,
+    })
+    expect(repository.audits).toContainEqual({
+      action: "document.summary.generate",
+      targetType: "document_revision",
+      targetId: draft.id,
+      actor,
+      metadata,
+    })
+  })
+
   it("uses series-scoped state projections for cross-revision mutation invariants", async () => {
     const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
     await service.createEnglishDraft("series-1", { ...input, locale: "en" }, actor)

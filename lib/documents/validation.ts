@@ -44,9 +44,11 @@ export const documentDraftSchema = z.object(draftFields).strict().refine(categor
   path: ["category"],
 })
 
+export const generatedSummarySchema = z.string().trim().min(1).max(240).regex(/^[^\r\n]*$/)
+
 export const publishDocumentSchema = z.object({
   ...draftFields,
-  summary: z.string().trim().min(1).max(240).regex(/^[^\r\n]*$/),
+  summary: generatedSummarySchema,
 }).strict().refine(categoryMatchesKind, {
   message: "Category is not allowed for this document kind",
   path: ["category"],

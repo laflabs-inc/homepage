@@ -119,6 +119,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   const [activeTab, setActiveTab] = useState<"source" | "preview">("source")
   const [scheduledAt, setScheduledAt] = useState("")
   const [pending, setPending] = useState(false)
+  const [summaryPending, setSummaryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
@@ -221,6 +222,51 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
     } catch {
       setError("The document could not be updated. Please try again.")
     } finally {
+      setPending(false)
+    }
+  }
+
+  async function generateSummary() {
+    if (!revision || dirty) return
+    const submittedValues = { ...valuesRef.current }
+    setPending(true)
+    setSummaryPending(true)
+    setError(null)
+    setNotice(null)
+    try {
+      const response = await fetch(`/api/admin/documents/${revision.id}/summary`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      })
+      if (!response.ok) throw new Error("request failed")
+      const payload = await response.json() as {
+        summary?: unknown
+        remainingMonthlyBudget?: { remainingMicrousd?: unknown }
+      }
+      if (
+        typeof payload.summary !== "string"
+        || typeof payload.remainingMonthlyBudget?.remainingMicrousd !== "number"
+      ) throw new Error("invalid response")
+
+      const newerEdits = !editorValuesEqual(valuesRef.current, submittedValues)
+      setRevision((current) => current ? { ...current, summary: payload.summary as string } : current)
+      if (!newerEdits) {
+        const next = { ...valuesRef.current, summary: payload.summary }
+        valuesRef.current = next
+        setValues(next)
+        setDirty(false)
+      } else {
+        setDirty(true)
+      }
+      const remainingUsd = payload.remainingMonthlyBudget.remainingMicrousd / 1_000_000
+      setNotice(newerEdits
+        ? `Summary generated and saved. Newer edits are not saved. Estimated monthly budget remaining: $${remainingUsd.toFixed(3)}.`
+        : `Summary generated and saved. Estimated monthly budget remaining: $${remainingUsd.toFixed(3)}.`)
+    } catch {
+      setError("The summary could not be generated. Save the draft and try again.")
+    } finally {
+      setSummaryPending(false)
       setPending(false)
     }
   }
@@ -360,9 +406,16 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
           <label>Title
             <input required maxLength={160} value={values.title} onChange={(event) => update("title", event.target.value)} />
           </label>
-          <label>Summary
-            <textarea maxLength={240} rows={3} value={values.summary} onChange={(event) => update("summary", event.target.value)} />
-          </label>
+          <div>
+            <label>Summary
+              <textarea maxLength={240} rows={3} value={values.summary} onChange={(event) => update("summary", event.target.value)} />
+            </label>
+            {revision ? (
+              <button disabled={pending || dirty} type="button" onClick={() => void generateSummary()}>
+                {summaryPending ? "Generating…" : "Generate with AI"}
+              </button>
+            ) : null}
+          </div>
           <label>Markdown body
             <textarea required maxLength={200_000} rows={24} value={values.bodyMarkdown} onChange={(event) => update("bodyMarkdown", event.target.value)} />
           </label>
@@ -372,7 +425,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
             <p className={styles.editorGuidance}>English publication requires a published Korean counterpart.</p>
           ) : null}
           {dirty && revision ? (
-            <p className={styles.editorGuidance}>Save the draft before scheduling or publishing.</p>
+            <p className={styles.editorGuidance}>Save the draft before generating a summary, scheduling, or publishing.</p>
           ) : null}
           <div className={styles.editorActions}>
             <button disabled={pending} type="submit">Save draft</button>
