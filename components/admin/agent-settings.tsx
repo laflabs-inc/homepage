@@ -68,6 +68,7 @@ function errorMessage(code: string | undefined): string {
   if (code === "credential_unavailable") return "No usable OpenAI credential is configured."
   if (code === "model_unverified") return "Test the selected model before enabling AI."
   if (code === "invalid_settings") return "Review the highlighted settings and try again."
+  if (code === "version_conflict") return "Settings changed during the operation. Latest configuration loaded; try again."
   return "The Agent configuration could not be updated. Try again."
 }
 
@@ -101,20 +102,33 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
     setDraft((current) => ({ ...current, [key]: value }))
   }
 
-  const applyConfiguration = (next: AgentConfiguration) => {
+  const applyConfiguration = (next: AgentConfiguration, preserveDraft = false) => {
     setConfiguration(next)
-    setDraft(draftFrom(next.settings))
+    setDraft((current) => preserveDraft
+      ? { ...current, enabled: next.settings.enabled }
+      : draftFrom(next.settings))
   }
 
-  const refreshConflict = async () => {
+  const loadConfiguration = async (preserveDraft = false) => {
     const response = await fetch("/api/admin/agent", { cache: "no-store" })
     const payload = await response.json() as ApiPayload
     if (!response.ok || !payload.configuration) throw new Error("refresh_failed")
-    applyConfiguration(payload.configuration)
+    applyConfiguration(payload.configuration, preserveDraft)
+    return payload.configuration
+  }
+
+  const refreshConflict = async () => {
+    await loadConfiguration()
     setNotice("Settings changed elsewhere. Latest configuration loaded.")
   }
 
-  const mutate = async (path: string, method: string, body: unknown, success: string) => {
+  const mutate = async (
+    path: string,
+    method: string,
+    body: unknown,
+    success: string,
+    options: { preserveDraft?: boolean; refreshOnFailure?: boolean } = {},
+  ) => {
     setBusy(true)
     setError("")
     setNotice("")
@@ -125,15 +139,22 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         body: JSON.stringify(body),
       })
       const payload = await response.json() as ApiPayload
-      if (response.status === 409 && payload.error === "version_conflict") {
+      if (response.status === 409 && payload.error === "version_conflict" && !options.refreshOnFailure) {
         await refreshConflict()
         return
       }
       if (!response.ok || !payload.configuration) {
+        if (options.refreshOnFailure) {
+          try {
+            await loadConfiguration(true)
+          } catch {
+            // Keep the original operation error; the refresh is best effort.
+          }
+        }
         setError(errorMessage(payload.error))
         return
       }
-      applyConfiguration(payload.configuration)
+      applyConfiguration(payload.configuration, options.preserveDraft)
       setNotice(success)
     } catch {
       setError("The Agent configuration could not be updated. Try again.")
@@ -158,7 +179,13 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
     event.preventDefault()
     const apiKey = String(new FormData(event.currentTarget).get("apiKey") ?? "")
     try {
-      await mutate("/api/admin/agent/credential", "PUT", { apiKey }, "Credential verified and stored.")
+      await mutate(
+        "/api/admin/agent/credential",
+        "PUT",
+        { apiKey },
+        "Credential verified and stored.",
+        { preserveDraft: true },
+      )
     } finally {
       credentialForm.current?.reset()
     }
@@ -166,16 +193,54 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
 
   const deleteCredential = async () => {
     if (!window.confirm("Delete the stored OpenAI credential and disable AI?")) return
-    await mutate("/api/admin/agent/credential", "DELETE", {}, "Credential deleted and AI disabled.")
+    await mutate(
+      "/api/admin/agent/credential",
+      "DELETE",
+      {},
+      "Credential deleted and AI disabled.",
+      { preserveDraft: true },
+    )
   }
 
   const disableAi = async () => {
-    await mutate(
-      "/api/admin/agent",
-      "PATCH",
-      { ...settingsPayload(draftFrom(configuration.settings), configuration.settings.version), enabled: false },
-      "AI disabled.",
-    )
+    setBusy(true)
+    setError("")
+    setNotice("")
+    let current = configuration
+    try {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const response = await fetch("/api/admin/agent", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ...settingsPayload(draftFrom(current.settings), current.settings.version),
+            enabled: false,
+          }),
+        })
+        const payload = await response.json() as ApiPayload
+        if (response.ok && payload.configuration) {
+          applyConfiguration(payload.configuration, true)
+          setNotice("AI disabled.")
+          return
+        }
+        if (attempt === 0 && response.status === 409 && payload.error === "version_conflict") {
+          current = await loadConfiguration(true)
+          if (!current.settings.enabled) {
+            setNotice("AI disabled.")
+            return
+          }
+          continue
+        }
+        setError(payload.error === "version_conflict"
+          ? "AI could not be disabled because settings changed again. Retry."
+          : errorMessage(payload.error))
+        return
+      }
+    } catch {
+      setError("The Agent configuration could not be updated. Try again.")
+    } finally {
+      setBusy(false)
+    }
   }
 
   const credential = configuration.credential
@@ -235,6 +300,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
                 "POST",
                 {},
                 "Connection test passed.",
+                { preserveDraft: true, refreshOnFailure: true },
               )}
             >
               Test connection

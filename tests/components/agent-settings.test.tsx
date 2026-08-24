@@ -193,6 +193,91 @@ describe("Agent settings", () => {
     })
   })
 
+  it("refreshes persisted disabled and failed state after a connection-test failure while retaining the error", async () => {
+    const user = userEvent.setup()
+    const enabled = { ...configuration, settings: { ...configuration.settings, enabled: true } }
+    const failed = {
+      ...configuration,
+      settings: { ...configuration.settings, enabled: false, version: 4 },
+      credential: { ...configuration.credential, verificationStatus: "failed" as const },
+    }
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => Promise.resolve(Response.json(
+        { error: "provider_unavailable" },
+        { status: 502 },
+      )))
+      .mockImplementationOnce(() => response(failed))
+    render(<AgentSettings initialConfiguration={enabled} />)
+
+    await user.click(screen.getByRole("button", { name: "Test connection" }))
+
+    expect(fetch).toHaveBeenNthCalledWith(2, "/api/admin/agent", { cache: "no-store" })
+    expect(await screen.findByText("AI is disabled.")).toBeInTheDocument()
+    expect(screen.getByText(/Configured · ••••01de · Failed/)).toBeInTheDocument()
+    expect(screen.getByRole("checkbox", { name: "Enable AI" })).not.toBeChecked()
+    expect(screen.getByRole("alert")).toHaveTextContent(/OpenAI could not verify the credential or model/i)
+  })
+
+  it("retains an error alert when a connection-test conflict refreshes persisted state", async () => {
+    const user = userEvent.setup()
+    const latest = {
+      ...configuration,
+      settings: { ...configuration.settings, version: 4 },
+    }
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => Promise.resolve(Response.json(
+        { error: "version_conflict" },
+        { status: 409 },
+      )))
+      .mockImplementationOnce(() => response(latest))
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    await user.click(screen.getByRole("button", { name: "Test connection" }))
+
+    expect(fetch).toHaveBeenNthCalledWith(2, "/api/admin/agent", { cache: "no-store" })
+    expect(screen.getByRole("alert")).toHaveTextContent(/settings changed during the operation/i)
+  })
+
+  it.each([
+    "Test connection",
+    "Replace credential",
+    "Delete credential",
+  ])("preserves unsaved settings after successful %s and uses the returned version", async (action) => {
+    const user = userEvent.setup()
+    const operational = {
+      ...configuration,
+      settings: { ...configuration.settings, version: 4 },
+      credential: action === "Delete credential"
+        ? {
+            configured: false,
+            provider: "openai" as const,
+            fingerprint: null,
+            verifiedModel: null,
+            verificationStatus: null,
+            verifiedAt: null,
+            createdBy: null,
+            createdAt: null,
+            updatedAt: null,
+          }
+        : configuration.credential,
+    }
+    vi.mocked(fetch).mockImplementationOnce(() => response(operational))
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    const questions = screen.getByRole("spinbutton", { name: "Daily question limit" })
+    await user.clear(questions)
+    await user.type(questions, "25")
+    if (action === "Replace credential") {
+      await user.type(screen.getByLabelText("OpenAI API key"), `sk-${"r".repeat(24)}`)
+    }
+    await user.click(screen.getByRole("button", { name: action }))
+
+    expect(questions).toHaveValue(25)
+    await user.click(screen.getByRole("button", { name: "Save settings" }))
+    const [, saveInit] = vi.mocked(fetch).mock.calls[1]
+    expect(JSON.parse(String(saveInit?.body))).toMatchObject({ dailyQuestionLimit: 25, version: 4 })
+  })
+
   it("refreshes the safe configuration after an optimistic settings conflict", async () => {
     const user = userEvent.setup()
     const latest = {
@@ -222,5 +307,52 @@ describe("Agent settings", () => {
     expect(init?.method).toBe("PATCH")
     expect(JSON.parse(String(init?.body))).toMatchObject({ enabled: false, version: 3 })
     expect(window.confirm).not.toHaveBeenCalled()
+  })
+
+  it("refreshes and retries the kill switch once after a version conflict", async () => {
+    const user = userEvent.setup()
+    const enabled = { ...configuration, settings: { ...configuration.settings, enabled: true } }
+    const latest = { ...enabled, settings: { ...enabled.settings, version: 4 } }
+    const disabled = { ...configuration, settings: { ...configuration.settings, enabled: false, version: 5 } }
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => Promise.resolve(Response.json(
+        { error: "version_conflict" },
+        { status: 409 },
+      )))
+      .mockImplementationOnce(() => response(latest))
+      .mockImplementationOnce(() => response(disabled))
+    render(<AgentSettings initialConfiguration={enabled} />)
+
+    await user.click(screen.getByRole("button", { name: "Disable AI now" }))
+
+    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(fetch).toHaveBeenNthCalledWith(2, "/api/admin/agent", { cache: "no-store" })
+    const [, retryInit] = vi.mocked(fetch).mock.calls[2]
+    expect(JSON.parse(String(retryInit?.body))).toMatchObject({ enabled: false, version: 4 })
+    expect(await screen.findByText("AI is disabled.")).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent("AI disabled.")
+  })
+
+  it("stops after one kill-switch retry and announces a second conflict", async () => {
+    const user = userEvent.setup()
+    const enabled = { ...configuration, settings: { ...configuration.settings, enabled: true } }
+    const latest = { ...enabled, settings: { ...enabled.settings, version: 4 } }
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => Promise.resolve(Response.json(
+        { error: "version_conflict" },
+        { status: 409 },
+      )))
+      .mockImplementationOnce(() => response(latest))
+      .mockImplementationOnce(() => Promise.resolve(Response.json(
+        { error: "version_conflict" },
+        { status: 409 },
+      )))
+    render(<AgentSettings initialConfiguration={enabled} />)
+
+    await user.click(screen.getByRole("button", { name: "Disable AI now" }))
+
+    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(screen.getByText("AI is enabled.")).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(/could not be disabled because settings changed again/i)
   })
 })

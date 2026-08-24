@@ -70,6 +70,23 @@ function jsonRequest(path: string, method: string, body: unknown, origin = "http
   })
 }
 
+function streamedJsonRequest(bytes: number) {
+  const prefix = '{"padding":"'
+  const suffix = '"}'
+  const body = new TextEncoder().encode(`${prefix}${"x".repeat(bytes - prefix.length - suffix.length)}${suffix}`)
+  return new Request("https://laflabs.co/api/admin/agent", {
+    method: "PATCH",
+    headers: { "content-type": "application/json", origin: "https://laflabs.co" },
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(body)
+        controller.close()
+      },
+    }),
+    duplex: "half",
+  } as RequestInit & { duplex: "half" })
+}
+
 function dependencies(overrides: Record<string, unknown> = {}) {
   return {
     authorize: vi.fn().mockResolvedValue({ ok: true, actor }),
@@ -226,19 +243,16 @@ describe("Agent admin API", () => {
   })
 
   it.each([
-    [handleUpdateAgent, "/api/admin/agent", "PATCH", settingsBody],
-    [handlePutCredential, "/api/admin/agent/credential", "PUT", { apiKey }],
-    [handleDeleteCredential, "/api/admin/agent/credential", "DELETE", {}],
-    [handleTestCredential, "/api/admin/agent/credential/test", "POST", {}],
-  ] as const)("enforces the 16 KiB body cap", async (handler, path, method, body) => {
+    [16 * 1024, 422, "invalid_settings"],
+    [16 * 1024 + 1, 413, "payload_too_large"],
+  ] as const)("bounds an actual %i-byte streamed body", async (bytes, status, error) => {
     const deps = dependencies()
-    const request = jsonRequest(path, method, body)
-    request.headers.set("content-length", String(16 * 1024 + 1))
 
-    const response = await handler(request, deps)
+    const response = await handleUpdateAgent(streamedJsonRequest(bytes), deps)
 
-    expect(response.status).toBe(413)
-    await expect(response.json()).resolves.toEqual({ error: "payload_too_large" })
+    expect(response.status).toBe(status)
+    await expect(response.json()).resolves.toEqual({ error })
+    expect(deps.service.updateSettings).not.toHaveBeenCalled()
     await expectNoStore(response)
   })
 
