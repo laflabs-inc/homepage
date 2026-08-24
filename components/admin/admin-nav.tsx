@@ -7,6 +7,7 @@ export function AdminNav() {
     <nav className={styles.adminNav} aria-label="Admin">
       <Link href="/admin/analytics">Analytics</Link>
       <Link href="/admin/documents">Documents</Link>
+      <Link href="/admin/agent">Agent</Link>
     </nav>
   )
 }

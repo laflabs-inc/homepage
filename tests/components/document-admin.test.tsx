@@ -124,6 +124,7 @@ describe("document admin", () => {
     const navigation = screen.getByRole("navigation", { name: "Admin" })
     expect(within(navigation).getByRole("link", { name: "Analytics" })).toHaveAttribute("href", "/admin/analytics")
     expect(within(navigation).getByRole("link", { name: "Documents" })).toHaveAttribute("href", "/admin/documents")
+    expect(within(navigation).getByRole("link", { name: "Agent" })).toHaveAttribute("href", "/admin/agent")
     expect(screen.getByRole("link", { name: /서비스 업데이트.*draft/i })).toHaveAttribute(
       "href",
       `/admin/documents/${revision.id}`,

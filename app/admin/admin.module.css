@@ -797,6 +797,188 @@
   background: var(--deep);
 }
 
+.agentPage,
+.agentForm {
+  display: grid;
+  gap: 28px;
+}
+
+.agentHeading {
+  padding-bottom: 28px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.agentHeading h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 56px);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.agentHeading div > p:last-child {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.killSwitch,
+.credentialForm button,
+.agentActions button,
+.agentSave {
+  min-height: 46px;
+  padding: 0 18px;
+  color: white;
+  background: var(--blue);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  font: 650 11px var(--font-geist-mono), monospace;
+  cursor: pointer;
+}
+
+.killSwitch,
+.agentActions .dangerButton {
+  color: #9b1c1c;
+  background: white;
+}
+
+.killSwitch:disabled,
+.credentialForm button:disabled,
+.agentActions button:disabled,
+.agentSave:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.agentSection {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.28fr) minmax(0, 1fr);
+  border: 1px solid var(--ink);
+}
+
+.agentSectionHeading,
+.agentSectionBody,
+.agentFieldGrid {
+  min-width: 0;
+  padding: 24px;
+}
+
+.agentSectionHeading {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  border-right: 1px solid var(--ink);
+}
+
+.agentSectionHeading span {
+  color: var(--blue);
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.12em;
+}
+
+.agentSectionHeading h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.agentSectionBody,
+.agentFieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 18px;
+}
+
+.agentSectionBody {
+  grid-template-columns: 1fr;
+}
+
+.agentFieldGrid label,
+.credentialForm label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font: 600 10px var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+}
+
+.agentFieldGrid input,
+.agentFieldGrid select,
+.credentialForm input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  font: 400 14px var(--font-geist-sans), sans-serif;
+  text-transform: none;
+}
+
+.agentWideField,
+.agentFieldGrid > .editorGuidance,
+.agentFieldGrid > .agentMeta,
+.agentFieldGrid > .agentMetric,
+.agentFieldGrid > .agentSave {
+  grid-column: 1 / -1;
+}
+
+.connectionStatus,
+.agentMeta,
+.agentMetric {
+  margin: 0;
+}
+
+.connectionStatus {
+  padding: 14px;
+  background: #eff6ff;
+  border: 1px solid var(--ink);
+  font: 650 12px var(--font-geist-mono), monospace;
+}
+
+.credentialForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.agentActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.agentMeta {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.agentMetric {
+  font-size: 24px;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.agentCheckbox {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  color: var(--ink) !important;
+}
+
+.agentCheckbox input {
+  width: 18px;
+  min-height: 18px;
+}
+
 @media (max-width: 900px) {
   .content {
     padding: 48px 0 72px;
@@ -884,6 +1066,16 @@
     border-top: 1px solid var(--ink);
     border-left: 0;
     border-right: 0;
+  }
+
+  .agentSection {
+    grid-template-columns: 1fr;
+  }
+
+  .agentSectionHeading {
+    min-height: 104px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ink);
   }
 }
 
@@ -1032,6 +1224,25 @@
   .editorActions button,
   .scheduleField {
     width: 100%;
+  }
+
+  .agentHeading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .killSwitch,
+  .credentialForm button,
+  .agentActions,
+  .agentActions button,
+  .agentSave {
+    width: 100%;
+  }
+
+  .agentSectionBody,
+  .agentFieldGrid,
+  .credentialForm {
+    grid-template-columns: 1fr;
   }
 }
 
