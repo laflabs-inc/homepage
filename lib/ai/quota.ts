@@ -9,6 +9,7 @@ const RESERVATION_TTL_MS = 90_000
 
 export type SummaryReservationInput = {
   reservationId: string
+  subjectId: string
   monthBucket: Date
   reservedTokens: number
   reservedCostMicrousd: number
@@ -23,6 +24,7 @@ export type SummaryUsageInput = {
   totalTokens: number
   estimatedCostMicrousd: number
   now: Date
+  expiresAt: Date
 }
 
 export type MonthlyBudgetStatus = {
@@ -94,10 +96,10 @@ function requireSummarySettings(settings: AgentSettings) {
 export function createAiQuotaService(
   store: AiQuotaStore,
   settingsReader: SettingsReader,
-  dependencies: { now: () => Date } = { now: () => new Date() },
+  dependencies: { now: () => Date; randomUUID?: () => string } = { now: () => new Date() },
 ) {
   return {
-    async reserveSummary(input: { reservationId: string; prompt: string; source: string }): Promise<SummaryReservation> {
+    async reserveSummary(input: { subjectId: string; prompt: string; source: string }): Promise<SummaryReservation> {
       const settings = await settingsReader.getSettings()
       const { maxOutputTokens, prices } = requireSummarySettings(settings)
       const estimatedInputTokens = summaryInputTokens(input.prompt, input.source)
@@ -109,7 +111,8 @@ export function createAiQuotaService(
       const now = dependencies.now()
       const month = usageBuckets(now, settings.resetTimezone, settings.dailyResetMinute).month
       const result = await store.reserveSummary({
-        reservationId: input.reservationId,
+        reservationId: dependencies.randomUUID?.() ?? globalThis.crypto.randomUUID(),
+        subjectId: input.subjectId,
         monthBucket: monthDate(month),
         reservedTokens,
         reservedCostMicrousd,
@@ -143,11 +146,13 @@ export function createAiQuotaService(
       if (!Number.isSafeInteger(usage.totalTokens) || usage.totalTokens < 0) {
         throw new RangeError("totalTokens must be a non-negative safe integer")
       }
+      const now = dependencies.now()
       return store.reconcileSummaryUsage({
         reservationId: reservation.id,
         ...usage,
         estimatedCostMicrousd,
-        now: dependencies.now(),
+        now,
+        expiresAt: new Date(now.getTime() + RESERVATION_TTL_MS),
       })
     },
 

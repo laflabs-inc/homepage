@@ -35,7 +35,7 @@ type SummaryDocumentService = {
 }
 
 type SummaryQuotaService = {
-  reserveSummary(input: { reservationId: string; prompt: string; source: string }): Promise<SummaryReservation>
+  reserveSummary(input: { subjectId: string; prompt: string; source: string }): Promise<SummaryReservation>
   reconcileSummaryUsage(
     reservation: SummaryReservation,
     usage: { inputTokens: number; outputTokens: number; totalTokens: number },
@@ -141,7 +141,7 @@ export function createSummaryService(dependencies: SummaryServiceDependencies = 
     const budgetPrompt = buildSummaryPrompt({ locale: revision.locale, title: revision.title, bodyMarkdown: "" })
     const budgetSource = JSON.stringify(source).slice(1, -1)
     const reservation = await dependencies.quota.reserveSummary({
-      reservationId: revision.id,
+      subjectId: revision.id,
       prompt: budgetPrompt,
       source: budgetSource,
     })
@@ -178,21 +178,25 @@ export function createSummaryService(dependencies: SummaryServiceDependencies = 
     const reconciled = await dependencies.quota.reconcileSummaryUsage(reservation, result.usage)
     if (!reconciled) throw new SummaryGenerationError("provider_unavailable")
 
-    const summary = normalizedSummary(result.text)
-    await dependencies.documents.updateDraftSummary(revisionId, summary, expected, actor, {
-      model: result.model,
-      generatedAt: dependencies.now(),
-    })
-    let remainingMonthlyBudget: Awaited<ReturnType<SummaryQuotaService["getRemainingMonthlyBudget"]>> | null = null
     try {
-      remainingMonthlyBudget = await dependencies.quota.getRemainingMonthlyBudget()
-    } catch {
-      // The summary is already saved; this advisory read must not turn success into a retry.
-    }
-    return {
-      summary,
-      remainingMonthlyBudget,
-      expected: { ...expected, summary },
+      const summary = normalizedSummary(result.text)
+      await dependencies.documents.updateDraftSummary(revisionId, summary, expected, actor, {
+        model: result.model,
+        generatedAt: dependencies.now(),
+      })
+      let remainingMonthlyBudget: Awaited<ReturnType<SummaryQuotaService["getRemainingMonthlyBudget"]>> | null = null
+      try {
+        remainingMonthlyBudget = await dependencies.quota.getRemainingMonthlyBudget()
+      } catch {
+        // The summary is already saved; this advisory read must not turn success into a retry.
+      }
+      return {
+        summary,
+        remainingMonthlyBudget,
+        expected: { ...expected, summary },
+      }
+    } finally {
+      await releaseReservation(reservation.id)
     }
   }
 

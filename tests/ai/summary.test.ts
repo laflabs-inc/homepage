@@ -8,6 +8,7 @@ import type { DocumentRevision } from "@/lib/documents/types"
 
 const now = new Date("2026-08-24T10:00:00.000Z")
 const actor: AdminActor = { githubId: "github:42", name: "Admin" }
+const attemptId = "00000000-0000-4000-8000-000000000001"
 
 const revision: DocumentRevision = {
   id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131",
@@ -57,7 +58,7 @@ function settings(summaryPolicy: "review" | "automatic" = "review"): AgentSettin
 
 function dependencies(overrides: Record<string, unknown> = {}) {
   const reservation = {
-    id: revision.id,
+    id: attemptId,
     estimatedInputTokens: 600,
     maxOutputTokens: 600,
     reservedTokens: 1_200,
@@ -122,13 +123,14 @@ describe("draft summary generation", () => {
       order.push("update")
       return { ...revision, summary }
     })
+    deps.quota.releaseReservation.mockImplementation(async () => { order.push("release"); return true })
 
     await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor)).resolves.toEqual({
       summary: "변경 사항을 사실대로 요약합니다.",
       remainingMonthlyBudget: deps.remaining,
     })
-    expect(order).toEqual(["reserve", "provider", "reconcile", "update"])
-    expect(deps.quota.reserveSummary).toHaveBeenCalledWith(expect.objectContaining({ reservationId: revision.id }))
+    expect(order).toEqual(["reserve", "provider", "reconcile", "update", "release"])
+    expect(deps.quota.reserveSummary).toHaveBeenCalledWith(expect.objectContaining({ subjectId: revision.id }))
     expect(deps.documents.updateDraftSummary).toHaveBeenCalledWith(
       revision.id,
       "변경 사항을 사실대로 요약합니다.",
@@ -141,6 +143,7 @@ describe("draft summary generation", () => {
       deps.reservation,
       { inputTokens: 123, outputTokens: 17, totalTokens: 140 },
     )
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
   })
 
   it("releases a reservation on pre-result provider failure", async () => {
@@ -160,7 +163,7 @@ describe("draft summary generation", () => {
 
     await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor)).rejects.toThrow()
     expect(deps.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
-    expect(deps.quota.releaseReservation).not.toHaveBeenCalled()
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
   })
 
   it("rejects empty output and safely caps storage at 240 visible characters", async () => {
@@ -171,6 +174,7 @@ describe("draft summary generation", () => {
     await expect(createSummaryService(empty).generateDraftSummary(revision.id, actor))
       .rejects.toMatchObject({ code: "invalid_response" })
     expect(empty.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
+    expect(empty.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
 
     const long = dependencies()
     long.provider.generateSummary.mockResolvedValue({
@@ -198,6 +202,58 @@ describe("draft summary generation", () => {
     expect(deps.documents.updateDraftSummary).not.toHaveBeenCalled()
   })
 
+  it("allows only one provider call for concurrent generation of the same revision", async () => {
+    const deps = dependencies()
+    let claimed = false
+    let resolveProvider!: (result: Awaited<ReturnType<typeof deps.provider.generateSummary>>) => void
+    deps.quota.reserveSummary.mockImplementation(async () => {
+      if (claimed) throw new AiQuotaError("in_progress", "already generating")
+      claimed = true
+      return deps.reservation
+    })
+    deps.quota.releaseReservation.mockImplementation(async () => { claimed = false; return true })
+    deps.provider.generateSummary.mockImplementation(() => new Promise((resolve) => { resolveProvider = resolve }))
+    const service = createSummaryService(deps)
+
+    const first = service.generateDraftSummary(revision.id, actor)
+    await vi.waitFor(() => expect(deps.provider.generateSummary).toHaveBeenCalledTimes(1))
+    await expect(service.generateDraftSummary(revision.id, actor)).rejects.toMatchObject({ code: "in_progress" })
+    expect(deps.provider.generateSummary).toHaveBeenCalledTimes(1)
+
+    resolveProvider({
+      text: "Generated summary",
+      model: "gpt-summary",
+      usage: { inputTokens: 10, outputTokens: 2, totalTokens: 12 },
+    })
+    await expect(first).resolves.toMatchObject({ summary: "Generated summary" })
+  })
+
+  it("keeps the reconciled claim until document compare-and-set completes", async () => {
+    const deps = dependencies()
+    let claimed = false
+    let finishUpdate!: () => void
+    deps.quota.reserveSummary.mockImplementation(async () => {
+      if (claimed) throw new AiQuotaError("in_progress", "already generating")
+      claimed = true
+      return deps.reservation
+    })
+    deps.quota.releaseReservation.mockImplementation(async () => { claimed = false; return true })
+    deps.documents.updateDraftSummary.mockImplementation((_id, summary) => new Promise((resolve) => {
+      finishUpdate = () => resolve({ ...revision, summary })
+    }))
+    const service = createSummaryService(deps)
+
+    const first = service.generateDraftSummary(revision.id, actor)
+    await vi.waitFor(() => expect(deps.documents.updateDraftSummary).toHaveBeenCalledTimes(1))
+    expect(deps.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
+    await expect(service.generateDraftSummary(revision.id, actor)).rejects.toMatchObject({ code: "in_progress" })
+    expect(deps.provider.generateSummary).toHaveBeenCalledTimes(1)
+
+    finishUpdate()
+    await first
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
+  })
+
   it("releases without inference when the prompt-relevant draft snapshot changes after reservation", async () => {
     const deps = dependencies()
     deps.documents.getRevision
@@ -206,7 +262,7 @@ describe("draft summary generation", () => {
 
     await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor))
       .rejects.toMatchObject({ code: "conflict" })
-    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(revision.id)
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
     expect(deps.provider.generateSummary).not.toHaveBeenCalled()
     expect(deps.quota.reconcileSummaryUsage).not.toHaveBeenCalled()
   })
@@ -218,7 +274,7 @@ describe("draft summary generation", () => {
       .mockRejectedValueOnce(new Error("draft read unavailable"))
 
     await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor)).rejects.toThrow()
-    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(revision.id)
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
     expect(deps.provider.generateSummary).not.toHaveBeenCalled()
     expect(deps.quota.reconcileSummaryUsage).not.toHaveBeenCalled()
   })
@@ -234,7 +290,7 @@ describe("draft summary generation", () => {
     expect(deps.documents.updateDraftSummary).toHaveBeenCalledTimes(1)
     expect(deps.provider.generateSummary).toHaveBeenCalledTimes(1)
     expect(deps.quota.reconcileSummaryUsage).toHaveBeenCalledTimes(1)
-    expect(deps.quota.releaseReservation).not.toHaveBeenCalled()
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
   })
 
   it.each(["published", "archived", "scheduled"] as const)("rejects %s revisions before reserving", async (status) => {
@@ -312,7 +368,7 @@ describe("summary publication policy", () => {
 
     await createSummaryService(deps).publishWithSummaryPolicy(revision.id, actor)
 
-    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(revision.id)
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(attemptId)
     expect(deps.provider.generateSummary).not.toHaveBeenCalled()
     expect(deps.documents.updateDraftSummary).not.toHaveBeenCalled()
     expect(deps.documents.publish).toHaveBeenCalledWith(revision.id, actor)

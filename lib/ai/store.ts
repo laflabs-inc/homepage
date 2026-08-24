@@ -52,12 +52,13 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
           LEFT JOIN ${aiUsageReservations} r
             ON r."month_bucket" = ${input.monthBucket}
             AND r."expires_at" > ${input.now}
+            AND r."reconciled_at" IS NULL
         ), inserted_reservation AS (
           INSERT INTO ${aiUsageReservations} (
-            "id", "visitor_hash", "date_bucket", "month_bucket", "kind",
+            "id", "subject_id", "visitor_hash", "date_bucket", "month_bucket", "kind",
             "reserved_tokens", "reserved_cost_microusd", "expires_at", "created_at"
           )
-          SELECT ${input.reservationId}::uuid, NULL, NULL, ${input.monthBucket}, 'summary',
+          SELECT ${input.reservationId}::uuid, ${input.subjectId}::uuid, NULL, NULL, ${input.monthBucket}, 'summary',
             ${input.reservedTokens}, ${input.reservedCostMicrousd}, ${input.expiresAt}, ${input.now}
           FROM monthly_usage, settings
           WHERE monthly_usage."actualCostMicrousd" + monthly_usage."reservedCostMicrousd"
@@ -65,12 +66,12 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
             AND monthly_usage."actualCostMicrousd" + monthly_usage."reservedCostMicrousd"
               + ${input.reservedCostMicrousd} <= settings."monthly_cost_limit_microusd"
             AND (SELECT count(*) FROM expired_reservations) >= 0
-          ON CONFLICT ("id") DO NOTHING
+          ON CONFLICT ("subject_id") WHERE "subject_id" IS NOT NULL DO NOTHING
           RETURNING "id"
         )
         SELECT inserted_reservation."id" AS "reservationId", EXISTS(
           SELECT 1 FROM ${aiUsageReservations} existing
-          WHERE existing."id" = ${input.reservationId}::uuid
+          WHERE existing."subject_id" = ${input.subjectId}::uuid
             AND existing."expires_at" > ${input.now}
         ) AS "duplicate"
         FROM monthly_usage
@@ -84,11 +85,16 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
 
     async reconcileSummaryUsage(input: SummaryUsageInput) {
       const result = await database.execute(sql`
-        WITH deleted_reservation AS (
-          DELETE FROM ${aiUsageReservations}
+        WITH locked_reservation AS (
+          SELECT *
+          FROM ${aiUsageReservations}
           WHERE "id" = ${input.reservationId}
             AND "kind" = 'summary'
-          RETURNING "month_bucket"
+          FOR UPDATE
+        ), eligible_reservation AS (
+          SELECT *
+          FROM locked_reservation
+          WHERE "reconciled_at" IS NULL
         ), recorded_usage AS (
           INSERT INTO ${aiUsageMonthly} (
             "month_bucket", "question_count", "summary_count", "input_tokens",
@@ -96,7 +102,7 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
           )
           SELECT "month_bucket", 0, 1, ${input.inputTokens}, ${input.outputTokens},
             ${input.totalTokens}, ${input.estimatedCostMicrousd}, ${input.now}
-          FROM deleted_reservation
+          FROM eligible_reservation
           ON CONFLICT ("month_bucket") DO UPDATE SET
             "summary_count" = ${aiUsageMonthly}."summary_count" + 1,
             "input_tokens" = ${aiUsageMonthly}."input_tokens" + EXCLUDED."input_tokens",
@@ -106,8 +112,15 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
               + EXCLUDED."estimated_cost_microusd",
             "updated_at" = EXCLUDED."updated_at"
           RETURNING "month_bucket"
+        ), reconciled_reservation AS (
+          UPDATE ${aiUsageReservations} r
+          SET "reconciled_at" = ${input.now}, "reserved_tokens" = 0,
+            "reserved_cost_microusd" = 0, "expires_at" = ${input.expiresAt}
+          FROM eligible_reservation, recorded_usage
+          WHERE r."id" = eligible_reservation."id"
+          RETURNING r."id"
         )
-        SELECT EXISTS(SELECT 1 FROM recorded_usage) AS "reconciled"
+        SELECT EXISTS(SELECT 1 FROM reconciled_reservation) AS "reconciled"
       `)
       return (result.rows[0] as { reconciled?: unknown } | undefined)?.reconciled === true
     },
@@ -116,7 +129,7 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
       const result = await database.execute(sql`
         WITH deleted_reservation AS (
           DELETE FROM ${aiUsageReservations}
-          WHERE "id" = ${reservationId}
+          WHERE "id" = ${reservationId} AND "kind" = 'summary'
           RETURNING "id"
         )
         SELECT EXISTS(SELECT 1 FROM deleted_reservation) AS "released"
@@ -135,6 +148,7 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
         LEFT JOIN ${aiUsageReservations} r
           ON r."month_bucket" = ${monthBucket}
           AND r."expires_at" > ${now}
+          AND r."reconciled_at" IS NULL
         WHERE s."id" = 'default'
         GROUP BY s."monthly_cost_limit_microusd", u."estimated_cost_microusd"
       `)

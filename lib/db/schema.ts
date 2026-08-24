@@ -163,16 +163,21 @@ export const aiUsageMonthly = pgTable("ai_usage_monthly", {
 
 export const aiUsageReservations = pgTable("ai_usage_reservations", {
   id: uuid("id").defaultRandom().primaryKey(),
+  subjectId: uuid("subject_id"),
   visitorHash: text("visitor_hash"),
   dateBucket: timestamp("date_bucket", { withTimezone: true }),
   monthBucket: timestamp("month_bucket", { withTimezone: true }).notNull(),
   kind: aiUsageReservationKindEnum("kind").notNull(),
   reservedTokens: bigint("reserved_tokens", { mode: "number" }).notNull(),
   reservedCostMicrousd: bigint("reserved_cost_microusd", { mode: "number" }).notNull(),
+  reconciledAt: timestamp("reconciled_at", { withTimezone: true }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index("ai_usage_reservations_expiry_idx").on(table.expiresAt),
+  uniqueIndex("ai_usage_reservations_subject_unique")
+    .on(table.subjectId)
+    .where(sql`${table.subjectId} IS NOT NULL`),
   check("ai_usage_reservations_reserved_tokens_nonnegative", sql`${table.reservedTokens} >= 0`),
   check("ai_usage_reservations_reserved_cost_microusd_nonnegative", sql`${table.reservedCostMicrousd} >= 0`),
 ])

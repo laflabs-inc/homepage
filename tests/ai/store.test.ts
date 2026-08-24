@@ -10,6 +10,8 @@ const now = new Date("2026-08-24T10:00:00.000Z")
 const expiresAt = new Date("2026-08-24T10:01:30.000Z")
 const monthBucket = new Date("2026-08-01T00:00:00.000Z")
 const reservationId = "00000000-0000-4000-8000-000000000001"
+const secondReservationId = "00000000-0000-4000-8000-000000000002"
+const subjectId = "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131"
 
 function compiledCall(index = 0) {
   return new PgDialect().sqlToQuery(execute.mock.calls[index][0])
@@ -33,6 +35,7 @@ describe("AI summary quota store", () => {
 
     await expect(store.reserveSummary({
       reservationId,
+      subjectId,
       monthBucket,
       reservedTokens: 1_115,
       reservedCostMicrousd: 1_715,
@@ -61,12 +64,14 @@ describe("AI summary quota store", () => {
     expect(normalized).toContain("< settings.\"monthly_cost_limit_microusd\"")
     expect(normalized).toContain("<= settings.\"monthly_cost_limit_microusd\"")
     expect(normalized).toContain("insert into \"ai_usage_reservations\"")
-    expect(normalized).toContain("on conflict (\"id\") do nothing")
-    expect(normalized).toContain("\"id\", \"visitor_hash\", \"date_bucket\"")
+    expect(normalized).toContain("on conflict (\"subject_id\")")
+    expect(normalized).toContain("where \"subject_id\" is not null do nothing")
+    expect(normalized).toContain("\"id\", \"subject_id\", \"visitor_hash\", \"date_bucket\"")
     expect(normalized).toContain("'summary'")
     expect(compiled.params).toEqual(expect.arrayContaining([
       monthBucket,
       reservationId,
+      subjectId,
       1_115,
       1_715,
       now,
@@ -82,6 +87,7 @@ describe("AI summary quota store", () => {
 
     await expect(store.reserveSummary({
       reservationId,
+      subjectId,
       monthBucket,
       reservedTokens: 1,
       reservedCostMicrousd: 1,
@@ -102,14 +108,17 @@ describe("AI summary quota store", () => {
       ])
 
     const input = {
-      reservationId,
+      subjectId,
       monthBucket,
       reservedTokens: 1_115,
       reservedCostMicrousd: 1_715,
       now,
       expiresAt,
     }
-    const results = await Promise.all([store.reserveSummary(input), store.reserveSummary(input)])
+    const results = await Promise.all([
+      store.reserveSummary({ ...input, reservationId }),
+      store.reserveSummary({ ...input, reservationId: secondReservationId }),
+    ])
 
     expect(results).toEqual([
       { status: "reserved", id: reservationId },
@@ -124,7 +133,7 @@ describe("AI summary quota store", () => {
     }
   })
 
-  it("deletes exactly one summary reservation and upserts actual monthly usage once", async () => {
+  it("locks and reconciles one summary claim without deleting it", async () => {
     execute.mockResolvedValue({ rows: [{ reconciled: true }] })
 
     await expect(store.reconcileSummaryUsage({
@@ -134,18 +143,27 @@ describe("AI summary quota store", () => {
       totalTokens: 1_600,
       estimatedCostMicrousd: 2_000,
       now,
+      expiresAt,
     })).resolves.toBe(true)
 
     expect(execute).toHaveBeenCalledTimes(1)
     const compiled = compiledCall()
     const normalized = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalized).toContain("delete from \"ai_usage_reservations\"")
-    expect(normalized).toContain("where \"id\" =")
+    expect(normalized).toContain("with locked_reservation as")
+    expect(normalized).toContain("from \"ai_usage_reservations\"")
+    expect(normalized).toContain("for update")
+    expect(normalized).toContain("\"reconciled_at\" is null")
+    expect(normalized).not.toContain("delete from \"ai_usage_reservations\"")
     expect(normalized).toContain("and \"kind\" = 'summary'")
     expect(normalized).toContain("insert into \"ai_usage_monthly\"")
     expect(normalized).toContain("on conflict (\"month_bucket\") do update")
     expect(normalized).toContain("\"summary_count\" = \"ai_usage_monthly\".\"summary_count\" + 1")
     expect(normalized).toContain("\"estimated_cost_microusd\" = \"ai_usage_monthly\".\"estimated_cost_microusd\" + excluded.\"estimated_cost_microusd\"")
+    expect(normalized).toContain("update \"ai_usage_reservations\"")
+    expect(normalized).toContain("set \"reconciled_at\" =")
+    expect(normalized).toContain("\"reserved_tokens\" = 0")
+    expect(normalized).toContain("\"reserved_cost_microusd\" = 0")
+    expect(normalized).toContain("\"expires_at\" =")
     expect(compiled.params).toEqual(expect.arrayContaining([
       reservationId,
       1_200,
@@ -153,6 +171,7 @@ describe("AI summary quota store", () => {
       1_600,
       2_000,
       now,
+      expiresAt,
     ]))
   })
 
@@ -165,10 +184,11 @@ describe("AI summary quota store", () => {
       totalTokens: 2,
       estimatedCostMicrousd: 1,
       now,
+      expiresAt,
     })).resolves.toBe(false)
   })
 
-  it("releases only the addressed reservation", async () => {
+  it("releases only the exact random claim id, not a newer claim for the same subject", async () => {
     execute.mockResolvedValue({ rows: [{ released: true }] })
     await expect(store.releaseReservation(reservationId)).resolves.toBe(true)
 
@@ -177,6 +197,8 @@ describe("AI summary quota store", () => {
       "delete from \"ai_usage_reservations\" where \"id\" =",
     )
     expect(compiled.params).toEqual([reservationId])
+    expect(compiled.params).not.toContain(secondReservationId)
+    expect(compiled.params).not.toContain(subjectId)
   })
 
   it("returns configured limit, actual cost, and only live reservation cost", async () => {
@@ -195,5 +217,6 @@ describe("AI summary quota store", () => {
     const normalized = compiledCall().sql.replace(/\s+/g, " ").toLowerCase()
     expect(normalized).toContain("r.\"expires_at\" >")
     expect(normalized).toContain("r.\"month_bucket\" =")
+    expect(normalized).toContain("r.\"reconciled_at\" is null")
   })
 })

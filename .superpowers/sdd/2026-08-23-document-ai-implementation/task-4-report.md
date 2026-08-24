@@ -20,11 +20,18 @@ Base: `7a01c85`
 - Made the post-save remaining-budget read advisory: a failed estimate returns the saved summary with `remainingMonthlyBudget: null`, avoiding a retry after provider spend.
 - Added `aria-busy` to the editor generation control while inference is pending.
 
+## Fix round 2 reservation ownership
+
+- Added migration `0008_summary_reservation_claims` with nullable reservation `subject_id` and `reconciled_at`, backfilled existing summary rows from their revision-keyed IDs, and added a partial unique subject claim.
+- Changed each generation attempt to use a fresh random reservation ID while claiming the stable revision UUID as its subject. Concurrent attempts for one revision are rejected without inference, and delayed releases can delete only their own attempt.
+- Made reconciliation row-locking and idempotent: actual monthly usage is counted only while `reconciled_at` is null, then reserved amounts are zeroed and the subject claim remains alive for 90 seconds.
+- Kept the reconciled claim through the document snapshot compare-and-set and released its exact random ID in `finally` after either CAS success or conflict. A crash leaves the bounded claim to expire normally.
+
 ## Deferred by scope
 
 Public document Q&A remains deferred. This task intentionally does not add `sections.ts` or ranking, `buildAnswerPrompt`, `streamText`, question routes, public AI identity, consent changes, quota identity paths, or assistant UI.
 
 ## Verification
 
-- Focused fix-round regression gate: 9 files, 190 tests passed.
-- Full `npm test`: typecheck passed, lint passed, 55 test files / 628 tests passed, and the Next.js production build completed successfully with the summary route present.
+- Focused fix-round 2 regression gate: 10 files, 197 tests passed.
+- Full `npm test`: typecheck passed, lint passed, 55 test files / 633 tests passed, and the Next.js production build completed successfully with the summary route present.

@@ -57,6 +57,13 @@
       "when": 1787570986120,
       "tag": "0007_document_ai_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787576780721,
+      "tag": "0008_summary_reservation_claims",
+      "breakpoints": true
     }
   ]
 }
