@@ -27,8 +27,9 @@ beforeEach(() => {
 })
 
 describe("AI summary quota store", () => {
-  it("locks the month before cleanup and reservation in the same transaction", async () => {
+  it("locks the subject then month before the fresh reservation statement", async () => {
     transaction.mockResolvedValue([
+      { rows: [{ locked: null }] },
       { rows: [{ locked: null }] },
       { rows: [{ reservationId }] },
     ])
@@ -45,14 +46,21 @@ describe("AI summary quota store", () => {
 
     expect(execute).not.toHaveBeenCalled()
     expect(transaction).toHaveBeenCalledTimes(1)
-    expect(transaction.mock.calls[0][0]).toHaveLength(2)
+    expect(transaction.mock.calls[0][0]).toHaveLength(3)
 
-    const lock = compiledTransactionCall(0)
-    const normalizedLock = lock.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedLock).toContain("select pg_advisory_xact_lock(hashtextextended(")
-    expect(lock.params).toEqual(["2026-08"])
+    const subjectLock = compiledTransactionCall(0)
+    const normalizedSubjectLock = subjectLock.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSubjectLock).toContain("select pg_advisory_xact_lock(")
+    expect(normalizedSubjectLock).toContain("hashtextextended(")
+    expect(subjectLock.params).toEqual([subjectId, 1])
 
-    const compiled = compiledTransactionCall(1)
+    const monthLock = compiledTransactionCall(1)
+    const normalizedMonthLock = monthLock.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedMonthLock).toContain("select pg_advisory_xact_lock(")
+    expect(normalizedMonthLock).toContain("hashtextextended(")
+    expect(monthLock.params).toEqual(["2026-08", 0])
+
+    const compiled = compiledTransactionCall(2)
     const normalized = compiled.sql.replace(/\s+/g, " ").toLowerCase()
     expect(normalized).toContain("with expired_reservations as ( delete from \"ai_usage_reservations\"")
     expect(normalized).toContain("settings as")
@@ -82,7 +90,8 @@ describe("AI summary quota store", () => {
   it("maps a rejected conditional insert to the monthly limit", async () => {
     transaction.mockResolvedValue([
       { rows: [{ locked: null }] },
-      { rows: [{ reservationId: null }] },
+      { rows: [{ locked: null }] },
+      { rows: [{ reservationId: null, duplicate: false }] },
     ])
 
     await expect(store.reserveSummary({
@@ -96,13 +105,15 @@ describe("AI summary quota store", () => {
     })).resolves.toEqual({ status: "monthly_limit" })
   })
 
-  it("returns in-progress when the same revision already has a live reservation", async () => {
+  it("returns in-progress for the same subject across different month buckets", async () => {
     transaction
       .mockResolvedValueOnce([
+        { rows: [{ locked: null }] },
         { rows: [{ locked: null }] },
         { rows: [{ reservationId }] },
       ])
       .mockResolvedValueOnce([
+        { rows: [{ locked: null }] },
         { rows: [{ locked: null }] },
         { rows: [{ reservationId: null, duplicate: true }] },
       ])
@@ -117,7 +128,11 @@ describe("AI summary quota store", () => {
     }
     const results = await Promise.all([
       store.reserveSummary({ ...input, reservationId }),
-      store.reserveSummary({ ...input, reservationId: secondReservationId }),
+      store.reserveSummary({
+        ...input,
+        reservationId: secondReservationId,
+        monthBucket: new Date("2026-09-01T00:00:00.000Z"),
+      }),
     ])
 
     expect(results).toEqual([
@@ -126,10 +141,11 @@ describe("AI summary quota store", () => {
     ])
     expect(transaction).toHaveBeenCalledTimes(2)
     for (const call of [0, 1]) {
-      expect(transaction.mock.calls[call][0]).toHaveLength(2)
-      expect(compiledTransactionCall(0, call).params).toEqual(["2026-08"])
+      expect(transaction.mock.calls[call][0]).toHaveLength(3)
+      expect(compiledTransactionCall(0, call).params).toEqual([subjectId, 1])
       expect(compiledTransactionCall(0, call).sql.toLowerCase()).toContain("pg_advisory_xact_lock")
-      expect(compiledTransactionCall(1, call).sql.toLowerCase()).toContain("insert into")
+      expect(compiledTransactionCall(1, call).params).toEqual([call === 0 ? "2026-08" : "2026-09", 0])
+      expect(compiledTransactionCall(2, call).sql.toLowerCase()).toContain("insert into")
     }
   })
 

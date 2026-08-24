@@ -165,7 +165,10 @@ describe("summary budget service", () => {
     const { quota } = service(store)
 
     await expect(quota.reserveSummary({ subjectId: summarySubjectId, prompt: "ab", source: "가" }))
-      .rejects.toMatchObject({ code: "monthly_limit" })
+      .rejects.toMatchObject({
+        code: "monthly_limit",
+        message: "The monthly AI cost limit has been reached",
+      })
   })
 
   it("reconciles provider usage once using the reservation price snapshot", async () => {
@@ -240,7 +243,10 @@ describe("summary budget service", () => {
     await quota.reconcileSummaryUsage(reservation, { inputTokens: 10, outputTokens: 2, totalTokens: 12 })
 
     await expect(quota.reserveSummary({ subjectId: summarySubjectId, prompt: "ab", source: "가" }))
-      .rejects.toMatchObject({ code: "in_progress" })
+      .rejects.toMatchObject({
+        code: "in_progress",
+        message: "Summary generation is already in progress",
+      })
     expect(store.summaryCount).toBe(1)
 
     await quota.releaseReservation(reservation.id)

@@ -27,11 +27,17 @@ Base: `7a01c85`
 - Made reconciliation row-locking and idempotent: actual monthly usage is counted only while `reconciled_at` is null, then reserved amounts are zeroed and the subject claim remains alive for 90 seconds.
 - Kept the reconciled claim through the document snapshot compare-and-set and released its exact random ID in `finally` after either CAS success or conflict. A crash leaves the bounded claim to expire normally.
 
+## Fix round 3 cross-month serialization
+
+- Serialized every summary reservation in a consistent subject-then-month order using separate advisory-lock hash domains.
+- Executes the subject lock, month lock, and reservation mutation as three transaction statements, so a waiter crossing a month boundary receives a fresh statement snapshot and observes the winning subject claim.
+- Preserved month-scoped budget serialization while distinguishing a live subject claim as `in_progress` from a genuine budget rejection as `monthly_limit`.
+
 ## Deferred by scope
 
 Public document Q&A remains deferred. This task intentionally does not add `sections.ts` or ranking, `buildAnswerPrompt`, `streamText`, question routes, public AI identity, consent changes, quota identity paths, or assistant UI.
 
 ## Verification
 
-- Focused fix-round 2 regression gate: 10 files, 197 tests passed.
+- Focused fix-round 3 regression gate: 9 files, 176 tests passed.
 - Full `npm test`: typecheck passed, lint passed, 55 test files / 633 tests passed, and the Next.js production build completed successfully with the summary route present.

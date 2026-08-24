@@ -16,11 +16,15 @@ type SqlExecutor = {
 }
 
 type SqlTransactionExecutor = SqlExecutor & {
-  transaction(queries: readonly [SQL, SQL]): Promise<readonly [
+  transaction(queries: readonly [SQL, SQL, SQL]): Promise<readonly [
+    { rows: unknown[] },
     { rows: unknown[] },
     { rows: unknown[] },
   ]>
 }
+
+const SUMMARY_MONTH_LOCK_SEED = 0
+const SUMMARY_SUBJECT_LOCK_SEED = 1
 
 function safeInteger(value: unknown, name: string): number {
   const number = Number(value)
@@ -32,8 +36,14 @@ export function createAiQuotaStore(database: SqlTransactionExecutor): AiQuotaSto
   return {
     async reserveSummary(input: SummaryReservationInput) {
       const month = input.monthBucket.toISOString().slice(0, 7)
-      const [, result] = await database.transaction([sql`
-        SELECT pg_advisory_xact_lock(hashtextextended(${month}, 0)) AS "locked"
+      const [, , result] = await database.transaction([sql`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(${input.subjectId}, ${SUMMARY_SUBJECT_LOCK_SEED})
+        ) AS "locked"
+      `, sql`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(${month}, ${SUMMARY_MONTH_LOCK_SEED})
+        ) AS "locked"
       `, sql`
         WITH expired_reservations AS (
           DELETE FROM ${aiUsageReservations}
@@ -172,6 +182,7 @@ export const aiQuotaStore = createAiQuotaStore({
     return database.batch([
       database.execute(queries[0]),
       database.execute(queries[1]),
+      database.execute(queries[2]),
     ])
   },
 })
