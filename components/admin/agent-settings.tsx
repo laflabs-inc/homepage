@@ -157,6 +157,13 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
       applyConfiguration(payload.configuration, options.preserveDraft)
       setNotice(success)
     } catch {
+      if (options.refreshOnFailure) {
+        try {
+          await loadConfiguration(true)
+        } catch {
+          // Keep the original generic error; the refresh is best effort.
+        }
+      }
       setError("The Agent configuration could not be updated. Try again.")
     } finally {
       setBusy(false)
@@ -230,6 +237,13 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
             return
           }
           continue
+        }
+        if (attempt === 1 && response.status === 409 && payload.error === "version_conflict") {
+          try {
+            await loadConfiguration(true)
+          } catch {
+            // The conflict alert remains valid when the final refresh also fails.
+          }
         }
         setError(payload.error === "version_conflict"
           ? "AI could not be disabled because settings changed again. Retry."

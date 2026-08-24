@@ -239,6 +239,37 @@ describe("Agent settings", () => {
   })
 
   it.each([
+    ["rejected request", () => Promise.reject(new Error("network failed"))],
+    ["malformed response", () => Promise.resolve(new Response("{", {
+      status: 502,
+      headers: { "content-type": "application/json" },
+    }))],
+  ])("refreshes safe state after a %s without replacing the generic error", async (_case, failedRequest) => {
+    const user = userEvent.setup()
+    const enabled = { ...configuration, settings: { ...configuration.settings, enabled: true } }
+    const failed = {
+      ...configuration,
+      settings: { ...configuration.settings, enabled: false, version: 4 },
+      credential: { ...configuration.credential, verificationStatus: "failed" as const },
+    }
+    vi.mocked(fetch)
+      .mockImplementationOnce(failedRequest)
+      .mockImplementationOnce(() => response(failed))
+    render(<AgentSettings initialConfiguration={enabled} />)
+
+    const questions = screen.getByRole("spinbutton", { name: "Daily question limit" })
+    await user.clear(questions)
+    await user.type(questions, "25")
+    await user.click(screen.getByRole("button", { name: "Test connection" }))
+
+    expect(fetch).toHaveBeenNthCalledWith(2, "/api/admin/agent", { cache: "no-store" })
+    expect(await screen.findByText("AI is disabled.")).toBeInTheDocument()
+    expect(screen.getByText(/Configured · ••••01de · Failed/)).toBeInTheDocument()
+    expect(questions).toHaveValue(25)
+    expect(screen.getByRole("alert")).toHaveTextContent("The Agent configuration could not be updated. Try again.")
+  })
+
+  it.each([
     "Test connection",
     "Replace credential",
     "Delete credential",
@@ -337,6 +368,11 @@ describe("Agent settings", () => {
     const user = userEvent.setup()
     const enabled = { ...configuration, settings: { ...configuration.settings, enabled: true } }
     const latest = { ...enabled, settings: { ...enabled.settings, version: 4 } }
+    const disabled = {
+      ...configuration,
+      settings: { ...configuration.settings, enabled: false, version: 5 },
+      credential: { ...configuration.credential, verificationStatus: "failed" as const },
+    }
     vi.mocked(fetch)
       .mockImplementationOnce(() => Promise.resolve(Response.json(
         { error: "version_conflict" },
@@ -347,12 +383,16 @@ describe("Agent settings", () => {
         { error: "version_conflict" },
         { status: 409 },
       )))
+      .mockImplementationOnce(() => response(disabled))
     render(<AgentSettings initialConfiguration={enabled} />)
 
     await user.click(screen.getByRole("button", { name: "Disable AI now" }))
 
-    expect(fetch).toHaveBeenCalledTimes(3)
-    expect(screen.getByText("AI is enabled.")).toBeInTheDocument()
+    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === "PATCH")).toHaveLength(2)
+    expect(fetch).toHaveBeenNthCalledWith(4, "/api/admin/agent", { cache: "no-store" })
+    expect(screen.getByText("AI is disabled.")).toBeInTheDocument()
+    expect(screen.getByText(/Configured · ••••01de · Failed/)).toBeInTheDocument()
     expect(screen.getByRole("alert")).toHaveTextContent(/could not be disabled because settings changed again/i)
   })
 })
