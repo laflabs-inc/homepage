@@ -50,6 +50,13 @@
       "when": 1787567439830,
       "tag": "0006_invalidate_agent_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787570986120,
+      "tag": "0007_document_ai_usage",
+      "breakpoints": true
     }
   ]
 }

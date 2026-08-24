@@ -1,4 +1,5 @@
-import { bigint, boolean, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+import { bigint, boolean, check, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 
 export const analyticsEvents = pgTable("analytics_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -38,6 +39,7 @@ export const documentKindEnum = pgEnum("document_kind", ["notice", "legal", "dis
 export const documentLocaleEnum = pgEnum("document_locale", ["ko", "en"])
 export const documentStatusEnum = pgEnum("document_status", ["draft", "scheduled", "published", "archived"])
 export const summaryPolicyEnum = pgEnum("summary_policy", ["review", "automatic"])
+export const aiUsageReservationKindEnum = pgEnum("ai_usage_reservation_kind", ["question", "summary"])
 
 export const agentSettings = pgTable("agent_settings", {
   id: text("id").default("default").primaryKey(),
@@ -123,3 +125,54 @@ export const adminAuditLog = pgTable("admin_audit_log", {
   metadata: jsonb("metadata").default({}).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
+
+export const aiUsageDaily = pgTable("ai_usage_daily", {
+  visitorHash: text("visitor_hash").notNull(),
+  dateBucket: timestamp("date_bucket", { withTimezone: true }).notNull(),
+  questionCount: integer("question_count").default(0).notNull(),
+  inputTokens: bigint("input_tokens", { mode: "number" }).default(0).notNull(),
+  outputTokens: bigint("output_tokens", { mode: "number" }).default(0).notNull(),
+  totalTokens: bigint("total_tokens", { mode: "number" }).default(0).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  primaryKey({ columns: [table.visitorHash, table.dateBucket] }),
+  index("ai_usage_daily_date_bucket_idx").on(table.dateBucket),
+  check("ai_usage_daily_question_count_nonnegative", sql`${table.questionCount} >= 0`),
+  check("ai_usage_daily_input_tokens_nonnegative", sql`${table.inputTokens} >= 0`),
+  check("ai_usage_daily_output_tokens_nonnegative", sql`${table.outputTokens} >= 0`),
+  check("ai_usage_daily_total_tokens_nonnegative", sql`${table.totalTokens} >= 0`),
+])
+
+export const aiUsageMonthly = pgTable("ai_usage_monthly", {
+  monthBucket: timestamp("month_bucket", { withTimezone: true }).primaryKey(),
+  questionCount: integer("question_count").default(0).notNull(),
+  summaryCount: integer("summary_count").default(0).notNull(),
+  inputTokens: bigint("input_tokens", { mode: "number" }).default(0).notNull(),
+  outputTokens: bigint("output_tokens", { mode: "number" }).default(0).notNull(),
+  totalTokens: bigint("total_tokens", { mode: "number" }).default(0).notNull(),
+  estimatedCostMicrousd: bigint("estimated_cost_microusd", { mode: "number" }).default(0).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  check("ai_usage_monthly_question_count_nonnegative", sql`${table.questionCount} >= 0`),
+  check("ai_usage_monthly_summary_count_nonnegative", sql`${table.summaryCount} >= 0`),
+  check("ai_usage_monthly_input_tokens_nonnegative", sql`${table.inputTokens} >= 0`),
+  check("ai_usage_monthly_output_tokens_nonnegative", sql`${table.outputTokens} >= 0`),
+  check("ai_usage_monthly_total_tokens_nonnegative", sql`${table.totalTokens} >= 0`),
+  check("ai_usage_monthly_estimated_cost_microusd_nonnegative", sql`${table.estimatedCostMicrousd} >= 0`),
+])
+
+export const aiUsageReservations = pgTable("ai_usage_reservations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitorHash: text("visitor_hash"),
+  dateBucket: timestamp("date_bucket", { withTimezone: true }),
+  monthBucket: timestamp("month_bucket", { withTimezone: true }).notNull(),
+  kind: aiUsageReservationKindEnum("kind").notNull(),
+  reservedTokens: bigint("reserved_tokens", { mode: "number" }).notNull(),
+  reservedCostMicrousd: bigint("reserved_cost_microusd", { mode: "number" }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("ai_usage_reservations_expiry_idx").on(table.expiresAt),
+  check("ai_usage_reservations_reserved_tokens_nonnegative", sql`${table.reservedTokens} >= 0`),
+  check("ai_usage_reservations_reserved_cost_microusd_nonnegative", sql`${table.reservedCostMicrousd} >= 0`),
+])
