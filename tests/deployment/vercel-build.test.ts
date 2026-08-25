@@ -52,7 +52,7 @@ fi
 }
 
 describe("Vercel deployment build", () => {
-  it("keeps publication and analytics retention while scheduling AI retention", () => {
+  it("keeps every cron compatible with the Hobby daily limit", () => {
     const config = JSON.parse(readFileSync("vercel.json", "utf8")) as {
       crons?: Array<{ path: string; schedule: string }>
     }
@@ -60,7 +60,7 @@ describe("Vercel deployment build", () => {
     expect(config.crons).toEqual(expect.arrayContaining([
       { path: "/api/cron/analytics-retention", schedule: "17 3 * * *" },
       { path: "/api/cron/ai-retention", schedule: "43 3 * * *" },
-      { path: "/api/cron/document-publication", schedule: "*/5 * * * *" },
+      { path: "/api/cron/document-publication", schedule: "7 4 * * *" },
     ]))
   })
 

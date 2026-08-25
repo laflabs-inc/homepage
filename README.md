@@ -93,3 +93,7 @@ production, and complete legal review of consent/privacy copy by following
 
 AI summary configuration, credential, retention, and production procedures are
 in the [AI summary operations runbook](docs/ai-operations.md).
+
+All Vercel Cron jobs are Hobby-compatible daily schedules. Scheduled documents
+are published by the `04:07 UTC` daily run; use the admin's immediate publish
+action when a document cannot wait for the next run.
