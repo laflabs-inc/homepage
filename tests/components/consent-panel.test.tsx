@@ -22,10 +22,19 @@ vi.mock("@/lib/analytics/reload", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => window.location.pathname,
+  useRouter: () => ({ replace: vi.fn() }),
 }))
 
 vi.mock("@/components/analytics/consent-panel.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
+
+vi.mock("@vercel/analytics/next", () => ({
+  Analytics: () => <i data-vercel-analytics="enabled" />,
+}))
+
+vi.mock("@vercel/speed-insights/next", () => ({
+  SpeedInsights: () => <i data-vercel-speed-insights="enabled" />,
 }))
 
 import { ConsentPanel } from "@/components/analytics/consent-panel"
@@ -207,6 +216,59 @@ describe("ConsentPanel", () => {
 })
 
 describe("ConsentProvider", () => {
+  it.each([
+    ["unknown", false],
+    ["essential", false],
+    ["analytics", true],
+  ] as const)("does not mount Vercel telemetry for %s consent with DNT=%s", (initialState, dnt) => {
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState={initialState} dnt={dnt}>
+          <p>Page</p>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(container.querySelector("[data-vercel-analytics]")).not.toBeInTheDocument()
+    expect(container.querySelector("[data-vercel-speed-insights]")).not.toBeInTheDocument()
+  })
+
+  it("mounts both Vercel integrations only for analytics consent", () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <p>Page</p>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(container.querySelector("[data-vercel-analytics]")).toBeInTheDocument()
+    expect(container.querySelector("[data-vercel-speed-insights]")).toBeInTheDocument()
+  })
+
+  it("mounts Vercel telemetry after opt-in without reloading", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      choice: "analytics",
+      dntHonored: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })))
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <ConsentProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(container.querySelector("[data-vercel-analytics]")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Open settings" }))
+    await user.click(screen.getByRole("button", { name: "Allow analytics" }))
+
+    expect(container.querySelector("[data-vercel-analytics]")).toBeInTheDocument()
+    expect(container.querySelector("[data-vercel-speed-insights]")).toBeInTheDocument()
+    expect(consentNavigationMocks.reload).not.toHaveBeenCalled()
+  })
+
   it("updates client state from a successful choice without a reload", async () => {
     const user = userEvent.setup()
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({

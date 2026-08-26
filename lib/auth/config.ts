@@ -71,15 +71,20 @@ export function createAuthConfig(): NextAuthConfig {
         return checkGitHubOrgMembership(accessToken, env.ADMIN_GITHUB_ORG)
       },
       async jwt({ token, account }) {
+        const tokenWithGitHubId =
+          typeof account?.providerAccountId === "string"
+            ? { ...token, githubId: account.providerAccountId }
+            : token
         const accessToken =
           typeof account?.access_token === "string"
             ? account.access_token
             : undefined
-        return refreshMembershipToken(token, accessToken)
+        return refreshMembershipToken(tokenWithGitHubId, accessToken)
       },
       session({ session, token }) {
         session.user = {
           ...session.user,
+          githubId: token.githubId,
           orgMember: token.orgMember === true,
         }
         return session

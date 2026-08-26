@@ -20,16 +20,27 @@
     "test": "npm run typecheck && npm run lint && npm run test:unit && npm run build"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.46",
     "@neondatabase/serverless": "^1.1.0",
     "@phosphor-icons/react": "^2.1.10",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "ai": "^7.0.77",
     "drizzle-orm": "^0.45.2",
+    "github-slugger": "^2.0.0",
+    "hast-util-to-string": "^3.0.1",
     "motion": "^12.23.30",
     "next": "16.3.2",
     "next-auth": "5.0.0-beta.32",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "react-markdown": "^10.1.0",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

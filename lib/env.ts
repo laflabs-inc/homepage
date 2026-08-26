@@ -28,6 +28,28 @@ const authSchema = z.object({
   ADMIN_GITHUB_ORG: z.string().min(1).default("laflabs-inc"),
 })
 const cronSchema = z.object({ CRON_SECRET: z.string().min(16) })
+const base64EncryptionKey = z.string().superRefine((value, context) => {
+  const decoded = Buffer.from(value, "base64")
+
+  if (decoded.length !== 32 || decoded.toString("base64") !== value) {
+    context.addIssue({
+      code: "custom",
+      message: "AI_CREDENTIAL_ENCRYPTION_KEY must be canonical base64 for 32 bytes",
+    })
+  }
+})
+const aiSecuritySchema = z.object({
+  AI_CREDENTIAL_ENCRYPTION_KEY: base64EncryptionKey,
+  AI_COOKIE_SECRET: z.string().min(32),
+}).superRefine((environment, context) => {
+  if (environment.AI_CREDENTIAL_ENCRYPTION_KEY === environment.AI_COOKIE_SECRET) {
+    context.addIssue({
+      code: "custom",
+      path: ["AI_COOKIE_SECRET"],
+      message: "AI_COOKIE_SECRET must differ from AI_CREDENTIAL_ENCRYPTION_KEY",
+    })
+  }
+})
 const schema = databaseSchema
   .merge(z.object(analyticsFields))
   .merge(authSchema)
@@ -52,3 +74,4 @@ export const getDatabaseEnv = () => databaseSchema.parse(process.env)
 export const getAnalyticsEnv = () => analyticsSchema.parse(process.env)
 export const getAuthEnv = () => authSchema.parse(process.env)
 export const getCronEnv = () => cronSchema.parse(process.env)
+export const getAiSecurityEnv = () => aiSecuritySchema.parse(process.env)

@@ -7,7 +7,7 @@ import styles from "./consent-panel.module.css"
 const consentCopy = {
   ko: {
     title: "분석 쿠키를 선택해 주세요",
-    body: "사이트를 개선하기 위해 익명 사용 통계를 수집합니다. 허용 전에는 분석 정보를 보내지 않습니다.",
+    body: "사이트를 더 낫게 만들기 위해 익명 사용 통계를 수집합니다. 동의하기 전에는 분석 정보를 보내지 않습니다.",
     essential: "필수만 사용",
     analytics: "분석 허용",
     settings: "쿠키 설정",

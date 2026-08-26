@@ -90,3 +90,10 @@ because locale detection reads request cookies and headers.
 Provision Neon, register the exact GitHub callback, migrate preview before
 production, and complete legal review of consent/privacy copy by following
 [docs/analytics-operations.md](docs/analytics-operations.md).
+
+AI summary configuration, credential, retention, and production procedures are
+in the [AI summary operations runbook](docs/ai-operations.md).
+
+All Vercel Cron jobs are Hobby-compatible daily schedules. Scheduled documents
+are published by the `04:07 UTC` daily run; use the admin's immediate publish
+action when a document cannot wait for the next run.

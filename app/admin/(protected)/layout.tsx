@@ -1,3 +1,4 @@
+import { AdminNav } from "@/components/admin/admin-nav"
 import { requireAdmin } from "@/lib/auth/require-admin"
 
 export default async function ProtectedAdminLayout({
@@ -7,5 +8,10 @@ export default async function ProtectedAdminLayout({
 }) {
   await requireAdmin()
 
-  return children
+  return (
+    <>
+      <AdminNav />
+      {children}
+    </>
+  )
 }

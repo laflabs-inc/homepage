@@ -1,19 +1,19 @@
 .panel {
   position: fixed;
   z-index: 60;
-  right: var(--gutter);
+  right: 20px;
   bottom: 20px;
-  left: var(--gutter);
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.75fr);
-  gap: 20px 40px;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: min(520px, calc(100vw - 40px));
   max-height: calc(100svh - 40px);
-  padding: 20px;
+  padding: 18px;
   overflow-y: auto;
   color: var(--ink);
   background: var(--paper);
   border: 1px solid var(--ink);
-  box-shadow: 8px 8px 0 rgb(15 23 42 / 18%);
+  box-shadow: 0 18px 48px rgb(15 23 42 / 18%);
 }
 
 .intro {
@@ -21,7 +21,7 @@
 }
 
 .eyebrow {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   color: var(--blue);
   font: 650 9px var(--font-geist-mono), "Pretendard", monospace;
   letter-spacing: 0.13em;
@@ -30,14 +30,14 @@
 
 .intro h2 {
   margin: 0;
-  font-size: clamp(24px, 2.5vw, 36px);
-  line-height: 1.05;
-  letter-spacing: -0.045em;
+  font-size: clamp(22px, 2.2vw, 28px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
 }
 
 .body {
   max-width: 680px;
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
@@ -60,8 +60,8 @@
 
 .close {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -75,13 +75,12 @@
 .actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-self: end;
   gap: 10px;
 }
 
 .choice {
-  min-height: 52px;
-  padding: 12px 16px;
+  min-height: 44px;
+  padding: 10px 14px;
   color: var(--ink);
   background: transparent;
   border: 1px solid var(--ink);
@@ -102,8 +101,7 @@
 }
 
 .details {
-  grid-column: 1 / -1;
-  padding-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 11px;
@@ -131,25 +129,16 @@
 
 @media (max-width: 900px) {
   .panel {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 20px;
+    right: var(--gutter);
+    bottom: 12px;
+    left: var(--gutter);
+    width: auto;
+    max-height: calc(100svh - 24px);
+    padding: 16px;
   }
 
   .intro {
     padding-right: 24px;
-  }
-
-  .intro h2 {
-    font-size: 25px;
-  }
-
-  .actions {
-    grid-row: auto;
-  }
-
-  .details {
-    grid-column: auto;
   }
 
   .details ul {
