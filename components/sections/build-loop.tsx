@@ -5,6 +5,7 @@ import { motion, type MotionValue, useReducedMotion, useScroll, useTransform } f
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { copy } from "@/lib/content"
+import styles from "./build-loop.module.css"
 
 function BuildStep({
   body,
@@ -25,7 +26,7 @@ function BuildStep({
 
   return (
     <motion.li style={reduced ? undefined : { opacity, x }}>
-      <span className="build-loop-index mono">{String(index + 1).padStart(2, "0")}</span>
+      <span className={`${styles.index} mono`}>{String(index + 1).padStart(2, "0")}</span>
       <div>
         <h3>{title}</h3>
         <p>{body}</p>
@@ -46,18 +47,18 @@ export function BuildLoop() {
   const markerY = useTransform(scrollYProgress, [0, 1], [0, 244])
 
   return (
-    <section className="build-loop" ref={section} aria-labelledby="build-loop-title">
-      <div className="build-loop-sticky">
-        <div className="build-loop-intro">
+    <section className={styles.buildLoop} ref={section} aria-labelledby="build-loop-title">
+      <div className={styles.sticky}>
+        <div className={styles.intro}>
           <h2 id="build-loop-title">{t.title}</h2>
           <p>{t.lede}</p>
-          <div className="build-loop-rail" aria-hidden="true">
-            <motion.span className="build-loop-progress" style={reduced ? undefined : { scaleY: scrollYProgress }} />
+          <div className={styles.rail} aria-hidden="true">
+            <motion.span className={styles.progress} style={reduced ? undefined : { scaleY: scrollYProgress }} />
             <motion.i style={reduced ? undefined : { y: markerY }} />
           </div>
         </div>
 
-        <ol className="build-loop-steps">
+        <ol className={styles.steps}>
           {t.steps.map((step, index) => (
             <BuildStep
               key={step.title}

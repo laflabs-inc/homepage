@@ -2,7 +2,7 @@
 workflow: motion-graphics
 flow: automation
 storyboard: no
-message: "LafLabs turns identity, payments, and cloud into one coherent software system."
+message: "LafLabs turns a clear signal into a reliable software system."
 destination: website hero
 aspect: "1:1"
 language: English
@@ -12,7 +12,7 @@ length: 6s
 
 ## Intent
 
-A quiet technical system animation embedded in the homepage hero. Blue square modules arrive from the right, connect as Identity, Payments, and Cloud, and resolve into the exact static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`.
+A quiet technical system animation embedded in the homepage hero. One square origin routes through a proprietary 3×3 module field, then resolves into the exact static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`. The middle scene is intentionally product-independent so the asset survives future portfolio changes.
 
 ## Assets
 

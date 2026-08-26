@@ -5,6 +5,9 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/" }))
 vi.mock("@/components/analytics/consent-panel.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
+vi.mock("@/components/sections/build-loop.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
 
 import { ConsentPanel } from "@/components/analytics/consent-panel"
 import { ConsentProvider } from "@/components/analytics/consent-provider"

@@ -285,6 +285,15 @@
   padding: 24px 18px;
   overflow-x: auto;
   border-block: 1px solid var(--line);
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+@media (max-width: 600px) {
+  .document :global(.katex-display) {
+    padding-inline: 8px;
+    font-size: 0.82em;
+  }
 }
 
 .diagram {

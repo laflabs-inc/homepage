@@ -29,6 +29,10 @@ vi.mock("@/components/analytics/consent-panel.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
 
+vi.mock("@/components/sections/build-loop.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
+
 vi.mock("@vercel/analytics/next", () => ({
   Analytics: () => <i data-vercel-analytics="enabled" />,
 }))
