@@ -1,8 +1,18 @@
+import type { Element } from "hast"
+import { toString } from "hast-util-to-string"
 import ReactMarkdown from "react-markdown"
+import rehypeHighlight from "rehype-highlight"
+import rehypeKatex from "rehype-katex"
+import rehypeRaw from "rehype-raw"
+import rehypeSanitize from "rehype-sanitize"
 import rehypeSlug from "rehype-slug"
 import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
 
+import { CodeBlock } from "@/components/content/code-block"
+import { MermaidDiagram } from "@/components/content/mermaid-diagram"
 import { remarkLafCallouts } from "@/lib/markdown/callouts"
+import { documentSanitizeSchema } from "@/lib/markdown/sanitize"
 import styles from "./content.module.css"
 
 type MarkdownDocumentProps = {
@@ -62,14 +72,36 @@ function classNames(...names: Array<string | undefined>) {
   return names.filter(Boolean).join(" ")
 }
 
+function codeNodeFromPre(node: Element | undefined) {
+  return node?.children.find(
+    (child): child is Element => child.type === "element" && child.tagName === "code",
+  )
+}
+
+function codeLanguage(node: Element | undefined) {
+  const className: unknown = node?.properties.className
+  const classes: string[] = Array.isArray(className)
+    ? className.map(String)
+    : typeof className === "string"
+      ? className.split(" ")
+      : []
+  return classes.find((value) => value.startsWith("language-"))?.slice(9)
+}
+
 export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps) {
   return (
     <article className={styles.document}>
       <h1 className={styles.title}>{title}</h1>
       {intro}
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkLafCallouts]}
-        rehypePlugins={[rehypeSlug]}
+        remarkPlugins={[remarkGfm, remarkMath, remarkLafCallouts]}
+        rehypePlugins={[
+          rehypeRaw,
+          [rehypeSanitize, documentSanitizeSchema],
+          rehypeKatex,
+          [rehypeHighlight, { plainText: ["mermaid"] }],
+          rehypeSlug,
+        ]}
         urlTransform={transformDocumentUrl}
         components={{
           h1: (props) => <h2 className={styles.headingOne} {...withoutNode(props)} />,
@@ -110,7 +142,15 @@ export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps
               <table {...withoutNode(props)} />
             </div>
           ),
-          pre: (props) => <pre className={styles.pre} {...withoutNode(props)} />,
+          pre: ({ node, children }) => {
+            const codeNode = codeNodeFromPre(node)
+            const language = codeLanguage(codeNode)
+            const source = codeNode ? toString(codeNode).replace(/\n$/, "") : ""
+
+            if (language === "mermaid") return <MermaidDiagram source={source} />
+
+            return <CodeBlock language={language} source={source}>{children}</CodeBlock>
+          },
           code: (props) => {
             const { className, ...attributes } = withoutNode(props)
             return <code {...attributes} className={classNames(styles.code, className)} />

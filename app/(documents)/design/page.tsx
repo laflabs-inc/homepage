@@ -1,9 +1,16 @@
-import { DocumentIndex } from "@/components/content/document-index"
-import { documentSections } from "@/lib/content"
+import type { Metadata } from "next"
+
+import { DesignGuide } from "@/components/content/design-guide"
 import { resolveDocumentPageLocale } from "../locale"
 
-export default async function DesignPage({ searchParams }: { searchParams: Promise<{ locale?: string; cursor?: string; category?: string }> }) {
+export const metadata: Metadata = {
+  title: "Design guide",
+  description: "LafLabs의 로고, 컬러, 타이포그래피, 인터페이스 원칙과 공식 에셋을 확인합니다.",
+  alternates: { canonical: "/design" },
+}
+
+export default async function DesignPage({ searchParams }: { searchParams: Promise<{ locale?: string }> }) {
   const query = await searchParams
   const locale = await resolveDocumentPageLocale(Promise.resolve(query))
-  return <DocumentIndex kind="design" locale={locale} section={documentSections.design} cursor={query.cursor} category={query.category} />
+  return <DesignGuide locale={locale} />
 }

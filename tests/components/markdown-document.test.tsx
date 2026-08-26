@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 vi.mock("@/components/content/content.module.css", () => ({
@@ -80,9 +81,83 @@ describe("MarkdownDocument", () => {
     expect(screen.getByRole("img", { name: "루트 이미지" })).toHaveAttribute("src", "/laflabs-logo.png")
     expect(screen.getByRole("img", { name: "HTTP 이미지" })).not.toHaveAttribute("src")
     expect(screen.getByRole("img", { name: "프로토콜 상대 이미지" })).not.toHaveAttribute("src")
-    expect(screen.getByText("const ready = true").closest("pre")).toBeInTheDocument()
+    expect(screen.getByRole("code").closest("pre")).toHaveTextContent("const ready = true")
     expect(screen.getByText("반드시 검토하세요.").closest("blockquote")).toHaveAttribute("data-callout", "warning")
     expect(screen.getByText("배포 전")).toBeInTheDocument()
     expect(document.querySelector("script[data-hostile='true']")).not.toBeInTheDocument()
+  })
+
+  it("renders the approved document HTML while stripping executable markup", () => {
+    render(
+      <MarkdownDocument
+        title="HTML 문서"
+        source={`
+<mark>중요 표시</mark> H<sub>2</sub>O <kbd>Ctrl</kbd>
+
+<details open>
+<summary><strong>세부 내용</strong></summary>
+
+안쪽에서도 **마크다운 강조**가 동작합니다.
+
+- 첫 번째 항목
+- 두 번째 항목
+
+</details>
+
+<abbr title="HyperText Markup Language">HTML</abbr>
+<script data-hostile="true">alert('xss')</script>
+`}
+      />,
+    )
+
+    expect(screen.getByText("중요 표시").tagName).toBe("MARK")
+    expect(screen.getByText("2").tagName).toBe("SUB")
+    expect(screen.getByText("Ctrl").tagName).toBe("KBD")
+    const details = screen.getByText("세부 내용").closest("details")
+    expect(details).toHaveAttribute("open")
+    expect(within(details as HTMLElement).getByText("마크다운 강조").tagName).toBe("STRONG")
+    expect(within(details as HTMLElement).getAllByRole("listitem")).toHaveLength(2)
+    expect(screen.getByText("HTML")).toHaveAttribute("title", "HyperText Markup Language")
+    expect(document.querySelector("script[data-hostile='true']")).not.toBeInTheDocument()
+  })
+
+  it("typesets inline and display math", () => {
+    const { container } = render(
+      <MarkdownDocument
+        title="수식 문서"
+        source={`인라인 수식 $E = mc^2$ 입니다.\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$`}
+      />,
+    )
+
+    expect(container.querySelectorAll(".katex")).toHaveLength(2)
+    expect(container.querySelector(".katex-display")).toBeInTheDocument()
+  })
+
+  it("highlights fenced code and copies its original source", async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <MarkdownDocument
+        title="코드 문서"
+        source={`\`\`\`javascript\nconst ready = true\n\`\`\``}
+      />,
+    )
+
+    expect(container.querySelector(".hljs-keyword")).toHaveTextContent("const")
+    const copy = screen.getByRole("button", { name: "Copy JavaScript code" })
+    await user.click(copy)
+    expect(copy).toHaveTextContent("COPIED")
+    await expect(navigator.clipboard.readText()).resolves.toBe("const ready = true")
+  })
+
+  it("turns Mermaid fences into an accessible diagram surface", () => {
+    render(
+      <MarkdownDocument
+        title="다이어그램 문서"
+        source={`\`\`\`mermaid\ngraph TD\n  A[시작] --> B[종료]\n\`\`\``}
+      />,
+    )
+
+    const diagram = screen.getByRole("figure", { name: "Mermaid diagram" })
+    expect(within(diagram).getByText("DIAGRAM / MERMAID")).toBeInTheDocument()
   })
 })

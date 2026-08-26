@@ -74,13 +74,15 @@
   margin: 28px 0;
   padding: 18px 20px;
   border: 1px solid var(--ink);
-  border-left: 5px solid var(--blue);
   background: #eff6ff;
 }
 
 .blockquote {
-  border-left-color: var(--ink);
   background: transparent;
+}
+
+.callout {
+  border-top: 4px solid var(--blue);
 }
 
 .blockquote p:last-child,
@@ -140,6 +142,41 @@
   border-right: 0;
 }
 
+.codeBlock {
+  margin: 28px 0;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+}
+
+.codeToolbar {
+  min-height: 42px;
+  padding-left: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #334155;
+  color: #94a3b8;
+  font: 650 10px var(--font-geist-mono), "Pretendard", monospace;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.codeToolbar button {
+  min-width: 76px;
+  min-height: 42px;
+  border: 0;
+  border-left: 1px solid #334155;
+  color: #bfdbfe;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.codeToolbar button:hover {
+  color: white;
+  background: var(--blue);
+}
+
 .pre {
   margin: 28px 0;
   padding: 18px;
@@ -148,6 +185,11 @@
   background: var(--ink);
   border: 1px solid var(--ink);
   font: 13px/1.65 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.codeBlock .pre {
+  margin: 0;
+  border: 0;
 }
 
 .code {
@@ -159,6 +201,148 @@
 .pre .code {
   padding: 0;
   background: transparent;
+}
+
+.pre :global(.hljs-keyword),
+.pre :global(.hljs-selector-tag),
+.pre :global(.hljs-type) {
+  color: #93c5fd;
+}
+
+.pre :global(.hljs-title),
+.pre :global(.hljs-string),
+.pre :global(.hljs-attribute) {
+  color: #86efac;
+}
+
+.pre :global(.hljs-number),
+.pre :global(.hljs-literal),
+.pre :global(.hljs-symbol) {
+  color: #fdba74;
+}
+
+.pre :global(.hljs-comment),
+.pre :global(.hljs-quote) {
+  color: #94a3b8;
+}
+
+.pre :global(.hljs-built_in),
+.pre :global(.hljs-meta),
+.pre :global(.hljs-selector-class) {
+  color: #c4b5fd;
+}
+
+.document mark {
+  padding: 0.08em 0.24em;
+  color: var(--ink);
+  background: #bfdbfe;
+}
+
+.document kbd {
+  padding: 0.12em 0.42em;
+  border: 1px solid var(--ink);
+  background: white;
+  font: 0.82em var(--font-geist-mono), "Pretendard", monospace;
+  box-shadow: 2px 2px 0 var(--line);
+}
+
+.document abbr[title] {
+  text-decoration: underline dotted var(--muted);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.document details {
+  margin: 28px 0;
+  padding: 0 20px;
+  border: 1px solid var(--ink);
+}
+
+.document summary {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.document details[open] {
+  padding-bottom: 18px;
+}
+
+.document details[open] summary {
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.document div[align="center"] {
+  text-align: center;
+}
+
+.document :global(.katex-display) {
+  max-width: 100%;
+  margin: 28px 0;
+  padding: 24px 18px;
+  overflow-x: auto;
+  border-block: 1px solid var(--line);
+}
+
+.diagram {
+  margin: 28px 0;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.diagram figcaption {
+  min-height: 42px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #cbd5e1;
+  background: var(--ink);
+  font: 650 10px var(--font-geist-mono), "Pretendard", monospace;
+  letter-spacing: 0.08em;
+}
+
+.diagramCanvas,
+.diagramLoading,
+.diagramFallback {
+  min-height: 240px;
+  padding: 28px;
+}
+
+.diagramCanvas {
+  overflow-x: auto;
+}
+
+.diagramCanvas :global(svg) {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.diagramLoading {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font: 600 11px var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.diagramFallback p {
+  margin-bottom: 12px;
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.diagramFallback pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  color: #e2e8f0;
+  background: var(--ink);
 }
 
 .image {
@@ -278,11 +462,10 @@
 .documentCard > a {
   display: block;
   padding: 34px 6px;
-  transition: background 160ms ease, padding 160ms ease;
+  transition: background 160ms ease;
 }
 
 .documentCard > a:hover {
-  padding-inline: 18px;
   background: #eff6ff;
 }
 
