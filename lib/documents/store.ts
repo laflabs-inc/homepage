@@ -37,6 +37,16 @@ export class DocumentStoreError extends Error {
 type RevisionRow = DocumentRevision
 type PublishedRow = PublishedDocument
 
+function requiredDate(value: unknown, field: string): Date {
+  const date = value instanceof Date ? value : new Date(value as string | number)
+  if (!Number.isFinite(date.getTime())) throw new TypeError(`Invalid ${field} timestamp`)
+  return date
+}
+
+function nullableDate(value: unknown, field: string): Date | null {
+  return value == null ? null : requiredDate(value, field)
+}
+
 function mapAvailableLocales(value: unknown): Locale[] {
   const candidates = Array.isArray(value)
     ? value
@@ -64,14 +74,14 @@ function mapRevision(value: unknown): DocumentRevision {
     summary: row.summary,
     bodyMarkdown: row.bodyMarkdown,
     status: row.status,
-    effectiveAt: row.effectiveAt,
-    scheduledAt: row.scheduledAt,
-    publishedAt: row.publishedAt,
+    effectiveAt: nullableDate(row.effectiveAt, "effectiveAt"),
+    scheduledAt: nullableDate(row.scheduledAt, "scheduledAt"),
+    publishedAt: nullableDate(row.publishedAt, "publishedAt"),
     createdBy: row.createdBy,
     updatedBy: row.updatedBy,
     publishedBy: row.publishedBy,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    createdAt: requiredDate(row.createdAt, "createdAt"),
+    updatedAt: requiredDate(row.updatedAt, "updatedAt"),
   }
 }
 
@@ -89,8 +99,8 @@ function mapPublished(value: unknown): PublishedDocument {
     title: row.title,
     summary: row.summary,
     bodyMarkdown: row.bodyMarkdown,
-    effectiveAt: row.effectiveAt,
-    publishedAt: row.publishedAt,
+    effectiveAt: nullableDate(row.effectiveAt, "effectiveAt"),
+    publishedAt: requiredDate(row.publishedAt, "publishedAt"),
   }
 }
 
@@ -135,9 +145,9 @@ function mapAdminSummary(value: unknown): AdminDocumentSummary {
     revision: row.revision,
     title: row.title,
     status: row.status,
-    scheduledAt: row.scheduledAt,
-    publishedAt: row.publishedAt,
-    updatedAt: row.updatedAt,
+    scheduledAt: nullableDate(row.scheduledAt, "scheduledAt"),
+    publishedAt: nullableDate(row.publishedAt, "publishedAt"),
+    updatedAt: requiredDate(row.updatedAt, "updatedAt"),
     updatedBy: row.updatedBy,
     publishedBy: row.publishedBy,
   }

@@ -6,10 +6,10 @@
   "style": "Swiss technical system diagram, square geometry, quiet confidence",
   "palette": ["#2563EB", "#1E40AF", "#0F172A", "#F8FAFC"],
   "font": "Pretendard",
-  "beats": [0.2, 0.8, 1.4, 2.2, 3.4, 5.4],
+  "beats": [0.2, 0.68, 1.2, 1.86, 3.22, 4.15],
   "export": "mp4",
   "asset_needs": [{ "role": "hero", "kind": "logo", "source": "assets/laflabs-logo.png", "treatment": "none" }],
   "block": "logo-outro",
-  "customize": { "geometry": "square", "assembly": "three product nodes converge into the exact homepage hero square", "remove": ["symbol", "glow", "rounded URL pill", "exit motion"] },
+  "customize": { "geometry": "square", "assembly": "one signal origin routes through a product-independent 3x3 field and resolves into the exact homepage hero square", "remove": ["product names", "symbol", "glow", "rounded URL pill", "exit motion"] },
   "content": { "logo": "top-left typographic LAF", "tagline": "SOFTWARE", "url": "SEOUL / KR" }
 }

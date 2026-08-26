@@ -133,6 +133,35 @@ describe("MarkdownDocument", () => {
     expect(container.querySelector(".katex-display")).toBeInTheDocument()
   })
 
+  it("typesets aligned equations and matrices without KaTeX errors", () => {
+    const { container } = render(
+      <MarkdownDocument
+        title="복합 수식 문서"
+        source={`인라인 수식: $E = mc^2$ 이고, 오일러 항등식은 $e^{i\\pi} + 1 = 0$ 입니다.
+
+$$
+\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}
+$$
+
+$$
+\\begin{aligned}
+f(x) &= \\sum_{n=0}^{\\infty} \\frac{f^{(n)}(a)}{n!}(x-a)^n \\\\
+     &= f(a) + f'(a)(x-a) + \\frac{f''(a)}{2!}(x-a)^2 + \\cdots
+\\end{aligned}
+$$
+
+$$
+A = \\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}, \\quad \\det(A) = ad - bc
+$$`}
+      />,
+    )
+
+    expect(container.querySelectorAll(".katex")).toHaveLength(5)
+    expect(container.querySelectorAll(".katex-display")).toHaveLength(3)
+    expect(container.querySelector(".katex-error")).not.toBeInTheDocument()
+    expect(container.querySelector(".mord.mtight")).toBeInTheDocument()
+  })
+
   it("highlights fenced code and copies its original source", async () => {
     const user = userEvent.setup()
     const { container } = render(

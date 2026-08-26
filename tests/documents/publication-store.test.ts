@@ -544,6 +544,24 @@ describe("document publication store boundary", () => {
     expect(compiled.params).toContain(3)
   })
 
+  it("normalizes database timestamp strings before the admin page reads them", async () => {
+    execute.mockResolvedValue({
+      rows: [{
+        ...publishedRow,
+        status: "draft",
+        scheduledAt: null,
+        publishedAt: null,
+        updatedAt: now.toISOString(),
+      }],
+    })
+
+    const page = await store.listAdminSummaries({ limit: 50 })
+
+    expect(page.items[0].updatedAt).toEqual(now)
+    expect(page.items[0].updatedAt).toBeInstanceOf(Date)
+    expect(page.nextCursor).toBeNull()
+  })
+
   it("loads only series-scoped invariant state without document bodies or summaries", async () => {
     execute.mockResolvedValue({ rows: [] })
 
