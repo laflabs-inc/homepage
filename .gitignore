@@ -10,6 +10,7 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 /blob-report/
+/_workspace/
 .DS_Store
 npm-debug.log*
 .worktrees/

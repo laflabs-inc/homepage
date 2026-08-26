@@ -68,6 +68,11 @@ type Copy = {
     visit: string
     soon: string
   } & Record<ProductId, ProductCopy>
+  buildLoop: {
+    title: string
+    lede: string
+    steps: readonly { title: string; body: string }[]
+  }
   open: {
     title: readonly [string, string]
     lede: string
@@ -97,7 +102,6 @@ type Copy = {
       design: string
     }
     rights: string
-    location: string
     cookieSettings: string
   }
 }
@@ -125,43 +129,53 @@ const ko: Copy = {
     "laf-id": {
       layer: "Identity",
       tagline: "신원 인프라",
-      description: "OAuth 2.0과 OpenID Connect 위에 올린 인증 플랫폼. 표준을 다시 구현하지 않고 안전한 로그인을 연결합니다.",
+      description: "OAuth 2.0과 OpenID Connect를 따르는 인증 플랫폼입니다. 표준을 다시 만들지 않고 안전한 로그인을 연결합니다.",
       status: "Developer Preview",
       points: ["Authorization Code + PKCE", "OIDC Discovery · JWKS", "Verify API"],
     },
     "laf-pay": {
       layer: "Payments",
       tagline: "결제·빌링 인프라",
-      description: "결제, 구독, 정산을 하나의 일관된 API로 다룹니다. 결제 수단이 늘어나도 연동 코드는 그대로입니다.",
+      description: "결제와 구독, 정산을 하나의 API로 다룹니다. 결제 수단이 늘어나도 연동 코드는 바뀌지 않습니다.",
       status: "개발 중",
       points: ["일관된 결제 API", "구독 · 빌링", "정산 리포트"],
     },
     lafdock: {
       layer: "Cloud",
       tagline: "클라우드 플랫폼",
-      description: "컴퓨트, 호스팅, 네트워킹을 묶은 클라우드 플랫폼. 서버를 다루는 시간을 제품 만드는 시간으로 돌려줍니다.",
+      description: "컴퓨트, 호스팅, 네트워킹을 한데 묶은 클라우드 플랫폼입니다. 서버 관리에 쓰던 시간을 제품 개발에 돌립니다.",
       status: "개발 중",
       points: ["컴퓨트 · 호스팅", "네트워킹", "배포 파이프라인"],
     },
+  },
+  buildLoop: {
+    title: "제품에서 시작해 시스템으로 남깁니다.",
+    lede: "제품에서 찾은 실제 문제를 공통 인프라로 정리해 직접 운영합니다. 다른 팀에도 쓸모가 확인되면 코드를 공개합니다.",
+    steps: [
+      { title: "제품", body: "문제는 실제 제품에서 찾습니다. 쓰임이 분명한 것부터 만듭니다." },
+      { title: "기반 기술", body: "여러 제품에서 반복되는 문제는 공통 기반 기술로 묶습니다." },
+      { title: "운영", body: "직접 운영하며 실패 경로와 경계를 확인합니다." },
+      { title: "오픈소스", body: "다른 팀에도 쓸모가 확인된 코드는 공개하고 계속 다듬습니다." },
+    ],
   },
   open: {
     title: ["필요해서 만들었고,", "쓸 만해져서 열었습니다."],
     lede: "전부 제품을 만들다 막혀서 직접 만든 것들입니다. 우리가 실제로 운영에 쓰고 있고, 그래서 계속 고쳐집니다.",
     all: "GitHub에서 전체 보기",
     descriptions: {
-      lafetch: "브라우저와 서버 모두에서 동작하는 가볍고 타입 우선인 HTTP 클라이언트.",
-      lafwall: "Laf Secrets. 암호화 경계와 기본 차단 권한, 변경 불가능한 버전 기록을 갖춘 API 우선 시크릿 관리 플랫폼.",
-      lafinvest: "금융 정보의 주장, 수치, 출처, 시점 정확성을 검증하는 AI 인프라.",
+      lafetch: "브라우저와 서버에서 모두 동작하는 가벼운 타입 우선 HTTP 클라이언트.",
+      lafwall: "Laf Secrets. 암호화 경계, 기본 차단 방식의 권한 관리, 변경할 수 없는 버전 기록을 갖춘 API 우선 시크릿 관리 플랫폼.",
+      lafinvest: "금융 정보의 주장과 수치, 출처, 시점의 정확성을 검증하는 AI 인프라.",
     },
   },
   principles: {
     title: ["조용히 만들고,", "확실하게 돌아가게."],
     lede: "빠르게 만드는 방법은 많지만 오래 가는 방법은 적습니다. 우리는 매번 후자를 고릅니다.",
     items: [
-      { key: "단순함", body: "문제를 푸는 가장 짧은 길을 고릅니다. 덜 만든 것은 덜 고장납니다." },
-      { key: "신뢰성", body: "아무 일도 일어나지 않는 상태가 가장 좋은 상태입니다. 장애는 눈에 띄기 전에 끝냅니다." },
-      { key: "보안", body: "안전한 쪽을 기본값으로 두고, 예외는 반드시 명시적으로 남깁니다." },
-      { key: "확장성", body: "오늘의 규모에 맞춰 만들되, 내일의 규모를 막는 결정은 하지 않습니다." },
+      { key: "단순함", body: "문제를 푸는 가장 짧은 길을 택합니다. 덜 만들수록 고장 날 곳도 줄어듭니다." },
+      { key: "신뢰성", body: "아무 일도 일어나지 않을 때가 가장 좋습니다. 장애는 눈에 띄기 전에 끝냅니다." },
+      { key: "보안", body: "안전한 쪽을 기본값으로 두고 예외는 반드시 명시합니다." },
+      { key: "확장성", body: "오늘의 규모에 맞춰 만들되 내일의 규모를 막을 결정은 피합니다." },
       { key: "일관성", body: "하나를 배우면 나머지도 짐작할 수 있어야 합니다. 놀라움은 문서가 아니라 버그입니다." },
     ],
   },
@@ -177,7 +191,7 @@ const ko: Copy = {
     github: "GitHub 둘러보기",
   },
   footer: {
-    blurb: "재미있는 것을 만드는 소프트웨어 개발사. 신원, 결제, 클라우드 인프라를 하나의 경험으로 잇습니다.",
+    blurb: "LafLabs는 재미있는 것을 만드는 소프트웨어 개발사입니다. 신원, 결제, 클라우드 인프라를 하나의 경험으로 잇습니다.",
     products: "제품",
     open: "오픈소스",
     company: "회사",
@@ -192,7 +206,6 @@ const ko: Copy = {
       design: "디자인 가이드",
     },
     rights: "All rights reserved.",
-    location: "Seoul, South Korea",
     cookieSettings: "쿠키 설정",
   },
 }
@@ -234,10 +247,20 @@ const en: Copy = {
     lafdock: {
       layer: "Cloud",
       tagline: "Cloud platform",
-      description: "Compute, hosting, and networking in one platform — so the hours you spend on servers go back into the product instead.",
+      description: "Compute, hosting, and networking in one platform, so the hours spent on servers go back into the product.",
       status: "In development",
       points: ["Compute & hosting", "Networking", "Deploy pipelines"],
     },
+  },
+  buildLoop: {
+    title: "Products first. Systems follow.",
+    lede: "We start with real product problems, turn repeated work into shared infrastructure, operate it ourselves, and open what proves useful.",
+    steps: [
+      { title: "Product", body: "Find the problem in a real product. Build the part with a clear use first." },
+      { title: "Shared infrastructure", body: "Move repeated problems into a common technical foundation." },
+      { title: "Operations", body: "Run it ourselves and inspect failure paths and boundaries." },
+      { title: "Open source", body: "Open code that proves useful to other teams, then keep improving it." },
+    ],
   },
   open: {
     title: ["Built because we needed it.", "Opened once it earned its keep."],
@@ -263,11 +286,11 @@ const en: Copy = {
   name: {
     laf: "a good story, a laugh",
     labs: "where things get built",
-    note: "The name is lighthearted; the engineering underneath is not. Building something fun requires a foundation boring enough to be trusted. Good infrastructure goes unnoticed — which is exactly what gives everyone above it room to play.",
+    note: "The name is lighthearted; the engineering underneath is not. Building something fun requires a foundation boring enough to be trusted. Good infrastructure goes unnoticed. That is exactly what gives everyone above it room to play.",
   },
   cta: {
     title: ["We're looking for people", "to build this with."],
-    lede: "Product questions, technical partnerships, or joining the team — all welcome. Just send us a note.",
+    lede: "Product questions, technical partnerships, or joining the team are all welcome. Just send us a note.",
     mail: "Send an email",
     github: "Browse GitHub",
   },
@@ -287,7 +310,6 @@ const en: Copy = {
       design: "Design guide",
     },
     rights: "All rights reserved.",
-    location: "Seoul, South Korea",
     cookieSettings: "Cookie settings",
   },
 }

@@ -6,14 +6,12 @@ import { useLocale } from "@/components/i18n/locale-provider"
 import { useConsent } from "@/components/analytics/consent-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
 import { Logo } from "@/components/ui/logo"
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
 import { contactEmail, copy, githubOrg, products } from "@/lib/content"
 
 export function SiteFooter({ homeHref }: { homeHref?: string } = {}) {
   const locale = useLocale()
   const { openSettings } = useConsent()
   const t = copy[locale].footer
-  const ko = locale === "ko"
 
   return (
     <footer className="site-footer">
@@ -22,10 +20,9 @@ export function SiteFooter({ homeHref }: { homeHref?: string } = {}) {
           <div className="footer-brand"><Logo /><p>{t.blurb}</p></div>
           <div className="footer-nav">
             <div><h4>{t.products}</h4>{products.map((product) => <a href={homeHref ? `${homeHref}#products` : "#products"} key={product.id}>{product.name}</a>)}</div>
-            <div><h4>{t.company}</h4><a href={homeHref ? `${homeHref}#principles` : "#principles"}>{t.links.principles}</a><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc">GitHub</a></div>
+            <div><h4>{t.company}</h4><a href={homeHref ? `${homeHref}#principles` : "#principles"}>{t.links.principles}</a><a href={`mailto:${contactEmail}`} data-analytics-event="contact_click" data-analytics-target="email">{t.links.contact}</a><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc">GitHub</a></div>
             <div><h4>{t.documents}</h4><Link href="/notices">{t.links.notices}</Link><Link href="/legal">{t.links.legal}</Link><Link href="/disclosures">{t.links.disclosures}</Link><Link href="/design">{t.links.design}</Link></div>
           </div>
-          <a className="footer-mail" href={`mailto:${contactEmail}`} data-analytics-event="contact_click" data-analytics-target="email"><span>{ko ? "새로운 이야기를 시작하세요" : "Start a conversation"}</span><strong>{contactEmail}</strong><ArrowUpRight size={22} /></a>
         </div>
 
         <div className="footer-bottom">
@@ -40,7 +37,6 @@ export function SiteFooter({ homeHref }: { homeHref?: string } = {}) {
             >
               {t.cookieSettings}
             </button>
-            {t.location}
             <a href={githubOrg} target="_blank" rel="noreferrer noopener" aria-label="GitHub" data-analytics-event="github_click" data-analytics-target="laflabs-inc"><GithubGlyph size={14} /></a>
           </span>
         </div>
