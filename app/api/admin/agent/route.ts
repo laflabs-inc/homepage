@@ -1,7 +1,12 @@
 import { authorizeAdminApi, type AdminActor, type AdminApiAuthorization } from "@/lib/auth/admin-api"
 import { agentService, AgentServiceError } from "@/lib/agent/service"
-import type { AgentConfiguration, AgentSettingsUpdate } from "@/lib/agent/types"
-import { agentSettingsUpdateSchema } from "@/lib/agent/validation"
+import type {
+  AgentConfiguration,
+  AgentCredentialSetupInput,
+  AgentRuntimeSettingsUpdate,
+  AgentSettingsUpdate,
+} from "@/lib/agent/types"
+import { agentRuntimeSettingsUpdateSchema } from "@/lib/agent/validation"
 import { jsonNoStore, readBoundedJson, withNoStore } from "@/lib/http/json-body"
 import { isSameOriginRequest } from "@/lib/http/same-origin"
 
@@ -10,7 +15,9 @@ export const AGENT_BODY_LIMIT = 16 * 1024
 export type AdminAgentService = {
   getConfiguration(): Promise<AgentConfiguration>
   updateSettings(input: AgentSettingsUpdate, actor: AdminActor): Promise<AgentConfiguration>
+  updateRuntimeSettings(input: AgentRuntimeSettingsUpdate, actor: AdminActor): Promise<AgentConfiguration>
   replaceCredential(apiKey: string, actor: AdminActor): Promise<AgentConfiguration>
+  configureCredential(input: AgentCredentialSetupInput, actor: AdminActor): Promise<AgentConfiguration>
   deleteCredential(actor: AdminActor): Promise<AgentConfiguration>
   testCredential(actor: AdminActor): Promise<AgentConfiguration>
 }
@@ -53,8 +60,10 @@ export function agentErrorResponse(error: unknown): Response {
   }
 
   const status = error.code === "invalid_settings"
+    || error.code === "unsupported_model"
     ? 422
     : error.code === "version_conflict"
+      || error.code === "credential_required"
       || error.code === "credential_unavailable"
       || error.code === "model_unverified"
       ? 409
@@ -86,11 +95,11 @@ export async function handleUpdateAgent(
   if (!authorization.ok) return authorization.response
   const body = await readBoundedJson(request, AGENT_BODY_LIMIT)
   if (!body.ok) return body.response
-  const parsed = agentSettingsUpdateSchema.safeParse(body.value)
+  const parsed = agentRuntimeSettingsUpdateSchema.safeParse(body.value)
   if (!parsed.success) return jsonNoStore({ error: "invalid_settings" }, { status: 422 })
 
   try {
-    const configuration = await dependencies.service.updateSettings(parsed.data, authorization.actor)
+    const configuration = await dependencies.service.updateRuntimeSettings(parsed.data, authorization.actor)
     return jsonNoStore({ configuration })
   } catch (error) {
     return agentErrorResponse(error)
