@@ -110,6 +110,39 @@ function editorValuesEqual(left: EditorValues, right: EditorValues): boolean {
     && left.effectiveAt === right.effectiveAt
 }
 
+function mutationErrorMessage(path: string, payload: unknown): string {
+  if (!payload || typeof payload !== "object") {
+    return "The document could not be updated. Please try again."
+  }
+
+  const error = "error" in payload ? payload.error : null
+  const fields = "fields" in payload && Array.isArray(payload.fields)
+    ? payload.fields.filter((field): field is string => typeof field === "string")
+    : []
+  const isPublish = path.endsWith("/publish")
+
+  if (error === "incomplete_document") {
+    if (fields.includes("summary")) {
+      return isPublish
+        ? "Add a one-line summary of 1–240 characters, save the draft, and publish again."
+        : "Add a one-line summary of 1–240 characters, save the draft, and try again."
+    }
+    if (fields.includes("bodyMarkdown")) {
+      return isPublish
+        ? "Add meaningful alt text to every Markdown image, save the draft, and publish again."
+        : "Add meaningful alt text to every Markdown image, save the draft, and try again."
+    }
+    return "Complete the required publication fields, save the draft, and try again."
+  }
+  if (error === "provider_unavailable") {
+    return "AI summary is unavailable. Enter a one-line summary manually, save the draft, and publish again."
+  }
+  if (error === "monthly_limit") {
+    return "The AI monthly limit has been reached. Enter a one-line summary manually, save the draft, and publish again."
+  }
+  return "The document could not be updated. Please try again."
+}
+
 export function DocumentEditor({ revision: initialRevision, seriesId, templateRevision }: DocumentEditorProps) {
   const router = useRouter()
   const [revision, setRevision] = useState(initialRevision)
@@ -153,9 +186,12 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       })
-      if (!response.ok) throw new Error("request failed")
-      const payload = await response.json() as { revision?: DocumentRevision }
-      if (!payload.revision) throw new Error("invalid response")
+      const payload = await response.json().catch(() => null) as { revision?: DocumentRevision } | null
+      if (!response.ok) {
+        setError(mutationErrorMessage(path, payload))
+        return null
+      }
+      if (!payload?.revision) throw new Error("invalid response")
       const newerEdits = submittedValues !== undefined && !editorValuesEqual(valuesRef.current, submittedValues)
       setRevision(payload.revision)
       if (!newerEdits) {
@@ -415,8 +451,16 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
           </label>
           <div>
             <label>Summary
-              <textarea rows={3} value={values.summary} onChange={(event) => update("summary", event.target.value)} />
+              <input
+                aria-describedby="summary-requirements"
+                maxLength={240}
+                value={values.summary}
+                onChange={(event) => update("summary", event.target.value)}
+              />
             </label>
+            <p id="summary-requirements" className={styles.editorGuidance}>
+              Required for publication · one line · 1–240 characters
+            </p>
             {revision ? (
               <button
                 aria-busy={summaryPending}

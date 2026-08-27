@@ -14,6 +14,7 @@ import { documentStore } from "@/lib/documents/store"
 export type DocumentServiceErrorCode =
   | "not_found"
   | "conflict"
+  | "incomplete_document"
   | "immutable_revision"
   | "korean_required"
   | "korean_not_published"
@@ -21,13 +22,16 @@ export type DocumentServiceErrorCode =
   | "unavailable"
 
 export class DocumentServiceError extends Error {
+  public readonly fields: string[]
+
   constructor(
     public readonly code: DocumentServiceErrorCode,
     message: string,
-    options?: ErrorOptions,
+    options?: ErrorOptions & { fields?: string[] },
   ) {
     super(message, options)
     this.name = "DocumentServiceError"
+    this.fields = options?.fields ?? []
   }
 }
 
@@ -66,7 +70,14 @@ function requireValidDraft(input: DocumentDraftInput): DocumentDraftInput {
 function requirePublishable(revision: DocumentRevision): PublicationTransitionSnapshot {
   const result = publishDocumentSchema.safeParse(publicInput(revision))
   if (!result.success) {
-    throw new DocumentServiceError("conflict", "Document is incomplete and cannot be published")
+    const fields = [...new Set(result.error.issues.flatMap((issue) => (
+      typeof issue.path[0] === "string" ? [issue.path[0]] : []
+    )))]
+    throw new DocumentServiceError(
+      "incomplete_document",
+      "Document is incomplete and cannot be published",
+      { fields },
+    )
   }
   return {
     kind: revision.kind,
