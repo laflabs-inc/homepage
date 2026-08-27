@@ -60,10 +60,17 @@ export function serviceErrorResponse(error: unknown): Response {
   if (error instanceof DocumentServiceError) {
     const status = error.code === "not_found"
       ? 404
+      : error.code === "incomplete_document"
+        ? 422
       : error.code === "unavailable"
         ? 503
         : 409
-    return jsonNoStore({ error: error.code }, { status })
+    return jsonNoStore(
+      error.code === "incomplete_document"
+        ? { error: error.code, fields: error.fields }
+        : { error: error.code },
+      { status },
+    )
   }
   return jsonNoStore({ error: "unavailable" }, { status: 503 })
 }

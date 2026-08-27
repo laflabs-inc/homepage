@@ -623,4 +623,48 @@ describe("document admin", () => {
     expect(alert).toHaveTextContent("The document could not be updated. Please try again.")
     expect(alert).not.toHaveTextContent("secret document contents")
   })
+
+  it("explains how to resolve an incomplete summary before publishing", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({
+        error: "incomplete_document",
+        fields: ["summary"],
+        internal: "secret document contents",
+      }),
+      { status: 422, headers: { "content-type": "application/json" } },
+    )))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Publish now" }))
+
+    const alert = await screen.findByRole("alert")
+    expect(alert).toHaveTextContent("Add a one-line summary of 1–240 characters, save the draft, and publish again.")
+    expect(alert).not.toHaveTextContent("secret document contents")
+  })
+
+  it.each([
+    ["provider_unavailable", "AI summary is unavailable."],
+    ["monthly_limit", "The AI monthly limit has been reached."],
+  ])("offers a manual summary fallback for the %s publish failure", async (error, reason) => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ error }),
+      { status: 503, headers: { "content-type": "application/json" } },
+    )))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Publish now" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      `${reason} Enter a one-line summary manually, save the draft, and publish again.`,
+    )
+  })
+
+  it("labels the summary publication requirements and enforces its visible limit", () => {
+    render(<DocumentEditor revision={revision} />)
+
+    expect(screen.getByRole("textbox", { name: "Summary" })).toHaveAttribute("maxlength", "240")
+    expect(screen.getByText("Required for publication · one line · 1–240 characters")).toBeInTheDocument()
+  })
 })

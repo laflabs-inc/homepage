@@ -550,6 +550,29 @@ describe("admin document revision actions", () => {
     expect(deps.revalidate).not.toHaveBeenCalled()
   })
 
+  it("returns safe publishability fields when draft content is incomplete", async () => {
+    const deps = dependencies()
+    const error = new DocumentServiceError(
+      "incomplete_document",
+      "Document is incomplete and cannot be published",
+      { fields: ["summary"] },
+    )
+    deps.publishWithSummaryPolicy.mockRejectedValue(error)
+
+    const response = await handlePublishDocument(
+      jsonRequest(`/api/admin/documents/${revisionId}/publish`, {}),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(422)
+    await expect(response.json()).resolves.toEqual({
+      error: "incomplete_document",
+      fields: ["summary"],
+    })
+    expect(deps.revalidate).not.toHaveBeenCalled()
+  })
+
   it("archives and invalidates only after the committed public change", async () => {
     const deps = dependencies()
     const response = await handleArchiveDocument(

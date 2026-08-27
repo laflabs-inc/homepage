@@ -666,6 +666,23 @@ describe("document workflow service", () => {
   })
 
   it.each([
+    ["summary", { summary: "" }],
+    ["bodyMarkdown", { bodyMarkdown: "![](https://example.com/status.png)" }],
+  ] as const)("identifies the %s field when a valid draft is not publishable", async (field, values) => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      ...values,
+    })
+
+    await expect(service.publish(draft.id, actor, now)).rejects.toMatchObject({
+      code: "incomplete_document",
+      fields: [field],
+    })
+  })
+
+  it.each([
     ["title", "동시에 바뀐 제목"],
     ["summary", "동시에 바뀐 요약"],
     ["bodyMarkdown", "동시에 바뀐 본문"],
