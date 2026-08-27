@@ -4,11 +4,13 @@ import { PgDialect } from "drizzle-orm/pg-core"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { decryptCredential } from "@/lib/agent/crypto"
+import type { SupportedAgentModelId } from "@/lib/agent/model-catalog"
 import { CredentialVerificationError } from "@/lib/agent/provider"
 import { AgentServiceError, createAgentService } from "@/lib/agent/service"
 import { createAgentStore } from "@/lib/agent/store"
 import type {
   AgentRepository,
+  AgentRuntimeSettingsUpdate,
   AgentSettings,
   AgentSettingsUpdate,
   CredentialReplacement,
@@ -16,6 +18,17 @@ import type {
   StoredCredential,
   VerificationStatus,
 } from "@/lib/agent/types"
+
+type VerifiedSetupInput = {
+  version: number
+  model: SupportedAgentModelId
+  inputPriceMicrousdPerMillion: number
+  outputPriceMicrousdPerMillion: number
+  pricingCheckedAt: Date
+  credential: CredentialReplacement
+  expectedCredential: Pick<StoredCredential, "fingerprint" | "generation"> | null
+  replacingKey: boolean
+}
 
 const actor: AdminActor = { githubId: "github:42", name: "Laf Admin" }
 const encryptionKey = Buffer.alloc(32, 9)
@@ -64,12 +77,32 @@ function update(current: AgentSettings, overrides: Partial<AgentSettingsUpdate> 
   }
 }
 
+function runtimeUpdate(
+  current: AgentSettings,
+  overrides: Partial<AgentRuntimeSettingsUpdate> = {},
+): AgentRuntimeSettingsUpdate {
+  return {
+    enabled: current.enabled,
+    dailyTokenLimit: current.dailyTokenLimit,
+    dailyQuestionLimit: current.dailyQuestionLimit,
+    maxOutputTokens: current.maxOutputTokens,
+    monthlyCostLimitMicrousd: current.monthlyCostLimitMicrousd,
+    resetTimezone: current.resetTimezone,
+    dailyResetMinute: current.dailyResetMinute,
+    cookieRetentionDays: current.cookieRetentionDays,
+    summaryPolicy: current.summaryPolicy,
+    version: current.version,
+    ...overrides,
+  }
+}
+
 class MemoryAgentRepository implements AgentRepository {
   settings = settings()
   credential: StoredCredential | null = null
   events: string[] = []
   audits: Array<{ action: string; metadata: Record<string, unknown> }> = []
   beforeUpdate?: () => void
+  beforeSetup?: () => void
   private generationCounter = 0
 
   private touch() {
@@ -141,6 +174,43 @@ class MemoryAgentRepository implements AgentRepository {
     return this.credential
   }
 
+  async applyVerifiedSetup(input: VerifiedSetupInput, admin: AdminActor) {
+    this.beforeSetup?.()
+    if (input.version !== this.settings.version) return { status: "version_conflict" as const }
+    if (input.expectedCredential === null) {
+      if (this.credential !== null) return { status: "version_conflict" as const }
+    } else if (
+      this.credential?.fingerprint !== input.expectedCredential.fingerprint
+      || this.credential.generation !== input.expectedCredential.generation
+    ) {
+      return { status: "version_conflict" as const }
+    }
+
+    const modelChanged = input.model !== this.settings.model
+    this.settings = {
+      ...this.settings,
+      enabled: modelChanged ? false : this.settings.enabled,
+      model: input.model,
+      inputPriceMicrousdPerMillion: input.inputPriceMicrousdPerMillion,
+      outputPriceMicrousdPerMillion: input.outputPriceMicrousdPerMillion,
+      pricingCheckedAt: input.pricingCheckedAt,
+      version: this.settings.version + 1,
+      updatedBy: admin.githubId,
+      updatedAt: now,
+    }
+    const prior = this.credential
+    const updatedAt = this.touch()
+    this.credential = {
+      ...input.credential,
+      createdBy: input.replacingKey || !prior ? admin.githubId : prior.createdBy,
+      createdAt: input.replacingKey || !prior ? now : prior.createdAt,
+      updatedAt,
+      generation: this.generation(),
+    }
+    this.events.push("setup:apply")
+    return { status: "updated" as const, settings: this.settings, credential: this.credential }
+  }
+
   async recordCredentialTest(
     model: string,
     result: VerificationStatus,
@@ -207,6 +277,134 @@ function service(
 }
 
 describe("Agent service", () => {
+  it("verifies and saves the selected catalog model with server-owned prices", async () => {
+    const repository = new MemoryAgentRepository()
+    repository.settings = settings({
+      model: null,
+      inputPriceMicrousdPerMillion: null,
+      outputPriceMicrousdPerMillion: null,
+      pricingCheckedAt: null,
+    })
+    const verify = vi.fn(async () => { repository.events.push("setup:verify") })
+
+    const result = await service(repository, verify).configureCredential({
+      apiKey: "sk-candidate",
+      model: "gpt-5.6-luna",
+      version: repository.settings.version,
+    }, actor)
+
+    expect(verify).toHaveBeenCalledWith("sk-candidate", "gpt-5.6-luna")
+    expect(repository.events).toEqual(["setup:verify", "setup:apply"])
+    expect(result.settings).toMatchObject({
+      model: "gpt-5.6-luna",
+      inputPriceMicrousdPerMillion: 200_000,
+      outputPriceMicrousdPerMillion: 1_200_000,
+      pricingCheckedAt: new Date("2026-08-27T00:00:00.000Z"),
+    })
+    expect(decryptCredential(repository.credential!, encryptionKey)).toBe("sk-candidate")
+  })
+
+  it("applies a new catalog model with the stored encrypted credential", async () => {
+    const repository = new MemoryAgentRepository()
+    repository.settings = settings({
+      model: null,
+      inputPriceMicrousdPerMillion: null,
+      outputPriceMicrousdPerMillion: null,
+      pricingCheckedAt: null,
+    })
+    const agent = service(repository)
+    await agent.configureCredential({
+      apiKey: "sk-stored",
+      model: "gpt-5.6-luna",
+      version: repository.settings.version,
+    }, actor)
+    repository.settings = { ...repository.settings, enabled: true }
+    const ciphertext = repository.credential!.ciphertext
+    const verify = vi.fn(async () => {})
+
+    const result = await service(repository, verify).configureCredential({
+      model: "gpt-5.6-terra",
+      version: repository.settings.version,
+    }, actor)
+
+    expect(verify).toHaveBeenCalledWith("sk-stored", "gpt-5.6-terra")
+    expect(result.settings).toMatchObject({
+      enabled: false,
+      model: "gpt-5.6-terra",
+      inputPriceMicrousdPerMillion: 2_000_000,
+      outputPriceMicrousdPerMillion: 12_000_000,
+    })
+    expect(repository.credential).toMatchObject({
+      ciphertext,
+      verifiedModel: "gpt-5.6-terra",
+      verificationStatus: "verified",
+    })
+  })
+
+  it("requires a submitted key for first-time setup", async () => {
+    const repository = new MemoryAgentRepository()
+    repository.settings = settings({ model: null })
+
+    await expect(service(repository).configureCredential({
+      model: "gpt-5.6-luna",
+      version: repository.settings.version,
+    }, actor)).rejects.toMatchObject({ code: "credential_required" })
+  })
+
+  it("rejects unsupported models before provider verification", async () => {
+    const repository = new MemoryAgentRepository()
+    const verify = vi.fn(async () => {})
+
+    await expect(service(repository, verify).configureCredential({
+      apiKey: "sk-candidate",
+      model: "custom-model",
+      version: repository.settings.version,
+    } as never, actor)).rejects.toMatchObject({ code: "unsupported_model" })
+    expect(verify).not.toHaveBeenCalled()
+  })
+
+  it("does not overwrite a credential that changes during model verification", async () => {
+    const repository = new MemoryAgentRepository()
+    repository.settings = settings({ model: null })
+    const agent = service(repository)
+    await agent.configureCredential({
+      apiKey: "sk-stored",
+      model: "gpt-5.6-luna",
+      version: repository.settings.version,
+    }, actor)
+    const prior = repository.credential
+    repository.beforeSetup = () => {
+      repository.credential = { ...repository.credential!, generation: "concurrent-generation" }
+    }
+
+    await expect(agent.configureCredential({
+      model: "gpt-5.6-terra",
+      version: repository.settings.version,
+    }, actor)).rejects.toMatchObject({ code: "version_conflict" })
+    expect(repository.credential).toEqual({ ...prior, generation: "concurrent-generation" })
+    expect(repository.settings.model).toBe("gpt-5.6-luna")
+  })
+
+  it("updates runtime limits without accepting model or catalog price changes", async () => {
+    const repository = new MemoryAgentRepository()
+    repository.settings = settings({
+      model: "gpt-5.6-luna",
+      inputPriceMicrousdPerMillion: 200_000,
+      outputPriceMicrousdPerMillion: 1_200_000,
+    })
+
+    const result = await service(repository).updateRuntimeSettings(runtimeUpdate(repository.settings, {
+      dailyQuestionLimit: 25,
+    }), actor)
+
+    expect(result.settings).toMatchObject({
+      model: "gpt-5.6-luna",
+      inputPriceMicrousdPerMillion: 200_000,
+      outputPriceMicrousdPerMillion: 1_200_000,
+      dailyQuestionLimit: 25,
+    })
+  })
+
   it("verifies a candidate before replacing the stored credential", async () => {
     const repository = new MemoryAgentRepository()
     const verify = vi.fn(async () => { repository.events.push("credential:verify") })
@@ -484,6 +682,118 @@ describe("Agent service", () => {
 })
 
 describe("Agent store", () => {
+  it("updates the verified model, catalog prices, and credential in one transaction", async () => {
+    const current = settings({
+      enabled: true,
+      model: "gpt-5.6-luna",
+      version: 4,
+    })
+    const execute = vi.fn(async (query: SQL) => {
+      void query
+      return { rows: [{
+        updateStatus: "updated",
+        ...current,
+        enabled: false,
+        model: "gpt-5.6-terra",
+        inputPriceMicrousdPerMillion: 2_000_000,
+        outputPriceMicrousdPerMillion: 12_000_000,
+        pricingCheckedAt: now,
+        version: 5,
+        credentialProvider: "openai",
+        credentialCiphertext: "encrypted",
+        credentialIv: "iv",
+        credentialAuthTag: "tag",
+        credentialFingerprint: "123456789abc",
+        credentialVerifiedModel: "gpt-5.6-terra",
+        credentialVerificationStatus: "verified",
+        credentialVerifiedAt: now,
+        credentialCreatedBy: actor.githubId,
+        credentialCreatedAt: now,
+        credentialUpdatedAt: now,
+        credentialGeneration: "1787562000654321",
+      }] }
+    })
+    const store = createAgentStore({ execute })
+
+    await expect(store.applyVerifiedSetup({
+      version: 4,
+      model: "gpt-5.6-terra",
+      inputPriceMicrousdPerMillion: 2_000_000,
+      outputPriceMicrousdPerMillion: 12_000_000,
+      pricingCheckedAt: now,
+      credential: {
+        provider: "openai",
+        ciphertext: "encrypted",
+        iv: "iv",
+        authTag: "tag",
+        fingerprint: "123456789abc",
+        verifiedModel: "gpt-5.6-terra",
+        verificationStatus: "verified",
+        verifiedAt: now,
+      },
+      expectedCredential: {
+        fingerprint: "prior-fingerprint",
+        generation: "1787562000123456",
+      },
+      replacingKey: false,
+    }, actor)).resolves.toMatchObject({
+      status: "updated",
+      settings: {
+        enabled: false,
+        model: "gpt-5.6-terra",
+        inputPriceMicrousdPerMillion: 2_000_000,
+        outputPriceMicrousdPerMillion: 12_000_000,
+      },
+      credential: {
+        fingerprint: "123456789abc",
+        verifiedModel: "gpt-5.6-terra",
+        generation: "1787562000654321",
+      },
+    })
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0]![0])
+    expect(compiled.sql).toMatch(/locked_settings[^]*FOR UPDATE[^]*locked_credential[^]*FOR UPDATE/)
+    expect(compiled.sql).toMatch(/locked_settings\."version"[^]*locked_credential\."fingerprint"[^]*extract\(epoch FROM locked_credential\."updated_at"\)/)
+    expect(compiled.sql).toMatch(/UPDATE "agent_settings"[^]*input_price_microusd_per_million[^]*output_price_microusd_per_million[^]*pricing_checked_at/)
+    expect(compiled.sql).toMatch(/INSERT INTO "ai_provider_credentials"[^]*ON CONFLICT/)
+    expect(compiled.params).toEqual(expect.arrayContaining([
+      4,
+      "gpt-5.6-terra",
+      2_000_000,
+      12_000_000,
+      "prior-fingerprint",
+      "1787562000123456",
+    ]))
+  })
+
+  it("returns a setup version conflict without mapping missing rows", async () => {
+    const execute = vi.fn(async (query: SQL) => {
+      void query
+      return { rows: [{ updateStatus: "version_conflict" }] }
+    })
+    const store = createAgentStore({ execute })
+
+    await expect(store.applyVerifiedSetup({
+      version: 99,
+      model: "gpt-5.6-luna",
+      inputPriceMicrousdPerMillion: 200_000,
+      outputPriceMicrousdPerMillion: 1_200_000,
+      pricingCheckedAt: now,
+      credential: {
+        provider: "openai",
+        ciphertext: "encrypted",
+        iv: "iv",
+        authTag: "tag",
+        fingerprint: "123456789abc",
+        verifiedModel: "gpt-5.6-luna",
+        verificationStatus: "verified",
+        verifiedAt: now,
+      },
+      expectedCredential: null,
+      replacingKey: true,
+    }, actor)).resolves.toEqual({ status: "version_conflict" })
+  })
+
   it("keeps optimistic version matching in the settings update", async () => {
     const execute = vi.fn(async (query: SQL) => {
       void query

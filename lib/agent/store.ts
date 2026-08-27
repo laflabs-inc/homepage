@@ -36,6 +36,16 @@ const credentialSelect = sql.raw(`
   (extract(epoch FROM c."updated_at") * 1000000)::bigint::text AS "generation"
 `)
 
+const setupCredentialSelect = sql.raw(`
+  c."provider" AS "credentialProvider", c."ciphertext" AS "credentialCiphertext",
+  c."iv" AS "credentialIv", c."auth_tag" AS "credentialAuthTag",
+  c."fingerprint" AS "credentialFingerprint", c."verified_model" AS "credentialVerifiedModel",
+  c."verification_status" AS "credentialVerificationStatus",
+  c."verified_at" AS "credentialVerifiedAt", c."created_by" AS "credentialCreatedBy",
+  c."created_at" AS "credentialCreatedAt", c."updated_at" AS "credentialUpdatedAt",
+  (extract(epoch FROM c."updated_at") * 1000000)::bigint::text AS "credentialGeneration"
+`)
+
 function mapSettings(value: unknown): AgentSettings {
   const row = value as AgentSettings
   return {
@@ -80,6 +90,24 @@ function mapCredential(value: unknown): StoredCredential {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }
+}
+
+function mapSetupCredential(value: unknown): StoredCredential {
+  const row = value as Record<string, unknown>
+  return mapCredential({
+    provider: row.credentialProvider,
+    ciphertext: row.credentialCiphertext,
+    iv: row.credentialIv,
+    authTag: row.credentialAuthTag,
+    fingerprint: row.credentialFingerprint,
+    verifiedModel: row.credentialVerifiedModel,
+    verificationStatus: row.credentialVerificationStatus,
+    verifiedAt: row.credentialVerifiedAt,
+    createdBy: row.credentialCreatedBy,
+    createdAt: row.credentialCreatedAt,
+    updatedAt: row.credentialUpdatedAt,
+    generation: row.credentialGeneration,
+  })
 }
 
 export function createAgentStore(database: SqlExecutor): AgentRepository {
@@ -236,6 +264,107 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
       `)
       if (!result.rows[0]) throw new Error("Credential could not be stored")
       return mapCredential(result.rows[0])
+    },
+
+    async applyVerifiedSetup(input, actor) {
+      const expectedFingerprint = input.expectedCredential?.fingerprint ?? null
+      const expectedGeneration = input.expectedCredential?.generation ?? null
+      const action = input.expectedCredential === null
+        ? "agent.credential.register"
+        : input.replacingKey
+          ? "agent.credential.replace"
+          : "agent.model.apply"
+      const result = await database.execute(sql`
+        WITH locked_settings AS (
+          SELECT * FROM ${agentSettings}
+          WHERE "id" = 'default'
+          FOR UPDATE
+        ), locked_credential AS (
+          SELECT * FROM ${aiProviderCredentials}
+          WHERE "provider" = 'openai'
+            AND (SELECT count(*) FROM locked_settings) >= 0
+          FOR UPDATE
+        ), update_decision AS (
+          SELECT CASE
+            WHEN locked_settings."version" <> ${input.version} THEN 'version_conflict'
+            WHEN ${expectedFingerprint}::text IS NULL
+              AND locked_credential."provider" IS NOT NULL THEN 'version_conflict'
+            WHEN ${expectedFingerprint}::text IS NOT NULL AND (
+              locked_credential."provider" IS NULL
+              OR locked_credential."fingerprint" IS DISTINCT FROM ${expectedFingerprint}
+              OR (extract(epoch FROM locked_credential."updated_at") * 1000000)::bigint::text
+                IS DISTINCT FROM ${expectedGeneration}
+            ) THEN 'version_conflict'
+            ELSE 'updated'
+          END AS "updateStatus"
+          FROM locked_settings
+          LEFT JOIN locked_credential ON true
+        ), stored_credential AS (
+          INSERT INTO ${aiProviderCredentials} (
+            "provider", "ciphertext", "iv", "auth_tag", "fingerprint", "verified_model",
+            "verification_status", "verified_at", "created_by", "created_at", "updated_at"
+          )
+          SELECT ${input.credential.provider}, ${input.credential.ciphertext}, ${input.credential.iv},
+            ${input.credential.authTag}, ${input.credential.fingerprint}, ${input.credential.verifiedModel},
+            ${input.credential.verificationStatus}, ${input.credential.verifiedAt},
+            ${actor.githubId}, statement_timestamp(), statement_timestamp()
+          FROM update_decision
+          WHERE update_decision."updateStatus" = 'updated'
+          ON CONFLICT ("provider") DO UPDATE SET
+            "ciphertext" = EXCLUDED."ciphertext", "iv" = EXCLUDED."iv",
+            "auth_tag" = EXCLUDED."auth_tag", "fingerprint" = EXCLUDED."fingerprint",
+            "verified_model" = EXCLUDED."verified_model",
+            "verification_status" = EXCLUDED."verification_status",
+            "verified_at" = EXCLUDED."verified_at",
+            "created_by" = CASE WHEN ${input.replacingKey}
+              THEN EXCLUDED."created_by" ELSE ${aiProviderCredentials}."created_by" END,
+            "created_at" = CASE WHEN ${input.replacingKey}
+              THEN statement_timestamp() ELSE ${aiProviderCredentials}."created_at" END,
+            "updated_at" = statement_timestamp()
+          RETURNING *
+        ), updated_settings AS (
+          UPDATE ${agentSettings} s
+          SET "enabled" = CASE
+                WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN false
+                ELSE locked_settings."enabled" END,
+            "model" = ${input.model},
+            "input_price_microusd_per_million" = ${input.inputPriceMicrousdPerMillion},
+            "output_price_microusd_per_million" = ${input.outputPriceMicrousdPerMillion},
+            "pricing_checked_at" = ${input.pricingCheckedAt},
+            "version" = locked_settings."version" + 1,
+            "updated_by" = ${actor.githubId}, "updated_at" = statement_timestamp()
+          FROM locked_settings, update_decision
+          WHERE s."id" = locked_settings."id"
+            AND update_decision."updateStatus" = 'updated'
+            AND (SELECT count(*) FROM stored_credential) = 1
+          RETURNING s.*
+        ), audit_entry AS (
+          INSERT INTO ${adminAuditLog} (
+            "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
+          )
+          SELECT ${action}, 'ai_provider_credential', stored_credential."provider",
+            ${actor.githubId}, ${actor.name}, jsonb_build_object(
+              'provider', stored_credential."provider", 'fingerprint', stored_credential."fingerprint",
+              'model', stored_credential."verified_model", 'result', stored_credential."verification_status"
+            )
+          FROM stored_credential
+          INNER JOIN updated_settings ON updated_settings."id" = 'default'
+          RETURNING "id"
+        )
+        SELECT update_decision."updateStatus", ${settingsSelect}, ${setupCredentialSelect}
+        FROM update_decision
+        LEFT JOIN updated_settings s ON true
+        LEFT JOIN stored_credential c ON true
+        WHERE (SELECT count(*) FROM audit_entry) >= 0
+      `)
+      const row = result.rows[0] as { updateStatus?: unknown } | undefined
+      if (!row || row.updateStatus === "version_conflict") return { status: "version_conflict" }
+      if (row.updateStatus !== "updated") throw new Error("Agent setup returned an invalid status")
+      return {
+        status: "updated",
+        settings: mapSettings(row),
+        credential: mapSetupCredential(row),
+      }
     },
 
     async recordCredentialTest(model, verificationStatus, expected, actor, verifiedAt) {

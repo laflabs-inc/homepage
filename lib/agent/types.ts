@@ -102,6 +102,21 @@ export type CredentialReplacement = Pick<
   verifiedAt: Date
 }
 
+export type VerifiedAgentSetup = {
+  version: number
+  model: SupportedAgentModelId
+  inputPriceMicrousdPerMillion: number
+  outputPriceMicrousdPerMillion: number
+  pricingCheckedAt: Date
+  credential: CredentialReplacement
+  expectedCredential: CredentialTestGeneration | null
+  replacingKey: boolean
+}
+
+export type VerifiedAgentSetupResult =
+  | { status: "updated"; settings: AgentSettings; credential: StoredCredential }
+  | { status: "version_conflict" }
+
 export type AgentSettingsUpdateResult =
   | { status: "updated"; settings: AgentSettings }
   | { status: "version_conflict" }
@@ -126,6 +141,7 @@ export interface AgentRepository {
     changedSettings: string[],
   ): Promise<AgentSettingsUpdateResult>
   replaceCredential(input: CredentialReplacement, actor: AdminActor, replacing: boolean): Promise<StoredCredential>
+  applyVerifiedSetup(input: VerifiedAgentSetup, actor: AdminActor): Promise<VerifiedAgentSetupResult>
   recordCredentialTest(
     model: string,
     result: VerificationStatus,
