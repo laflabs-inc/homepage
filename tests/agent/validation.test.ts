@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  agentCredentialSetupSchema,
+  agentRuntimeSettingsUpdateSchema,
   agentSettingsUpdateSchema,
   usdToMicrousdSchema,
 } from "@/lib/agent/validation"
@@ -22,6 +24,45 @@ const validSettings = {
 }
 
 describe("Agent settings validation", () => {
+  it("accepts only catalog models in the credential setup boundary", () => {
+    expect(agentCredentialSetupSchema.parse({
+      apiKey: "sk-project",
+      model: "gpt-5.6-luna",
+      version: 3,
+    })).toEqual({
+      apiKey: "sk-project",
+      model: "gpt-5.6-luna",
+      version: 3,
+    })
+    expect(agentCredentialSetupSchema.safeParse({
+      model: "gpt-5.6-terra",
+      version: 3,
+    }).success).toBe(true)
+    expect(agentCredentialSetupSchema.safeParse({
+      model: "custom-model",
+      version: 3,
+    }).success).toBe(false)
+    expect(agentCredentialSetupSchema.safeParse({
+      apiKey: "not-a-provider-key",
+      model: "gpt-5.6-luna",
+      version: 3,
+    }).success).toBe(false)
+  })
+
+  it("keeps model and catalog prices out of runtime settings updates", () => {
+    const { model: _model, inputPriceUsdPerMillion: _input, outputPriceUsdPerMillion: _output, ...runtime } = validSettings
+
+    expect(agentRuntimeSettingsUpdateSchema.safeParse(runtime).success).toBe(true)
+    expect(agentRuntimeSettingsUpdateSchema.safeParse({
+      ...runtime,
+      model: "gpt-5.6-luna",
+    }).success).toBe(false)
+    expect(agentRuntimeSettingsUpdateSchema.safeParse({
+      ...runtime,
+      inputPriceUsdPerMillion: "0.20",
+    }).success).toBe(false)
+  })
+
   it.each([
     ["dailyTokenLimit", 1_000, 1_000_000],
     ["dailyQuestionLimit", 1, 1_000],

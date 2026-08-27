@@ -1,5 +1,6 @@
 import type { AdminActor } from "@/lib/auth/admin-api"
 import type { CredentialEnvelope } from "@/lib/agent/crypto"
+import type { SupportedAgentModelId } from "@/lib/agent/model-catalog"
 import type { LanguageModel } from "ai"
 
 export type SummaryPolicy = "review" | "automatic"
@@ -72,6 +73,25 @@ export type AgentSettingsUpdate = Pick<
   | "cookieRetentionDays"
   | "summaryPolicy"
 > & { version: number }
+
+export type AgentRuntimeSettingsUpdate = Pick<
+  AgentSettings,
+  | "enabled"
+  | "dailyTokenLimit"
+  | "dailyQuestionLimit"
+  | "maxOutputTokens"
+  | "monthlyCostLimitMicrousd"
+  | "resetTimezone"
+  | "dailyResetMinute"
+  | "cookieRetentionDays"
+  | "summaryPolicy"
+> & { version: number }
+
+export type AgentCredentialSetupInput = {
+  apiKey?: string
+  model: SupportedAgentModelId
+  version: number
+}
 
 export type CredentialReplacement = Pick<
   StoredCredential,
