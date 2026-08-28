@@ -345,6 +345,11 @@ describe("Agent admin API", () => {
     ["credential_unavailable", 409],
     ["model_unverified", 409],
     ["credential_invalid", 502],
+    ["model_access_denied", 502],
+    ["model_not_found", 502],
+    ["verification_request_invalid", 502],
+    ["quota_exhausted", 429],
+    ["rate_limited", 429],
     ["provider_unavailable", 502],
     ["encryption_unavailable", 503],
   ] as const)("maps %s to a safe %i response", async (code, status) => {

@@ -25,21 +25,51 @@ type ProviderDependencies = {
   generate: (request: VerificationRequest) => Promise<unknown>
 }
 
-export type CredentialVerificationErrorCode = "credential_invalid" | "provider_unavailable"
+export type CredentialVerificationErrorCode =
+  | "credential_invalid"
+  | "model_access_denied"
+  | "model_not_found"
+  | "verification_request_invalid"
+  | "quota_exhausted"
+  | "rate_limited"
+  | "provider_unavailable"
 
 export class CredentialVerificationError extends Error {
   constructor(public readonly code: CredentialVerificationErrorCode) {
-    super(code === "credential_invalid" ? "Credential or model was rejected" : "Provider is unavailable")
+    super(code)
     this.name = "CredentialVerificationError"
   }
 }
 
-function verificationError(error: unknown): CredentialVerificationError {
-  if (NoSuchModelError.isInstance(error) || InvalidPromptError.isInstance(error)) {
-    return new CredentialVerificationError("credential_invalid")
+function providerErrorCode(error: APICallError): string | null {
+  if (!error.responseBody) return null
+  try {
+    const body = JSON.parse(error.responseBody) as { error?: { code?: unknown } }
+    return typeof body.error?.code === "string" ? body.error.code : null
+  } catch {
+    return null
   }
-  if (APICallError.isInstance(error) && [400, 401, 403, 404, 422].includes(error.statusCode ?? 0)) {
-    return new CredentialVerificationError("credential_invalid")
+}
+
+function verificationError(error: unknown): CredentialVerificationError {
+  if (NoSuchModelError.isInstance(error)) {
+    return new CredentialVerificationError("model_not_found")
+  }
+  if (InvalidPromptError.isInstance(error)) {
+    return new CredentialVerificationError("verification_request_invalid")
+  }
+  if (APICallError.isInstance(error)) {
+    if (error.statusCode === 401) return new CredentialVerificationError("credential_invalid")
+    if (error.statusCode === 403) return new CredentialVerificationError("model_access_denied")
+    if (error.statusCode === 404) return new CredentialVerificationError("model_not_found")
+    if (error.statusCode === 400 || error.statusCode === 422) {
+      return new CredentialVerificationError("verification_request_invalid")
+    }
+    if (error.statusCode === 429) {
+      return new CredentialVerificationError(
+        providerErrorCode(error) === "insufficient_quota" ? "quota_exhausted" : "rate_limited",
+      )
+    }
   }
   return new CredentialVerificationError("provider_unavailable")
 }

@@ -628,6 +628,11 @@ describe("Agent service", () => {
 
   it.each([
     ["credential_invalid", "credential_invalid"],
+    ["model_access_denied", "model_access_denied"],
+    ["model_not_found", "model_not_found"],
+    ["verification_request_invalid", "verification_request_invalid"],
+    ["quota_exhausted", "quota_exhausted"],
+    ["rate_limited", "rate_limited"],
     ["provider_unavailable", "provider_unavailable"],
   ] as const)("maps typed verification %s consistently for registration and tests", async (cause, code) => {
     const registrationRepository = new MemoryAgentRepository()

@@ -30,19 +30,22 @@ describe("OpenAI credential verifier", () => {
   })
 
   it.each([
-    [401, "credential_invalid"],
-    [403, "credential_invalid"],
-    [400, "credential_invalid"],
-    [404, "credential_invalid"],
-    [422, "credential_invalid"],
-    [429, "provider_unavailable"],
-    [500, "provider_unavailable"],
-  ] as const)("maps provider status %s to a safe typed cause", async (statusCode, code) => {
+    [401, null, "credential_invalid"],
+    [403, null, "model_access_denied"],
+    [400, null, "verification_request_invalid"],
+    [404, null, "model_not_found"],
+    [422, null, "verification_request_invalid"],
+    [429, "insufficient_quota", "quota_exhausted"],
+    [429, "rate_limit_exceeded", "rate_limited"],
+    [500, null, "provider_unavailable"],
+  ] as const)("maps provider status %s and code %s to safe cause %s", async (statusCode, providerCode, code) => {
     const raw = new APICallError({
       message: "raw provider message candidate-key",
       url: "https://api.openai.invalid",
       requestBodyValues: {},
-      responseBody: "raw provider body candidate-key",
+      responseBody: JSON.stringify({
+        error: { code: providerCode, message: "raw provider body candidate-key" },
+      }),
       statusCode,
     })
 

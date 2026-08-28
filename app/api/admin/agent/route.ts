@@ -67,7 +67,13 @@ export function agentErrorResponse(error: unknown): Response {
       || error.code === "credential_unavailable"
       || error.code === "model_unverified"
       ? 409
-      : error.code === "credential_invalid" || error.code === "provider_unavailable"
+      : error.code === "quota_exhausted" || error.code === "rate_limited"
+        ? 429
+      : error.code === "credential_invalid"
+        || error.code === "model_access_denied"
+        || error.code === "model_not_found"
+        || error.code === "verification_request_invalid"
+        || error.code === "provider_unavailable"
         ? 502
         : 503
   return jsonNoStore({ error: error.code }, { status })

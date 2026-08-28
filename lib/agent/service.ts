@@ -23,7 +23,11 @@ import type {
 } from "@/lib/agent/types"
 import { credentialInputSchema } from "@/lib/agent/validation"
 import { getAiSecurityEnv } from "@/lib/env"
-import { CredentialVerificationError, verifyOpenAICredential } from "@/lib/agent/provider"
+import {
+  CredentialVerificationError,
+  type CredentialVerificationErrorCode,
+  verifyOpenAICredential,
+} from "@/lib/agent/provider"
 
 export type AgentServiceErrorCode =
   | "invalid_settings"
@@ -32,6 +36,11 @@ export type AgentServiceErrorCode =
   | "credential_required"
   | "credential_unavailable"
   | "credential_invalid"
+  | "model_access_denied"
+  | "model_not_found"
+  | "verification_request_invalid"
+  | "quota_exhausted"
+  | "rate_limited"
   | "model_unverified"
   | "encryption_unavailable"
   | "provider_unavailable"
@@ -142,8 +151,12 @@ function validateEnablementSettings(input: AgentSettingsUpdate): void {
   }
 }
 
-function verificationServiceCode(error: unknown): "credential_invalid" | "provider_unavailable" {
+function verificationServiceCode(error: unknown): CredentialVerificationErrorCode {
   return error instanceof CredentialVerificationError ? error.code : "provider_unavailable"
+}
+
+function verificationServiceMessage(code: CredentialVerificationErrorCode): string {
+  return code === "provider_unavailable" ? "OpenAI verification is unavailable" : "OpenAI verification failed"
 }
 
 export function createAgentService(
@@ -246,9 +259,7 @@ export function createAgentService(
         await dependencies.verify(apiKey, catalogModel.id)
       } catch (error) {
         const code = verificationServiceCode(error)
-        throw new AgentServiceError(code, code === "credential_invalid"
-          ? "The OpenAI credential or model could not be verified"
-          : "OpenAI verification is unavailable")
+        throw new AgentServiceError(code, verificationServiceMessage(code))
       }
 
       const verifiedAt = dependencies.now()
@@ -303,9 +314,7 @@ export function createAgentService(
         await dependencies.verify(parsed.data.apiKey, settings.model)
       } catch (error) {
         const code = verificationServiceCode(error)
-        throw new AgentServiceError(code, code === "credential_invalid"
-          ? "The OpenAI credential or model could not be verified"
-          : "OpenAI verification is unavailable")
+        throw new AgentServiceError(code, verificationServiceMessage(code))
       }
 
       const encrypted = encryptCredential(parsed.data.apiKey, requireEncryptionKey(dependencies))
@@ -347,9 +356,7 @@ export function createAgentService(
           throw new AgentServiceError("version_conflict", "Agent verification changed while the test was running")
         }
         const code = verificationServiceCode(error)
-        throw new AgentServiceError(code, code === "credential_invalid"
-          ? "The OpenAI credential or model could not be verified"
-          : "OpenAI verification is unavailable")
+        throw new AgentServiceError(code, verificationServiceMessage(code))
       }
       const recorded = await repository.recordCredentialTest(settings.model, "verified", expected, actor, verifiedAt)
       if (recorded.status === "stale") {
