@@ -1,19 +1,22 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
+import {
+  agentModelCatalog,
+  defaultAgentModelId,
+  getAgentModel,
+  type SupportedAgentModelId,
+} from "@/lib/agent/model-catalog"
 import type { AgentConfiguration, AgentSettingsDto } from "@/lib/agent/types"
 
 type Draft = {
   enabled: boolean
-  model: string
   dailyTokenLimit: string
   dailyQuestionLimit: string
   maxOutputTokens: string
   monthlyCostLimitUsd: string
-  inputPriceUsdPerMillion: string
-  outputPriceUsdPerMillion: string
   resetTimezone: string
   dailyResetTime: string
   cookieRetentionDays: string
@@ -22,8 +25,17 @@ type Draft = {
 
 type ApiPayload = { configuration?: AgentConfiguration; error?: string }
 
-function usd(microusd: number | null): string {
-  return microusd === null ? "" : String(microusd / 1_000_000)
+function usd(microusd: number): string {
+  return String(microusd / 1_000_000)
+}
+
+function usdLabel(microusd: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(microusd / 1_000_000)
 }
 
 function resetTime(minute: number): string {
@@ -33,18 +45,19 @@ function resetTime(minute: number): string {
 function draftFrom(settings: AgentSettingsDto): Draft {
   return {
     enabled: settings.enabled,
-    model: settings.model ?? "",
     dailyTokenLimit: String(settings.dailyTokenLimit),
     dailyQuestionLimit: String(settings.dailyQuestionLimit),
     maxOutputTokens: String(settings.maxOutputTokens),
     monthlyCostLimitUsd: usd(settings.monthlyCostLimitMicrousd),
-    inputPriceUsdPerMillion: usd(settings.inputPriceMicrousdPerMillion),
-    outputPriceUsdPerMillion: usd(settings.outputPriceMicrousdPerMillion),
     resetTimezone: settings.resetTimezone,
     dailyResetTime: resetTime(settings.dailyResetMinute),
     cookieRetentionDays: String(settings.cookieRetentionDays),
     summaryPolicy: settings.summaryPolicy,
   }
+}
+
+function selectedModelFrom(settings: AgentSettingsDto): SupportedAgentModelId {
+  return getAgentModel(settings.model ?? "")?.id ?? defaultAgentModelId
 }
 
 function minuteFrom(value: string): number {
@@ -64,9 +77,11 @@ function dateLabel(value: Date | string | null): string {
 function errorMessage(code: string | undefined): string {
   if (code === "provider_unavailable") return "OpenAI could not verify the credential or model. Try again."
   if (code === "credential_invalid") return "OpenAI could not verify the credential or model."
+  if (code === "credential_required") return "Enter an OpenAI API key to finish the first setup."
+  if (code === "unsupported_model") return "Choose one of the supported OpenAI models."
   if (code === "encryption_unavailable") return "Credential encryption is unavailable. Check deployment secrets."
   if (code === "credential_unavailable") return "No usable OpenAI credential is configured."
-  if (code === "model_unverified") return "Test the selected model before enabling AI."
+  if (code === "model_unverified") return "Verify the selected model before enabling AI."
   if (code === "invalid_settings") return "Review the highlighted settings and try again."
   if (code === "version_conflict") return "Settings changed during the operation. Latest configuration loaded; try again."
   return "The Agent configuration could not be updated. Try again."
@@ -75,13 +90,10 @@ function errorMessage(code: string | undefined): string {
 function settingsPayload(draft: Draft, version: number) {
   return {
     enabled: draft.enabled,
-    model: draft.model.trim() || null,
     dailyTokenLimit: Number(draft.dailyTokenLimit),
     dailyQuestionLimit: Number(draft.dailyQuestionLimit),
     maxOutputTokens: Number(draft.maxOutputTokens),
     monthlyCostLimitUsd: draft.monthlyCostLimitUsd,
-    inputPriceUsdPerMillion: draft.inputPriceUsdPerMillion || null,
-    outputPriceUsdPerMillion: draft.outputPriceUsdPerMillion || null,
     resetTimezone: draft.resetTimezone.trim(),
     dailyResetMinute: minuteFrom(draft.dailyResetTime),
     cookieRetentionDays: Number(draft.cookieRetentionDays),
@@ -93,10 +105,13 @@ function settingsPayload(draft: Draft, version: number) {
 export function AgentSettings({ initialConfiguration }: { initialConfiguration: AgentConfiguration }) {
   const [configuration, setConfiguration] = useState(initialConfiguration)
   const [draft, setDraft] = useState(() => draftFrom(initialConfiguration.settings))
+  const [selectedModel, setSelectedModel] = useState<SupportedAgentModelId>(() => (
+    selectedModelFrom(initialConfiguration.settings)
+  ))
+  const [apiKey, setApiKey] = useState("")
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
-  const credentialForm = useRef<HTMLFormElement>(null)
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }))
@@ -104,6 +119,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
 
   const applyConfiguration = (next: AgentConfiguration, preserveDraft = false) => {
     setConfiguration(next)
+    setSelectedModel(selectedModelFrom(next.settings))
     setDraft((current) => preserveDraft
       ? { ...current, enabled: next.settings.enabled }
       : draftFrom(next.settings))
@@ -148,7 +164,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           try {
             await loadConfiguration(true)
           } catch {
-            // Keep the original operation error; the refresh is best effort.
+            // The operation error is more useful than a best-effort refresh failure.
           }
         }
         setError(errorMessage(payload.error))
@@ -161,7 +177,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         try {
           await loadConfiguration(true)
         } catch {
-          // Keep the original generic error; the refresh is best effort.
+          // The generic operation error remains valid when refresh also fails.
         }
       }
       setError("The Agent configuration could not be updated. Try again.")
@@ -182,19 +198,27 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
     )
   }
 
-  const replaceCredential = async (event: React.FormEvent<HTMLFormElement>) => {
+  const credential = configuration.credential
+
+  const configureCredential = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const apiKey = String(new FormData(event.currentTarget).get("apiKey") ?? "")
+    const candidate = apiKey.trim()
     try {
       await mutate(
         "/api/admin/agent/credential",
         "PUT",
-        { apiKey },
-        "Credential verified and stored.",
+        {
+          ...(candidate ? { apiKey: candidate } : {}),
+          model: selectedModel,
+          version: configuration.settings.version,
+        },
+        candidate
+          ? credential.configured ? "Credential verified and replaced." : "Credential verified and stored."
+          : "Model verified and applied.",
         { preserveDraft: true },
       )
     } finally {
-      credentialForm.current?.reset()
+      setApiKey("")
     }
   }
 
@@ -242,7 +266,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           try {
             await loadConfiguration(true)
           } catch {
-            // The conflict alert remains valid when the final refresh also fails.
+            // The final conflict alert remains valid when refresh also fails.
           }
         }
         setError(payload.error === "version_conflict"
@@ -257,16 +281,24 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
     }
   }
 
-  const credential = configuration.credential
+  const model = getAgentModel(selectedModel)!
+  const legacyModel = configuration.settings.model && !getAgentModel(configuration.settings.model)
+    ? configuration.settings.model
+    : null
   const fingerprint = credential.fingerprint ? `••••${credential.fingerprint.slice(-4)}` : "No fingerprint"
   const credentialStatus = credential.configured
     ? `Configured · ${fingerprint} · ${credential.verificationStatus === "verified" ? "Verified" : "Failed"}`
     : "Not configured"
-  const modelChanged = draft.model !== (configuration.settings.model ?? "")
+  const modelChanged = selectedModel !== configuration.settings.model
+  const setupAction = !credential.configured
+    ? "Verify and save"
+    : apiKey.trim()
+      ? "Verify and replace"
+      : "Verify and apply model"
   const estimatedLimit = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-  }).format(configuration.settings.monthlyCostLimitMicrousd / 1_000_000)
+  }).format(Number(draft.monthlyCostLimitUsd || 0))
 
   return (
     <section className={styles.agentPage}>
@@ -292,18 +324,55 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
       <section className={styles.agentSection}>
         <div className={styles.agentSectionHeading}>
           <span>01</span>
-          <h2>Connection</h2>
+          <h2>OpenAI setup</h2>
         </div>
         <div className={styles.agentSectionBody}>
           <p className={styles.connectionStatus}>{credentialStatus}</p>
-          <form ref={credentialForm} className={styles.credentialForm} onSubmit={replaceCredential}>
+          {legacyModel ? (
+            <p className={styles.formAlert} role="alert">
+              {legacyModel} is no longer in the supported model catalog. Verify a supported model before enabling AI.
+            </p>
+          ) : null}
+          <form className={styles.agentSetupForm} onSubmit={configureCredential}>
+            <label>
+              Model
+              <select
+                value={selectedModel}
+                onChange={(event) => setSelectedModel(event.target.value as SupportedAgentModelId)}
+              >
+                {agentModelCatalog.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}{item.recommended ? " · Recommended" : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className={styles.agentModelCard}>
+              <p>{model.description}</p>
+              <strong>
+                {usdLabel(model.inputPriceMicrousdPerMillion)} input / {usdLabel(model.outputPriceMicrousdPerMillion)} output per 1M tokens
+              </strong>
+              <span>Pricing checked: {dateLabel(model.pricingCheckedAt)}</span>
+            </div>
+            {modelChanged && credential.configured ? (
+              <p className={styles.editorGuidance} role="status">
+                Applying a different model verifies access and leaves AI disabled until you enable it again.
+              </p>
+            ) : null}
             <label>
               OpenAI API key
-              <input name="apiKey" type="password" autoComplete="new-password" maxLength={512} required />
+              <input
+                name="apiKey"
+                type="password"
+                autoComplete="new-password"
+                maxLength={512}
+                required={!credential.configured}
+                value={apiKey}
+                onChange={(event) => setApiKey(event.target.value)}
+                placeholder={credential.configured ? "Leave blank to use the stored credential" : undefined}
+              />
             </label>
-            <button type="submit" disabled={busy}>
-              {credential.configured ? "Replace credential" : "Register credential"}
-            </button>
+            <button type="submit" disabled={busy}>{setupAction}</button>
           </form>
           <div className={styles.agentActions}>
             <button
@@ -335,93 +404,13 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         <section className={styles.agentSection}>
           <div className={styles.agentSectionHeading}>
             <span>02</span>
-            <h2>Model &amp; pricing</h2>
-          </div>
-          <div className={styles.agentFieldGrid}>
-            <label className={styles.agentWideField}>
-              Model
-              <input value={draft.model} maxLength={120} onChange={(event) => set("model", event.target.value)} />
-            </label>
-            {modelChanged ? (
-              <p className={styles.editorGuidance} role="status">
-                Changing the model disables AI, clears pricing, and requires another connection test.
-              </p>
-            ) : null}
-            <label>
-              Input price per million tokens (USD)
-              <input type="number" min="0" step="0.000001" value={draft.inputPriceUsdPerMillion} onChange={(event) => set("inputPriceUsdPerMillion", event.target.value)} />
-            </label>
-            <label>
-              Output price per million tokens (USD)
-              <input type="number" min="0" step="0.000001" value={draft.outputPriceUsdPerMillion} onChange={(event) => set("outputPriceUsdPerMillion", event.target.value)} />
-            </label>
-            <p className={styles.agentMeta}>Pricing checked: {dateLabel(configuration.settings.pricingCheckedAt)}</p>
-          </div>
-        </section>
-
-        <section className={styles.agentSection}>
-          <div className={styles.agentSectionHeading}>
-            <span>03</span>
-            <h2>Visitor limits</h2>
-          </div>
-          <div className={styles.agentFieldGrid}>
-            <label>
-              Daily token limit
-              <input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
-            </label>
-            <label>
-              Daily question limit
-              <input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
-            </label>
-            <label>
-              Maximum output tokens
-              <input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
-            </label>
-            <label>
-              Reset timezone
-              <input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
-            </label>
-            <label>
-              Daily reset time
-              <input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
-            </label>
-          </div>
-        </section>
-
-        <section className={styles.agentSection}>
-          <div className={styles.agentSectionHeading}>
-            <span>04</span>
-            <h2>Budget</h2>
+            <h2>Usage &amp; policy</h2>
           </div>
           <div className={styles.agentFieldGrid}>
             <label>
               Monthly estimated cost limit (USD)
               <input type="number" min="1" max="10000" step="0.000001" value={draft.monthlyCostLimitUsd} onChange={(event) => set("monthlyCostLimitUsd", event.target.value)} />
             </label>
-            <p className={styles.agentMetric}>{estimatedLimit} estimated monthly guardrail</p>
-            <p className={styles.agentMeta}>This estimate does not reconcile the OpenAI invoice.</p>
-          </div>
-        </section>
-
-        <section className={styles.agentSection}>
-          <div className={styles.agentSectionHeading}>
-            <span>05</span>
-            <h2>Cookie</h2>
-          </div>
-          <div className={styles.agentFieldGrid}>
-            <label>
-              AI identity-cookie retention (days)
-              <input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
-            </label>
-          </div>
-        </section>
-
-        <section className={styles.agentSection}>
-          <div className={styles.agentSectionHeading}>
-            <span>06</span>
-            <h2>Summary</h2>
-          </div>
-          <div className={styles.agentFieldGrid}>
             <label>
               Summary policy
               <select value={draft.summaryPolicy} onChange={(event) => set("summaryPolicy", event.target.value as Draft["summaryPolicy"])}>
@@ -433,6 +422,39 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
               <input type="checkbox" checked={draft.enabled} onChange={(event) => set("enabled", event.target.checked)} />
               Enable AI
             </label>
+            <p className={styles.agentMetric}>{estimatedLimit} estimated monthly guardrail</p>
+            <p className={styles.agentMeta}>This estimate does not reconcile the OpenAI invoice.</p>
+
+            <details className={styles.agentAdvanced}>
+              <summary>Advanced limits</summary>
+              <div className={styles.agentAdvancedGrid}>
+                <label>
+                  Daily token limit
+                  <input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
+                </label>
+                <label>
+                  Daily question limit
+                  <input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
+                </label>
+                <label>
+                  Maximum output tokens
+                  <input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
+                </label>
+                <label>
+                  Reset timezone
+                  <input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
+                </label>
+                <label>
+                  Daily reset time
+                  <input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
+                </label>
+                <label>
+                  AI identity-cookie retention (days)
+                  <input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
+                </label>
+              </div>
+            </details>
+
             <button className={styles.agentSave} type="submit" disabled={busy}>Save settings</button>
           </div>
         </section>

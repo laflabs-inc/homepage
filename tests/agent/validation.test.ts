@@ -50,7 +50,10 @@ describe("Agent settings validation", () => {
   })
 
   it("keeps model and catalog prices out of runtime settings updates", () => {
-    const { model: _model, inputPriceUsdPerMillion: _input, outputPriceUsdPerMillion: _output, ...runtime } = validSettings
+    const runtime = { ...validSettings }
+    delete (runtime as Partial<typeof validSettings>).model
+    delete (runtime as Partial<typeof validSettings>).inputPriceUsdPerMillion
+    delete (runtime as Partial<typeof validSettings>).outputPriceUsdPerMillion
 
     expect(agentRuntimeSettingsUpdateSchema.safeParse(runtime).success).toBe(true)
     expect(agentRuntimeSettingsUpdateSchema.safeParse({

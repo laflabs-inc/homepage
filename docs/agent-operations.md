@@ -1,6 +1,6 @@
 # Agent operations
 
-The Agent control plane is protected at `/admin/agent`. Keep AI disabled until the model, pricing, stored credential, and connection test are all current.
+The Agent control plane is protected at `/admin/agent`. Keep AI disabled until the selected model and stored credential are verified and the operating limits have been reviewed.
 
 ## Deployment secrets
 
@@ -19,20 +19,22 @@ To rotate `AI_CREDENTIAL_ENCRYPTION_KEY`, first disable AI and delete the stored
 
 ## First registration and model changes
 
-1. Open **Agent**, set the model, and save. Enter the current input/output USD-per-million prices and the operating limits, then save again.
-2. Enter the OpenAI credential once under **Connection**. Registration runs a minimal inference against the selected model before encrypting and storing the credential.
-3. Confirm the masked fingerprint and verified status, then explicitly enable AI.
+1. Open **Agent** and choose a supported model under **OpenAI setup**. The recommended cost-sensitive model is selected by default.
+2. Enter the OpenAI API key and choose **Verify and save**. The server runs a bounded inference against that exact model, encrypts the key, and saves the verified model and catalog price snapshot in one operation.
+3. Review the monthly guardrail and any advanced limits, save **Usage & policy**, then explicitly enable AI.
 
-Changing the model disables AI, clears its prices, and invalidates prior verification. Save the new model, enter current prices, run **Test connection**, and only then enable AI again.
+The browser never submits editable token prices. The server-owned catalog supplies the displayed USD-per-million-token estimate and its checked date. OpenAI's model-list API does not include pricing, so catalog prices are reviewed and deployed with the application rather than fetched during setup.
+
+To change only the model, select it and choose **Verify and apply model**. The server verifies the new model with the stored encrypted credential. To change both the key and model, enter the new key, select the model, and choose **Verify and replace**. A model change leaves AI disabled until it is explicitly enabled again. A failed verification or concurrent settings change preserves the prior credential and settings.
 
 ## Kill switch and recovery
 
 Use **Disable AI now** when provider access, pricing, usage, or configuration is uncertain. Document reading remains available. Correct the settings or replace the credential, run **Test connection**, review the estimated monthly guardrail, and explicitly re-enable AI.
 
-A failed replacement leaves the prior encrypted credential intact. Deleting a credential disables AI and cannot be undone; register a new provider credential to recover.
+A failed replacement leaves the prior encrypted credential intact. Deleting a credential disables AI and cannot be undone; repeat the guided registration to recover.
 
 ## Backups and cost interpretation
 
 Database backups contain encrypted credential material. A restored credential is usable only with the matching encryption key from the deployment secret manager; neither the backup nor the key alone is sufficient. If that pairing is unavailable, delete the restored credential and register a new one.
 
-The displayed cost is an estimate from provider-reported token counts and administrator-maintained prices. It is a guardrail, not reconciliation with the OpenAI invoice; review the provider invoice separately and update prices whenever they change.
+The displayed cost is an estimate from provider-reported token counts and the deployed catalog price snapshot. It is a guardrail, not reconciliation with the OpenAI invoice; review the provider invoice separately and update the catalog whenever provider pricing changes.

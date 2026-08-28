@@ -826,7 +826,7 @@
 }
 
 .killSwitch,
-.credentialForm button,
+.agentSetupForm button,
 .agentActions button,
 .agentSave {
   min-height: 46px;
@@ -846,7 +846,7 @@
 }
 
 .killSwitch:disabled,
-.credentialForm button:disabled,
+.agentSetupForm button:disabled,
 .agentActions button:disabled,
 .agentSave:disabled {
   cursor: not-allowed;
@@ -900,7 +900,8 @@
 }
 
 .agentFieldGrid label,
-.credentialForm label {
+.agentSetupForm label,
+.agentAdvancedGrid label {
   display: grid;
   gap: 8px;
   color: var(--muted);
@@ -910,7 +911,10 @@
 
 .agentFieldGrid input,
 .agentFieldGrid select,
-.credentialForm input {
+.agentSetupForm input,
+.agentSetupForm select,
+.agentAdvancedGrid input,
+.agentAdvancedGrid select {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -943,11 +947,84 @@
   font: 650 12px var(--font-geist-mono), monospace;
 }
 
-.credentialForm {
+.agentSetupForm {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
   gap: 12px;
+}
+
+.agentSetupForm > .editorGuidance {
+  grid-column: 1 / -1;
+}
+
+.agentModelCard {
+  min-height: 100%;
+  padding: 14px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  background: #eff6ff;
+  border: 1px solid var(--ink);
+}
+
+.agentModelCard p,
+.agentModelCard strong,
+.agentModelCard span {
+  margin: 0;
+}
+
+.agentModelCard p,
+.agentModelCard span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.agentModelCard strong {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.agentAdvanced {
+  grid-column: 1 / -1;
+  border: 1px solid var(--ink);
+}
+
+.agentAdvanced summary {
+  min-height: 46px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font: 650 11px var(--font-geist-mono), monospace;
+  list-style: none;
+}
+
+.agentAdvanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.agentAdvanced summary::after {
+  content: "+";
+  color: var(--blue);
+  font-size: 18px;
+}
+
+.agentAdvanced[open] summary {
+  border-bottom: 1px solid var(--ink);
+}
+
+.agentAdvanced[open] summary::after {
+  content: "−";
+}
+
+.agentAdvancedGrid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .agentActions {
@@ -1232,7 +1309,7 @@
   }
 
   .killSwitch,
-  .credentialForm button,
+  .agentSetupForm button,
   .agentActions,
   .agentActions button,
   .agentSave {
@@ -1241,7 +1318,8 @@
 
   .agentSectionBody,
   .agentFieldGrid,
-  .credentialForm {
+  .agentSetupForm,
+  .agentAdvancedGrid {
     grid-template-columns: 1fr;
   }
 }
