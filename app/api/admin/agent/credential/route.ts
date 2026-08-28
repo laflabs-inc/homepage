@@ -7,7 +7,7 @@ import {
   authorizeAgentMutation,
   type AdminAgentDependencies,
 } from "@/app/api/admin/agent/route"
-import { credentialInputSchema } from "@/lib/agent/validation"
+import { agentCredentialSetupSchema } from "@/lib/agent/validation"
 import { jsonNoStore, readBoundedJson } from "@/lib/http/json-body"
 
 const emptyBodySchema = z.object({}).strict()
@@ -20,11 +20,16 @@ export async function handlePutCredential(
   if (!authorization.ok) return authorization.response
   const body = await readBoundedJson(request, AGENT_BODY_LIMIT)
   if (!body.ok) return body.response
-  const parsed = credentialInputSchema.safeParse(body.value)
-  if (!parsed.success) return jsonNoStore({ error: "credential_invalid" }, { status: 422 })
+  const parsed = agentCredentialSetupSchema.safeParse(body.value)
+  if (!parsed.success) {
+    const error = parsed.error.issues.some(({ path }) => path[0] === "model")
+      ? "unsupported_model"
+      : "credential_invalid"
+    return jsonNoStore({ error }, { status: 422 })
+  }
 
   try {
-    const configuration = await dependencies.service.replaceCredential(parsed.data.apiKey, authorization.actor)
+    const configuration = await dependencies.service.configureCredential(parsed.data, authorization.actor)
     return jsonNoStore({ configuration })
   } catch (error) {
     return agentErrorResponse(error)

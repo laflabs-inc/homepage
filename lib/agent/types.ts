@@ -1,5 +1,6 @@
 import type { AdminActor } from "@/lib/auth/admin-api"
 import type { CredentialEnvelope } from "@/lib/agent/crypto"
+import type { SupportedAgentModelId } from "@/lib/agent/model-catalog"
 import type { LanguageModel } from "ai"
 
 export type SummaryPolicy = "review" | "automatic"
@@ -73,6 +74,25 @@ export type AgentSettingsUpdate = Pick<
   | "summaryPolicy"
 > & { version: number }
 
+export type AgentRuntimeSettingsUpdate = Pick<
+  AgentSettings,
+  | "enabled"
+  | "dailyTokenLimit"
+  | "dailyQuestionLimit"
+  | "maxOutputTokens"
+  | "monthlyCostLimitMicrousd"
+  | "resetTimezone"
+  | "dailyResetMinute"
+  | "cookieRetentionDays"
+  | "summaryPolicy"
+> & { version: number }
+
+export type AgentCredentialSetupInput = {
+  apiKey?: string
+  model: SupportedAgentModelId
+  version: number
+}
+
 export type CredentialReplacement = Pick<
   StoredCredential,
   "provider" | "ciphertext" | "iv" | "authTag" | "fingerprint"
@@ -81,6 +101,21 @@ export type CredentialReplacement = Pick<
   verificationStatus: "verified"
   verifiedAt: Date
 }
+
+export type VerifiedAgentSetup = {
+  version: number
+  model: SupportedAgentModelId
+  inputPriceMicrousdPerMillion: number
+  outputPriceMicrousdPerMillion: number
+  pricingCheckedAt: Date
+  credential: CredentialReplacement
+  expectedCredential: CredentialTestGeneration | null
+  replacingKey: boolean
+}
+
+export type VerifiedAgentSetupResult =
+  | { status: "updated"; settings: AgentSettings; credential: StoredCredential }
+  | { status: "version_conflict" }
 
 export type AgentSettingsUpdateResult =
   | { status: "updated"; settings: AgentSettings }
@@ -106,6 +141,7 @@ export interface AgentRepository {
     changedSettings: string[],
   ): Promise<AgentSettingsUpdateResult>
   replaceCredential(input: CredentialReplacement, actor: AdminActor, replacing: boolean): Promise<StoredCredential>
+  applyVerifiedSetup(input: VerifiedAgentSetup, actor: AdminActor): Promise<VerifiedAgentSetupResult>
   recordCredentialTest(
     model: string,
     result: VerificationStatus,

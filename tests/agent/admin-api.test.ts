@@ -48,13 +48,10 @@ const configuration: AgentConfiguration = {
 
 const settingsBody = {
   enabled: false,
-  model: "gpt-5-mini",
   dailyTokenLimit: 20_000,
   dailyQuestionLimit: 10,
   maxOutputTokens: 600,
   monthlyCostLimitUsd: "50",
-  inputPriceUsdPerMillion: "0.25",
-  outputPriceUsdPerMillion: "2",
   resetTimezone: "Asia/Seoul",
   dailyResetMinute: 0,
   cookieRetentionDays: 180,
@@ -94,7 +91,9 @@ function dependencies(overrides: Record<string, unknown> = {}) {
     service: {
       getConfiguration: vi.fn().mockResolvedValue(configuration),
       updateSettings: vi.fn().mockResolvedValue(configuration),
+      updateRuntimeSettings: vi.fn().mockResolvedValue(configuration),
       replaceCredential: vi.fn().mockResolvedValue(configuration),
+      configureCredential: vi.fn().mockResolvedValue(configuration),
       deleteCredential: vi.fn().mockResolvedValue(configuration),
       testCredential: vi.fn().mockResolvedValue(configuration),
     },
@@ -141,14 +140,18 @@ describe("Agent admin API", () => {
 
     expect(response.status).toBe(status)
     expect(deps.sameOrigin).not.toHaveBeenCalled()
-    expect(deps.service.updateSettings).not.toHaveBeenCalled()
+    expect(deps.service.updateRuntimeSettings).not.toHaveBeenCalled()
     await expect(response.json()).resolves.toEqual({ error })
     await expectNoStore(response)
   })
 
   it.each([
-    [handleUpdateAgent, "/api/admin/agent", "PATCH", settingsBody, "updateSettings"],
-    [handlePutCredential, "/api/admin/agent/credential", "PUT", { apiKey }, "replaceCredential"],
+    [handleUpdateAgent, "/api/admin/agent", "PATCH", settingsBody, "updateRuntimeSettings"],
+    [handlePutCredential, "/api/admin/agent/credential", "PUT", {
+      apiKey,
+      model: "gpt-5.6-luna",
+      version: 3,
+    }, "configureCredential"],
     [handleDeleteCredential, "/api/admin/agent/credential", "DELETE", {}, "deleteCredential"],
     [handleTestCredential, "/api/admin/agent/credential/test", "POST", {}, "testCredential"],
   ] as const)("rejects cross-origin %s before body parsing or service use", async (
@@ -178,15 +181,12 @@ describe("Agent admin API", () => {
       deps,
     )
 
-    expect(deps.service.updateSettings).toHaveBeenCalledWith({
+    expect(deps.service.updateRuntimeSettings).toHaveBeenCalledWith({
       enabled: false,
-      model: "gpt-5-mini",
       dailyTokenLimit: 20_000,
       dailyQuestionLimit: 10,
       maxOutputTokens: 600,
       monthlyCostLimitMicrousd: 50_000_000,
-      inputPriceMicrousdPerMillion: 250_000,
-      outputPriceMicrousdPerMillion: 2_000_000,
       resetTimezone: "Asia/Seoul",
       dailyResetMinute: 0,
       cookieRetentionDays: 180,
@@ -199,17 +199,60 @@ describe("Agent admin API", () => {
   it("accepts a credential only at PUT and never serializes it", async () => {
     const deps = dependencies()
     const response = await handlePutCredential(
-      jsonRequest("/api/admin/agent/credential", "PUT", { apiKey }),
+      jsonRequest("/api/admin/agent/credential", "PUT", {
+        apiKey,
+        model: "gpt-5.6-luna",
+        version: 3,
+      }),
       deps,
     )
 
-    expect(deps.service.replaceCredential).toHaveBeenCalledWith(apiKey, actor)
+    expect(deps.service.configureCredential).toHaveBeenCalledWith({
+      apiKey,
+      model: "gpt-5.6-luna",
+      version: 3,
+    }, actor)
     expect(await response.clone().text()).not.toContain(apiKey)
     await expectSafeConfiguration(response)
   })
 
+  it("applies a selected model with the stored credential when no key is submitted", async () => {
+    const deps = dependencies()
+    const response = await handlePutCredential(
+      jsonRequest("/api/admin/agent/credential", "PUT", {
+        model: "gpt-5.6-terra",
+        version: 3,
+      }),
+      deps,
+    )
+
+    expect(deps.service.configureCredential).toHaveBeenCalledWith({
+      model: "gpt-5.6-terra",
+      version: 3,
+    }, actor)
+    await expectSafeConfiguration(response)
+  })
+
+  it("rejects model and price changes from the runtime settings endpoint", async () => {
+    const deps = dependencies()
+
+    for (const extra of [
+      { model: "gpt-5.6-sol" },
+      { inputPriceUsdPerMillion: "0.01" },
+      { outputPriceUsdPerMillion: "0.01" },
+    ]) {
+      const response = await handleUpdateAgent(
+        jsonRequest("/api/admin/agent", "PATCH", { ...settingsBody, ...extra }),
+        deps,
+      )
+      expect(response.status).toBe(422)
+    }
+
+    expect(deps.service.updateRuntimeSettings).not.toHaveBeenCalled()
+  })
+
   it.each([
-    [handleUpdateAgent, "/api/admin/agent", "PATCH", { ...settingsBody, apiKey }, "updateSettings"],
+    [handleUpdateAgent, "/api/admin/agent", "PATCH", { ...settingsBody, apiKey }, "updateRuntimeSettings"],
     [handleDeleteCredential, "/api/admin/agent/credential", "DELETE", { apiKey }, "deleteCredential"],
     [handleTestCredential, "/api/admin/agent/credential/test", "POST", { apiKey }, "testCredential"],
   ] as const)("rejects secret-bearing JSON outside credential PUT", async (
@@ -232,14 +275,34 @@ describe("Agent admin API", () => {
     const deps = dependencies()
     const submitted = "not-a-provider-credential"
     const response = await handlePutCredential(
-      jsonRequest("/api/admin/agent/credential", "PUT", { apiKey: submitted }),
+      jsonRequest("/api/admin/agent/credential", "PUT", {
+        apiKey: submitted,
+        model: "gpt-5.6-luna",
+        version: 3,
+      }),
       deps,
     )
 
     expect(response.status).toBe(422)
-    expect(deps.service.replaceCredential).not.toHaveBeenCalled()
+    expect(deps.service.configureCredential).not.toHaveBeenCalled()
     expect(await response.text()).not.toContain(submitted)
     await expectNoStore(response)
+  })
+
+  it("rejects unsupported credential models before service use", async () => {
+    const deps = dependencies()
+    const response = await handlePutCredential(
+      jsonRequest("/api/admin/agent/credential", "PUT", {
+        apiKey,
+        model: "custom-model",
+        version: 3,
+      }),
+      deps,
+    )
+
+    expect(response.status).toBe(422)
+    expect(deps.service.configureCredential).not.toHaveBeenCalled()
+    await expect(response.json()).resolves.toEqual({ error: "unsupported_model" })
   })
 
   it.each([
@@ -252,7 +315,7 @@ describe("Agent admin API", () => {
 
     expect(response.status).toBe(status)
     await expect(response.json()).resolves.toEqual({ error })
-    expect(deps.service.updateSettings).not.toHaveBeenCalled()
+    expect(deps.service.updateRuntimeSettings).not.toHaveBeenCalled()
     await expectNoStore(response)
   })
 
@@ -276,6 +339,8 @@ describe("Agent admin API", () => {
 
   it.each([
     ["invalid_settings", 422],
+    ["unsupported_model", 422],
+    ["credential_required", 409],
     ["version_conflict", 409],
     ["credential_unavailable", 409],
     ["model_unverified", 409],

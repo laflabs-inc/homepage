@@ -424,6 +424,74 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       if (!result.rows[0]) throw new DocumentStoreError("conflict", "Only a current draft may be deleted")
     },
 
+    async deleteArchived(revisionId, actor) {
+      const result = await database.execute(sql`
+        WITH locked_series AS (
+          SELECT s.*
+          FROM ${documentSeries} s
+          WHERE s."id" = (
+            SELECT r."series_id" FROM ${documentRevisions} r WHERE r."id" = ${revisionId}::uuid
+          )
+          FOR UPDATE
+        ), locked_revisions AS (
+          SELECT r."id", r."series_id", r."locale", r."revision", r."status"
+          FROM ${documentRevisions} r
+          INNER JOIN locked_series ON locked_series."id" = r."series_id"
+          FOR UPDATE OF r
+        ), locked_revision AS (
+          SELECT locked_revisions.*,
+            (SELECT count(*) FROM locked_revisions) = 1 AS only_revision
+          FROM locked_revisions
+          WHERE locked_revisions."id" = ${revisionId}::uuid
+        ), deletable_revision AS (
+          SELECT locked_revision.*
+          FROM locked_revision
+          WHERE locked_revision."status" = 'archived'
+            AND NOT (
+              locked_revision."locale" = 'ko'
+              AND NOT EXISTS (
+                SELECT 1 FROM locked_revisions other_korean
+                WHERE other_korean."locale" = 'ko'
+                  AND other_korean."id" <> locked_revision."id"
+              )
+              AND EXISTS (
+                SELECT 1 FROM locked_revisions english
+                WHERE english."locale" = 'en'
+              )
+            )
+        ), deleted_revision AS (
+          DELETE FROM ${documentRevisions} r
+          USING deletable_revision
+          WHERE r."id" = deletable_revision."id"
+          RETURNING r."id", r."series_id", r."locale", r."revision"
+        ), deleted_series AS (
+          DELETE FROM ${documentSeries} s
+          USING deletable_revision, deleted_revision
+          WHERE s."id" = deleted_revision."series_id"
+            AND deletable_revision.only_revision
+          RETURNING s."id"
+        ), audit_entry AS (
+          INSERT INTO ${adminAuditLog} (
+            "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
+          )
+          SELECT 'document.delete', 'document_revision', deleted_revision."id"::text,
+            ${actor.githubId}, ${actor.name}, jsonb_build_object(
+              'seriesId', deleted_revision."series_id",
+              'locale', deleted_revision."locale",
+              'revision', deleted_revision."revision",
+              'priorStatus', 'archived'
+            )
+          FROM deleted_revision
+          RETURNING "id"
+        )
+        SELECT deleted_revision."id"
+        FROM deleted_revision
+        WHERE (SELECT count(*) FROM deleted_series) >= 0
+          AND (SELECT count(*) FROM audit_entry) >= 0
+      `)
+      if (!result.rows[0]) throw new DocumentStoreError("conflict", "Only an eligible archived revision may be deleted")
+    },
+
     async createNextDraft(seriesId, input, actor) {
       const values = inputValues(input)
       const result = await database.execute(sql`

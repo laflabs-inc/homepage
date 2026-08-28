@@ -6,15 +6,15 @@ AI is an admin-only document-summary feature. Keep it disabled until this runboo
 
 Set independent deployment secrets: `AI_CREDENTIAL_ENCRYPTION_KEY` must be canonical base64 for 32 random bytes, and `AI_COOKIE_SECRET` must be a different 32+-character value. Generate and enter them directly in the deployment secret manager; never commit or print them. The cookie secret is a reserved control-plane field in this release: no AI identity cookie is issued.
 
-In **Admin → Agent**, save the exact OpenAI model first, then enter the current input and output USD-per-million-token prices. Add the provider key under **Connection**; registration performs a short test against that exact configured model before encrypting the key. Confirm the saved fingerprint, verified model, and timestamp before enabling AI.
+In **Admin → Agent**, choose a supported model, enter the provider key, and select **Verify and save**. Registration performs a short test against that exact model before encrypting the key, then atomically saves the verified model and server-catalog price snapshot. Confirm the masked fingerprint and verified status before enabling AI.
 
-Changing the model disables AI, clears prices, and requires current prices plus another connection test for the new exact model. To replace a provider key, leave AI disabled, register and test the replacement, then explicitly enable AI. Deleting the credential disables AI and is irreversible; register and test a new key to recover.
+Changing the model uses **Verify and apply model** with the stored credential and leaves AI disabled until it is explicitly enabled again. Entering a new key changes the action to **Verify and replace**. A failed verification preserves the prior working setup. Deleting the credential disables AI and is irreversible; repeat the guided registration to recover.
 
 To replace the encryption key, disable AI and delete the stored credential while the old key is deployed; replace the deployment key, deploy, then register and test a new provider key. A backup credential needs its matching encryption key; otherwise delete it and register a new one.
 
 ## Summary and cost controls
 
-Prices are manually maintained estimates, not an OpenAI invoice. Update them whenever the model or provider pricing changes, and reconcile separately against the provider invoice.
+Prices are deployed server-catalog estimates, not an OpenAI invoice. The OpenAI model-list API does not include pricing, so review and update the catalog whenever provider pricing changes, then reconcile separately against the provider invoice.
 
 Each summary reserves bounded estimated monthly cost before the provider call. On a successful response, provider-reported actual token usage is recorded and the reservation is released; a failed call releases it (or its short expiry does). The monthly value is a guardrail, so one bounded request can cause a small overage before later requests are blocked.
 

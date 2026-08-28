@@ -13,6 +13,7 @@ export type AdminDocumentService = Pick<typeof documentService,
   | "createEnglishDraft"
   | "updateDraft"
   | "deleteDraft"
+  | "deleteArchived"
   | "schedule"
   | "returnScheduledToDraft"
   | "publish"
@@ -60,7 +61,7 @@ export function serviceErrorResponse(error: unknown): Response {
   if (error instanceof DocumentServiceError) {
     const status = error.code === "not_found"
       ? 404
-      : error.code === "incomplete_document"
+      : error.code === "incomplete_document" || error.code === "confirmation_mismatch"
         ? 422
       : error.code === "unavailable"
         ? 503

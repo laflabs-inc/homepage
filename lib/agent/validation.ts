@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { supportedAgentModelIds } from "@/lib/agent/model-catalog"
+
 const MICROS_PER_USD = 1_000_000
 const decimalUsdPattern = /^(?:0|[1-9]\d*)(?:\.(\d{1,6}))?$/
 
@@ -69,3 +71,42 @@ export const agentSettingsUpdateSchema = z.object({
 export const credentialInputSchema = z.object({
   apiKey: z.string().trim().min(1).max(512).regex(/^sk-[\x21-\x7e]+$/),
 }).strict()
+
+const apiKeySchema = credentialInputSchema.shape.apiKey
+
+export const agentCredentialSetupSchema = z.object({
+  apiKey: apiKeySchema.optional(),
+  model: z.enum(supportedAgentModelIds),
+  version: z.number().int().positive(),
+}).strict()
+
+export const agentRuntimeSettingsUpdateSchema = z.object({
+  enabled: z.boolean(),
+  dailyTokenLimit: z.number().int().min(1_000).max(1_000_000),
+  dailyQuestionLimit: z.number().int().min(1).max(1_000),
+  maxOutputTokens: z.number().int().min(64).max(8_192),
+  monthlyCostLimitUsd: usdToMicrousdSchema,
+  resetTimezone: timezoneSchema,
+  dailyResetMinute: z.number().int().min(0).max(1_439),
+  cookieRetentionDays: z.number().int().min(1).max(365),
+  summaryPolicy: z.enum(["review", "automatic"]),
+  version: z.number().int().positive(),
+}).strict().superRefine((settings, context) => {
+  if (settings.maxOutputTokens > settings.dailyTokenLimit) {
+    context.addIssue({
+      code: "custom",
+      path: ["maxOutputTokens"],
+      message: "Maximum output tokens cannot exceed the daily token limit",
+    })
+  }
+  if (settings.monthlyCostLimitUsd < 1_000_000 || settings.monthlyCostLimitUsd > 10_000_000_000) {
+    context.addIssue({
+      code: "custom",
+      path: ["monthlyCostLimitUsd"],
+      message: "Monthly cost limit must be between USD 1 and USD 10,000",
+    })
+  }
+}).transform(({ monthlyCostLimitUsd, ...settings }) => ({
+  ...settings,
+  monthlyCostLimitMicrousd: monthlyCostLimitUsd,
+}))

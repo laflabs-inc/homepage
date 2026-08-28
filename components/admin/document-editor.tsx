@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -140,6 +140,23 @@ function mutationErrorMessage(path: string, payload: unknown): string {
   if (error === "monthly_limit") {
     return "The AI monthly limit has been reached. Enter a one-line summary manually, save the draft, and publish again."
   }
+  if (error === "archive_dependency") {
+    return "Archive the published English revision first."
+  }
+  if (error === "revision_changed") {
+    return "This revision changed while the archive was running. Reload and try again."
+  }
+  if (error === "invalid_state") {
+    return path.endsWith("/archive")
+      ? "This revision is no longer published and cannot be archived."
+      : "Only archived revisions can be deleted permanently."
+  }
+  if (error === "confirmation_mismatch") {
+    return "The title did not match. Copy the current title exactly and try again."
+  }
+  if (error === "delete_dependency") {
+    return "Delete the English revisions before removing the final Korean revision."
+  }
   return "The document could not be updated. Please try again."
 }
 
@@ -155,6 +172,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   const [summaryPending, setSummaryPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const errorRef = useRef<HTMLParagraphElement>(null)
 
   const discardChanges = useCallback(() => setDirty(false), [])
   const retireDirtyNavigationGuard = useDirtyNavigationGuard(dirty, discardChanges)
@@ -162,6 +180,10 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   const categoryOptions = useMemo(() => categoriesByKind[values.kind], [values.kind])
   const editable = !revision || revision.status === "draft"
   const englishSeriesFieldsLocked = values.locale === "en"
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus()
+  }, [error])
 
   function update<K extends keyof EditorValues>(key: K, value: EditorValues[K]) {
     const next = { ...valuesRef.current, [key]: value }
@@ -262,6 +284,36 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
     }
   }
 
+  async function deleteArchived() {
+    if (!revision) return
+    const confirmation = window.prompt("Type the document title to delete it permanently:", "")
+    if (confirmation === null) return
+    const path = `/api/admin/documents/${revision.id}`
+    setPending(true)
+    setError(null)
+    setNotice(null)
+    try {
+      const response = await fetch(path, {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ permanent: true, confirmation }),
+      })
+      const payload = await response.json().catch(() => null) as { ok?: boolean; error?: string } | null
+      if (!response.ok) {
+        setError(mutationErrorMessage(path, payload))
+        return
+      }
+      if (payload?.ok !== true) throw new Error("invalid response")
+      await retireDirtyNavigationGuard()
+      setDirty(false)
+      router.replace("/admin/documents")
+    } catch {
+      setError("The document could not be updated. Please try again.")
+    } finally {
+      setPending(false)
+    }
+  }
+
   async function generateSummary() {
     if (!revision || dirty) return
     const submittedValues = { ...valuesRef.current }
@@ -337,7 +389,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
         {revision.locale === "en" && revision.status === "scheduled" ? (
           <p className={styles.editorGuidance}>English publication requires a published Korean counterpart.</p>
         ) : null}
-        {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
+        {error ? <p ref={errorRef} className={styles.formAlert} role="alert" tabIndex={-1}>{error}</p> : null}
         {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
         <div className={styles.editorActions}>
           {revision.status === "scheduled" ? (
@@ -373,6 +425,14 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
               {},
               "New revision created.",
             )}>Create new revision</button>
+          ) : null}
+          {revision.status === "archived" ? (
+            <button
+              className={styles.dangerButton}
+              disabled={pending}
+              type="button"
+              onClick={() => void deleteArchived()}
+            >Delete permanently</button>
           ) : null}
           {englishCreationLink ? <Link href={englishCreationLink}>Create English revision</Link> : null}
         </div>
@@ -475,7 +535,7 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
           <label>Markdown body
             <textarea required maxLength={200_000} rows={24} value={values.bodyMarkdown} onChange={(event) => update("bodyMarkdown", event.target.value)} />
           </label>
-          {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
+          {error ? <p ref={errorRef} className={styles.formAlert} role="alert" tabIndex={-1}>{error}</p> : null}
           {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
           {revision?.locale === "en" ? (
             <p className={styles.editorGuidance}>English publication requires a published Korean counterpart.</p>

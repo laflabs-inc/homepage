@@ -7,10 +7,13 @@ import {
   decryptCredential,
   encryptCredential,
 } from "@/lib/agent/crypto"
+import { getAgentModel } from "@/lib/agent/model-catalog"
 import { agentStore } from "@/lib/agent/store"
 import type {
+  AgentCredentialSetupInput,
   AgentConfiguration,
   AgentRepository,
+  AgentRuntimeSettingsUpdate,
   AgentSettings,
   AgentSettingsDto,
   AgentSettingsUpdate,
@@ -25,6 +28,8 @@ import { CredentialVerificationError, verifyOpenAICredential } from "@/lib/agent
 export type AgentServiceErrorCode =
   | "invalid_settings"
   | "version_conflict"
+  | "unsupported_model"
+  | "credential_required"
   | "credential_unavailable"
   | "credential_invalid"
   | "model_unverified"
@@ -147,6 +152,36 @@ export function createAgentService(
 ) {
   const dependencies = { ...defaultDependencies, ...dependencyOverrides }
 
+  async function persistSettings(
+    input: AgentSettingsUpdate,
+    actor: AdminActor,
+    current?: AgentSettings,
+  ): Promise<AgentConfiguration> {
+    current ??= await repository.getSettings()
+    const modelChanged = input.model !== current.model
+    const next = modelChanged ? {
+      ...input,
+      enabled: false,
+      inputPriceMicrousdPerMillion: null,
+      outputPriceMicrousdPerMillion: null,
+    } : input
+    validateEnablementSettings(next)
+
+    const changedSettings = settingNames.filter((name) => next[name] !== current[name])
+    if (modelChanged) changedSettings.push("pricingCheckedAt" as typeof changedSettings[number])
+    const result = await repository.updateSettings(next, actor, changedSettings)
+    if (result.status === "version_conflict") {
+      throw new AgentServiceError("version_conflict", "Agent settings changed before they could be updated")
+    }
+    if (result.status === "credential_unavailable") {
+      throw new AgentServiceError("credential_unavailable", "An OpenAI credential is required before enabling AI")
+    }
+    if (result.status === "model_unverified") {
+      throw new AgentServiceError("model_unverified", "The configured model must pass a connection test")
+    }
+    return configuration(result.settings, await repository.getCredential())
+  }
+
   return {
     async getConfiguration(): Promise<AgentConfiguration> {
       const [settings, credential] = await Promise.all([
@@ -158,28 +193,98 @@ export function createAgentService(
 
     async updateSettings(input: AgentSettingsUpdate, actor: AdminActor): Promise<AgentConfiguration> {
       const current = await repository.getSettings()
-      const modelChanged = input.model !== current.model
-      const next = modelChanged ? {
-        ...input,
-        enabled: false,
-        inputPriceMicrousdPerMillion: null,
-        outputPriceMicrousdPerMillion: null,
-      } : input
-      validateEnablementSettings(next)
+      return persistSettings(input, actor, current)
+    },
 
-      const changedSettings = settingNames.filter((name) => next[name] !== current[name])
-      if (modelChanged) changedSettings.push("pricingCheckedAt" as typeof changedSettings[number])
-      const result = await repository.updateSettings(next, actor, changedSettings)
+    async updateRuntimeSettings(
+      input: AgentRuntimeSettingsUpdate,
+      actor: AdminActor,
+    ): Promise<AgentConfiguration> {
+      const current = await repository.getSettings()
+      return persistSettings({
+        ...input,
+        model: current.model,
+        inputPriceMicrousdPerMillion: current.inputPriceMicrousdPerMillion,
+        outputPriceMicrousdPerMillion: current.outputPriceMicrousdPerMillion,
+      }, actor, current)
+    },
+
+    async configureCredential(
+      input: AgentCredentialSetupInput,
+      actor: AdminActor,
+    ): Promise<AgentConfiguration> {
+      const catalogModel = getAgentModel(input.model)
+      if (!catalogModel) {
+        throw new AgentServiceError("unsupported_model", "Choose a supported OpenAI model")
+      }
+
+      const [settings, prior] = await Promise.all([
+        repository.getSettings(),
+        repository.getCredential(),
+      ])
+      if (settings.version !== input.version) {
+        throw new AgentServiceError("version_conflict", "Agent settings changed before setup")
+      }
+
+      let apiKey: string
+      if (input.apiKey !== undefined) {
+        const parsed = credentialInputSchema.safeParse({ apiKey: input.apiKey })
+        if (!parsed.success) throw new AgentServiceError("credential_invalid", "The OpenAI credential is invalid")
+        apiKey = parsed.data.apiKey
+      } else {
+        if (!prior) throw new AgentServiceError("credential_required", "Enter an OpenAI credential")
+        try {
+          apiKey = decryptCredential(prior, requireEncryptionKey(dependencies))
+        } catch (error) {
+          if (error instanceof AgentServiceError) throw error
+          const code = error instanceof CredentialDecryptionError ? "credential_unavailable" : "encryption_unavailable"
+          throw new AgentServiceError(code, "The OpenAI credential is unavailable", { cause: error })
+        }
+      }
+
+      try {
+        await dependencies.verify(apiKey, catalogModel.id)
+      } catch (error) {
+        const code = verificationServiceCode(error)
+        throw new AgentServiceError(code, code === "credential_invalid"
+          ? "The OpenAI credential or model could not be verified"
+          : "OpenAI verification is unavailable")
+      }
+
+      const verifiedAt = dependencies.now()
+      const encrypted = input.apiKey === undefined
+        ? {
+            ciphertext: prior!.ciphertext,
+            iv: prior!.iv,
+            authTag: prior!.authTag,
+            fingerprint: prior!.fingerprint,
+          }
+        : {
+            ...encryptCredential(apiKey, requireEncryptionKey(dependencies)),
+            fingerprint: credentialFingerprint(apiKey),
+          }
+      const result = await repository.applyVerifiedSetup({
+        version: input.version,
+        model: catalogModel.id,
+        inputPriceMicrousdPerMillion: catalogModel.inputPriceMicrousdPerMillion,
+        outputPriceMicrousdPerMillion: catalogModel.outputPriceMicrousdPerMillion,
+        pricingCheckedAt: new Date(catalogModel.pricingCheckedAt),
+        credential: {
+          provider: "openai",
+          ...encrypted,
+          verifiedModel: catalogModel.id,
+          verificationStatus: "verified",
+          verifiedAt,
+        },
+        expectedCredential: prior
+          ? { fingerprint: prior.fingerprint, generation: prior.generation }
+          : null,
+        replacingKey: input.apiKey !== undefined,
+      }, actor)
       if (result.status === "version_conflict") {
-        throw new AgentServiceError("version_conflict", "Agent settings changed before they could be updated")
+        throw new AgentServiceError("version_conflict", "Agent setup changed while verification was running")
       }
-      if (result.status === "credential_unavailable") {
-        throw new AgentServiceError("credential_unavailable", "An OpenAI credential is required before enabling AI")
-      }
-      if (result.status === "model_unverified") {
-        throw new AgentServiceError("model_unverified", "The configured model must pass a connection test")
-      }
-      return configuration(result.settings, await repository.getCredential())
+      return configuration(result.settings, result.credential)
     },
 
     async replaceCredential(apiKeyInput: string, actor: AdminActor): Promise<AgentConfiguration> {

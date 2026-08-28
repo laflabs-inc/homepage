@@ -581,6 +581,73 @@ describe("document admin", () => {
     expect(screen.queryByRole("button", { name: "Generate with AI" })).not.toBeInTheDocument()
   })
 
+  it.each([
+    ["archive_dependency", "Archive the published English revision first."],
+    ["revision_changed", "This revision changed while the archive was running. Reload and try again."],
+    ["invalid_state", "This revision is no longer published and cannot be archived."],
+  ])("shows and focuses the actionable %s archive error", async (error, message) => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ error, internal: "private document details" }),
+      { status: 409, headers: { "content-type": "application/json" } },
+    )))
+    render(<DocumentEditor revision={{
+      ...revision,
+      status: "published",
+      publishedAt: new Date("2026-08-23T12:00:00.000Z"),
+    }} />)
+
+    await user.click(screen.getByRole("button", { name: "Archive" }))
+
+    const alert = await screen.findByRole("alert")
+    expect(alert).toHaveTextContent(message)
+    expect(alert).toHaveFocus()
+    expect(alert).not.toHaveTextContent("private document details")
+  })
+
+  it("permanently deletes an archived revision after title confirmation", async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.mocked(fetch)
+    vi.spyOn(window, "prompt").mockReturnValue(revision.title)
+    render(<DocumentEditor revision={{ ...revision, status: "archived" }} />)
+
+    await user.click(screen.getByRole("button", { name: "Delete permanently" }))
+
+    expect(window.prompt).toHaveBeenCalledWith("Type the document title to delete it permanently:", "")
+    expect(fetchMock).toHaveBeenCalledWith(`/api/admin/documents/${revision.id}`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ permanent: true, confirmation: revision.title }),
+    })
+    expect(navigationMocks.replace).toHaveBeenCalledWith("/admin/documents")
+  })
+
+  it("cancels permanent deletion without making a request", async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.mocked(fetch)
+    vi.spyOn(window, "prompt").mockReturnValue(null)
+    render(<DocumentEditor revision={{ ...revision, status: "archived" }} />)
+
+    await user.click(screen.getByRole("button", { name: "Delete permanently" }))
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(navigationMocks.replace).not.toHaveBeenCalled()
+  })
+
+  it.each(["published", "scheduled"] as const)(
+    "does not offer permanent deletion for a %s revision",
+    (status) => {
+      render(<DocumentEditor revision={{
+        ...revision,
+        status,
+        scheduledAt: status === "scheduled" ? new Date("2099-01-01") : null,
+        publishedAt: status === "published" ? new Date("2026-08-23") : null,
+      }} />)
+
+      expect(screen.queryByRole("button", { name: "Delete permanently" })).not.toBeInTheDocument()
+    },
+  )
+
   it("confirms schedule, publish, unschedule, archive, and new-revision mutations", async () => {
     const user = userEvent.setup()
     const fetchMock = vi.mocked(fetch)

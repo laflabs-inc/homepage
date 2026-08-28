@@ -22,14 +22,14 @@ import type { AgentConfiguration } from "@/lib/agent/types"
 const configuration: AgentConfiguration = {
   settings: {
     enabled: false,
-    model: "gpt-5-mini",
+    model: "gpt-5.6-luna",
     dailyTokenLimit: 20_000,
     dailyQuestionLimit: 10,
     maxOutputTokens: 600,
     monthlyCostLimitMicrousd: 50_000_000,
-    inputPriceMicrousdPerMillion: 250_000,
-    outputPriceMicrousdPerMillion: 2_000_000,
-    pricingCheckedAt: new Date("2026-08-23T09:00:00.000Z"),
+    inputPriceMicrousdPerMillion: 200_000,
+    outputPriceMicrousdPerMillion: 1_200_000,
+    pricingCheckedAt: new Date("2026-08-27T00:00:00.000Z"),
     resetTimezone: "Asia/Seoul",
     dailyResetMinute: 0,
     cookieRetentionDays: 180,
@@ -43,7 +43,7 @@ const configuration: AgentConfiguration = {
     configured: true,
     provider: "openai",
     fingerprint: "7ab32c4901de",
-    verifiedModel: "gpt-5-mini",
+    verifiedModel: "gpt-5.6-luna",
     verificationStatus: "verified",
     verifiedAt: new Date("2026-08-23T09:00:00.000Z"),
     createdBy: "4242",
@@ -76,68 +76,125 @@ describe("Agent settings", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Agent" })).toBeInTheDocument()
   })
 
-  it("renders every setting in the six square control groups without exposing credential data", () => {
+  it("renders a compact guided setup with optional limits and no editable prices", () => {
     render(<AgentSettings initialConfiguration={configuration} />)
 
-    for (const heading of [
-      "Connection",
-      "Model & pricing",
-      "Visitor limits",
-      "Budget",
-      "Cookie",
-      "Summary",
-    ]) {
+    for (const heading of ["OpenAI setup", "Usage & policy"]) {
       expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument()
     }
     expect(screen.getByRole("checkbox", { name: "Enable AI" })).not.toBeChecked()
-    expect(screen.getByRole("textbox", { name: "Model" })).toHaveValue("gpt-5-mini")
-    expect(screen.getByRole("spinbutton", { name: "Daily token limit" })).toHaveValue(20_000)
-    expect(screen.getByRole("spinbutton", { name: "Daily question limit" })).toHaveValue(10)
-    expect(screen.getByRole("spinbutton", { name: "Maximum output tokens" })).toHaveValue(600)
+    expect(screen.getByRole("combobox", { name: "Model" })).toHaveValue("gpt-5.6-luna")
     expect(screen.getByRole("spinbutton", { name: "Monthly estimated cost limit (USD)" })).toHaveValue(50)
-    expect(screen.getByRole("spinbutton", { name: "Input price per million tokens (USD)" })).toHaveValue(0.25)
-    expect(screen.getByRole("spinbutton", { name: "Output price per million tokens (USD)" })).toHaveValue(2)
-    expect(screen.getByRole("textbox", { name: "Reset timezone" })).toHaveValue("Asia/Seoul")
-    expect(screen.getByLabelText("Daily reset time")).toHaveValue("00:00")
-    expect(screen.getByRole("spinbutton", { name: "AI identity-cookie retention (days)" })).toHaveValue(180)
     expect(screen.getByRole("combobox", { name: "Summary policy" })).toHaveValue("review")
+    expect(screen.getByText("$0.20 input / $1.20 output per 1M tokens")).toBeInTheDocument()
+    expect(screen.queryByRole("spinbutton", { name: "Input price per million tokens (USD)" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("spinbutton", { name: "Output price per million tokens (USD)" })).not.toBeInTheDocument()
+    expect(screen.getByText("Advanced limits")).toBeInTheDocument()
+    expect(screen.getByLabelText("Daily token limit")).toHaveValue(20_000)
+    expect(screen.getByLabelText("Daily question limit")).toHaveValue(10)
+    expect(screen.getByLabelText("Maximum output tokens")).toHaveValue(600)
+    expect(screen.getByLabelText("Reset timezone")).toHaveValue("Asia/Seoul")
+    expect(screen.getByLabelText("Daily reset time")).toHaveValue("00:00")
+    expect(screen.getByLabelText("AI identity-cookie retention (days)")).toHaveValue(180)
     expect(screen.getByText("$50.00 estimated monthly guardrail")).toBeInTheDocument()
-    expect(screen.getByText(/Aug 23, 2026/)).toBeInTheDocument()
+    expect(screen.getByText(/Aug 27, 2026/)).toBeInTheDocument()
     expect(screen.getByText(/Configured · ••••01de · Verified/)).toBeInTheDocument()
     expect(screen.queryByText(configuration.credential.fingerprint!)).not.toBeInTheDocument()
     expect(screen.getByLabelText("OpenAI API key")).toHaveAttribute("type", "password")
     expect(screen.getByLabelText("OpenAI API key")).toHaveValue("")
   })
 
-  it("warns when the model changes and saves the complete versioned settings payload", async () => {
+  it("preselects the recommended model and registers a first credential in one request", async () => {
+    const user = userEvent.setup()
+    const fresh: AgentConfiguration = {
+      settings: {
+        ...configuration.settings,
+        model: null,
+        inputPriceMicrousdPerMillion: null,
+        outputPriceMicrousdPerMillion: null,
+        pricingCheckedAt: null,
+      },
+      credential: {
+        configured: false,
+        provider: "openai",
+        fingerprint: null,
+        verifiedModel: null,
+        verificationStatus: null,
+        verifiedAt: null,
+        createdBy: null,
+        createdAt: null,
+        updatedAt: null,
+      },
+    }
+    const secret = `sk-${"n".repeat(24)}`
+    render(<AgentSettings initialConfiguration={fresh} />)
+
+    expect(screen.getByRole("combobox", { name: "Model" })).toHaveValue("gpt-5.6-luna")
+    expect(screen.getByLabelText("OpenAI API key")).toBeRequired()
+    await user.type(screen.getByLabelText("OpenAI API key"), secret)
+    await user.click(screen.getByRole("button", { name: "Verify and save" }))
+
+    expect(fetch).toHaveBeenCalledWith("/api/admin/agent/credential", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ apiKey: secret, model: "gpt-5.6-luna", version: 3 }),
+    })
+  })
+
+  it("verifies a different catalog model with the stored credential", async () => {
     const user = userEvent.setup()
     render(<AgentSettings initialConfiguration={configuration} />)
 
-    const model = screen.getByRole("textbox", { name: "Model" })
-    await user.clear(model)
-    await user.type(model, "gpt-5")
-    expect(screen.getByRole("status")).toHaveTextContent(/disables AI, clears pricing, and requires another connection test/i)
+    await user.selectOptions(screen.getByRole("combobox", { name: "Model" }), "gpt-5.6-terra")
+    expect(screen.getByText("$2.00 input / $12.00 output per 1M tokens")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Verify and apply model" }))
+
+    expect(fetch).toHaveBeenCalledWith("/api/admin/agent/credential", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ model: "gpt-5.6-terra", version: 3 }),
+    })
+  })
+
+  it("moves a legacy free-text model to the recommended supported selection", () => {
+    const legacy = {
+      ...configuration,
+      settings: { ...configuration.settings, model: "gpt-legacy" },
+      credential: { ...configuration.credential, verifiedModel: "gpt-legacy" },
+    }
+    render(<AgentSettings initialConfiguration={legacy} />)
+
+    expect(screen.getByRole("combobox", { name: "Model" })).toHaveValue("gpt-5.6-luna")
+    expect(screen.getByRole("alert")).toHaveTextContent(/gpt-legacy is no longer in the supported model catalog/i)
+  })
+
+  it("saves limits and policy without submitting model or prices", async () => {
+    const user = userEvent.setup()
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    const questions = screen.getByLabelText("Daily question limit")
+    await user.clear(questions)
+    await user.type(questions, "25")
     await user.click(screen.getByRole("button", { name: "Save settings" }))
 
+    const expectedBody = {
+      enabled: false,
+      dailyTokenLimit: 20_000,
+      dailyQuestionLimit: 25,
+      maxOutputTokens: 600,
+      monthlyCostLimitUsd: "50",
+      resetTimezone: "Asia/Seoul",
+      dailyResetMinute: 0,
+      cookieRetentionDays: 180,
+      summaryPolicy: "review",
+      version: 3,
+    }
     expect(fetch).toHaveBeenCalledWith("/api/admin/agent", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        enabled: false,
-        model: "gpt-5",
-        dailyTokenLimit: 20_000,
-        dailyQuestionLimit: 10,
-        maxOutputTokens: 600,
-        monthlyCostLimitUsd: "50",
-        inputPriceUsdPerMillion: "0.25",
-        outputPriceUsdPerMillion: "2",
-        resetTimezone: "Asia/Seoul",
-        dailyResetMinute: 0,
-        cookieRetentionDays: 180,
-        summaryPolicy: "review",
-        version: 3,
-      }),
+      body: JSON.stringify(expectedBody),
     })
+    expect(JSON.stringify(expectedBody)).not.toMatch(/model|price/i)
     expect(await screen.findByRole("status")).toHaveTextContent("Settings saved.")
   })
 
@@ -161,12 +218,16 @@ describe("Agent settings", () => {
 
     const input = screen.getByLabelText("OpenAI API key")
     await user.type(input, secret)
-    await user.click(screen.getByRole("button", { name: "Replace credential" }))
+    await user.click(screen.getByRole("button", { name: "Verify and replace" }))
 
     expect(fetch).toHaveBeenCalledWith("/api/admin/agent/credential", {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ apiKey: secret }),
+      body: JSON.stringify({
+        apiKey: secret,
+        model: "gpt-5.6-luna",
+        version: 3,
+      }),
     })
     await waitFor(() => expect(input).toHaveValue(""))
     expect(screen.getByRole("alert")).toHaveTextContent(/OpenAI could not verify the credential or model/i)
@@ -175,7 +236,7 @@ describe("Agent settings", () => {
   it("tests and deletes credentials, confirming deletion before the destructive request", async () => {
     const user = userEvent.setup()
     render(<AgentSettings initialConfiguration={configuration} />)
-    const connection = screen.getByRole("heading", { name: "Connection" }).closest("section")!
+    const connection = screen.getByRole("heading", { name: "OpenAI setup" }).closest("section")!
 
     await user.click(within(connection).getByRole("button", { name: "Test connection" }))
     expect(fetch).toHaveBeenCalledWith("/api/admin/agent/credential/test", {
@@ -271,7 +332,7 @@ describe("Agent settings", () => {
 
   it.each([
     "Test connection",
-    "Replace credential",
+    "Verify and replace",
     "Delete credential",
   ])("preserves unsaved settings after successful %s and uses the returned version", async (action) => {
     const user = userEvent.setup()
@@ -298,7 +359,7 @@ describe("Agent settings", () => {
     const questions = screen.getByRole("spinbutton", { name: "Daily question limit" })
     await user.clear(questions)
     await user.type(questions, "25")
-    if (action === "Replace credential") {
+    if (action === "Verify and replace") {
       await user.type(screen.getByLabelText("OpenAI API key"), `sk-${"r".repeat(24)}`)
     }
     await user.click(screen.getByRole("button", { name: action }))

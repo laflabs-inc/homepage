@@ -165,6 +165,31 @@ class MemoryDocumentRepository implements DocumentRepository {
     this.audits.push({ action: "document.delete", targetType: "document_revision", targetId: revisionId, actor: admin })
   }
 
+  async deleteArchived(revisionId: string, admin: AdminActor): Promise<void> {
+    const revision = await this.required(revisionId)
+    if (revision.status !== "archived") throw Object.assign(new Error("invalid state"), { code: "conflict" })
+    const hasEnglish = this.revisions.some((item) => item.seriesId === revision.seriesId && item.locale === "en")
+    const hasOtherKorean = this.revisions.some((item) => (
+      item.id !== revision.id && item.seriesId === revision.seriesId && item.locale === "ko"
+    ))
+    if (revision.locale === "ko" && hasEnglish && !hasOtherKorean) {
+      throw Object.assign(new Error("korean required"), { code: "conflict" })
+    }
+    this.revisions = this.revisions.filter(({ id }) => id !== revisionId)
+    this.audits.push({
+      action: "document.delete",
+      targetType: "document_revision",
+      targetId: revisionId,
+      actor: admin,
+      metadata: {
+        seriesId: revision.seriesId,
+        locale: revision.locale,
+        revision: revision.revision,
+        priorStatus: "archived",
+      },
+    })
+  }
+
   async createNextDraft(seriesId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
     const revisions = this.revisions.filter((revision) => revision.seriesId === seriesId && revision.locale === values.locale)
     return this.seed({
@@ -481,6 +506,54 @@ describe("document workflow service", () => {
     expect(repository.revisions).not.toContainEqual(replacement)
   })
 
+  it("permanently deletes only an archived revision after normalized title confirmation", async () => {
+    const archived = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "archived",
+      title: "LafLabs 공지",
+    })
+
+    await expect(service.deleteArchived(archived.id, "  ＬａｆＬａｂｓ 공지  ", actor)).resolves.toBeUndefined()
+    expect(repository.revisions).not.toContainEqual(archived)
+  })
+
+  it("rejects an archived deletion when the title confirmation does not match", async () => {
+    const archived = repository.seed({ seriesId: "series-1", locale: "ko", status: "archived" })
+
+    await expect(service.deleteArchived(archived.id, "다른 제목", actor)).rejects.toMatchObject({
+      code: "confirmation_mismatch",
+    })
+    expect(repository.revisions).toContainEqual(archived)
+  })
+
+  it("rejects permanent deletion for a revision that is not archived", async () => {
+    const published = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
+
+    await expect(service.deleteArchived(published.id, published.title, actor)).rejects.toMatchObject({
+      code: "invalid_state",
+    })
+  })
+
+  it("protects the final Korean revision while any English history exists", async () => {
+    const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "archived" })
+    repository.seed({ seriesId: "series-1", locale: "en", status: "archived" })
+
+    await expect(service.deleteArchived(korean.id, korean.title, actor)).rejects.toMatchObject({
+      code: "delete_dependency",
+    })
+    expect(repository.revisions).toContainEqual(korean)
+  })
+
+  it("allows an older archived Korean revision to be deleted when Korean history remains", async () => {
+    const archived = repository.seed({ seriesId: "series-1", locale: "ko", status: "archived", revision: 1 })
+    repository.seed({ seriesId: "series-1", locale: "ko", status: "published", revision: 2 })
+    repository.seed({ seriesId: "series-1", locale: "en", status: "published", revision: 1 })
+
+    await expect(service.deleteArchived(archived.id, archived.title, actor)).resolves.toBeUndefined()
+    expect(repository.revisions).not.toContainEqual(archived)
+  })
+
   it("requires a Korean revision before creating an English draft", async () => {
     repository.seed({ seriesId: "series-without-korean", locale: "en", status: "archived" })
 
@@ -748,15 +821,21 @@ describe("document workflow service", () => {
     const requested = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
     repository.replaceBeforeArchive = true
 
-    await expect(service.archive(requested.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
+    await expect(service.archive(requested.id, actor, now)).rejects.toMatchObject({ code: "revision_changed" })
     expect(repository.revisions.find(({ revision }) => revision === 2)).toMatchObject({ status: "published" })
+  })
+
+  it("explains that a non-published revision cannot be archived", async () => {
+    const archived = repository.seed({ seriesId: "series-1", locale: "ko", status: "archived" })
+
+    await expect(service.archive(archived.id, actor, now)).rejects.toMatchObject({ code: "invalid_state" })
   })
 
   it("does not archive published Korean while English is published", async () => {
     const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
     repository.seed({ seriesId: "series-1", locale: "en", status: "published" })
 
-    await expect(service.archive(korean.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
+    await expect(service.archive(korean.id, actor, now)).rejects.toMatchObject({ code: "archive_dependency" })
     expect(korean.status).toBe("published")
   })
 
