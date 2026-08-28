@@ -11,7 +11,13 @@ import {
 } from "@/lib/http/admin-documents"
 import { jsonNoStore, readBoundedJson } from "@/lib/http/json-body"
 
-const emptyBodySchema = z.object({}).strict()
+const deleteSchema = z.union([
+  z.object({}).strict(),
+  z.object({
+    permanent: z.literal(true),
+    confirmation: z.string().min(1).max(160),
+  }).strict(),
+])
 
 export async function handleGetDocument(
   _request: Request,
@@ -64,14 +70,19 @@ export async function handleDeleteDocument(
   if (!authorization.ok) return authorization.response
   const body = await readBoundedJson(request)
   if (!body.ok) return body.response
-  if (!emptyBodySchema.safeParse(body.value).success) {
+  const parsed = deleteSchema.safeParse(body.value)
+  if (!parsed.success) {
     return jsonNoStore({ error: "invalid_request" }, { status: 400 })
   }
   const invalidRevisionId = invalidRevisionIdResponse(revisionId)
   if (invalidRevisionId) return invalidRevisionId
 
   try {
-    await dependencies.service.deleteDraft(revisionId, authorization.actor)
+    if ("permanent" in parsed.data) {
+      await dependencies.service.deleteArchived(revisionId, parsed.data.confirmation, authorization.actor)
+    } else {
+      await dependencies.service.deleteDraft(revisionId, authorization.actor)
+    }
     return jsonNoStore({ ok: true })
   } catch (error) {
     return serviceErrorResponse(error)

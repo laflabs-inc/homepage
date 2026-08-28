@@ -381,6 +381,33 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("other_korean.\"status\" in ('scheduled', 'published', 'archived')")
   })
 
+  it("permanently deletes only an archived revision with locked locale-history invariants", async () => {
+    execute.mockResolvedValue({ rows: [{ id: publishedRow.id }] })
+
+    await store.deleteArchived(publishedRow.id, actor)
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_revisions as")
+    expect(normalizedSql).toContain("locked_revision.\"status\" = 'archived'")
+    expect(normalizedSql).toContain("english.\"locale\" = 'en'")
+    expect(normalizedSql).toContain("other_korean.\"locale\" = 'ko'")
+    expect(normalizedSql).toContain("deleted_series as")
+    expect(normalizedSql).toContain("delete from \"document_series\"")
+    expect(normalizedSql).toContain("'priorstatus', 'archived'")
+    expect(normalizedSql).toContain("'revision', deleted_revision.\"revision\"")
+    expect(normalizedSql).not.toContain("deleted_revision.\"title\"")
+    expect(compiled.params).not.toContain(publishedRow.title)
+    expect(compiled.params).not.toContain(publishedRow.bodyMarkdown)
+  })
+
+  it("returns a stable conflict when an archived revision is no longer eligible", async () => {
+    execute.mockResolvedValue({ rows: [] })
+
+    await expect(store.deleteArchived(publishedRow.id, actor)).rejects.toMatchObject({ code: "conflict" })
+  })
+
   it("rechecks complete stored content while locking a draft for scheduling", async () => {
     execute.mockResolvedValue({
       rows: [{ ...publishedRow, status: "scheduled", scheduledAt: new Date(now.getTime() + 60_000), publishedAt: null }],

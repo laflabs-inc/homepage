@@ -168,6 +168,7 @@ export interface DocumentRepository {
     metadata: SummaryGenerationMetadata,
   ): Promise<DocumentRevision>
   deleteDraft(revisionId: string, actor: AdminActor): Promise<void>
+  deleteArchived(revisionId: string, actor: AdminActor): Promise<void>
   createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
   scheduleRevision(revisionId: string, scheduledAt: Date, snapshot: PublicationTransitionSnapshot, actor: AdminActor): Promise<DocumentRevision>
   returnScheduledToDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision>

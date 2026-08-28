@@ -90,6 +90,7 @@ function dependencies(overrides: Record<string, unknown> = {}) {
       createEnglishDraft: vi.fn().mockResolvedValue({ ...revision, locale: "en" }),
       updateDraft: vi.fn().mockResolvedValue(revision),
       deleteDraft: vi.fn().mockResolvedValue(undefined),
+      deleteArchived: vi.fn().mockResolvedValue(undefined),
       schedule: vi.fn().mockResolvedValue({ ...revision, status: "scheduled" }),
       returnScheduledToDraft: vi.fn().mockResolvedValue(revision),
       publish: vi.fn().mockResolvedValue({ ...revision, status: "published" }),
@@ -479,6 +480,68 @@ describe("admin document revision actions", () => {
     expect(response.status).toBe(200)
     expect(deps.service.deleteDraft).toHaveBeenCalledWith(revisionId, actor)
     await expect(response.json()).resolves.toEqual({ ok: true })
+  })
+
+  it("dispatches an explicitly confirmed permanent deletion to the archived workflow", async () => {
+    const deps = dependencies()
+    const response = await handleDeleteDocument(
+      jsonRequest(`/api/admin/documents/${revisionId}`, {
+        permanent: true,
+        confirmation: revision.title,
+      }, { method: "DELETE" }),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(200)
+    expect(deps.service.deleteArchived).toHaveBeenCalledWith(revisionId, revision.title, actor)
+    expect(deps.service.deleteDraft).not.toHaveBeenCalled()
+    await expect(response.json()).resolves.toEqual({ ok: true })
+    await expectNoStore(response)
+  })
+
+  it.each([
+    { permanent: true },
+    { permanent: false, confirmation: revision.title },
+    { permanent: true, confirmation: "" },
+    { permanent: true, confirmation: revision.title, extra: true },
+    { confirmation: revision.title },
+  ])("rejects an invalid permanent-delete body %#", async (body) => {
+    const deps = dependencies()
+    const response = await handleDeleteDocument(
+      jsonRequest(`/api/admin/documents/${revisionId}`, body, { method: "DELETE" }),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(400)
+    await expect(response.json()).resolves.toEqual({ error: "invalid_request" })
+    expect(deps.service.deleteArchived).not.toHaveBeenCalled()
+    expect(deps.service.deleteDraft).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["confirmation_mismatch", 422],
+    ["delete_dependency", 409],
+    ["invalid_state", 409],
+  ] as const)("maps permanent-delete %s to a safe response", async (code, status) => {
+    const deps = dependencies()
+    deps.service.deleteArchived.mockRejectedValue(new DocumentServiceError(code, "private title or storage details"))
+
+    const response = await handleDeleteDocument(
+      jsonRequest(`/api/admin/documents/${revisionId}`, {
+        permanent: true,
+        confirmation: revision.title,
+      }, { method: "DELETE" }),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(status)
+    const payload = await response.json()
+    expect(payload).toEqual({ error: code })
+    expect(JSON.stringify(payload)).not.toContain("private title or storage details")
+    await expectNoStore(response)
   })
 
   it("schedules with a validated date and does not invalidate public cache", async () => {

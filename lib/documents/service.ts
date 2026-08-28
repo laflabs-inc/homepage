@@ -22,6 +22,8 @@ export type DocumentServiceErrorCode =
   | "archive_dependency"
   | "revision_changed"
   | "invalid_state"
+  | "confirmation_mismatch"
+  | "delete_dependency"
   | "unavailable"
 
 export class DocumentServiceError extends Error {
@@ -223,6 +225,27 @@ export function createDocumentService(repository: DocumentRepository) {
       const revision = await requireRevision(repository, revisionId)
       requireDraft(revision)
       await repository.deleteDraft(revisionId, actor)
+    },
+
+    async deleteArchived(revisionId: string, confirmation: string, actor: AdminActor): Promise<void> {
+      const revision = await requireRevision(repository, revisionId)
+      if (revision.status !== "archived") {
+        throw new DocumentServiceError("invalid_state", "Only archived revisions may be permanently deleted")
+      }
+      const normalizedConfirmation = confirmation.normalize("NFKC").trim()
+      const normalizedTitle = revision.title.normalize("NFKC").trim()
+      if (normalizedConfirmation !== normalizedTitle) {
+        throw new DocumentServiceError("confirmation_mismatch", "The title confirmation did not match")
+      }
+      if (revision.locale === "ko") {
+        const series = await repository.listSeriesRevisionStates(revision.seriesId)
+        const hasEnglish = series.some(({ locale }) => locale === "en")
+        const hasOtherKorean = series.some(({ id, locale }) => id !== revision.id && locale === "ko")
+        if (hasEnglish && !hasOtherKorean) {
+          throw new DocumentServiceError("delete_dependency", "Keep a Korean revision while English history exists")
+        }
+      }
+      await repository.deleteArchived(revisionId, actor)
     },
 
     async createNextDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision> {
