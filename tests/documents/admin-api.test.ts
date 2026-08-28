@@ -586,6 +586,27 @@ describe("admin document revision actions", () => {
     expect(deps.revalidate).toHaveBeenCalledTimes(5)
   })
 
+  it.each([
+    "archive_dependency",
+    "revision_changed",
+    "invalid_state",
+  ] as const)("returns the safe %s archive conflict", async (code) => {
+    const deps = dependencies()
+    deps.service.archive.mockRejectedValue(new DocumentServiceError(code, "private storage details"))
+
+    const response = await handleArchiveDocument(
+      jsonRequest(`/api/admin/documents/${revisionId}/archive`, {}),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(409)
+    const payload = await response.json()
+    expect(payload).toEqual({ error: code })
+    expect(JSON.stringify(payload)).not.toContain("private storage details")
+    await expectNoStore(response)
+  })
+
   it("creates a new editable revision from immutable content", async () => {
     const deps = dependencies()
     const response = await handleNewRevision(

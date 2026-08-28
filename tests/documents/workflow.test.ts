@@ -748,15 +748,21 @@ describe("document workflow service", () => {
     const requested = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
     repository.replaceBeforeArchive = true
 
-    await expect(service.archive(requested.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
+    await expect(service.archive(requested.id, actor, now)).rejects.toMatchObject({ code: "revision_changed" })
     expect(repository.revisions.find(({ revision }) => revision === 2)).toMatchObject({ status: "published" })
+  })
+
+  it("explains that a non-published revision cannot be archived", async () => {
+    const archived = repository.seed({ seriesId: "series-1", locale: "ko", status: "archived" })
+
+    await expect(service.archive(archived.id, actor, now)).rejects.toMatchObject({ code: "invalid_state" })
   })
 
   it("does not archive published Korean while English is published", async () => {
     const korean = repository.seed({ seriesId: "series-1", locale: "ko", status: "published" })
     repository.seed({ seriesId: "series-1", locale: "en", status: "published" })
 
-    await expect(service.archive(korean.id, actor, now)).rejects.toMatchObject({ code: "conflict" })
+    await expect(service.archive(korean.id, actor, now)).rejects.toMatchObject({ code: "archive_dependency" })
     expect(korean.status).toBe("published")
   })
 

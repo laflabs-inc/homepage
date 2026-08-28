@@ -19,6 +19,9 @@ export type DocumentServiceErrorCode =
   | "korean_required"
   | "korean_not_published"
   | "invalid_schedule"
+  | "archive_dependency"
+  | "revision_changed"
+  | "invalid_state"
   | "unavailable"
 
 export class DocumentServiceError extends Error {
@@ -280,16 +283,16 @@ export function createDocumentService(repository: DocumentRepository) {
     async archive(revisionId: string, actor: AdminActor, now = new Date()): Promise<DocumentRevision> {
       const revision = await requireRevision(repository, revisionId)
       if (revision.status !== "published") {
-        throw new DocumentServiceError("conflict", "Only the current published revision may be archived")
+        throw new DocumentServiceError("invalid_state", "Only the current published revision may be archived")
       }
       if (revision.locale === "ko") {
         const series = await repository.listSeriesRevisionStates(revision.seriesId)
         if (series.some(({ locale, status }) => locale === "en" && status === "published")) {
-          throw new DocumentServiceError("conflict", "Archive the published English revision first")
+          throw new DocumentServiceError("archive_dependency", "Archive the published English revision first")
         }
       }
       const archived = await repository.archiveCurrent(revision.seriesId, revision.locale, revision.id, actor, now)
-      if (!archived) throw new DocumentServiceError("conflict", "The published revision changed")
+      if (!archived) throw new DocumentServiceError("revision_changed", "The published revision changed")
       return archived
     },
 
