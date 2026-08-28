@@ -230,7 +230,29 @@ describe("Agent settings", () => {
       }),
     })
     await waitFor(() => expect(input).toHaveValue(""))
-    expect(screen.getByRole("alert")).toHaveTextContent(/OpenAI could not verify the credential or model/i)
+    expect(screen.getByRole("alert")).toHaveTextContent(/OpenAI could not be reached or is temporarily unavailable/i)
+  })
+
+  it.each([
+    ["credential_invalid", "OpenAI rejected the API key (401)"],
+    ["model_access_denied", "This API key cannot use the selected model (403)"],
+    ["model_not_found", "The selected OpenAI model was not found or is unavailable to this project (404)"],
+    ["verification_request_invalid", "OpenAI rejected the verification request (400/422)"],
+    ["quota_exhausted", "This OpenAI project has no available API quota or credits"],
+    ["rate_limited", "OpenAI rate-limited the verification request"],
+    ["provider_unavailable", "OpenAI could not be reached or is temporarily unavailable"],
+  ])("shows actionable OpenAI verification guidance for %s", async (code, message) => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockImplementationOnce(() => Promise.resolve(Response.json(
+      { error: code },
+      { status: code === "quota_exhausted" || code === "rate_limited" ? 429 : 502 },
+    )))
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    await user.click(screen.getByRole("button", { name: "Test connection" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message)
+    expect(screen.getByRole("alert")).toHaveTextContent(`Error code: ${code}`)
   })
 
   it("tests and deletes credentials, confirming deletion before the destructive request", async () => {
@@ -276,7 +298,7 @@ describe("Agent settings", () => {
     expect(await screen.findByText("AI is disabled.")).toBeInTheDocument()
     expect(screen.getByText(/Configured · ••••01de · Failed/)).toBeInTheDocument()
     expect(screen.getByRole("checkbox", { name: "Enable AI" })).not.toBeChecked()
-    expect(screen.getByRole("alert")).toHaveTextContent(/OpenAI could not verify the credential or model/i)
+    expect(screen.getByRole("alert")).toHaveTextContent(/OpenAI could not be reached or is temporarily unavailable/i)
   })
 
   it("retains an error alert when a connection-test conflict refreshes persisted state", async () => {

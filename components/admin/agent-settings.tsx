@@ -75,8 +75,27 @@ function dateLabel(value: Date | string | null): string {
 }
 
 function errorMessage(code: string | undefined): string {
-  if (code === "provider_unavailable") return "OpenAI could not verify the credential or model. Try again."
-  if (code === "credential_invalid") return "OpenAI could not verify the credential or model."
+  if (code === "credential_invalid") {
+    return "OpenAI rejected the API key (401). Create a valid project API key and try again. Error code: credential_invalid"
+  }
+  if (code === "model_access_denied") {
+    return "This API key cannot use the selected model (403). Check the key's project and model permissions. Error code: model_access_denied"
+  }
+  if (code === "model_not_found") {
+    return "The selected OpenAI model was not found or is unavailable to this project (404). Error code: model_not_found"
+  }
+  if (code === "verification_request_invalid") {
+    return "OpenAI rejected the verification request (400/422). Send this code to the developer. Error code: verification_request_invalid"
+  }
+  if (code === "quota_exhausted") {
+    return "This OpenAI project has no available API quota or credits. Check billing and usage limits. Error code: quota_exhausted"
+  }
+  if (code === "rate_limited") {
+    return "OpenAI rate-limited the verification request. Wait briefly and try again. Error code: rate_limited"
+  }
+  if (code === "provider_unavailable") {
+    return "OpenAI could not be reached or is temporarily unavailable. Try again. Error code: provider_unavailable"
+  }
   if (code === "credential_required") return "Enter an OpenAI API key to finish the first setup."
   if (code === "unsupported_model") return "Choose one of the supported OpenAI models."
   if (code === "encryption_unavailable") return "Credential encryption is unavailable. Check deployment secrets."
