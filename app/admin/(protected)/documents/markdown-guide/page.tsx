@@ -27,7 +27,7 @@ export default async function MarkdownGuidePage() {
         <a href="/markdown-guide.md" target="_blank" rel="noreferrer">{t.source}</a>
         <span>{t.label}</span>
       </div>
-      <MarkdownAuthoringGuide />
+      <MarkdownAuthoringGuide locale={locale} />
     </div>
   )
 }

@@ -7,9 +7,11 @@ vi.mock("@/app/admin/admin.module.css", () => ({
 vi.mock("@/components/content/content.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
+vi.mock("@/components/i18n/locale-provider", () => {
+  throw new Error("MarkdownAuthoringGuide must not import the client locale provider")
+})
 
 import { MarkdownAuthoringGuide } from "@/components/admin/markdown-authoring-guide"
-import { LocaleProvider } from "@/components/i18n/locale-provider"
 
 describe("MarkdownAuthoringGuide", () => {
   it("renders delimiter guidance without sending Korean prose into math mode", () => {
@@ -18,14 +20,14 @@ describe("MarkdownAuthoringGuide", () => {
       warnings.push(values.map(String).join(" "))
     })
 
-    render(<MarkdownAuthoringGuide />)
+    render(<MarkdownAuthoringGuide locale="ko" />)
     warningSpy.mockRestore()
 
     expect(warnings.filter((warning) => warning.includes("LaTeX-incompatible input"))).toEqual([])
   })
 
   it("demonstrates the renderer's rich document features through real output", () => {
-    const { container } = render(<MarkdownAuthoringGuide />)
+    const { container } = render(<MarkdownAuthoringGuide locale="ko" />)
 
     expect(screen.getByRole("heading", { level: 1, name: "Markdown 작성 가이드" })).toBeInTheDocument()
     const contents = screen.getByRole("navigation", { name: "가이드 목차" })
@@ -39,11 +41,7 @@ describe("MarkdownAuthoringGuide", () => {
   })
 
   it("localizes guide chrome while preserving the Korean authoring source", () => {
-    render(
-      <LocaleProvider initialLocale="en">
-        <MarkdownAuthoringGuide />
-      </LocaleProvider>,
-    )
+    render(<MarkdownAuthoringGuide locale="en" />)
 
     expect(screen.getByRole("heading", { level: 1, name: "Markdown writing guide" })).toBeInTheDocument()
     expect(screen.getByRole("navigation", { name: "Guide contents" })).toBeInTheDocument()

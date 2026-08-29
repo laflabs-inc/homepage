@@ -1,11 +1,11 @@
 import { MarkdownDocument } from "@/components/content/markdown-document"
-import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy } from "@/lib/admin/i18n"
+import type { Locale } from "@/lib/i18n"
 import { markdownAuthoringGuideSource, markdownGuideSections } from "@/lib/markdown/authoring-guide"
 import styles from "@/app/admin/admin.module.css"
 
-export function MarkdownAuthoringGuide() {
-  const t = adminCopy[useLocale()].documents.markdownGuide
+export function MarkdownAuthoringGuide({ locale }: { locale: Locale }) {
+  const t = adminCopy[locale].documents.markdownGuide
 
   return (
     <div className={styles.markdownGuide}>
