@@ -1,4 +1,4 @@
-export const markdownAuthoringGuideSource = String.raw`
+const markdownAuthoringGuideBody = String.raw`
 ## 먼저 지킬 원칙
 
 > [!NOTE] 제목은 별도 입력란에
@@ -190,7 +190,7 @@ $$
 A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}
 $$
 
-- 블록 수식의 여는 <code>$$</code>와 닫는 <code>$$</code> 앞뒤에는 빈 줄을 둡니다.
+- 블록 수식은 달러 기호 두 개로 열고 닫으며, 구분자 앞뒤에는 빈 줄을 둡니다.
 - 여러 줄을 정렬할 때는 aligned, 행렬은 bmatrix를 사용합니다.
 - 관리자 입력란에서는 LaTeX의 역슬래시를 그대로 한 번만 입력합니다.
 
@@ -271,6 +271,13 @@ mark, sub, sup, kbd, abbr, details, summary 같은 안전한 HTML 요소를 지�
 > [!TIP] Preview가 최종 기준입니다
 > 문법이 애매하면 발행 전에 Preview에서 실제 출력과 모바일 가로 스크롤을 확인하세요.
 `
+
+const markdownAuthoringGuideIntroduction = String.raw`> [!INFO] AI에게 요청할 때
+> 이 문서는 LafLabs 문서 본문의 작성 규칙입니다. AI에게 https://laflabs.co/markdown-guide.md 주소와 작성 목적을 함께 전달하세요. AI는 Title, Summary, Kind, Locale 같은 관리자 필드를 본문에 넣지 않고, 결과 본문을 ##부터 시작해야 합니다.`
+
+export const markdownAuthoringGuideSource = `${markdownAuthoringGuideIntroduction}\n\n${markdownAuthoringGuideBody}`
+
+export const markdownAuthoringGuideDocument = `# LafLabs Markdown 작성 가이드\n\n${markdownAuthoringGuideSource}`
 
 export const markdownGuideSections = [
   ["먼저 지킬 원칙", "#먼저-지킬-원칙"],

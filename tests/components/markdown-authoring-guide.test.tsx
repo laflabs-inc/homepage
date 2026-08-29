@@ -11,6 +11,18 @@ vi.mock("@/components/content/content.module.css", () => ({
 import { MarkdownAuthoringGuide } from "@/components/admin/markdown-authoring-guide"
 
 describe("MarkdownAuthoringGuide", () => {
+  it("renders delimiter guidance without sending Korean prose into math mode", () => {
+    const warnings: string[] = []
+    const warningSpy = vi.spyOn(console, "warn").mockImplementation((...values) => {
+      warnings.push(values.map(String).join(" "))
+    })
+
+    render(<MarkdownAuthoringGuide />)
+    warningSpy.mockRestore()
+
+    expect(warnings.filter((warning) => warning.includes("LaTeX-incompatible input"))).toEqual([])
+  })
+
   it("demonstrates the renderer's rich document features through real output", () => {
     const { container } = render(<MarkdownAuthoringGuide />)
 

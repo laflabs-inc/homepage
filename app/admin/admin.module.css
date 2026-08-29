@@ -275,25 +275,33 @@
 }
 
 .markdownGuide {
-  width: min(100%, 980px);
+  width: 100%;
+  max-width: 980px;
+  min-width: 0;
 }
 
 .markdownGuidePage {
+  width: 100%;
+  min-width: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
 }
 
 .markdownGuideToolbar {
-  width: min(100%, 980px);
+  width: 100%;
+  max-width: 980px;
+  min-width: 0;
   margin-bottom: 48px;
   padding-bottom: 18px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   border-bottom: 1px solid var(--ink);
   color: var(--muted);
-  font: 650 10px var(--font-geist-mono), monospace;
+  font: 650 10px var(--font-geist-mono), "Pretendard", monospace;
   letter-spacing: 0.08em;
 }
 
