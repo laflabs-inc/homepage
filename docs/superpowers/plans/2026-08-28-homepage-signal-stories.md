@@ -287,27 +287,29 @@ git commit -m "feat: add homepage latest signals"
 - Modify: `components/sections/build-loop.tsx`
 - Modify: `components/sections/build-loop.module.css`
 - Modify: `tests/components/build-loop-styles.test.tsx`
+- Create: `e2e/homepage-motion.spec.ts`
+- Create: `playwright.homepage.config.ts`
 
 **Interfaces:**
 - Consumes: `copy[locale].buildLoop`, Motion `useScroll`, `useTransform`, and `useReducedMotion`.
 - Produces: a section-entry timeline with visible right-to-left headline and step motion at every responsive width.
 
-- [ ] **Step 1: Add failing regression assertions for the cancelled mobile motion**
+- [ ] **Step 1: Add failing regression coverage for the cancelled mobile motion**
 
-Extend the current test to read `components/sections/build-loop.module.css` with `readFileSync` and assert:
+Extend the current component test with the motion contract:
 
 ```ts
-expect(css).not.toMatch(/opacity:\s*1\s*!important/)
-expect(css).not.toMatch(/transform:\s*none\s*!important/)
 expect(section).toHaveAttribute("data-motion-sequence", "scroll")
 expect(within(section).getAllByRole("listitem")).toHaveLength(4)
 ```
+
+Add a mobile Playwright test that scrolls the real page across the build-loop region, reads the first step's computed transform before and after the scroll, and asserts that the transform is neither cancelled to `none` nor static. Use a homepage-only Playwright config so this visual regression does not require the analytics test database.
 
 - [ ] **Step 2: Run the regression test and verify it fails**
 
 Run: `npx vitest run tests/components/build-loop-styles.test.tsx`
 
-Expected: FAIL because mobile CSS currently forces opacity and transforms to their static values and the section has no timeline marker.
+Expected: the unit test FAILS because the section has no timeline marker. The browser test FAILS because mobile CSS currently forces the computed transform to `none`.
 
 - [ ] **Step 3: Start the timeline at section entry and animate the intro**
 
