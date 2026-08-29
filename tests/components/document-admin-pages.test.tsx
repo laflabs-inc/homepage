@@ -82,6 +82,9 @@ describe("protected admin document queries", () => {
     expect(authMocks.requireAdmin).toHaveBeenCalled()
     expect(screen.getByRole("heading", { level: 1, name: "Markdown 작성 가이드" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "문서 목록으로 돌아가기" })).toHaveAttribute("href", "/admin/documents")
+    const aiGuideLink = screen.queryByText("AI용 Markdown 원문")?.closest("a")
+    expect(aiGuideLink).toHaveAttribute("href", "/markdown-guide.md")
+    expect(aiGuideLink).toHaveAttribute("target", "_blank")
   })
 
   it("renders the index from the bounded minimal summary query", async () => {

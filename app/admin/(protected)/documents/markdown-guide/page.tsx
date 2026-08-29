@@ -18,6 +18,7 @@ export default async function MarkdownGuidePage() {
         <Link href="/admin/documents">
           <span aria-hidden="true">←</span> 문서 목록으로 돌아가기
         </Link>
+        <a href="/markdown-guide.md" target="_blank" rel="noreferrer">AI용 Markdown 원문</a>
         <span>ADMIN DOCS / GUIDE</span>
       </div>
       <MarkdownAuthoringGuide />
