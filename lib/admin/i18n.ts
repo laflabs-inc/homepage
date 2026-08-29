@@ -51,6 +51,14 @@ const en = {
     toContact: "to contact",
     locale: "Locale",
     device: "Device",
+    localeValues: {
+      ko: "Korean",
+      en: "English",
+    },
+    deviceValues: {
+      mobile: "Mobile",
+      desktop: "Desktop",
+    },
     noPageViewData: "No page-view data",
     referrers: "Referrers",
     referrersTotal: "Top 10 page-view hosts",
@@ -100,6 +108,7 @@ const en = {
       backToList: "Back to documents",
       source: "Markdown source for AI",
       label: "ADMIN DOCS / GUIDE",
+      metadataTitle: "Markdown guide | Admin",
     },
   },
 } as const
@@ -147,6 +156,14 @@ const ko = {
     toContact: "문의로",
     locale: "언어",
     device: "기기",
+    localeValues: {
+      ko: "한국어",
+      en: "영어",
+    },
+    deviceValues: {
+      mobile: "모바일",
+      desktop: "데스크톱",
+    },
     noPageViewData: "페이지 조회 데이터가 없습니다",
     referrers: "유입 경로",
     referrersTotal: "상위 10개 페이지 조회 호스트",
@@ -196,6 +213,7 @@ const ko = {
       backToList: "문서 목록으로 돌아가기",
       source: "AI용 Markdown 원문",
       label: "관리자 문서 / 가이드",
+      metadataTitle: "Markdown 작성 가이드 | Admin",
     },
   },
 } satisfies CopyShape<typeof en>

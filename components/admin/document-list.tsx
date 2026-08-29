@@ -7,6 +7,7 @@ import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminDocumentListRow } from "@/lib/documents/admin-list"
+import type { Locale } from "@/lib/i18n"
 
 type DocumentListProps = {
   rows: AdminDocumentListRow[]
@@ -16,13 +17,28 @@ type DocumentListProps = {
 }
 const emptyFilters: NonNullable<DocumentListProps["initialFilters"]> = {}
 
+function displayDocumentLocale(value: AdminDocumentListRow["locale"], locale: Locale) {
+  const t = adminCopy[locale].documents
+  return value === "ko" ? t.korean : t.english
+}
+
+function formatDocumentDate(value: string, locale: Locale) {
+  return new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "UTC",
+  }).format(new Date(value))
+}
+
 export function DocumentList({
   rows,
   nextCursor = null,
   limit = 50,
   initialFilters = emptyFilters,
 }: DocumentListProps) {
-  const t = adminCopy[useLocale()].documents
+  const localePreference = useLocale()
+  const t = adminCopy[localePreference].documents
   const [search, setSearch] = useState(initialFilters.search ?? "")
   const [kind, setKind] = useState(initialFilters.kind ?? "")
   const [status, setStatus] = useState(initialFilters.status ?? "")
@@ -94,9 +110,9 @@ export function DocumentList({
             <li key={revision.id}>
               <Link href={`/admin/documents/${revision.id}`}>
                 <span className={styles.documentListTitle}>{revision.title}</span>
-                <span>{t[revision.kind]} / {revision.locale} / r{revision.revision}</span>
+                <span>{t[revision.kind]} / {displayDocumentLocale(revision.locale, localePreference)} / r{revision.revision}</span>
                 <span>{t.by} {revision.publisher}</span>
-                <span>{t[revision.dateLabel === "Scheduled" ? "scheduledAt" : revision.dateLabel === "Published" ? "publishedAt" : "updatedAt"]} {revision.relevantAt.slice(0, 10)}</span>
+                <span>{t[revision.dateLabel === "Scheduled" ? "scheduledAt" : revision.dateLabel === "Published" ? "publishedAt" : "updatedAt"]} {formatDocumentDate(revision.relevantAt, localePreference)}</span>
                 <span className={styles.statusBadge}>{t[revision.status]}</span>
               </Link>
             </li>

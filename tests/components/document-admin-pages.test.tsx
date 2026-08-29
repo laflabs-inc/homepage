@@ -30,7 +30,7 @@ vi.mock("@/components/content/content.module.css", () => ({
 
 import DocumentsPage from "@/app/admin/(protected)/documents/page"
 import DocumentRevisionPage from "@/app/admin/(protected)/documents/[revisionId]/page"
-import MarkdownGuidePage from "@/app/admin/(protected)/documents/markdown-guide/page"
+import MarkdownGuidePage, { generateMetadata as generateMarkdownGuideMetadata } from "@/app/admin/(protected)/documents/markdown-guide/page"
 import NewDocumentPage from "@/app/admin/(protected)/documents/new/page"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import type { DocumentRevision } from "@/lib/documents/types"
@@ -80,6 +80,18 @@ beforeEach(() => {
 })
 
 describe("protected admin document queries", () => {
+  it("localizes the route-owned Markdown guide metadata", async () => {
+    localeMocks.getAdminLocale.mockResolvedValue("ko")
+    expect(await generateMarkdownGuideMetadata()).toEqual(expect.objectContaining({
+      title: "Markdown 작성 가이드 | Admin",
+    }))
+
+    localeMocks.getAdminLocale.mockResolvedValue("en")
+    expect(await generateMarkdownGuideMetadata()).toEqual(expect.objectContaining({
+      title: "Markdown guide | Admin",
+    }))
+  })
+
   it("renders the Markdown guide behind the admin boundary", async () => {
     render(<LocaleProvider initialLocale="en">{await MarkdownGuidePage()}</LocaleProvider>)
 

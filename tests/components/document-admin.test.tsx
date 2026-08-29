@@ -514,13 +514,58 @@ describe("document admin", () => {
     expect(screen.getByRole("combobox", { name: "Status filter" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale filter" })).toBeInTheDocument()
     expect(screen.getByText("By publisher-77")).toBeInTheDocument()
-    expect(screen.getByText("Published 2026-08-24")).toBeInTheDocument()
+    expect(screen.getByText(`Published ${new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(published.publishedAt)}`)).toBeInTheDocument()
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
     expect(screen.queryByRole("link", { name: /서비스 업데이트/ })).not.toBeInTheDocument()
     expect(screen.getByRole("link", { name: /Privacy policy/ })).toBeInTheDocument()
     await user.type(screen.getByRole("searchbox", { name: "Search documents" }), "missing")
     expect(screen.getByText("No documents match these filters.")).toBeInTheDocument()
+  })
+
+  it("localizes list row locales and dates while keeping canonical list values", () => {
+    const published = {
+      ...revision,
+      id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7999",
+      kind: "legal" as const,
+      locale: "en" as const,
+      title: "Privacy policy",
+      status: "published" as const,
+      publishedBy: "publisher-77",
+      publishedAt: new Date("2026-08-24T12:00:00.000Z"),
+    }
+    const rows = [published].map(toAdminDocumentListRow)
+    const koreanDate = new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(published.publishedAt)
+    const englishDate = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(published.publishedAt)
+    const { unmount } = render(
+      <LocaleProvider initialLocale="ko"><DocumentList rows={rows} /></LocaleProvider>,
+    )
+
+    expect(screen.getByText("법적 고지 / 영어 / r1")).toBeInTheDocument()
+    expect(screen.getByText(`발행됨 ${koreanDate}`)).toBeInTheDocument()
+    expect(rows[0].locale).toBe("en")
+    expect(rows[0].relevantAt).toBe("2026-08-24T12:00:00.000Z")
+    unmount()
+
+    render(<LocaleProvider initialLocale="en"><DocumentList rows={rows} /></LocaleProvider>)
+
+    expect(screen.getByText("Legal / English / r1")).toBeInTheDocument()
+    expect(screen.getByText(`Published ${englishDate}`)).toBeInTheDocument()
   })
 
   it("keeps Next pagination on applied filters while controls have unapplied edits", async () => {

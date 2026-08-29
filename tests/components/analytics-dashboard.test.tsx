@@ -162,6 +162,34 @@ describe("AnalyticsDashboard", () => {
     expect(screen.getByText("동의한 방문자").nextElementSibling).toHaveTextContent("12")
     expect(screen.queryByText(/Analytics \/ 분석/)).not.toBeInTheDocument()
   })
+
+  it("localizes known locale and device distribution values without changing unknown keys", () => {
+    const summaryWithUnknownValues = {
+      ...summary,
+      locales: [...summary.locales, { key: "fr", count: 1 }],
+      devices: [...summary.devices, { key: "tablet", count: 1 }],
+    }
+    const { unmount } = render(
+      <LocaleProvider initialLocale="ko"><AnalyticsDashboard summary={summaryWithUnknownValues} /></LocaleProvider>,
+    )
+
+    expect(screen.getByText("한국어")).toBeInTheDocument()
+    expect(screen.getByText("영어")).toBeInTheDocument()
+    expect(screen.getByText("모바일")).toBeInTheDocument()
+    expect(screen.getByText("데스크톱")).toBeInTheDocument()
+    expect(screen.getByText("fr")).toBeInTheDocument()
+    expect(screen.getByText("tablet")).toBeInTheDocument()
+    unmount()
+
+    render(<LocaleProvider initialLocale="en"><AnalyticsDashboard summary={summaryWithUnknownValues} /></LocaleProvider>)
+
+    expect(screen.getByText("Korean")).toBeInTheDocument()
+    expect(screen.getByText("English")).toBeInTheDocument()
+    expect(screen.getByText("Mobile")).toBeInTheDocument()
+    expect(screen.getByText("Desktop")).toBeInTheDocument()
+    expect(screen.getByText("fr")).toBeInTheDocument()
+    expect(screen.getByText("tablet")).toBeInTheDocument()
+  })
 })
 
 describe("analytics route boundaries", () => {

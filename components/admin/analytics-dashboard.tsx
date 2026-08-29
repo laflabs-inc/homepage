@@ -9,9 +9,20 @@ import type {
 } from "@/lib/analytics/store"
 import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
-import { adminCopy } from "@/lib/admin/i18n"
+import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
 
 const ranges: AnalyticsRange[] = [7, 30, 90]
+
+function distributionValueLabel(
+  key: string,
+  id: "locale" | "device",
+  t: AdminCopy["analytics"],
+): string {
+  if (id === "locale" && (key === "ko" || key === "en")) return t.localeValues[key]
+  if (id === "device" && (key === "mobile" || key === "desktop")) return t.deviceValues[key]
+  return key
+}
+
 function formatCount(value: number, locale: "ko" | "en") {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(value)
 }
@@ -35,12 +46,14 @@ function Distribution({
   rows,
   noDataLabel,
   locale,
+  copy,
 }: {
-  id: string
+  id: "locale" | "device"
   title: string
   rows: AnalyticsCountRow[]
   noDataLabel: string
   locale: "ko" | "en"
+  copy: AdminCopy["analytics"]
 }) {
   const total = rows.reduce((sum, row) => sum + row.count, 0)
 
@@ -56,7 +69,7 @@ function Distribution({
             return (
               <li key={row.key}>
                 <div className={styles.barMeta}>
-                  <span>{row.key}</span>
+                  <span>{distributionValueLabel(row.key, id, copy)}</span>
                   <span>{formatCount(row.count, locale)} · {formatPercent(share)}</span>
                 </div>
                 <div className={styles.barTrack} aria-hidden="true">
@@ -193,8 +206,8 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
           </section>
 
           <div className={styles.distributionGrid}>
-            <Distribution id="locale" title={t.locale} rows={summary.locales} noDataLabel={t.noPageViewData} locale={locale} />
-            <Distribution id="device" title={t.device} rows={summary.devices} noDataLabel={t.noPageViewData} locale={locale} />
+            <Distribution id="locale" title={t.locale} rows={summary.locales} noDataLabel={t.noPageViewData} locale={locale} copy={t} />
+            <Distribution id="device" title={t.device} rows={summary.devices} noDataLabel={t.noPageViewData} locale={locale} copy={t} />
           </div>
 
           <div className={styles.tableGrid}>

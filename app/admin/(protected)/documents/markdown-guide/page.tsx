@@ -7,8 +7,10 @@ import { requireAdmin } from "@/lib/auth/require-admin"
 import { adminCopy } from "@/lib/admin/i18n"
 import { getAdminLocale } from "@/lib/admin/locale"
 
-export const metadata: Metadata = {
-  title: "Markdown 작성 가이드 | Admin",
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getAdminLocale()
+
+  return { title: adminCopy[locale].documents.markdownGuide.metadataTitle }
 }
 
 export default async function MarkdownGuidePage() {
