@@ -57,7 +57,6 @@ export function DocumentList({
             <option value="notice">Notice</option>
             <option value="legal">Legal</option>
             <option value="disclosure">Disclosure</option>
-            <option value="design">Design</option>
           </select>
         </label>
         <label>Status filter

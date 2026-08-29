@@ -11,7 +11,6 @@ export const categoriesByKind = {
   notice: ["general", "service", "maintenance", "security"],
   legal: ["privacy", "terms", "cookies", "policy"],
   disclosure: ["corporate", "financial", "governance", "material"],
-  design: ["foundation", "brand", "component", "resource"],
 } as const
 
 const slugSchema = z.string()

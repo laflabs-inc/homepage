@@ -482,7 +482,6 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
                 <option value="notice">Notice</option>
                 <option value="legal">Legal</option>
                 <option value="disclosure">Disclosure</option>
-                <option value="design">Design</option>
               </select>
             </label>
             <label>Locale

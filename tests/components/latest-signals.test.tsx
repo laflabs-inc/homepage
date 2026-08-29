@@ -50,11 +50,12 @@ describe("LatestSignals", () => {
   })
 
   it("renders the newest published items as localized document links", async () => {
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const kind = new URL(String(input), "https://laflabs.co").searchParams.get("kind")
       const items = kind === "notice" ? [publicItem()] : []
       return new Response(JSON.stringify({ items, nextCursor: null }), { status: 200 })
-    }))
+    })
+    vi.stubGlobal("fetch", fetchMock)
 
     render(
       <LocaleProvider initialLocale="ko">
@@ -67,6 +68,10 @@ describe("LatestSignals", () => {
       "/notices/hello?locale=ko",
     )
     expect(screen.getByText("새 소식을 전합니다.")).toBeVisible()
+    expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
+      "/api/content?kind=notice&locale=ko&limit=3",
+      "/api/content?kind=disclosure&locale=ko&limit=3",
+    ])
   })
 
   it("keeps useful document destinations when no items are published", async () => {
@@ -83,7 +88,7 @@ describe("LatestSignals", () => {
     expect(await screen.findByText("아직 공개된 새 소식이 없습니다.")).toBeVisible()
     expect(screen.getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices?locale=ko")
     expect(screen.getByRole("link", { name: "공시" })).toHaveAttribute("href", "/disclosures?locale=ko")
-    expect(screen.getByRole("link", { name: "디자인 가이드" })).toHaveAttribute("href", "/design?locale=ko")
+    expect(screen.queryByRole("link", { name: "디자인 가이드" })).not.toBeInTheDocument()
   })
 
   it("shows a non-blocking fallback when the content API fails", async () => {

@@ -48,7 +48,7 @@ export async function DocumentIndex({
     ? encodePublishedCursor({ pinned: last.pinned, publishedAt: last.publishedAt, id: last.id })
     : null
   const usesFilters = kind === "notice" || kind === "disclosure"
-  const usesGroups = kind === "legal" || kind === "design"
+  const usesGroups = kind === "legal"
   const categoryLabel = (value: string | null) => value
     ? categoryCopy.labels[value as keyof typeof categoryCopy.labels] ?? value
     : categoryCopy.uncategorized

@@ -83,7 +83,7 @@ type Copy = {
     loading: string
     empty: string
     error: string
-    kinds: Record<"notice" | "disclosure" | "design", string>
+    kinds: Record<"notice" | "disclosure", string>
   }
   open: {
     title: readonly [string, string]
@@ -180,7 +180,7 @@ const ko: Copy = {
     loading: "최근 소식을 불러오는 중입니다.",
     empty: "아직 공개된 새 소식이 없습니다.",
     error: "지금은 새 소식을 불러올 수 없습니다.",
-    kinds: { notice: "공지사항", disclosure: "공시", design: "디자인 가이드" },
+    kinds: { notice: "공지사항", disclosure: "공시" },
   },
   open: {
     title: ["필요해서 만들었고,", "쓸 만해져서 열었습니다."],
@@ -296,7 +296,7 @@ const en: Copy = {
     loading: "Loading recent updates.",
     empty: "No updates have been published yet.",
     error: "Recent updates are unavailable right now.",
-    kinds: { notice: "Notices", disclosure: "Disclosures", design: "Design guide" },
+    kinds: { notice: "Notices", disclosure: "Disclosures" },
   },
   open: {
     title: ["Built because we needed it.", "Opened once it earned its keep."],
@@ -379,7 +379,6 @@ export const documentCategoryCopy = {
       notice: "공지사항 카테고리 필터",
       legal: "법적 고지 카테고리 필터",
       disclosure: "공시 카테고리 필터",
-      design: "디자인 가이드 카테고리 필터",
     },
     labels: {
       general: "일반",
@@ -394,10 +393,6 @@ export const documentCategoryCopy = {
       financial: "재무",
       governance: "지배구조",
       material: "주요사항",
-      foundation: "기초",
-      brand: "브랜드",
-      component: "컴포넌트",
-      resource: "리소스",
     },
   },
   en: {
@@ -407,7 +402,6 @@ export const documentCategoryCopy = {
       notice: "Filter notices by category",
       legal: "Filter legal documents by category",
       disclosure: "Filter disclosures by category",
-      design: "Filter design documents by category",
     },
     labels: {
       general: "General",
@@ -422,10 +416,6 @@ export const documentCategoryCopy = {
       financial: "Financial",
       governance: "Governance",
       material: "Material",
-      foundation: "Foundation",
-      brand: "Brand",
-      component: "Components",
-      resource: "Resources",
     },
   },
 } as const
@@ -490,13 +480,6 @@ export const documentSections: Record<DocumentKind, DocumentSectionCopy> = {
     localized: {
       ko: { ...commonDocumentCopy.ko, eyebrow: "회사 정보", title: "공시", description: "LafLabs의 주요 회사 정보를 공개합니다.", empty: "아직 게시된 공시가 없습니다." },
       en: { ...commonDocumentCopy.en, eyebrow: "Company information", title: "Disclosures", description: "Published corporate information from LafLabs.", empty: "There are no published disclosures yet." },
-    },
-  },
-  design: {
-    path: "/design",
-    localized: {
-      ko: { ...commonDocumentCopy.ko, eyebrow: "브랜드와 인터페이스", title: "디자인 가이드", description: "LafLabs의 디자인 원칙과 리소스를 소개합니다.", empty: "아직 게시된 디자인 가이드가 없습니다." },
-      en: { ...commonDocumentCopy.en, eyebrow: "Brand and interface", title: "Design guide", description: "Design principles and resources from LafLabs.", empty: "There are no published design guides yet." },
     },
   },
 }

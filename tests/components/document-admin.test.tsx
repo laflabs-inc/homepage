@@ -136,6 +136,7 @@ describe("document admin", () => {
     render(<DocumentEditor />)
 
     expect(screen.getByRole("combobox", { name: "Kind" })).toBeInTheDocument()
+    expect(within(screen.getByRole("combobox", { name: "Kind" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale" })).toBeInTheDocument()
     expect(screen.queryByRole("option", { name: "English" })).not.toBeInTheDocument()
     expect(screen.getByRole("tab", { name: "Source" })).toHaveAttribute("aria-selected", "true")
@@ -508,6 +509,7 @@ describe("document admin", () => {
 
     expect(screen.getByRole("searchbox", { name: "Search documents" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Kind filter" })).toBeInTheDocument()
+    expect(within(screen.getByRole("combobox", { name: "Kind filter" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Status filter" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale filter" })).toBeInTheDocument()
     expect(screen.getByText("By publisher-77")).toBeInTheDocument()

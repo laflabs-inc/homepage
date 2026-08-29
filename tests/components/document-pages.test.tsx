@@ -151,11 +151,10 @@ describe("public document pages", () => {
     )
   })
 
-  it.each([
-    ["legal", "en", "Privacy"],
-    ["design", "ko", "브랜드"],
-  ] as const)("visibly groups %s documents by category", async (kind, locale, categoryHeading) => {
-    const category = kind === "legal" ? "privacy" : "brand"
+  it("visibly groups legal documents by category", async () => {
+    const kind = "legal"
+    const locale = "en"
+    const category = "privacy"
     render(await DocumentIndex({
       kind,
       locale,
@@ -163,7 +162,7 @@ describe("public document pages", () => {
       repository: repository({ listPublished: vi.fn().mockResolvedValue([{ ...published, kind, locale, category }]) }),
     }))
 
-    expect(screen.getByRole("heading", { level: 2, name: categoryHeading })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Privacy" })).toBeInTheDocument()
   })
 
   it("ignores an invalid page category before cache/repository lookup and link creation", async () => {
@@ -269,7 +268,7 @@ describe("public document pages", () => {
     })
   })
 
-  it("links all four public document indexes from the localized footer", () => {
+  it("links the three document indexes and static design guide from the localized footer", () => {
     render(
       <LocaleProvider initialLocale="ko">
         <ConsentProvider initialState="essential" dnt={false}>
@@ -373,6 +372,10 @@ describe("public document pages", () => {
       url: siteUrl,
       changeFrequency: "monthly",
       priority: 1,
+    }, {
+      url: `${siteUrl}/design`,
+      changeFrequency: "monthly",
+      priority: 0.6,
     }])
   })
 
@@ -385,6 +388,7 @@ describe("public document pages", () => {
 
     expect(entries).toEqual([
       { url: siteUrl, changeFrequency: "monthly", priority: 1 },
+      { url: `${siteUrl}/design`, changeFrequency: "monthly", priority: 0.6 },
       {
         url: `${siteUrl}/notices/service-update`,
         lastModified: published.publishedAt,
@@ -410,7 +414,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(52)
+    expect(entries).toHaveLength(53)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })
