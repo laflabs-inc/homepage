@@ -1,4 +1,6 @@
 import { signIn } from "@/auth"
+import { adminCopy } from "@/lib/admin/i18n"
+import { getAdminLocale } from "@/lib/admin/locale"
 import styles from "../admin.module.css"
 
 function GitHubMark() {
@@ -9,7 +11,10 @@ function GitHubMark() {
   )
 }
 
-export default function AdminSignInPage() {
+export default async function AdminSignInPage() {
+  const locale = await getAdminLocale()
+  const t = adminCopy[locale].signIn
+
   async function startGitHubSignIn() {
     "use server"
     await signIn("github", { redirectTo: "/admin/analytics" })
@@ -18,31 +23,21 @@ export default function AdminSignInPage() {
   return (
     <section className={styles.signInGrid}>
       <div className={styles.signInIntro}>
-        <p className={styles.eyebrow}>LafLabs / Internal analytics</p>
-        <h1>
-          Observe quietly.
-          <br />
-          Decide clearly.
-        </h1>
-        <p>
-          Consented, first-party product signals for the LafLabs team. Access is
-          limited to active organization members.
-        </p>
+        <p className={styles.eyebrow}>{t.eyebrow}</p>
+        <h1>{t.heading}</h1>
+        <p>{t.description}</p>
       </div>
 
       <div className={styles.signInCard}>
-        <span className={styles.cardIndex}>AUTH / 01</span>
+        <span className={styles.cardIndex}>{t.cardIndex}</span>
         <div>
-          <h2>Continue with GitHub</h2>
-          <p>
-            Your current membership in <code>laflabs-inc</code> is verified
-            before access is granted.
-          </p>
+          <h2>{t.cardHeading}</h2>
+          <p>{t.cardDescription}</p>
         </div>
         <form action={startGitHubSignIn}>
           <button type="submit" className={styles.signInButton}>
             <GitHubMark />
-            Verify membership
+            {t.submit}
           </button>
         </form>
       </div>

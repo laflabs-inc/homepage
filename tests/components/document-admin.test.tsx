@@ -24,6 +24,7 @@ vi.mock("@/components/content/content.module.css", () => ({
 import { AdminNav } from "@/components/admin/admin-nav"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { DocumentList } from "@/components/admin/document-list"
+import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import type { DocumentRevision } from "@/lib/documents/types"
 
@@ -115,10 +116,10 @@ beforeEach(() => {
 describe("document admin", () => {
   it("links the protected admin areas and lists document revisions", () => {
     render(
-      <>
+      <LocaleProvider initialLocale="en">
         <AdminNav />
         <DocumentList rows={[revision, { ...revision, id: "published-id", status: "published" as const }].map(toAdminDocumentListRow)} />
-      </>,
+      </LocaleProvider>,
     )
 
     const navigation = screen.getByRole("navigation", { name: "Admin" })
@@ -129,7 +130,7 @@ describe("document admin", () => {
       "href",
       `/admin/documents/${revision.id}`,
     )
-    expect(screen.getByText("published")).toBeInTheDocument()
+    expect(screen.getAllByText("Published")).toHaveLength(2)
   })
 
   it("offers kind and locale fields plus accessible source and preview tabs", () => {
@@ -287,7 +288,7 @@ describe("document admin", () => {
   it("blocks a real persistent admin-link click when dirty and the user cancels", async () => {
     const user = userEvent.setup()
     vi.mocked(window.confirm).mockReturnValue(false)
-    render(<><AdminNav /><DocumentEditor revision={revision} /></>)
+    render(<LocaleProvider initialLocale="en"><AdminNav /><DocumentEditor revision={revision} /></LocaleProvider>)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
     await user.click(screen.getByRole("link", { name: "Analytics" }))
@@ -300,7 +301,7 @@ describe("document admin", () => {
     const user = userEvent.setup()
     window.history.replaceState({ __NA: true, tree: "list" }, "", "/admin/documents")
     window.history.pushState({ __NA: true, tree: "editor" }, "", revisionPath)
-    render(<><AdminNav /><AppRouterTreeHarness /></>)
+    render(<LocaleProvider initialLocale="en"><AdminNav /><AppRouterTreeHarness /></LocaleProvider>)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " discard")
     await user.click(screen.getByRole("link", { name: "Analytics" }))
@@ -505,7 +506,7 @@ describe("document admin", () => {
       publishedBy: "publisher-77",
       publishedAt: new Date("2026-08-24T12:00:00.000Z"),
     }
-    render(<DocumentList rows={[revision, published].map(toAdminDocumentListRow)} />)
+    render(<LocaleProvider initialLocale="en"><DocumentList rows={[revision, published].map(toAdminDocumentListRow)} /></LocaleProvider>)
 
     expect(screen.getByRole("searchbox", { name: "Search documents" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Kind filter" })).toBeInTheDocument()
@@ -524,12 +525,12 @@ describe("document admin", () => {
 
   it("keeps Next pagination on applied filters while controls have unapplied edits", async () => {
     const user = userEvent.setup()
-    render(<DocumentList
+    render(<LocaleProvider initialLocale="en"><DocumentList
       rows={[revision].map(toAdminDocumentListRow)}
       nextCursor="opaque-next"
       limit={25}
       initialFilters={{ search: "service", kind: "notice", locale: "ko", status: "draft" }}
-    />)
+    /></LocaleProvider>)
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
     await user.clear(screen.getByRole("searchbox", { name: "Search documents" }))

@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/auth/require-admin"
 import { documentService } from "@/lib/documents/service"
 import type { DocumentRevision } from "@/lib/documents/types"
 import { revisionIdSchema } from "@/lib/documents/validation"
+import { adminCopy } from "@/lib/admin/i18n"
+import { getAdminLocale } from "@/lib/admin/locale"
 
 export default async function NewDocumentPage({
   searchParams,
@@ -11,6 +13,8 @@ export default async function NewDocumentPage({
   searchParams: Promise<{ seriesId?: string | string[]; sourceRevisionId?: string | string[] }>
 }) {
   await requireAdmin()
+  const locale = await getAdminLocale()
+  const t = adminCopy[locale].documents
   const query = await searchParams
   const seriesId = typeof query.seriesId === "string" ? query.seriesId : undefined
   const sourceRevisionId = typeof query.sourceRevisionId === "string" ? query.sourceRevisionId : undefined
@@ -28,8 +32,8 @@ export default async function NewDocumentPage({
     <div className={styles.documentsPage}>
       <div className={styles.documentsHeading}>
         <div>
-          <p className={styles.eyebrow}>New series</p>
-          <h1>Create document</h1>
+          <p className={styles.eyebrow}>{t.newSeries}</p>
+          <h1>{t.createDocument}</h1>
         </div>
       </div>
       <DocumentEditor

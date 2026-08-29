@@ -4,6 +4,8 @@ import Link from "next/link"
 import { useMemo, useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
+import { useLocale } from "@/components/i18n/locale-provider"
+import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminDocumentListRow } from "@/lib/documents/admin-list"
 
 type DocumentListProps = {
@@ -20,6 +22,7 @@ export function DocumentList({
   limit = 50,
   initialFilters = emptyFilters,
 }: DocumentListProps) {
+  const t = adminCopy[useLocale()].documents
   const [search, setSearch] = useState(initialFilters.search ?? "")
   const [kind, setKind] = useState(initialFilters.kind ?? "")
   const [status, setStatus] = useState(initialFilters.status ?? "")
@@ -48,42 +51,42 @@ export function DocumentList({
   return (
     <div className={styles.documentListWorkspace}>
       <div className={styles.documentFilters}>
-        <label>Search documents
+        <label>{t.search}
           <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} />
         </label>
-        <label>Kind filter
+        <label>{t.kindFilter}
           <select value={kind} onChange={(event) => setKind(event.target.value)}>
-            <option value="">All kinds</option>
-            <option value="notice">Notice</option>
-            <option value="legal">Legal</option>
-            <option value="disclosure">Disclosure</option>
+            <option value="">{t.allKinds}</option>
+            <option value="notice">{t.notice}</option>
+            <option value="legal">{t.legal}</option>
+            <option value="disclosure">{t.disclosure}</option>
           </select>
         </label>
-        <label>Status filter
+        <label>{t.statusFilter}
           <select value={status} onChange={(event) => setStatus(event.target.value)}>
-            <option value="">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="published">Published</option>
-            <option value="archived">Archived</option>
+            <option value="">{t.allStatuses}</option>
+            <option value="draft">{t.draft}</option>
+            <option value="scheduled">{t.scheduled}</option>
+            <option value="published">{t.published}</option>
+            <option value="archived">{t.archived}</option>
           </select>
         </label>
-        <label>Locale filter
+        <label>{t.localeFilter}
           <select value={locale} onChange={(event) => setLocale(event.target.value)}>
-            <option value="">All locales</option>
-            <option value="ko">Korean</option>
-            <option value="en">English</option>
+            <option value="">{t.allLocales}</option>
+            <option value="ko">{t.korean}</option>
+            <option value="en">{t.english}</option>
           </select>
         </label>
       </div>
       <div className={styles.editorActions}>
-        <Link href={pageHref({ search, kind, status, locale })}>Apply filters</Link>
-        {nextCursor ? <Link href={pageHref(initialFilters, nextCursor)}>Next page</Link> : null}
+        <Link href={pageHref({ search, kind, status, locale })}>{t.applyFilters}</Link>
+        {nextCursor ? <Link href={pageHref(initialFilters, nextCursor)}>{t.nextPage}</Link> : null}
       </div>
       {filtered.length === 0 ? (
         <div className={styles.documentEmpty}>
-          <h2>{rows.length === 0 ? "No documents yet" : "No documents match these filters."}</h2>
-          {rows.length === 0 ? <p>Create the first Korean document draft to begin a publication series.</p> : null}
+          <h2>{rows.length === 0 ? t.noDocumentsYet : t.noMatchingDocuments}</h2>
+          {rows.length === 0 ? <p>{t.firstDocumentDescription}</p> : null}
         </div>
       ) : (
         <ul className={styles.documentList}>
@@ -91,10 +94,10 @@ export function DocumentList({
             <li key={revision.id}>
               <Link href={`/admin/documents/${revision.id}`}>
                 <span className={styles.documentListTitle}>{revision.title}</span>
-                <span>{revision.kind} / {revision.locale} / r{revision.revision}</span>
-                <span>By {revision.publisher}</span>
-                <span>{revision.dateLabel} {revision.relevantAt.slice(0, 10)}</span>
-                <span className={styles.statusBadge}>{revision.status}</span>
+                <span>{t[revision.kind]} / {revision.locale} / r{revision.revision}</span>
+                <span>{t.by} {revision.publisher}</span>
+                <span>{t[revision.dateLabel === "Scheduled" ? "scheduledAt" : revision.dateLabel === "Published" ? "publishedAt" : "updatedAt"]} {revision.relevantAt.slice(0, 10)}</span>
+                <span className={styles.statusBadge}>{t[revision.status]}</span>
               </Link>
             </li>
           ))}
