@@ -11,7 +11,8 @@ describe("OpenAI credential verifier", () => {
   it("performs one deterministic bounded inference against the exact model", async () => {
     const model = { modelId: "gpt-test" } as never
     const factory = vi.fn(() => model)
-    const generate = vi.fn(async () => ({ text: "OK" }))
+    const generate = vi.fn<(request: { prompt: string; temperature?: unknown }) => Promise<{ text: string }>>()
+    generate.mockResolvedValue({ text: "OK" })
 
     const timeout = vi.spyOn(AbortSignal, "timeout")
 
@@ -19,14 +20,16 @@ describe("OpenAI credential verifier", () => {
 
     expect(factory).toHaveBeenCalledWith("candidate-key", "gpt-test")
     expect(generate).toHaveBeenCalledTimes(1)
-    expect(timeout).toHaveBeenCalledWith(5_000)
+    expect(timeout).toHaveBeenCalledWith(10_000)
     expect(generate).toHaveBeenCalledWith(expect.objectContaining({
       model,
-      maxOutputTokens: 4,
-      temperature: 0,
+      prompt: "Reply with exactly OK.",
+      maxOutputTokens: 16,
       maxRetries: 0,
+      providerOptions: { openai: { reasoningEffort: "none" } },
       abortSignal: expect.any(AbortSignal),
     }))
+    expect(generate.mock.calls[0]?.[0]).not.toHaveProperty("temperature")
   })
 
   it.each([
@@ -62,7 +65,95 @@ describe("OpenAI credential verifier", () => {
     expect(caught).toBeInstanceOf(CredentialVerificationError)
     expect(caught).toMatchObject({ code })
     expect(String(caught)).not.toContain("candidate-key")
-    expect(JSON.stringify(caught)).not.toContain("raw provider")
+  })
+
+  it("returns redacted, bounded OpenAI request diagnostics", async () => {
+    const secret = `sk-proj-${"secretvalue".repeat(40)}`
+    const raw = new APICallError({
+      message: "raw provider fallback message",
+      url: "https://api.openai.invalid",
+      requestBodyValues: {},
+      statusCode: 400,
+      responseHeaders: { "X-Request-ID": "req_test_123" },
+      responseBody: JSON.stringify({
+        error: {
+          message: `Unsupported parameter:\ntemperature for ${secret} ${"🧪".repeat(400)}`,
+          type: "invalid_request_error",
+          param: "temperature",
+          code: "unsupported_parameter",
+        },
+      }),
+    })
+
+    let caught: unknown
+    try {
+      await verifyOpenAICredential("candidate-key", "gpt-test", {
+        factory: () => ({}) as never,
+        generate: async () => { throw raw },
+      })
+    } catch (error) {
+      caught = error
+    }
+
+    expect(caught).toMatchObject({
+      code: "verification_request_invalid",
+      diagnostic: {
+        statusCode: 400,
+        providerCode: "unsupported_parameter",
+        providerType: "invalid_request_error",
+        providerParam: "temperature",
+        requestId: "req_test_123",
+      },
+    })
+    expect(caught).toBeInstanceOf(CredentialVerificationError)
+    const diagnostic = (caught as CredentialVerificationError).diagnostic
+    expect(diagnostic.message).toContain("[REDACTED]")
+    expect(diagnostic.message).not.toContain(secret)
+    expect(diagnostic.message).not.toMatch(/[\r\n\t]/)
+    expect(Array.from(diagnostic.message ?? "")).toHaveLength(300)
+  })
+
+  it("uses null diagnostic fields for malformed provider responses", async () => {
+    const raw = new APICallError({
+      message: "raw provider fallback message",
+      url: "https://api.openai.invalid",
+      requestBodyValues: {},
+      statusCode: 400,
+      responseHeaders: { "x-request-id": "req_test_456" },
+      responseBody: "{not valid JSON",
+    })
+
+    await expect(verifyOpenAICredential("candidate-key", "gpt-test", {
+      factory: () => ({}) as never,
+      generate: async () => { throw raw },
+    })).rejects.toMatchObject({
+      code: "verification_request_invalid",
+      diagnostic: {
+        statusCode: 400,
+        providerCode: null,
+        providerType: null,
+        providerParam: null,
+        requestId: "req_test_456",
+        message: null,
+      },
+    })
+  })
+
+  it("uses null diagnostic fields for non-provider failures", async () => {
+    await expect(verifyOpenAICredential("candidate-key", "gpt-test", {
+      factory: () => ({}) as never,
+      generate: async () => { throw new Error("raw network failure") },
+    })).rejects.toMatchObject({
+      code: "provider_unavailable",
+      diagnostic: {
+        statusCode: null,
+        providerCode: null,
+        providerType: null,
+        providerParam: null,
+        requestId: null,
+        message: null,
+      },
+    })
   })
 
   it.each([

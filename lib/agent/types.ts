@@ -129,6 +129,15 @@ export type CredentialTestRecordResult =
   | { status: "updated"; credential: StoredCredential }
   | { status: "stale" }
 
+export type CredentialVerificationDiagnostic = {
+  statusCode: number | null
+  providerCode: string | null
+  providerType: string | null
+  providerParam: string | null
+  requestId: string | null
+  message: string | null
+}
+
 export type CredentialVerifier = (apiKey: string, modelId: string) => Promise<void>
 export type TextModelFactory = (apiKey: string, modelId: string) => LanguageModel
 
