@@ -1,11 +1,14 @@
 import { render, screen, within } from "@testing-library/react"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }))
 vi.mock("@/components/analytics/consent-panel.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
 vi.mock("@/components/sections/build-loop.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
+vi.mock("@/components/sections/latest-signals.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
 
@@ -21,7 +24,12 @@ beforeEach(() => {
     unobserve() {}
     disconnect() {}
   })
+  vi.stubGlobal("fetch", vi.fn(async () => (
+    new Response(JSON.stringify({ items: [], nextCursor: null }), { status: 200 })
+  )))
 })
+
+afterEach(() => vi.unstubAllGlobals())
 
 describe("homepage refresh", () => {
   it("presents the humanized Korean company and engineering story", () => {
@@ -38,6 +46,8 @@ describe("homepage refresh", () => {
     ).toBeVisible()
     expect(screen.getByRole("heading", { name: "기반 기술" })).toBeVisible()
     expect(screen.getByRole("heading", { name: "운영" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "만든 것과 배운 것을 기록합니다." })).toBeVisible()
+    expect(screen.getByRole("region", { name: "최근 소식" })).toBeVisible()
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {

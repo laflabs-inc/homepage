@@ -128,8 +128,6 @@
   .steps li {
     min-height: 132px;
     grid-template-columns: 44px 1fr;
-    opacity: 1 !important;
-    transform: none !important;
   }
 }
 

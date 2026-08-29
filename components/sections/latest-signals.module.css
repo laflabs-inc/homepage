@@ -1,0 +1,449 @@
+.section {
+  padding: 140px 0;
+  overflow: hidden;
+  border-block: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.inner {
+  width: var(--shell);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1.22fr);
+  gap: clamp(44px, 6vw, 88px);
+  align-items: stretch;
+}
+
+.signalPanel {
+  min-height: 560px;
+  padding: 34px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background: var(--blue);
+  color: white;
+}
+
+.signalCopy {
+  position: relative;
+  z-index: 1;
+}
+
+.signalLabel {
+  margin: 0 0 42px;
+  color: #dbeafe;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+}
+
+.signalCopy h2 {
+  max-width: 10ch;
+  margin: 0;
+  font-size: clamp(44px, 4.4vw, 66px);
+  font-weight: 760;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+}
+
+.signalLede {
+  max-width: 38ch;
+  margin: 28px 0 0;
+  color: #dbeafe;
+  font-size: 14px;
+  line-height: 1.72;
+  word-break: keep-all;
+}
+
+.glitchStage {
+  min-height: 128px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  isolation: isolate;
+}
+
+.signalStable,
+.glitchLayer {
+  font-family: var(--font-geist-sans), "Pretendard", sans-serif;
+  font-size: clamp(64px, 8.2vw, 126px);
+  font-weight: 860;
+  line-height: 0.75;
+  letter-spacing: -0.075em;
+}
+
+.signalStable {
+  color: white;
+}
+
+.glitchLayer {
+  position: absolute;
+  inset: auto 0 0;
+  overflow: hidden;
+  color: #bfdbfe;
+  pointer-events: none;
+}
+
+.glitchLayerTop {
+  clip-path: inset(10% 0 62% 0);
+}
+
+.glitchLayerBottom {
+  clip-path: inset(58% 0 8% 0);
+}
+
+.scanBand {
+  height: 2px;
+  position: absolute;
+  z-index: 2;
+  inset: 0 -34px auto;
+  background: rgb(255 255 255 / 0.82);
+  pointer-events: none;
+}
+
+.stories {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.storiesHeader {
+  margin-bottom: 34px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.storiesHeader h3 {
+  margin: 0;
+  font-size: clamp(42px, 4.2vw, 62px);
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.controls button {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.controls button:not(:disabled):hover {
+  background: var(--ink);
+  color: white;
+}
+
+.controls button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.controls button:disabled {
+  border-color: var(--line);
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.track {
+  min-height: 406px;
+  padding: 0 0 14px;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) var(--line);
+}
+
+.track:focus-visible {
+  outline-offset: 7px;
+}
+
+.track::-webkit-scrollbar {
+  height: 4px;
+}
+
+.track::-webkit-scrollbar-track {
+  background: var(--line);
+}
+
+.track::-webkit-scrollbar-thumb {
+  background: var(--blue);
+}
+
+.card,
+.skeleton {
+  min-height: 390px;
+  flex: 0 0 min(420px, 78%);
+  scroll-snap-align: start;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.card a {
+  min-height: 388px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: background 220ms ease, color 220ms ease;
+}
+
+.card a:hover {
+  background: #eff6ff;
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cardMeta span {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.cardBody {
+  margin: auto 0;
+}
+
+.cardBody h4 {
+  margin: 0;
+  font-size: clamp(28px, 2.8vw, 38px);
+  font-weight: 740;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  word-break: keep-all;
+}
+
+.cardBody p {
+  display: -webkit-box;
+  max-width: 42ch;
+  margin: 22px 0 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.68;
+  word-break: keep-all;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.card a > svg {
+  margin-left: auto;
+  transition: transform 180ms ease;
+}
+
+.card a:hover > svg {
+  transform: translate(3px, -3px);
+}
+
+.loadingStatus {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skeleton {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.skeleton span,
+.skeleton strong,
+.skeleton i {
+  display: block;
+  background: var(--line);
+  animation: signal-skeleton 1.15s ease-in-out infinite alternate;
+}
+
+.skeleton span {
+  width: 42%;
+  height: 10px;
+}
+
+.skeleton strong {
+  width: 78%;
+  height: 74px;
+  margin-top: auto;
+}
+
+.skeleton i {
+  width: 92%;
+  height: 44px;
+}
+
+.fallback {
+  width: 100%;
+  min-height: 390px;
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-block: 1px solid var(--ink);
+}
+
+.fallback > p {
+  max-width: 28ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.fallback nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+}
+
+.fallback a {
+  min-height: 86px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  border-right: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.fallback a:last-child {
+  border-right: 0;
+}
+
+.fallback a:hover {
+  background: var(--blue);
+  color: white;
+}
+
+@keyframes signal-skeleton {
+  from { opacity: 0.46; }
+  to { opacity: 0.86; }
+}
+
+@media (max-width: 900px) {
+  .section {
+    padding: 90px 0;
+  }
+
+  .inner {
+    grid-template-columns: 1fr;
+    gap: 54px;
+  }
+
+  .signalPanel {
+    min-height: 430px;
+    padding: 28px;
+  }
+
+  .signalCopy h2 {
+    max-width: 11ch;
+    font-size: clamp(42px, 12vw, 60px);
+  }
+
+  .signalLede {
+    font-size: 14px;
+  }
+
+  .glitchStage {
+    min-height: 96px;
+  }
+
+  .storiesHeader {
+    margin-bottom: 28px;
+  }
+
+  .storiesHeader h3 {
+    font-size: 40px;
+  }
+
+  .track {
+    width: calc(100vw - var(--gutter));
+    min-height: 376px;
+    padding-right: var(--gutter);
+  }
+
+  .card,
+  .skeleton {
+    min-height: 360px;
+    flex-basis: min(84vw, 390px);
+  }
+
+  .card a {
+    min-height: 358px;
+  }
+
+  .fallback {
+    width: calc(100% - var(--gutter));
+    min-height: 330px;
+  }
+}
+
+@media (max-width: 560px) {
+  .signalPanel {
+    min-height: 410px;
+    padding: 24px;
+  }
+
+  .signalLabel {
+    margin-bottom: 30px;
+  }
+
+  .controls button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .fallback nav {
+    grid-template-columns: 1fr;
+  }
+
+  .fallback a {
+    min-height: 64px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .fallback a:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton span,
+  .skeleton strong,
+  .skeleton i {
+    animation: none;
+  }
+}

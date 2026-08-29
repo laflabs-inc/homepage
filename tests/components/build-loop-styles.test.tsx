@@ -26,6 +26,7 @@ describe("BuildLoop styling", () => {
 
     const section = screen.getByRole("region", { name: "제품에서 시작해 시스템으로 남깁니다." })
     expect(section).toHaveClass("buildLoop")
+    expect(section).toHaveAttribute("data-motion-sequence", "scroll")
 
     const title = within(section).getByRole("heading", {
       level: 2,

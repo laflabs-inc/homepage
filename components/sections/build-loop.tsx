@@ -20,9 +20,9 @@ function BuildStep({
   reduced: boolean | null
   title: string
 }) {
-  const start = index * 0.2
-  const opacity = useTransform(progress, [start, start + 0.18], [0.24, 1])
-  const x = useTransform(progress, [start, start + 0.18], [64, 0])
+  const start = 0.08 + index * 0.18
+  const opacity = useTransform(progress, [start, start + 0.22], [0.22, 1])
+  const x = useTransform(progress, [start, start + 0.22], [72, 0])
 
   return (
     <motion.li style={reduced ? undefined : { opacity, x }}>
@@ -42,21 +42,31 @@ export function BuildLoop() {
   const t = copy[locale].buildLoop
   const { scrollYProgress } = useScroll({
     target: section,
-    offset: ["start start", "end end"],
+    offset: ["start 0.85", "end 0.2"],
   })
-  const markerY = useTransform(scrollYProgress, [0, 1], [0, 244])
+  const introOpacity = useTransform(scrollYProgress, [0, 0.12], [0.24, 1])
+  const introX = useTransform(scrollYProgress, [0, 0.12], [84, 0])
+  const markerY = useTransform(scrollYProgress, [0.08, 0.9], [0, 244])
 
   return (
-    <section className={styles.buildLoop} ref={section} aria-labelledby="build-loop-title">
+    <section
+      className={styles.buildLoop}
+      ref={section}
+      aria-labelledby="build-loop-title"
+      data-motion-sequence="scroll"
+    >
       <div className={styles.sticky}>
-        <div className={styles.intro}>
+        <motion.div
+          className={styles.intro}
+          style={reduced ? undefined : { opacity: introOpacity, x: introX }}
+        >
           <h2 id="build-loop-title">{t.title}</h2>
           <p>{t.lede}</p>
           <div className={styles.rail} aria-hidden="true">
             <motion.span className={styles.progress} style={reduced ? undefined : { scaleY: scrollYProgress }} />
             <motion.i style={reduced ? undefined : { y: markerY }} />
           </div>
-        </div>
+        </motion.div>
 
         <ol className={styles.steps}>
           {t.steps.map((step, index) => (

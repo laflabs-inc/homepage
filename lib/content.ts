@@ -73,6 +73,18 @@ type Copy = {
     lede: string
     steps: readonly { title: string; body: string }[]
   }
+  signals: {
+    label: string
+    title: string
+    lede: string
+    listTitle: string
+    previous: string
+    next: string
+    loading: string
+    empty: string
+    error: string
+    kinds: Record<"notice" | "disclosure" | "design", string>
+  }
   open: {
     title: readonly [string, string]
     lede: string
@@ -157,6 +169,18 @@ const ko: Copy = {
       { title: "운영", body: "직접 운영하며 실패 경로와 경계를 확인합니다." },
       { title: "오픈소스", body: "다른 팀에도 쓸모가 확인된 코드는 공개하고 계속 다듬습니다." },
     ],
+  },
+  signals: {
+    label: "LATEST SIGNALS",
+    title: "만든 것과 배운 것을 기록합니다.",
+    lede: "제품 소식부터 기술 기준과 회사 정보까지, 확인할 수 있는 형태로 남깁니다.",
+    listTitle: "최근 소식",
+    previous: "이전 소식",
+    next: "다음 소식",
+    loading: "최근 소식을 불러오는 중입니다.",
+    empty: "아직 공개된 새 소식이 없습니다.",
+    error: "지금은 새 소식을 불러올 수 없습니다.",
+    kinds: { notice: "공지사항", disclosure: "공시", design: "디자인 가이드" },
   },
   open: {
     title: ["필요해서 만들었고,", "쓸 만해져서 열었습니다."],
@@ -261,6 +285,18 @@ const en: Copy = {
       { title: "Operations", body: "Run it ourselves and inspect failure paths and boundaries." },
       { title: "Open source", body: "Open code that proves useful to other teams, then keep improving it." },
     ],
+  },
+  signals: {
+    label: "LATEST SIGNALS",
+    title: "We document what we build and learn.",
+    lede: "From product updates to technical standards and company information, we keep the record public.",
+    listTitle: "Latest",
+    previous: "Previous story",
+    next: "Next story",
+    loading: "Loading recent updates.",
+    empty: "No updates have been published yet.",
+    error: "Recent updates are unavailable right now.",
+    kinds: { notice: "Notices", disclosure: "Disclosures", design: "Design guide" },
   },
   open: {
     title: ["Built because we needed it.", "Opened once it earned its keep."],
