@@ -1,20 +1,24 @@
 import { MarkdownDocument } from "@/components/content/markdown-document"
+import { useLocale } from "@/components/i18n/locale-provider"
+import { adminCopy } from "@/lib/admin/i18n"
 import { markdownAuthoringGuideSource, markdownGuideSections } from "@/lib/markdown/authoring-guide"
 import styles from "@/app/admin/admin.module.css"
 
 export function MarkdownAuthoringGuide() {
+  const t = adminCopy[useLocale()].documents.markdownGuide
+
   return (
     <div className={styles.markdownGuide}>
       <MarkdownDocument
-        title="Markdown 작성 가이드"
+        title={t.title}
         source={markdownAuthoringGuideSource}
         intro={(
           <>
             <p className={styles.markdownGuideIntro}>
-              문서의 목적에 맞는 문법을 고르고, 바로 아래 예시에서 실제 출력까지 확인하세요.
+              {t.intro}
             </p>
-            <nav className={styles.markdownGuideContents} aria-label="가이드 목차">
-              <span>빠른 이동</span>
+            <nav className={styles.markdownGuideContents} aria-label={t.contentsLabel}>
+              <span>{t.quickNavigation}</span>
               <div>
                 {markdownGuideSections.map(([label, href]) => (
                   <a key={href} href={href}>{label}</a>

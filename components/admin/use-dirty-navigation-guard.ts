@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useRef } from "react"
 
-export const DIRTY_NAVIGATION_MESSAGE = "You have unsaved document changes. Leave this page?"
 const DIRTY_SENTINEL_KEY = "__laf_document_dirty_sentinel"
 
 type PendingRetirement = {
@@ -11,7 +10,11 @@ type PendingRetirement = {
   resolve: () => void
 }
 
-export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): () => Promise<void> {
+export function useDirtyNavigationGuard(
+  dirty: boolean,
+  discard: () => void,
+  confirmationMessage: string,
+): () => Promise<void> {
   const router = useRouter()
   const sentinelId = useId()
   const dirtyRef = useRef(dirty)
@@ -79,7 +82,7 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): ()
 
       event.preventDefault()
       event.stopImmediatePropagation()
-      if (!window.confirm(DIRTY_NAVIGATION_MESSAGE)) return
+      if (!window.confirm(confirmationMessage)) return
 
       const retirement = retireSentinel()
       discardRef.current()
@@ -101,7 +104,7 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): ()
         return
       }
       if (!dirtyRef.current) return
-      if (window.confirm(DIRTY_NAVIGATION_MESSAGE)) {
+      if (window.confirm(confirmationMessage)) {
         sentinelActiveRef.current = false
         discardRef.current()
         suppressedPopRef.current = "replay"
@@ -123,7 +126,7 @@ export function useDirtyNavigationGuard(dirty: boolean, discard: () => void): ()
       pendingRetirementRef.current = null
       retirement?.resolve()
     }
-  }, [retireSentinel, router])
+  }, [confirmationMessage, retireSentinel, router])
 
   useEffect(() => {
     if (!dirty) {

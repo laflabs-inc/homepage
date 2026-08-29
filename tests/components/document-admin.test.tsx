@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { act, fireEvent, render as renderBase, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -27,6 +27,14 @@ import { DocumentList } from "@/components/admin/document-list"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import type { DocumentRevision } from "@/lib/documents/types"
+
+function EnglishLocaleTestProvider({ children }: { children: React.ReactNode }) {
+  return <LocaleProvider initialLocale="en">{children}</LocaleProvider>
+}
+
+function render(ui: React.ReactElement) {
+  return renderBase(ui, { wrapper: EnglishLocaleTestProvider })
+}
 
 const revision: DocumentRevision = {
   id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131",
@@ -114,6 +122,60 @@ beforeEach(() => {
 })
 
 describe("document admin", () => {
+  it("renders the Korean editor workflow without changing the loaded document values", async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <LocaleProvider key="ko" initialLocale="ko">
+        <DocumentEditor revision={revision} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("textbox", { name: "제목" })).toHaveValue("서비스 업데이트")
+    await user.click(screen.getByRole("tab", { name: "미리보기" }))
+    expect(screen.getByRole("tabpanel", { name: "미리보기" })).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "지금 발행" }))
+    expect(window.confirm).toHaveBeenCalledWith("지금 이 문서를 발행할까요?")
+    expect(await screen.findByRole("status")).toHaveTextContent("문서를 발행했습니다.")
+
+    rerender(
+      <LocaleProvider key="en" initialLocale="en">
+        <DocumentEditor revision={revision} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue("서비스 업데이트")
+  })
+
+  it("uses the Korean permanent-deletion confirmation", async () => {
+    const user = userEvent.setup()
+    vi.spyOn(window, "prompt").mockReturnValue(null)
+    render(
+      <LocaleProvider initialLocale="ko">
+        <AdminNav />
+        <DocumentEditor revision={{ ...revision, status: "archived" }} />
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "완전히 삭제" }))
+    expect(window.prompt).toHaveBeenCalledWith("완전히 삭제하려면 문서 제목을 입력하세요:", "")
+  })
+
+  it("uses the Korean dirty-navigation confirmation", async () => {
+    const user = userEvent.setup()
+    vi.mocked(window.confirm).mockReturnValue(false)
+    render(
+      <LocaleProvider initialLocale="ko">
+        <AdminNav />
+        <DocumentEditor revision={revision} />
+      </LocaleProvider>,
+    )
+
+    await user.type(screen.getByRole("textbox", { name: "요약" }), " 수정")
+    await user.click(screen.getByRole("link", { name: "분석" }))
+
+    expect(window.confirm).toHaveBeenCalledWith("저장하지 않은 문서 변경 사항이 있습니다. 이 페이지를 나갈까요?")
+  })
+
   it("links the protected admin areas and lists document revisions", () => {
     render(
       <LocaleProvider initialLocale="en">

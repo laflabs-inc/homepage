@@ -96,7 +96,7 @@ describe("protected admin document queries", () => {
     render(<LocaleProvider initialLocale="en">{await MarkdownGuidePage()}</LocaleProvider>)
 
     expect(authMocks.requireAdmin).toHaveBeenCalled()
-    expect(screen.getByText("Markdown 작성 가이드", { selector: "h1" })).toBeInTheDocument()
+    expect(screen.getByText("Markdown writing guide", { selector: "h1" })).toBeInTheDocument()
     expect(screen.getByText("Back to documents").closest("a")).toHaveAttribute("href", "/admin/documents")
     const aiGuideLink = screen.queryByText("Markdown source for AI")?.closest("a")
     expect(aiGuideLink).toHaveAttribute("href", "/markdown-guide.md")
@@ -179,7 +179,11 @@ describe("protected admin document queries", () => {
   })
 
   it("loads a revision detail directly by ID", async () => {
-    render(await DocumentRevisionPage({ params: Promise.resolve({ revisionId: revision.id }) }))
+    render(
+      <LocaleProvider initialLocale="en">
+        {await DocumentRevisionPage({ params: Promise.resolve({ revisionId: revision.id }) })}
+      </LocaleProvider>,
+    )
 
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(revision.title)
     expect(serviceMocks.getRevision).toHaveBeenCalledWith(revision.id)
@@ -194,12 +198,16 @@ describe("protected admin document queries", () => {
   })
 
   it("loads the Korean English-template source directly by ID", async () => {
-    render(await NewDocumentPage({
-      searchParams: Promise.resolve({
-        seriesId: revision.seriesId,
-        sourceRevisionId: revision.id,
-      }),
-    }))
+    render(
+      <LocaleProvider initialLocale="en">
+        {await NewDocumentPage({
+          searchParams: Promise.resolve({
+            seriesId: revision.seriesId,
+            sourceRevisionId: revision.id,
+          }),
+        })}
+      </LocaleProvider>,
+    )
 
     expect(screen.getByRole("combobox", { name: "Locale" })).toHaveValue("en")
     expect(serviceMocks.getRevision).toHaveBeenCalledWith(revision.id)

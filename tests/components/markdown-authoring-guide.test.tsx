@@ -9,6 +9,7 @@ vi.mock("@/components/content/content.module.css", () => ({
 }))
 
 import { MarkdownAuthoringGuide } from "@/components/admin/markdown-authoring-guide"
+import { LocaleProvider } from "@/components/i18n/locale-provider"
 
 describe("MarkdownAuthoringGuide", () => {
   it("renders delimiter guidance without sending Korean prose into math mode", () => {
@@ -35,5 +36,17 @@ describe("MarkdownAuthoringGuide", () => {
     expect(container.querySelector(".katex-display")).toBeInTheDocument()
     expect(screen.getByRole("figure", { name: "Mermaid diagram" })).toBeInTheDocument()
     expect(screen.getByText("접어서 둘 내용").closest("details")).toBeInTheDocument()
+  })
+
+  it("localizes guide chrome while preserving the Korean authoring source", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <MarkdownAuthoringGuide />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("heading", { level: 1, name: "Markdown writing guide" })).toBeInTheDocument()
+    expect(screen.getByRole("navigation", { name: "Guide contents" })).toBeInTheDocument()
+    expect(screen.getAllByText("콜아웃")).not.toHaveLength(0)
   })
 })
