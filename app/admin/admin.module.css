@@ -250,6 +250,107 @@
   line-height: 1.55;
 }
 
+.markdownField {
+  display: grid;
+  gap: 8px;
+}
+
+.markdownFieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.markdownFieldHeader a {
+  color: var(--blue);
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.markdownFieldHeader a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdownGuide {
+  width: min(100%, 980px);
+}
+
+.markdownGuidePage {
+  display: grid;
+  justify-items: center;
+}
+
+.markdownGuideToolbar {
+  width: min(100%, 980px);
+  margin-bottom: 48px;
+  padding-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--ink);
+  color: var(--muted);
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.08em;
+}
+
+.markdownGuideToolbar a {
+  color: var(--ink);
+}
+
+.markdownGuideToolbar a:hover {
+  color: var(--blue);
+}
+
+.markdownGuideIntro {
+  max-width: 680px;
+  margin: -24px 0 32px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.markdownGuideContents {
+  margin-bottom: 72px;
+  border: 1px solid var(--ink);
+}
+
+.markdownGuideContents > span {
+  min-height: 42px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  color: white;
+  background: var(--ink);
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.markdownGuideContents > div {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.markdownGuideContents a {
+  min-height: 42px;
+  padding: 0 14px;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.markdownGuideContents a:hover {
+  color: white;
+  background: var(--blue);
+}
+
 .editorFieldGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

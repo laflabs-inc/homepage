@@ -532,9 +532,25 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
               </button>
             ) : null}
           </div>
-          <label>Markdown body
-            <textarea required maxLength={200_000} rows={24} value={values.bodyMarkdown} onChange={(event) => update("bodyMarkdown", event.target.value)} />
-          </label>
+          <div className={styles.markdownField}>
+            <div className={styles.markdownFieldHeader}>
+              <label htmlFor="document-markdown-body">Markdown body</label>
+              <Link
+                href="/admin/documents/markdown-guide"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Markdown writing guide"
+              >Writing guide ↗</Link>
+            </div>
+            <textarea
+              id="document-markdown-body"
+              required
+              maxLength={200_000}
+              rows={24}
+              value={values.bodyMarkdown}
+              onChange={(event) => update("bodyMarkdown", event.target.value)}
+            />
+          </div>
           {error ? <p ref={errorRef} className={styles.formAlert} role="alert" tabIndex={-1}>{error}</p> : null}
           {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
           {revision?.locale === "en" ? (

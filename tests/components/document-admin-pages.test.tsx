@@ -6,8 +6,9 @@ const serviceMocks = vi.hoisted(() => ({
   listAdminSummaries: vi.fn(),
   getRevision: vi.fn(),
 }))
+const authMocks = vi.hoisted(() => ({ requireAdmin: vi.fn() }))
 
-vi.mock("@/lib/auth/require-admin", () => ({ requireAdmin: vi.fn() }))
+vi.mock("@/lib/auth/require-admin", () => authMocks)
 vi.mock("@/lib/documents/service", () => ({ documentService: serviceMocks }))
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => { throw new Error("not found") }),
@@ -27,6 +28,7 @@ vi.mock("@/components/content/content.module.css", () => ({
 
 import DocumentsPage from "@/app/admin/(protected)/documents/page"
 import DocumentRevisionPage from "@/app/admin/(protected)/documents/[revisionId]/page"
+import MarkdownGuidePage from "@/app/admin/(protected)/documents/markdown-guide/page"
 import NewDocumentPage from "@/app/admin/(protected)/documents/new/page"
 import type { DocumentRevision } from "@/lib/documents/types"
 
@@ -74,6 +76,14 @@ beforeEach(() => {
 })
 
 describe("protected admin document queries", () => {
+  it("renders the Markdown guide behind the admin boundary", async () => {
+    render(await MarkdownGuidePage())
+
+    expect(authMocks.requireAdmin).toHaveBeenCalled()
+    expect(screen.getByRole("heading", { level: 1, name: "Markdown 작성 가이드" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "문서 목록으로 돌아가기" })).toHaveAttribute("href", "/admin/documents")
+  })
+
   it("renders the index from the bounded minimal summary query", async () => {
     render(await DocumentsPage())
 
