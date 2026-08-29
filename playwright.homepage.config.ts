@@ -31,7 +31,7 @@ export default defineConfig({
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3201",
     url: baseURL,
-    reuseExistingServer: false,
+    reuseExistingServer: true,
     timeout: 120_000,
     env: {
       ...process.env,

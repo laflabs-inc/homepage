@@ -6,6 +6,7 @@ import { motion, useReducedMotion } from "motion/react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { copy } from "@/lib/content"
+import type { Locale } from "@/lib/i18n"
 import {
   getLatestSignalHref,
   mergeLatestSignals,
@@ -17,10 +18,10 @@ import {
 import styles from "./latest-signals.module.css"
 
 type LoadState =
-  | { status: "loading"; items: LatestSignal[] }
-  | { status: "ready"; items: LatestSignal[] }
-  | { status: "empty"; items: LatestSignal[] }
-  | { status: "error"; items: LatestSignal[] }
+  | { locale: Locale; status: "loading"; items: LatestSignal[] }
+  | { locale: Locale; status: "ready"; items: LatestSignal[] }
+  | { locale: Locale; status: "empty"; items: LatestSignal[] }
+  | { locale: Locale; status: "error"; items: LatestSignal[] }
 
 const destinationByKind: Record<LatestSignalKind, string> = {
   notice: "/notices",
@@ -84,13 +85,15 @@ export function LatestSignals() {
   const reduced = useReducedMotion()
   const t = copy[locale].signals
   const rail = useRef<HTMLDivElement>(null)
-  const [state, setState] = useState<LoadState>({ status: "loading", items: [] })
+  const [state, setState] = useState<LoadState>(() => ({ locale, status: "loading", items: [] }))
   const [canScrollPrevious, setCanScrollPrevious] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(false)
+  const displayState: LoadState = state.locale === locale
+    ? state
+    : { locale, status: "loading", items: [] }
 
   useEffect(() => {
     const controller = new AbortController()
-    setState({ status: "loading", items: [] })
 
     Promise.all(signalKinds.map(async (kind) => {
       const response = await fetch(`/api/content?kind=${kind}&locale=${locale}&limit=3`, {
@@ -101,10 +104,11 @@ export function LatestSignals() {
       if (!isPublicSignalPage(body)) throw new Error("Content response was invalid")
       return body
     })).then((pages) => {
+      if (controller.signal.aborted) return
       const items = mergeLatestSignals(pages, 3)
-      setState({ status: items.length > 0 ? "ready" : "empty", items })
+      setState({ locale, status: items.length > 0 ? "ready" : "empty", items })
     }).catch(() => {
-      if (!controller.signal.aborted) setState({ status: "error", items: [] })
+      if (!controller.signal.aborted) setState({ locale, status: "error", items: [] })
     })
 
     return () => controller.abort()
@@ -121,7 +125,7 @@ export function LatestSignals() {
     updateRailControls()
     window.addEventListener("resize", updateRailControls)
     return () => window.removeEventListener("resize", updateRailControls)
-  }, [state.status, updateRailControls])
+  }, [displayState.status, updateRailControls])
 
   const moveRail = (direction: -1 | 1) => {
     const element = rail.current
@@ -132,7 +136,7 @@ export function LatestSignals() {
     })
   }
 
-  const fallback = state.status === "error" ? t.error : t.empty
+  const fallback = displayState.status === "error" ? t.error : t.empty
 
   return (
     <section className={styles.section} aria-labelledby="latest-signals-title">
@@ -173,7 +177,7 @@ export function LatestSignals() {
             tabIndex={0}
             onScroll={updateRailControls}
           >
-            {state.status === "loading" ? (
+            {displayState.status === "loading" ? (
               <>
                 <p className={styles.loadingStatus} role="status">{t.loading}</p>
                 {[0, 1, 2].map((index) => (
@@ -182,7 +186,7 @@ export function LatestSignals() {
                   </div>
                 ))}
               </>
-            ) : state.status === "ready" ? state.items.map((item) => (
+            ) : displayState.status === "ready" ? displayState.items.map((item) => (
               <article className={styles.card} key={item.id}>
                 <a href={getLatestSignalHref(item, locale)}>
                   <div className={`${styles.cardMeta} mono`}>

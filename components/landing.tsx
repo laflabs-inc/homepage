@@ -6,6 +6,7 @@ import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
 import { BuildLoop } from "@/components/sections/build-loop"
+import { LatestSignals } from "@/components/sections/latest-signals"
 import { StackStrip } from "@/components/sections/stack-strip"
 import { contactEmail, copy, githubOrg, products, repositories } from "@/lib/content"
 
@@ -74,6 +75,8 @@ export function Landing() {
     </section>
 
     <BuildLoop />
+
+    <LatestSignals />
 
     <section className="open-stage" id="open-source">
       <div className="open-intro"><p className="section-no mono">03 / OPEN SOURCE</p><h2 aria-label={ko ? "직접 쓰고 검증한 코드를 공개합니다." : "Code that earned its place, open."}>{ko ? <>직접 쓰고 검증한<br />코드를 공개합니다.</> : <>Code that earned<br />its place, open.</>}</h2><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc"><GithubGlyph /> GitHub <ArrowUpRight /></a></div>

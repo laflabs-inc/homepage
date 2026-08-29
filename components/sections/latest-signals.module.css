@@ -280,7 +280,7 @@
 .skeleton strong,
 .skeleton i {
   display: block;
-  background: #dbe5f2;
+  background: var(--line);
   animation: signal-skeleton 1.15s ease-in-out infinite alternate;
 }
 
