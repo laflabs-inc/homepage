@@ -647,6 +647,32 @@ describe("Agent service", () => {
       .rejects.toMatchObject({ code })
   })
 
+  it("preserves a typed verification diagnostic without writing it to audit history", async () => {
+    const repository = new MemoryAgentRepository()
+    const diagnostic = {
+      statusCode: 400,
+      providerCode: "invalid_request_error",
+      providerType: "invalid_request_error",
+      providerParam: "temperature",
+      requestId: "req_diagnostic_123",
+      message: "Unsupported parameter: temperature",
+    }
+    const failing = vi.fn(async () => {
+      throw new CredentialVerificationError("verification_request_invalid", diagnostic)
+    })
+
+    await expect(service(repository, failing).configureCredential({
+      apiKey: "sk-candidate",
+      model: "gpt-5.6-luna",
+      version: repository.settings.version,
+    }, actor)).rejects.toMatchObject({
+      code: "verification_request_invalid",
+      diagnostic,
+    })
+    expect(JSON.stringify(repository.audits)).not.toContain("temperature")
+    expect(JSON.stringify(repository.audits)).not.toContain("sk-candidate")
+  })
+
   it("disables AI before deleting the credential", async () => {
     const repository = new MemoryAgentRepository()
     repository.settings = settings({ enabled: true })

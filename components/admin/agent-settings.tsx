@@ -10,7 +10,11 @@ import {
   getAgentModel,
   type SupportedAgentModelId,
 } from "@/lib/agent/model-catalog"
-import type { AgentConfiguration, AgentSettingsDto } from "@/lib/agent/types"
+import type {
+  AgentConfiguration,
+  AgentSettingsDto,
+  CredentialVerificationDiagnostic,
+} from "@/lib/agent/types"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
 import type { Locale } from "@/lib/i18n"
 
@@ -26,7 +30,12 @@ type Draft = {
   summaryPolicy: "review" | "automatic"
 }
 
-type ApiPayload = { configuration?: AgentConfiguration; error?: string }
+type AgentErrorPayload = {
+  error?: string
+  diagnostic?: CredentialVerificationDiagnostic
+}
+
+type ApiPayload = { configuration?: AgentConfiguration } & AgentErrorPayload
 
 function usd(microusd: number): string {
   return String(microusd / 1_000_000)
@@ -100,6 +109,17 @@ function agentErrorMessage(t: AdminCopy["agent"], code: string | undefined): str
   return t.errors.generic
 }
 
+function verificationDiagnostic(payload: AgentErrorPayload): CredentialVerificationDiagnostic | null {
+  if (payload.error !== "credential_invalid"
+    && payload.error !== "model_access_denied"
+    && payload.error !== "model_not_found"
+    && payload.error !== "verification_request_invalid"
+    && payload.error !== "quota_exhausted"
+    && payload.error !== "rate_limited"
+    && payload.error !== "provider_unavailable") return null
+  return payload.diagnostic ?? null
+}
+
 function settingsPayload(draft: Draft, version: number) {
   return {
     enabled: draft.enabled,
@@ -126,6 +146,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   const [apiKey, setApiKey] = useState("")
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
+  const [diagnostic, setDiagnostic] = useState<CredentialVerificationDiagnostic | null>(null)
   const [busy, setBusy] = useState(false)
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
@@ -162,6 +183,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   ) => {
     setBusy(true)
     setError("")
+    setDiagnostic(null)
     setNotice("")
     try {
       const response = await fetch(path, {
@@ -183,6 +205,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           }
         }
         setError(agentErrorMessage(t, payload.error))
+        setDiagnostic(verificationDiagnostic(payload))
         return
       }
       applyConfiguration(payload.configuration, options.preserveDraft)
@@ -251,6 +274,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   const disableAi = async () => {
     setBusy(true)
     setError("")
+    setDiagnostic(null)
     setNotice("")
     let current = configuration
     try {
@@ -334,7 +358,22 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         </button>
       </div>
 
-      {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
+      {error ? (
+        <div className={styles.formAlert} role="alert">
+          <p>{error}</p>
+          {diagnostic ? (
+            <details>
+              <summary>{t.diagnosticDetails}</summary>
+              {diagnostic.statusCode !== null ? <p>{t.diagnosticStatus}: {diagnostic.statusCode}</p> : null}
+              {diagnostic.providerCode ? <p>{t.diagnosticProviderCode}: {diagnostic.providerCode}</p> : null}
+              {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
+              {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
+              {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
+              {diagnostic.message ? <p>{t.diagnosticMessage}: {diagnostic.message}</p> : null}
+            </details>
+          ) : null}
+        </div>
+      ) : null}
       {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
 
       <section className={styles.agentSection}>

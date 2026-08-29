@@ -5,6 +5,7 @@ import type {
   AgentCredentialSetupInput,
   AgentRuntimeSettingsUpdate,
   AgentSettingsUpdate,
+  CredentialVerificationDiagnostic,
 } from "@/lib/agent/types"
 import { agentRuntimeSettingsUpdateSchema } from "@/lib/agent/validation"
 import { jsonNoStore, readBoundedJson, withNoStore } from "@/lib/http/json-body"
@@ -76,7 +77,22 @@ export function agentErrorResponse(error: unknown): Response {
         || error.code === "provider_unavailable"
         ? 502
         : 503
-  return jsonNoStore({ error: error.code }, { status })
+  const diagnostic = verificationDiagnostic(error)
+  return jsonNoStore(diagnostic
+    ? { error: error.code, diagnostic }
+    : { error: error.code }, { status })
+}
+
+function verificationDiagnostic(error: AgentServiceError): CredentialVerificationDiagnostic | undefined {
+  return error.code === "credential_invalid"
+    || error.code === "model_access_denied"
+    || error.code === "model_not_found"
+    || error.code === "verification_request_invalid"
+    || error.code === "quota_exhausted"
+    || error.code === "rate_limited"
+    || error.code === "provider_unavailable"
+    ? error.diagnostic
+    : undefined
 }
 
 export async function handleGetAgent(

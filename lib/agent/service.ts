@@ -17,6 +17,7 @@ import type {
   AgentSettings,
   AgentSettingsDto,
   AgentSettingsUpdate,
+  CredentialVerificationDiagnostic,
   CredentialStatusDto,
   CredentialVerifier,
   StoredCredential,
@@ -49,11 +50,14 @@ export class AgentServiceError extends Error {
   constructor(
     public readonly code: AgentServiceErrorCode,
     message: string,
-    options?: ErrorOptions,
+    options?: ErrorOptions & { diagnostic?: CredentialVerificationDiagnostic },
   ) {
     super(message, options)
     this.name = "AgentServiceError"
+    this.diagnostic = options?.diagnostic
   }
+
+  public readonly diagnostic?: CredentialVerificationDiagnostic
 }
 
 type AgentServiceDependencies = {
@@ -159,6 +163,10 @@ function verificationServiceMessage(code: CredentialVerificationErrorCode): stri
   return code === "provider_unavailable" ? "OpenAI verification is unavailable" : "OpenAI verification failed"
 }
 
+function verificationDiagnostic(error: unknown): CredentialVerificationDiagnostic | undefined {
+  return error instanceof CredentialVerificationError ? error.diagnostic : undefined
+}
+
 export function createAgentService(
   repository: AgentRepository,
   dependencyOverrides: Partial<AgentServiceDependencies> = {},
@@ -259,7 +267,9 @@ export function createAgentService(
         await dependencies.verify(apiKey, catalogModel.id)
       } catch (error) {
         const code = verificationServiceCode(error)
-        throw new AgentServiceError(code, verificationServiceMessage(code))
+        throw new AgentServiceError(code, verificationServiceMessage(code), {
+          diagnostic: verificationDiagnostic(error),
+        })
       }
 
       const verifiedAt = dependencies.now()
@@ -314,7 +324,9 @@ export function createAgentService(
         await dependencies.verify(parsed.data.apiKey, settings.model)
       } catch (error) {
         const code = verificationServiceCode(error)
-        throw new AgentServiceError(code, verificationServiceMessage(code))
+        throw new AgentServiceError(code, verificationServiceMessage(code), {
+          diagnostic: verificationDiagnostic(error),
+        })
       }
 
       const encrypted = encryptCredential(parsed.data.apiKey, requireEncryptionKey(dependencies))
@@ -356,7 +368,9 @@ export function createAgentService(
           throw new AgentServiceError("version_conflict", "Agent verification changed while the test was running")
         }
         const code = verificationServiceCode(error)
-        throw new AgentServiceError(code, verificationServiceMessage(code))
+        throw new AgentServiceError(code, verificationServiceMessage(code), {
+          diagnostic: verificationDiagnostic(error),
+        })
       }
       const recorded = await repository.recordCredentialTest(settings.model, "verified", expected, actor, verifiedAt)
       if (recorded.status === "stale") {

@@ -312,6 +312,30 @@ describe("Agent settings", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(`Error code: ${code}`)
   })
 
+  it("renders localized safe OpenAI diagnostic details as text", async () => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockImplementationOnce(() => Promise.resolve(Response.json({
+      error: "verification_request_invalid",
+      diagnostic: {
+        statusCode: 400,
+        providerCode: "invalid_request_error",
+        providerType: "invalid_request_error",
+        providerParam: "temperature",
+        requestId: "req_diagnostic_123",
+        message: "Unsupported parameter: temperature",
+      },
+    }, { status: 502 })))
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    await user.click(screen.getByRole("button", { name: "Test connection" }))
+
+    const details = await screen.findByText("OpenAI error details")
+    expect(details.closest("details")).toBeInTheDocument()
+    expect(screen.getByText("Status: 400")).toBeInTheDocument()
+    expect(screen.getByText("Provider parameter: temperature")).toBeInTheDocument()
+    expect(screen.getByText("Request ID: req_diagnostic_123")).toBeInTheDocument()
+  })
+
   it("tests and deletes credentials, confirming deletion before the destructive request", async () => {
     const user = userEvent.setup()
     render(<AgentSettings initialConfiguration={configuration} />)
