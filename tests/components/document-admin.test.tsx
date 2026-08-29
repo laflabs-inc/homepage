@@ -143,6 +143,16 @@ describe("document admin", () => {
     expect(screen.getByRole("tabpanel", { name: "Source" })).toBeInTheDocument()
   })
 
+  it("opens the Markdown writing guide without leaving an unsaved draft", () => {
+    render(<DocumentEditor />)
+
+    expect(screen.getByRole("link", { name: "Markdown writing guide" })).toHaveAttribute(
+      "href",
+      "/admin/documents/markdown-guide",
+    )
+    expect(screen.getByRole("link", { name: "Markdown writing guide" })).toHaveAttribute("target", "_blank")
+  })
+
   it("renders the current Markdown through the shared preview", async () => {
     const user = userEvent.setup()
     render(<DocumentEditor revision={revision} />)
