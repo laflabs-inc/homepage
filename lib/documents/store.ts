@@ -596,7 +596,6 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
               (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
               OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
               OR (locked_revision."kind" = 'disclosure' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('corporate', 'financial', 'governance', 'material')))
-              OR (locked_revision."kind" = 'design' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('foundation', 'brand', 'component', 'resource')))
             )
         ), locked_metadata AS (
           UPDATE ${documentSeries} s
@@ -711,7 +710,6 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
               (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
               OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
               OR (locked_revision."kind" = 'disclosure' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('corporate', 'financial', 'governance', 'material')))
-              OR (locked_revision."kind" = 'design' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('foundation', 'brand', 'component', 'resource')))
             )
             AND (
               locked_revision."locale" = 'ko'

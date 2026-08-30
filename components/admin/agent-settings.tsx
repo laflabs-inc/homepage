@@ -3,13 +3,20 @@
 import { useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
+import { useLocale } from "@/components/i18n/locale-provider"
 import {
   agentModelCatalog,
   defaultAgentModelId,
   getAgentModel,
   type SupportedAgentModelId,
 } from "@/lib/agent/model-catalog"
-import type { AgentConfiguration, AgentSettingsDto } from "@/lib/agent/types"
+import type {
+  AgentConfiguration,
+  AgentSettingsDto,
+  CredentialVerificationDiagnostic,
+} from "@/lib/agent/types"
+import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
+import type { Locale } from "@/lib/i18n"
 
 type Draft = {
   enabled: boolean
@@ -23,16 +30,26 @@ type Draft = {
   summaryPolicy: "review" | "automatic"
 }
 
-type ApiPayload = { configuration?: AgentConfiguration; error?: string }
+type AgentErrorPayload = {
+  error?: string
+  diagnostic?: CredentialVerificationDiagnostic
+}
+
+type ApiPayload = { configuration?: AgentConfiguration } & AgentErrorPayload
 
 function usd(microusd: number): string {
   return String(microusd / 1_000_000)
 }
 
-function usdLabel(microusd: number): string {
-  return new Intl.NumberFormat("en-US", {
+function localeTag(locale: Locale): string {
+  return locale === "ko" ? "ko-KR" : "en-US"
+}
+
+function usdLabel(locale: Locale, microusd: number): string {
+  return new Intl.NumberFormat(localeTag(locale), {
     style: "currency",
     currency: "USD",
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(microusd / 1_000_000)
@@ -65,45 +82,42 @@ function minuteFrom(value: string): number {
   return hour * 60 + minute
 }
 
-function dateLabel(value: Date | string | null): string {
-  if (!value) return "Not set"
-  return new Intl.DateTimeFormat("en-US", {
+function dateLabel(locale: Locale, value: Date | string | null): string {
+  if (!value) return adminCopy[locale].agent.notSet
+  return new Intl.DateTimeFormat(localeTag(locale), {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "UTC",
   }).format(new Date(value))
 }
 
-function errorMessage(code: string | undefined): string {
-  if (code === "credential_invalid") {
-    return "OpenAI rejected the API key (401). Create a valid project API key and try again. Error code: credential_invalid"
-  }
-  if (code === "model_access_denied") {
-    return "This API key cannot use the selected model (403). Check the key's project and model permissions. Error code: model_access_denied"
-  }
-  if (code === "model_not_found") {
-    return "The selected OpenAI model was not found or is unavailable to this project (404). Error code: model_not_found"
-  }
-  if (code === "verification_request_invalid") {
-    return "OpenAI rejected the verification request (400/422). Send this code to the developer. Error code: verification_request_invalid"
-  }
-  if (code === "quota_exhausted") {
-    return "This OpenAI project has no available API quota or credits. Check billing and usage limits. Error code: quota_exhausted"
-  }
-  if (code === "rate_limited") {
-    return "OpenAI rate-limited the verification request. Wait briefly and try again. Error code: rate_limited"
-  }
-  if (code === "provider_unavailable") {
-    return "OpenAI could not be reached or is temporarily unavailable. Try again. Error code: provider_unavailable"
-  }
-  if (code === "credential_required") return "Enter an OpenAI API key to finish the first setup."
-  if (code === "unsupported_model") return "Choose one of the supported OpenAI models."
-  if (code === "encryption_unavailable") return "Credential encryption is unavailable. Check deployment secrets."
-  if (code === "credential_unavailable") return "No usable OpenAI credential is configured."
-  if (code === "model_unverified") return "Verify the selected model before enabling AI."
-  if (code === "invalid_settings") return "Review the highlighted settings and try again."
-  if (code === "version_conflict") return "Settings changed during the operation. Latest configuration loaded; try again."
-  return "The Agent configuration could not be updated. Try again."
+function agentErrorMessage(t: AdminCopy["agent"], code: string | undefined): string {
+  if (code === "credential_invalid") return t.errors.credentialInvalid
+  if (code === "model_access_denied") return t.errors.modelAccessDenied
+  if (code === "model_not_found") return t.errors.modelNotFound
+  if (code === "verification_request_invalid") return t.errors.verificationRequestInvalid
+  if (code === "quota_exhausted") return t.errors.quotaExhausted
+  if (code === "rate_limited") return t.errors.rateLimited
+  if (code === "provider_unavailable") return t.errors.providerUnavailable
+  if (code === "credential_required") return t.errors.credentialRequired
+  if (code === "unsupported_model") return t.errors.unsupportedModel
+  if (code === "encryption_unavailable") return t.errors.encryptionUnavailable
+  if (code === "credential_unavailable") return t.errors.credentialUnavailable
+  if (code === "model_unverified") return t.errors.modelUnverified
+  if (code === "invalid_settings") return t.errors.invalidSettings
+  if (code === "version_conflict") return t.errors.versionConflict
+  return t.errors.generic
+}
+
+function verificationDiagnostic(payload: AgentErrorPayload): CredentialVerificationDiagnostic | null {
+  if (payload.error !== "credential_invalid"
+    && payload.error !== "model_access_denied"
+    && payload.error !== "model_not_found"
+    && payload.error !== "verification_request_invalid"
+    && payload.error !== "quota_exhausted"
+    && payload.error !== "rate_limited"
+    && payload.error !== "provider_unavailable") return null
+  return payload.diagnostic ?? null
 }
 
 function settingsPayload(draft: Draft, version: number) {
@@ -122,6 +136,8 @@ function settingsPayload(draft: Draft, version: number) {
 }
 
 export function AgentSettings({ initialConfiguration }: { initialConfiguration: AgentConfiguration }) {
+  const locale = useLocale()
+  const t = adminCopy[locale].agent
   const [configuration, setConfiguration] = useState(initialConfiguration)
   const [draft, setDraft] = useState(() => draftFrom(initialConfiguration.settings))
   const [selectedModel, setSelectedModel] = useState<SupportedAgentModelId>(() => (
@@ -130,6 +146,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   const [apiKey, setApiKey] = useState("")
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
+  const [diagnostic, setDiagnostic] = useState<CredentialVerificationDiagnostic | null>(null)
   const [busy, setBusy] = useState(false)
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
@@ -154,7 +171,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
 
   const refreshConflict = async () => {
     await loadConfiguration()
-    setNotice("Settings changed elsewhere. Latest configuration loaded.")
+    setNotice(t.settingsReloaded)
   }
 
   const mutate = async (
@@ -166,6 +183,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   ) => {
     setBusy(true)
     setError("")
+    setDiagnostic(null)
     setNotice("")
     try {
       const response = await fetch(path, {
@@ -186,7 +204,8 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
             // The operation error is more useful than a best-effort refresh failure.
           }
         }
-        setError(errorMessage(payload.error))
+        setError(agentErrorMessage(t, payload.error))
+        setDiagnostic(verificationDiagnostic(payload))
         return
       }
       applyConfiguration(payload.configuration, options.preserveDraft)
@@ -199,7 +218,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           // The generic operation error remains valid when refresh also fails.
         }
       }
-      setError("The Agent configuration could not be updated. Try again.")
+      setError(t.errors.generic)
     } finally {
       setBusy(false)
     }
@@ -208,12 +227,12 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   const saveSettings = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (draft.enabled && !configuration.settings.enabled
-      && !window.confirm("Enable AI for public document visitors?")) return
+      && !window.confirm(t.confirmations.enable)) return
     await mutate(
       "/api/admin/agent",
       "PATCH",
       settingsPayload(draft, configuration.settings.version),
-      "Settings saved.",
+      t.settingsSaved,
     )
   }
 
@@ -232,8 +251,8 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           version: configuration.settings.version,
         },
         candidate
-          ? credential.configured ? "Credential verified and replaced." : "Credential verified and stored."
-          : "Model verified and applied.",
+          ? credential.configured ? t.credentialVerifiedAndReplaced : t.credentialVerifiedAndStored
+          : t.modelVerifiedAndApplied,
         { preserveDraft: true },
       )
     } finally {
@@ -242,12 +261,12 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   }
 
   const deleteCredential = async () => {
-    if (!window.confirm("Delete the stored OpenAI credential and disable AI?")) return
+    if (!window.confirm(t.confirmations.deleteCredential)) return
     await mutate(
       "/api/admin/agent/credential",
       "DELETE",
       {},
-      "Credential deleted and AI disabled.",
+      t.credentialDeletedAndDisabled,
       { preserveDraft: true },
     )
   }
@@ -255,6 +274,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   const disableAi = async () => {
     setBusy(true)
     setError("")
+    setDiagnostic(null)
     setNotice("")
     let current = configuration
     try {
@@ -270,13 +290,13 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         const payload = await response.json() as ApiPayload
         if (response.ok && payload.configuration) {
           applyConfiguration(payload.configuration, true)
-          setNotice("AI disabled.")
+          setNotice(t.aiDisabled)
           return
         }
         if (attempt === 0 && response.status === 409 && payload.error === "version_conflict") {
           current = await loadConfiguration(true)
           if (!current.settings.enabled) {
-            setNotice("AI disabled.")
+            setNotice(t.aiDisabled)
             return
           }
           continue
@@ -289,12 +309,12 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           }
         }
         setError(payload.error === "version_conflict"
-          ? "AI could not be disabled because settings changed again. Retry."
-          : errorMessage(payload.error))
+          ? t.errors.disableVersionConflict
+          : agentErrorMessage(t, payload.error))
         return
       }
     } catch {
-      setError("The Agent configuration could not be updated. Try again.")
+      setError(t.errors.generic)
     } finally {
       setBusy(false)
     }
@@ -304,28 +324,29 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   const legacyModel = configuration.settings.model && !getAgentModel(configuration.settings.model)
     ? configuration.settings.model
     : null
-  const fingerprint = credential.fingerprint ? `••••${credential.fingerprint.slice(-4)}` : "No fingerprint"
+  const fingerprint = credential.fingerprint ? `••••${credential.fingerprint.slice(-4)}` : t.fingerprintMissing
   const credentialStatus = credential.configured
-    ? `Configured · ${fingerprint} · ${credential.verificationStatus === "verified" ? "Verified" : "Failed"}`
-    : "Not configured"
+    ? t.configured(fingerprint, credential.verificationStatus === "verified" ? t.verified : t.failed)
+    : t.notConfigured
   const modelChanged = selectedModel !== configuration.settings.model
   const setupAction = !credential.configured
-    ? "Verify and save"
+    ? t.verifyAndSave
     : apiKey.trim()
-      ? "Verify and replace"
-      : "Verify and apply model"
-  const estimatedLimit = new Intl.NumberFormat("en-US", {
+      ? t.verifyAndReplace
+      : t.verifyAndApplyModel
+  const estimatedLimit = new Intl.NumberFormat(localeTag(locale), {
     style: "currency",
     currency: "USD",
+    currencyDisplay: "narrowSymbol",
   }).format(Number(draft.monthlyCostLimitUsd || 0))
 
   return (
     <section className={styles.agentPage}>
       <div className={styles.agentHeading}>
         <div>
-          <p className={styles.eyebrow}>AI control plane</p>
-          <h1>Agent</h1>
-          <p>{configuration.settings.enabled ? "AI is enabled." : "AI is disabled."}</p>
+          <p className={styles.eyebrow}>{t.eyebrow}</p>
+          <h1>{t.heading}</h1>
+          <p>{configuration.settings.enabled ? t.enabled : t.disabled}</p>
         </div>
         <button
           className={styles.killSwitch}
@@ -333,53 +354,73 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           disabled={!configuration.settings.enabled || busy}
           onClick={disableAi}
         >
-          Disable AI now
+          {t.disableNow}
         </button>
       </div>
 
-      {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
+      {error ? (
+        <div className={styles.formAlert} role="alert">
+          <p>{error}</p>
+          {diagnostic ? (
+            <details>
+              <summary>{t.diagnosticDetails}</summary>
+              {diagnostic.statusCode !== null ? <p>{t.diagnosticStatus}: {diagnostic.statusCode}</p> : null}
+              {diagnostic.providerCode ? <p>{t.diagnosticProviderCode}: {diagnostic.providerCode}</p> : null}
+              {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
+              {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
+              {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
+              {diagnostic.providerMessage ? (
+                <p>{t.diagnosticProviderMessage}: {diagnostic.providerMessage}</p>
+              ) : null}
+            </details>
+          ) : null}
+        </div>
+      ) : null}
       {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
 
       <section className={styles.agentSection}>
         <div className={styles.agentSectionHeading}>
           <span>01</span>
-          <h2>OpenAI setup</h2>
+          <h2>{t.connection}</h2>
         </div>
         <div className={styles.agentSectionBody}>
           <p className={styles.connectionStatus}>{credentialStatus}</p>
           {legacyModel ? (
             <p className={styles.formAlert} role="alert">
-              {legacyModel} is no longer in the supported model catalog. Verify a supported model before enabling AI.
+              {t.legacyModel(legacyModel)}
             </p>
           ) : null}
           <form className={styles.agentSetupForm} onSubmit={configureCredential}>
             <label>
-              Model
+              {t.model}
               <select
                 value={selectedModel}
                 onChange={(event) => setSelectedModel(event.target.value as SupportedAgentModelId)}
               >
                 {agentModelCatalog.map((item) => (
                   <option key={item.id} value={item.id}>
-                    {item.label}{item.recommended ? " · Recommended" : ""}
+                    {item.label}{item.recommended ? ` · ${t.recommended}` : ""}
                   </option>
                 ))}
               </select>
             </label>
             <div className={styles.agentModelCard}>
-              <p>{model.description}</p>
+              <p>{t.modelDescriptions[model.id]}</p>
               <strong>
-                {usdLabel(model.inputPriceMicrousdPerMillion)} input / {usdLabel(model.outputPriceMicrousdPerMillion)} output per 1M tokens
+                {t.price(
+                  usdLabel(locale, model.inputPriceMicrousdPerMillion),
+                  usdLabel(locale, model.outputPriceMicrousdPerMillion),
+                )}
               </strong>
-              <span>Pricing checked: {dateLabel(model.pricingCheckedAt)}</span>
+              <span>{t.pricingChecked(dateLabel(locale, model.pricingCheckedAt))}</span>
             </div>
             {modelChanged && credential.configured ? (
               <p className={styles.editorGuidance} role="status">
-                Applying a different model verifies access and leaves AI disabled until you enable it again.
+                {t.modelChanged}
               </p>
             ) : null}
             <label>
-              OpenAI API key
+              {t.apiKey}
               <input
                 name="apiKey"
                 type="password"
@@ -388,7 +429,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
                 required={!credential.configured}
                 value={apiKey}
                 onChange={(event) => setApiKey(event.target.value)}
-                placeholder={credential.configured ? "Leave blank to use the stored credential" : undefined}
+                placeholder={credential.configured ? t.apiKeyPlaceholder : undefined}
               />
             </label>
             <button type="submit" disabled={busy}>{setupAction}</button>
@@ -401,11 +442,11 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
                 "/api/admin/agent/credential/test",
                 "POST",
                 {},
-                "Connection test passed.",
+                t.connectionTestPassed,
                 { preserveDraft: true, refreshOnFailure: true },
               )}
             >
-              Test connection
+              {t.testConnection}
             </button>
             <button
               className={styles.dangerButton}
@@ -413,7 +454,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
               disabled={!credential.configured || busy}
               onClick={deleteCredential}
             >
-              Delete credential
+              {t.deleteCredential}
             </button>
           </div>
         </div>
@@ -423,58 +464,58 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         <section className={styles.agentSection}>
           <div className={styles.agentSectionHeading}>
             <span>02</span>
-            <h2>Usage &amp; policy</h2>
+            <h2>{t.usage}</h2>
           </div>
           <div className={styles.agentFieldGrid}>
             <label>
-              Monthly estimated cost limit (USD)
+              {t.monthlyEstimatedCostLimit}
               <input type="number" min="1" max="10000" step="0.000001" value={draft.monthlyCostLimitUsd} onChange={(event) => set("monthlyCostLimitUsd", event.target.value)} />
             </label>
             <label>
-              Summary policy
+              {t.summaryPolicy}
               <select value={draft.summaryPolicy} onChange={(event) => set("summaryPolicy", event.target.value as Draft["summaryPolicy"])}>
-                <option value="review">Review before publishing</option>
-                <option value="automatic">Automatic</option>
+                <option value="review">{t.reviewBeforePublishing}</option>
+                <option value="automatic">{t.automatic}</option>
               </select>
             </label>
             <label className={styles.agentCheckbox}>
               <input type="checkbox" checked={draft.enabled} onChange={(event) => set("enabled", event.target.checked)} />
-              Enable AI
+              {t.enableAi}
             </label>
-            <p className={styles.agentMetric}>{estimatedLimit} estimated monthly guardrail</p>
-            <p className={styles.agentMeta}>This estimate does not reconcile the OpenAI invoice.</p>
+            <p className={styles.agentMetric}>{t.estimatedMonthlyGuardrail(estimatedLimit)}</p>
+            <p className={styles.agentMeta}>{t.estimateDisclaimer}</p>
 
             <details className={styles.agentAdvanced}>
-              <summary>Advanced limits</summary>
+              <summary>{t.advancedLimits}</summary>
               <div className={styles.agentAdvancedGrid}>
                 <label>
-                  Daily token limit
+                  {t.dailyTokenLimit}
                   <input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
                 </label>
                 <label>
-                  Daily question limit
+                  {t.dailyQuestionLimit}
                   <input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
                 </label>
                 <label>
-                  Maximum output tokens
+                  {t.maximumOutputTokens}
                   <input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
                 </label>
                 <label>
-                  Reset timezone
+                  {t.resetTimezone}
                   <input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
                 </label>
                 <label>
-                  Daily reset time
+                  {t.dailyResetTime}
                   <input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
                 </label>
                 <label>
-                  AI identity-cookie retention (days)
+                  {t.identityCookieRetention}
                   <input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
                 </label>
               </div>
             </details>
 
-            <button className={styles.agentSave} type="submit" disabled={busy}>Save settings</button>
+            <button className={styles.agentSave} type="submit" disabled={busy}>{t.saveSettings}</button>
           </div>
         </section>
       </form>

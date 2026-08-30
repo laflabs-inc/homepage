@@ -11,8 +11,9 @@ export const categoriesByKind = {
   notice: ["general", "service", "maintenance", "security"],
   legal: ["privacy", "terms", "cookies", "policy"],
   disclosure: ["corporate", "financial", "governance", "material"],
-  design: ["foundation", "brand", "component", "resource"],
 } as const
+
+export type DocumentCategory = (typeof categoriesByKind)[keyof typeof categoriesByKind][number]
 
 const slugSchema = z.string()
   .min(1)

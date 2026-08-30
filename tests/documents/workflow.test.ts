@@ -588,9 +588,9 @@ describe("document workflow service", () => {
     await expect(service.updateDraft(english.id, {
       ...input,
       locale: "en",
-      kind: "design",
+      kind: "legal",
       slug: "changed-through-english",
-      category: "foundation",
+      category: "privacy",
       pinned: true,
       title: english.title,
       summary: english.summary,

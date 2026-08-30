@@ -1,5 +1,9 @@
 import { MarkdownDocument } from "@/components/content/markdown-document"
+import { useLocale } from "@/components/i18n/locale-provider"
+import { adminCopy } from "@/lib/admin/i18n"
 
 export function DocumentPreview({ title, source }: { title: string; source: string }) {
-  return <MarkdownDocument title={title || "Untitled document"} source={source || "_No content yet._"} />
+  const t = adminCopy[useLocale()].documents.editor
+
+  return <MarkdownDocument title={title || t.previewUntitled} source={source || t.previewEmpty} />
 }

@@ -35,7 +35,7 @@ export const analyticsWithdrawalGuards = pgTable("analytics_withdrawal_guards", 
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 }, (table) => [index("analytics_withdrawal_guards_expiry_idx").on(table.expiresAt)])
 
-export const documentKindEnum = pgEnum("document_kind", ["notice", "legal", "disclosure", "design"])
+export const documentKindEnum = pgEnum("document_kind", ["notice", "legal", "disclosure"])
 export const documentLocaleEnum = pgEnum("document_locale", ["ko", "en"])
 export const documentStatusEnum = pgEnum("document_status", ["draft", "scheduled", "published", "archived"])
 export const summaryPolicyEnum = pgEnum("summary_policy", ["review", "automatic"])

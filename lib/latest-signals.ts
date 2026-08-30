@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n"
 
-export const signalKinds = ["notice", "disclosure", "design"] as const
+export const signalKinds = ["notice", "disclosure"] as const
 
 export type LatestSignalKind = (typeof signalKinds)[number]
 
@@ -22,7 +22,6 @@ export type PublicSignalPage = {
 const sectionByKind: Record<LatestSignalKind, string> = {
   notice: "/notices",
   disclosure: "/disclosures",
-  design: "/design",
 }
 
 export function mergeLatestSignals(

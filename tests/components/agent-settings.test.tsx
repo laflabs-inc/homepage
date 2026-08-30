@@ -1,10 +1,11 @@
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { render as renderWithTestingLibrary, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const pageMocks = vi.hoisted(() => ({
   requireAdmin: vi.fn(),
   getConfiguration: vi.fn(),
+  getAdminLocale: vi.fn(),
 }))
 
 vi.mock("@/app/admin/admin.module.css", () => ({
@@ -14,9 +15,11 @@ vi.mock("@/lib/auth/require-admin", () => ({ requireAdmin: pageMocks.requireAdmi
 vi.mock("@/lib/agent/service", () => ({
   agentService: { getConfiguration: pageMocks.getConfiguration },
 }))
+vi.mock("@/lib/admin/locale", () => ({ getAdminLocale: pageMocks.getAdminLocale }))
 
-import AgentPage from "@/app/admin/(protected)/agent/page"
+import AgentPage, { generateMetadata } from "@/app/admin/(protected)/agent/page"
 import { AgentSettings } from "@/components/admin/agent-settings"
+import { LocaleProvider } from "@/components/i18n/locale-provider"
 import type { AgentConfiguration } from "@/lib/agent/types"
 
 const configuration: AgentConfiguration = {
@@ -52,6 +55,10 @@ const configuration: AgentConfiguration = {
   },
 }
 
+function render(ui: React.ReactNode) {
+  return renderWithTestingLibrary(<LocaleProvider initialLocale="en">{ui}</LocaleProvider>)
+}
+
 function response(next = configuration, status = 200) {
   return Promise.resolve(Response.json(
     status < 400 ? { configuration: next } : { error: "provider_unavailable" },
@@ -65,9 +72,59 @@ beforeEach(() => {
   vi.spyOn(window, "confirm").mockReturnValue(true)
   pageMocks.requireAdmin.mockReset().mockResolvedValue(undefined)
   pageMocks.getConfiguration.mockReset().mockResolvedValue(configuration)
+  pageMocks.getAdminLocale.mockReset().mockResolvedValue("en")
 })
 
 describe("Agent settings", () => {
+  it("uses the Admin locale for the Agent page title", async () => {
+    pageMocks.getAdminLocale.mockResolvedValue("ko")
+
+    await expect(generateMetadata()).resolves.toMatchObject({ title: "에이전트" })
+  })
+
+  it("renders the Agent control plane in Korean while retaining canonical models and USD prices", () => {
+    render(
+      <LocaleProvider initialLocale="ko">
+        <AgentSettings initialConfiguration={configuration} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("heading", { name: "OpenAI 연결" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "검증 후 모델 적용" })).toBeInTheDocument()
+    expect(screen.getByLabelText("모델")).toHaveValue("gpt-5.6-luna")
+    expect(screen.getByText("빠르고 비용 효율적인 문서 요약용 모델")).toBeInTheDocument()
+    expect(screen.getByText("입력 100만 토큰당 $0.20 / 출력 100만 토큰당 $1.20")).toBeInTheDocument()
+    expect(screen.getByText(/설정됨 · ••••01de · 검증됨/)).toBeInTheDocument()
+    expect(screen.getByText("고급 한도")).toBeInTheDocument()
+    expect(screen.getByText(/예상 월간 한도/)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "지금 AI 사용 중지" })).toBeDisabled()
+  })
+
+  it("uses Korean confirmations, notices, and existing provider errors without changing requests", async () => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockImplementationOnce(() => Promise.resolve(Response.json(
+      { error: "provider_unavailable" },
+      { status: 502 },
+    )))
+    render(
+      <LocaleProvider initialLocale="ko">
+        <AgentSettings initialConfiguration={configuration} />
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "연결 테스트" }))
+    expect(await screen.findByRole("alert")).toHaveTextContent("OpenAI에 연결할 수 없거나 일시적으로 사용할 수 없습니다. 다시 시도하세요. 오류 코드: provider_unavailable")
+
+    await user.click(screen.getByRole("button", { name: "인증 정보 삭제" }))
+    expect(window.confirm).toHaveBeenCalledWith("저장된 OpenAI 인증 정보를 삭제하고 AI를 비활성화할까요?")
+    expect(fetch).toHaveBeenLastCalledWith("/api/admin/agent/credential", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: "{}",
+    })
+    expect(await screen.findByRole("status")).toHaveTextContent("인증 정보를 삭제하고 AI를 비활성화했습니다.")
+  })
+
   it("protects the dynamic server page and loads only the safe configuration", async () => {
     render(await AgentPage())
 
@@ -253,6 +310,31 @@ describe("Agent settings", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(message)
     expect(screen.getByRole("alert")).toHaveTextContent(`Error code: ${code}`)
+  })
+
+  it("renders localized safe OpenAI diagnostic details as text", async () => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockImplementationOnce(() => Promise.resolve(Response.json({
+      error: "verification_request_invalid",
+      diagnostic: {
+        statusCode: 400,
+        providerCode: "invalid_request_error",
+        providerType: "invalid_request_error",
+        providerParam: "temperature",
+        requestId: "req_diagnostic_123",
+        providerMessage: "Unsupported parameter: temperature",
+      },
+    }, { status: 502 })))
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    await user.click(screen.getByRole("button", { name: "Test connection" }))
+
+    const details = await screen.findByText("OpenAI error details")
+    expect(details.closest("details")).toBeInTheDocument()
+    expect(screen.getByText("Status: 400")).toBeInTheDocument()
+    expect(screen.getByText("Provider parameter: temperature")).toBeInTheDocument()
+    expect(screen.getByText("Request ID: req_diagnostic_123")).toBeInTheDocument()
+    expect(screen.getByText("Provider message: Unsupported parameter: temperature")).toBeInTheDocument()
   })
 
   it("tests and deletes credentials, confirming deletion before the destructive request", async () => {

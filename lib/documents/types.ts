@@ -1,6 +1,6 @@
 import type { AdminActor } from "@/lib/auth/admin-api"
 
-export const documentKinds = ["notice", "legal", "disclosure", "design"] as const
+export const documentKinds = ["notice", "legal", "disclosure"] as const
 export type DocumentKind = (typeof documentKinds)[number]
 
 export const documentLocales = ["ko", "en"] as const

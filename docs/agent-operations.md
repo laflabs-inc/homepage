@@ -38,3 +38,21 @@ A failed replacement leaves the prior encrypted credential intact. Deleting a cr
 Database backups contain encrypted credential material. A restored credential is usable only with the matching encryption key from the deployment secret manager; neither the backup nor the key alone is sufficient. If that pairing is unavailable, delete the restored credential and register a new one.
 
 The displayed cost is an estimate from provider-reported token counts and the deployed catalog price snapshot. It is a guardrail, not reconciliation with the OpenAI invoice; review the provider invoice separately and update the catalog whenever provider pricing changes.
+
+## Credential verification diagnostics
+
+When an authenticated Admin credential verification fails, the Agent screen can show an expandable **OpenAI error details** block. Its only fields are **Status**, **Provider code**, **Provider type**, **Provider parameter**, **Request ID**, and **Provider message** (`providerMessage`). Fields that OpenAI did not return are omitted. The provider message is single-line, length-bounded, and redacted for recognizable OpenAI API keys.
+
+Use the **Request ID** (the OpenAI `x-request-id` value) when correlating the failed request with OpenAI support or provider logs. Copy that identifier and the displayed status/code, but never include the API key, authorization headers, encrypted credential material, or the original request body in a support request.
+
+These diagnostics are returned only to an authenticated Admin browser for the request that failed. They are not written to the database, audit history, analytics, or application logs.
+
+The credential check has a fixed 10-second timeout and makes no provider retries. A timeout, abort, or connection problem appears as a provider-unavailable result; resolve the cause before manually testing again.
+
+## Retired database document kinds
+
+`design` is no longer a database-backed document kind. The public `/design` route remains the static LafLabs design guide, but Admin documents, revisions, and API inputs support only `notice`, `legal`, and `disclosure`.
+
+The migration deletes every database-backed `design` document revision and series before replacing the PostgreSQL enum. This deletion is permanent. Verify backups and deploy readiness before applying it.
+
+After the enum migration has run, deployment is roll-forward-only: do not roll the application or database back to a release that still references the `design` enum value. Recover from an issue with a forward corrective release or a separately approved database-restore procedure.

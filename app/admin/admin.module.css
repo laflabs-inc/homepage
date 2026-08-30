@@ -25,6 +25,61 @@
   color: var(--muted);
 }
 
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.adminLanguageToggle {
+  position: relative;
+  display: flex;
+  isolation: isolate;
+  border: 1px solid var(--ink);
+}
+
+.adminLanguageToggle button {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  font: 700 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.adminLanguageToggle button[data-active="true"] {
+  color: white;
+}
+
+.adminLanguageToggle button:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.adminLanguageThumb {
+  width: 44px;
+  height: 44px;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  background: var(--ink);
+  pointer-events: none;
+  transition: transform 180ms ease;
+}
+
+.adminLanguageThumb[data-locale="en"] {
+  transform: translateX(44px);
+}
+
 .content {
   width: var(--shell);
   margin: 0 auto;
@@ -1266,6 +1321,20 @@
 }
 
 @media (max-width: 640px) {
+  .header {
+    min-height: 92px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .headerMeta {
+    margin-left: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
   .content {
     padding-top: 36px;
   }
@@ -1434,6 +1503,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .adminLanguageToggle button,
+  .adminLanguageThumb,
   .signInButton,
   .rangeNav a,
   .errorState button {

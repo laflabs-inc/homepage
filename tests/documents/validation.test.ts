@@ -6,6 +6,7 @@ import {
   publishDocumentSchema,
   scheduleDocumentSchema,
 } from "@/lib/documents/validation"
+import { documentKinds } from "@/lib/documents/types"
 
 const validDraft = {
   kind: "notice",
@@ -89,12 +90,17 @@ describe("document validation", () => {
     expect(documentDraftSchema.safeParse({ ...validDraft, [field]: value }).success).toBe(success)
   })
 
-  it.each(["notice", "legal", "disclosure", "design"] as const)("accepts the %s kind", (kind) => {
+  it.each(["notice", "legal", "disclosure"] as const)("accepts the %s kind", (kind) => {
     expect(documentDraftSchema.safeParse({
       ...validDraft,
       kind,
       category: categoriesByKind[kind][0],
     }).success).toBe(true)
+  })
+
+  it("rejects the retired design kind", () => {
+    expect(documentKinds).toEqual(["notice", "legal", "disclosure"])
+    expect(documentDraftSchema.safeParse({ ...validDraft, kind: "design" }).success).toBe(false)
   })
 
   it.each(["ko", "en"] as const)("accepts the %s locale", (locale) => {
@@ -106,10 +112,9 @@ describe("document validation", () => {
       notice: ["general", "service", "maintenance", "security"],
       legal: ["privacy", "terms", "cookies", "policy"],
       disclosure: ["corporate", "financial", "governance", "material"],
-      design: ["foundation", "brand", "component", "resource"],
     })
 
-    for (const kind of ["notice", "legal", "disclosure", "design"] as const) {
+    for (const kind of ["notice", "legal", "disclosure"] as const) {
       for (const category of categoriesByKind[kind]) {
         expect(documentDraftSchema.safeParse({ ...validDraft, kind, category }).success).toBe(true)
       }

@@ -9,6 +9,8 @@ import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import { documentService } from "@/lib/documents/service"
 import { decodeAdminDocumentCursor, encodeAdminDocumentCursor } from "@/lib/http/cursor"
 import { documentKinds, documentLocales, documentStatuses } from "@/lib/documents/types"
+import { adminCopy } from "@/lib/admin/i18n"
+import { getAdminLocale } from "@/lib/admin/locale"
 
 export const dynamic = "force-dynamic"
 
@@ -27,6 +29,8 @@ export default async function DocumentsPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 } = {}) {
   await requireAdmin()
+  const locale = await getAdminLocale()
+  const t = adminCopy[locale].documents
   const parsed = pageQuerySchema.safeParse(await searchParams)
   if (!parsed.success) notFound()
   const { cursor, search, ...baseFilter } = parsed.data
@@ -46,10 +50,10 @@ export default async function DocumentsPage({
     <section className={styles.documentsPage}>
       <div className={styles.documentsHeading}>
         <div>
-          <p className={styles.eyebrow}>Publishing workspace</p>
-          <h1>Documents</h1>
+          <p className={styles.eyebrow}>{t.publishingWorkspace}</p>
+          <h1>{t.heading}</h1>
         </div>
-        <Link className={styles.primaryLink} href="/admin/documents/new">New document</Link>
+        <Link className={styles.primaryLink} href="/admin/documents/new">{t.newDocument}</Link>
       </div>
       <DocumentList
         rows={rows}

@@ -145,6 +145,67 @@ describe("Agent admin API", () => {
     await expectNoStore(response)
   })
 
+  it("returns a safe verification diagnostic only after credential authorization succeeds", async () => {
+    const diagnostic = {
+      statusCode: 400,
+      providerCode: "invalid_request_error",
+      providerType: "invalid_request_error",
+      providerParam: "temperature",
+      requestId: "req_diagnostic_123",
+      providerMessage: "Unsupported parameter: temperature",
+    }
+    const deps = dependencies()
+    deps.service.configureCredential.mockRejectedValue(new AgentServiceError(
+      "verification_request_invalid",
+      `${apiKey}: provider detail`,
+      { diagnostic },
+    ))
+
+    const response = await handlePutCredential(
+      jsonRequest("/api/admin/agent/credential", "PUT", {
+        apiKey,
+        model: "gpt-5.6-luna",
+        version: 3,
+      }),
+      deps,
+    )
+
+    expect(response.status).toBe(502)
+    const safeBody = response.clone()
+    await expect(response.json()).resolves.toEqual({
+      error: "verification_request_invalid",
+      diagnostic,
+    })
+    expect(await safeBody.text()).not.toContain(apiKey)
+    await expectNoStore(response)
+  })
+
+  it("does not attach a diagnostic to an unrelated service error", async () => {
+    const deps = dependencies()
+    deps.service.testCredential.mockRejectedValue(new AgentServiceError(
+      "invalid_settings",
+      "settings detail",
+      {
+        diagnostic: {
+          statusCode: 400,
+          providerCode: "invalid_request_error",
+          providerType: "invalid_request_error",
+          providerParam: "temperature",
+          requestId: "req_diagnostic_123",
+          providerMessage: "Unsupported parameter: temperature",
+        },
+      },
+    ))
+
+    const response = await handleTestCredential(
+      jsonRequest("/api/admin/agent/credential/test", "POST", {}),
+      deps,
+    )
+
+    expect(response.status).toBe(422)
+    await expect(response.json()).resolves.toEqual({ error: "invalid_settings" })
+  })
+
   it.each([
     [handleUpdateAgent, "/api/admin/agent", "PATCH", settingsBody, "updateRuntimeSettings"],
     [handlePutCredential, "/api/admin/agent/credential", "PUT", {

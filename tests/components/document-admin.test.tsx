@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { act, fireEvent, render as renderBase, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -24,8 +24,17 @@ vi.mock("@/components/content/content.module.css", () => ({
 import { AdminNav } from "@/components/admin/admin-nav"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { DocumentList } from "@/components/admin/document-list"
+import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import type { DocumentRevision } from "@/lib/documents/types"
+
+function EnglishLocaleTestProvider({ children }: { children: React.ReactNode }) {
+  return <LocaleProvider initialLocale="en">{children}</LocaleProvider>
+}
+
+function render(ui: React.ReactElement) {
+  return renderBase(ui, { wrapper: EnglishLocaleTestProvider })
+}
 
 const revision: DocumentRevision = {
   id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7131",
@@ -113,12 +122,66 @@ beforeEach(() => {
 })
 
 describe("document admin", () => {
+  it("renders the Korean editor workflow without changing the loaded document values", async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <LocaleProvider key="ko" initialLocale="ko">
+        <DocumentEditor revision={revision} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("textbox", { name: "제목" })).toHaveValue("서비스 업데이트")
+    await user.click(screen.getByRole("tab", { name: "미리보기" }))
+    expect(screen.getByRole("tabpanel", { name: "미리보기" })).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "지금 발행" }))
+    expect(window.confirm).toHaveBeenCalledWith("지금 이 문서를 발행할까요?")
+    expect(await screen.findByRole("status")).toHaveTextContent("문서를 발행했습니다.")
+
+    rerender(
+      <LocaleProvider key="en" initialLocale="en">
+        <DocumentEditor revision={revision} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue("서비스 업데이트")
+  })
+
+  it("uses the Korean permanent-deletion confirmation", async () => {
+    const user = userEvent.setup()
+    vi.spyOn(window, "prompt").mockReturnValue(null)
+    render(
+      <LocaleProvider initialLocale="ko">
+        <AdminNav />
+        <DocumentEditor revision={{ ...revision, status: "archived" }} />
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "완전히 삭제" }))
+    expect(window.prompt).toHaveBeenCalledWith("완전히 삭제하려면 문서 제목을 입력하세요:", "")
+  })
+
+  it("uses the Korean dirty-navigation confirmation", async () => {
+    const user = userEvent.setup()
+    vi.mocked(window.confirm).mockReturnValue(false)
+    render(
+      <LocaleProvider initialLocale="ko">
+        <AdminNav />
+        <DocumentEditor revision={revision} />
+      </LocaleProvider>,
+    )
+
+    await user.type(screen.getByRole("textbox", { name: "요약" }), " 수정")
+    await user.click(screen.getByRole("link", { name: "분석" }))
+
+    expect(window.confirm).toHaveBeenCalledWith("저장하지 않은 문서 변경 사항이 있습니다. 이 페이지를 나갈까요?")
+  })
+
   it("links the protected admin areas and lists document revisions", () => {
     render(
-      <>
+      <LocaleProvider initialLocale="en">
         <AdminNav />
         <DocumentList rows={[revision, { ...revision, id: "published-id", status: "published" as const }].map(toAdminDocumentListRow)} />
-      </>,
+      </LocaleProvider>,
     )
 
     const navigation = screen.getByRole("navigation", { name: "Admin" })
@@ -129,18 +192,34 @@ describe("document admin", () => {
       "href",
       `/admin/documents/${revision.id}`,
     )
-    expect(screen.getByText("published")).toBeInTheDocument()
+    expect(screen.getAllByText("Published")).toHaveLength(2)
   })
 
   it("offers kind and locale fields plus accessible source and preview tabs", () => {
     render(<DocumentEditor />)
 
     expect(screen.getByRole("combobox", { name: "Kind" })).toBeInTheDocument()
+    expect(within(screen.getByRole("combobox", { name: "Kind" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale" })).toBeInTheDocument()
     expect(screen.queryByRole("option", { name: "English" })).not.toBeInTheDocument()
     expect(screen.getByRole("tab", { name: "Source" })).toHaveAttribute("aria-selected", "true")
     expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute("aria-selected", "false")
     expect(screen.getByRole("tabpanel", { name: "Source" })).toBeInTheDocument()
+  })
+
+  it("shows localized category labels while preserving canonical option values", () => {
+    const { unmount } = render(
+      <LocaleProvider initialLocale="ko"><DocumentEditor /></LocaleProvider>,
+    )
+    const koreanCategories = screen.getByRole("combobox", { name: "카테고리" })
+    expect(within(koreanCategories).getByRole("option", { name: "일반" })).toHaveValue("general")
+    expect(within(koreanCategories).getByRole("option", { name: "서비스" })).toHaveValue("service")
+
+    unmount()
+    render(<DocumentEditor />)
+    const englishCategories = screen.getByRole("combobox", { name: "Category" })
+    expect(within(englishCategories).getByRole("option", { name: "General" })).toHaveValue("general")
+    expect(within(englishCategories).getByRole("option", { name: "Service" })).toHaveValue("service")
   })
 
   it("opens the Markdown writing guide without leaving an unsaved draft", () => {
@@ -286,7 +365,7 @@ describe("document admin", () => {
   it("blocks a real persistent admin-link click when dirty and the user cancels", async () => {
     const user = userEvent.setup()
     vi.mocked(window.confirm).mockReturnValue(false)
-    render(<><AdminNav /><DocumentEditor revision={revision} /></>)
+    render(<LocaleProvider initialLocale="en"><AdminNav /><DocumentEditor revision={revision} /></LocaleProvider>)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " 추가")
     await user.click(screen.getByRole("link", { name: "Analytics" }))
@@ -299,7 +378,7 @@ describe("document admin", () => {
     const user = userEvent.setup()
     window.history.replaceState({ __NA: true, tree: "list" }, "", "/admin/documents")
     window.history.pushState({ __NA: true, tree: "editor" }, "", revisionPath)
-    render(<><AdminNav /><AppRouterTreeHarness /></>)
+    render(<LocaleProvider initialLocale="en"><AdminNav /><AppRouterTreeHarness /></LocaleProvider>)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " discard")
     await user.click(screen.getByRole("link", { name: "Analytics" }))
@@ -504,14 +583,20 @@ describe("document admin", () => {
       publishedBy: "publisher-77",
       publishedAt: new Date("2026-08-24T12:00:00.000Z"),
     }
-    render(<DocumentList rows={[revision, published].map(toAdminDocumentListRow)} />)
+    render(<LocaleProvider initialLocale="en"><DocumentList rows={[revision, published].map(toAdminDocumentListRow)} /></LocaleProvider>)
 
     expect(screen.getByRole("searchbox", { name: "Search documents" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Kind filter" })).toBeInTheDocument()
+    expect(within(screen.getByRole("combobox", { name: "Kind filter" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Status filter" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale filter" })).toBeInTheDocument()
     expect(screen.getByText("By publisher-77")).toBeInTheDocument()
-    expect(screen.getByText("Published 2026-08-24")).toBeInTheDocument()
+    expect(screen.getByText(`Published ${new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(published.publishedAt)}`)).toBeInTheDocument()
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
     expect(screen.queryByRole("link", { name: /서비스 업데이트/ })).not.toBeInTheDocument()
@@ -520,14 +605,54 @@ describe("document admin", () => {
     expect(screen.getByText("No documents match these filters.")).toBeInTheDocument()
   })
 
+  it("localizes list row locales and dates while keeping canonical list values", () => {
+    const published = {
+      ...revision,
+      id: "8ca55b3d-a4fc-4a41-b922-a0a9c32d7999",
+      kind: "legal" as const,
+      locale: "en" as const,
+      title: "Privacy policy",
+      status: "published" as const,
+      publishedBy: "publisher-77",
+      publishedAt: new Date("2026-08-24T12:00:00.000Z"),
+    }
+    const rows = [published].map(toAdminDocumentListRow)
+    const koreanDate = new Intl.DateTimeFormat("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(published.publishedAt)
+    const englishDate = new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "UTC",
+    }).format(published.publishedAt)
+    const { unmount } = render(
+      <LocaleProvider initialLocale="ko"><DocumentList rows={rows} /></LocaleProvider>,
+    )
+
+    expect(screen.getByText("법적 고지 / 영어 / r1")).toBeInTheDocument()
+    expect(screen.getByText(`발행됨 ${koreanDate}`)).toBeInTheDocument()
+    expect(rows[0].locale).toBe("en")
+    expect(rows[0].relevantAt).toBe("2026-08-24T12:00:00.000Z")
+    unmount()
+
+    render(<LocaleProvider initialLocale="en"><DocumentList rows={rows} /></LocaleProvider>)
+
+    expect(screen.getByText("Legal / English / r1")).toBeInTheDocument()
+    expect(screen.getByText(`Published ${englishDate}`)).toBeInTheDocument()
+  })
+
   it("keeps Next pagination on applied filters while controls have unapplied edits", async () => {
     const user = userEvent.setup()
-    render(<DocumentList
+    render(<LocaleProvider initialLocale="en"><DocumentList
       rows={[revision].map(toAdminDocumentListRow)}
       nextCursor="opaque-next"
       limit={25}
       initialFilters={{ search: "service", kind: "notice", locale: "ko", status: "draft" }}
-    />)
+    /></LocaleProvider>)
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
     await user.clear(screen.getByRole("searchbox", { name: "Search documents" }))

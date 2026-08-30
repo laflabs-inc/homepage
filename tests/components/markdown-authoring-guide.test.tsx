@@ -7,6 +7,9 @@ vi.mock("@/app/admin/admin.module.css", () => ({
 vi.mock("@/components/content/content.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
+vi.mock("@/components/i18n/locale-provider", () => {
+  throw new Error("MarkdownAuthoringGuide must not import the client locale provider")
+})
 
 import { MarkdownAuthoringGuide } from "@/components/admin/markdown-authoring-guide"
 
@@ -17,14 +20,14 @@ describe("MarkdownAuthoringGuide", () => {
       warnings.push(values.map(String).join(" "))
     })
 
-    render(<MarkdownAuthoringGuide />)
+    render(<MarkdownAuthoringGuide locale="ko" />)
     warningSpy.mockRestore()
 
     expect(warnings.filter((warning) => warning.includes("LaTeX-incompatible input"))).toEqual([])
   })
 
   it("demonstrates the renderer's rich document features through real output", () => {
-    const { container } = render(<MarkdownAuthoringGuide />)
+    const { container } = render(<MarkdownAuthoringGuide locale="ko" />)
 
     expect(screen.getByRole("heading", { level: 1, name: "Markdown 작성 가이드" })).toBeInTheDocument()
     const contents = screen.getByRole("navigation", { name: "가이드 목차" })
@@ -35,5 +38,13 @@ describe("MarkdownAuthoringGuide", () => {
     expect(container.querySelector(".katex-display")).toBeInTheDocument()
     expect(screen.getByRole("figure", { name: "Mermaid diagram" })).toBeInTheDocument()
     expect(screen.getByText("접어서 둘 내용").closest("details")).toBeInTheDocument()
+  })
+
+  it("localizes guide chrome while preserving the Korean authoring source", () => {
+    render(<MarkdownAuthoringGuide locale="en" />)
+
+    expect(screen.getByRole("heading", { level: 1, name: "Markdown writing guide" })).toBeInTheDocument()
+    expect(screen.getByRole("navigation", { name: "Guide contents" })).toBeInTheDocument()
+    expect(screen.getAllByText("콜아웃")).not.toHaveLength(0)
   })
 })

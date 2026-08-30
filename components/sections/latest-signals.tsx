@@ -26,7 +26,6 @@ type LoadState =
 const destinationByKind: Record<LatestSignalKind, string> = {
   notice: "/notices",
   disclosure: "/disclosures",
-  design: "/design",
 }
 
 function isPublicSignalPage(value: unknown): value is PublicSignalPage {

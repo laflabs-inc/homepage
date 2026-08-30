@@ -10,11 +10,17 @@ const homepage: MetadataRoute.Sitemap[number] = {
   priority: 1,
 }
 
+const designGuide: MetadataRoute.Sitemap[number] = {
+  url: `${siteUrl}/design`,
+  changeFrequency: "monthly",
+  priority: 0.6,
+}
+
 export async function buildSitemap(
   repository: PublishedDocumentReader = documentStore,
 ): Promise<MetadataRoute.Sitemap> {
   try {
-    const entries: MetadataRoute.Sitemap = [homepage]
+    const entries: MetadataRoute.Sitemap = [homepage, designGuide]
 
     const documents = await listPublishedSitemapDocuments(repository)
     for (const document of documents) {
@@ -28,7 +34,7 @@ export async function buildSitemap(
 
     return entries
   } catch {
-    return [homepage]
+    return [homepage, designGuide]
   }
 }
 
