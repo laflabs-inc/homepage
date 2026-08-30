@@ -31,10 +31,10 @@ export function Landing() {
     transition: { duration: reduced ? 0 : 0.65, delay, ease: [0.16, 1, 0.3, 1] as const },
   })
   const companyEnter = (delay = 0) => ({
-    initial: { opacity: 0, x: 96, filter: "blur(7px)" },
+    initial: { opacity: 0, x: 64, filter: "blur(2px)" },
     whileInView: { opacity: 1, x: 0, filter: "blur(0px)" },
-    viewport: { once: true, amount: 0.45 },
-    transition: { duration: reduced ? 0 : 0.8, delay, ease: [0.16, 1, 0.3, 1] as const },
+    viewport: { once: true, amount: 0.42 },
+    transition: { duration: reduced ? 0 : 0.72, delay, ease: [0.16, 1, 0.3, 1] as const },
   })
 
   return <main>
@@ -58,7 +58,7 @@ export function Landing() {
     <section className="manifesto">
       <p className="section-no mono">01 / COMPANY</p>
       <motion.h2 {...reveal()}>{ko ? <>분야를 가리지 않고,<br /><em>필요한 것</em>을 만듭니다.</> : <>We don&apos;t build for one category.<br />We build <em>what is needed.</em></>}</motion.h2>
-      <div className="manifesto-copy"><motion.p {...companyEnter()}>{ko ? "아이덴티티, 결제, 클라우드, 오픈소스. 문제는 달라도 만드는 원칙은 같습니다." : "Identity, payments, cloud, and open source. Different problems, one way of building."}</motion.p><motion.span className="mono" {...companyEnter(0.12)}>BUILD QUIETLY.<br />WORK RELIABLY.</motion.span></div>
+      <div className="manifesto-copy"><motion.p data-company-line="copy" {...companyEnter()}>{ko ? "아이덴티티, 결제, 클라우드, 오픈소스. 문제는 달라도 만드는 원칙은 같습니다." : "Identity, payments, cloud, and open source. Different problems, one way of building."}</motion.p><motion.span className="mono" data-company-line="motto" {...companyEnter(0.12)}>BUILD QUIETLY.<br />WORK RELIABLY.</motion.span></div>
     </section>
 
     <StackStrip />

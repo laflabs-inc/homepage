@@ -52,6 +52,14 @@ describe("homepage refresh", () => {
     ).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "만든 것과 배운 것을 기록합니다." })).toBeVisible()
     expect(screen.getByRole("region", { name: "최근 소식" })).toBeVisible()
+    expect(screen.getByText(/아이덴티티, 결제, 클라우드/)).toHaveAttribute(
+      "data-company-line",
+      "copy",
+    )
+    expect(screen.getByText(/BUILD QUIETLY/)).toHaveAttribute(
+      "data-company-line",
+      "motto",
+    )
   })
 
   it("keeps the product-to-system ending in the English locale", () => {
