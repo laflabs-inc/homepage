@@ -60,7 +60,7 @@ function emptyDiagnostic(): CredentialVerificationDiagnostic {
     providerType: null,
     providerParam: null,
     requestId: null,
-    message: null,
+    providerMessage: null,
   }
 }
 
@@ -106,7 +106,7 @@ function apiDiagnostic(error: APICallError): CredentialVerificationDiagnostic {
       providerCode: stringField(body.error?.code),
       providerType: stringField(body.error?.type),
       providerParam: stringField(body.error?.param),
-      message: sanitizeMessage(body.error?.message),
+      providerMessage: sanitizeMessage(body.error?.message),
     }
   } catch {
     return diagnostic

@@ -107,10 +107,10 @@ describe("OpenAI credential verifier", () => {
     })
     expect(caught).toBeInstanceOf(CredentialVerificationError)
     const diagnostic = (caught as CredentialVerificationError).diagnostic
-    expect(diagnostic.message).toContain("[REDACTED]")
-    expect(diagnostic.message).not.toContain(secret)
-    expect(diagnostic.message).not.toMatch(/[\r\n\t]/)
-    expect(Array.from(diagnostic.message ?? "")).toHaveLength(300)
+    expect(diagnostic.providerMessage).toContain("[REDACTED]")
+    expect(diagnostic.providerMessage).not.toContain(secret)
+    expect(diagnostic.providerMessage).not.toMatch(/[\r\n\t]/)
+    expect(Array.from(diagnostic.providerMessage ?? "")).toHaveLength(300)
   })
 
   it("uses null diagnostic fields for malformed provider responses", async () => {
@@ -134,7 +134,7 @@ describe("OpenAI credential verifier", () => {
         providerType: null,
         providerParam: null,
         requestId: "req_test_456",
-        message: null,
+        providerMessage: null,
       },
     })
   })
@@ -151,7 +151,7 @@ describe("OpenAI credential verifier", () => {
         providerType: null,
         providerParam: null,
         requestId: null,
-        message: null,
+        providerMessage: null,
       },
     })
   })

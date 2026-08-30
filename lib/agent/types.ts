@@ -135,7 +135,7 @@ export type CredentialVerificationDiagnostic = {
   providerType: string | null
   providerParam: string | null
   requestId: string | null
-  message: string | null
+  providerMessage: string | null
 }
 
 export type CredentialVerifier = (apiKey: string, modelId: string) => Promise<void>

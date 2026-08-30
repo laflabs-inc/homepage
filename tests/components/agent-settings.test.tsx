@@ -322,7 +322,7 @@ describe("Agent settings", () => {
         providerType: "invalid_request_error",
         providerParam: "temperature",
         requestId: "req_diagnostic_123",
-        message: "Unsupported parameter: temperature",
+        providerMessage: "Unsupported parameter: temperature",
       },
     }, { status: 502 })))
     render(<AgentSettings initialConfiguration={configuration} />)
@@ -334,6 +334,7 @@ describe("Agent settings", () => {
     expect(screen.getByText("Status: 400")).toBeInTheDocument()
     expect(screen.getByText("Provider parameter: temperature")).toBeInTheDocument()
     expect(screen.getByText("Request ID: req_diagnostic_123")).toBeInTheDocument()
+    expect(screen.getByText("Provider message: Unsupported parameter: temperature")).toBeInTheDocument()
   })
 
   it("tests and deletes credentials, confirming deletion before the destructive request", async () => {

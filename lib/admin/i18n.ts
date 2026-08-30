@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n"
+import type { DocumentCategory } from "@/lib/documents/validation"
 
 type CopyShape<T> = {
   [K in keyof T]: T[K] extends (...args: infer Arguments) => string
@@ -7,6 +8,36 @@ type CopyShape<T> = {
       ? CopyShape<T[K]>
       : string
 }
+
+const enCategoryLabels = {
+  general: "General",
+  service: "Service",
+  maintenance: "Maintenance",
+  security: "Security",
+  privacy: "Privacy",
+  terms: "Terms",
+  cookies: "Cookies",
+  policy: "Policy",
+  corporate: "Corporate",
+  financial: "Financial",
+  governance: "Governance",
+  material: "Material",
+} satisfies Record<DocumentCategory, string>
+
+const koCategoryLabels = {
+  general: "일반",
+  service: "서비스",
+  maintenance: "점검",
+  security: "보안",
+  privacy: "개인정보 처리방침",
+  terms: "이용약관",
+  cookies: "쿠키",
+  policy: "정책",
+  corporate: "기업",
+  financial: "재무",
+  governance: "지배구조",
+  material: "주요사항",
+} satisfies Record<DocumentCategory, string>
 
 const en = {
   shell: {
@@ -81,7 +112,7 @@ const en = {
     diagnosticProviderType: "Provider type",
     diagnosticProviderParameter: "Provider parameter",
     diagnosticRequestId: "Request ID",
-    diagnosticMessage: "Message",
+    diagnosticProviderMessage: "Provider message",
     confirmations: {
       enable: "Enable AI for public document visitors?",
       deleteCredential: "Delete the stored OpenAI credential and disable AI?",
@@ -170,6 +201,7 @@ const en = {
     notice: "Notice",
     legal: "Legal",
     disclosure: "Disclosure",
+    categoryLabels: enCategoryLabels,
     statusFilter: "Status filter",
     allStatuses: "All statuses",
     draft: "Draft",
@@ -361,7 +393,7 @@ const ko = {
     diagnosticProviderType: "제공자 유형",
     diagnosticProviderParameter: "제공자 파라미터",
     diagnosticRequestId: "요청 ID",
-    diagnosticMessage: "메시지",
+    diagnosticProviderMessage: "제공자 메시지",
     confirmations: {
       enable: "공개 문서 방문자에게 AI 기능을 활성화할까요?",
       deleteCredential: "저장된 OpenAI 인증 정보를 삭제하고 AI를 비활성화할까요?",
@@ -450,6 +482,7 @@ const ko = {
     notice: "공지사항",
     legal: "법적 고지",
     disclosure: "공시",
+    categoryLabels: koCategoryLabels,
     statusFilter: "상태",
     allStatuses: "모든 상태",
     draft: "초안",

@@ -207,6 +207,21 @@ describe("document admin", () => {
     expect(screen.getByRole("tabpanel", { name: "Source" })).toBeInTheDocument()
   })
 
+  it("shows localized category labels while preserving canonical option values", () => {
+    const { unmount } = render(
+      <LocaleProvider initialLocale="ko"><DocumentEditor /></LocaleProvider>,
+    )
+    const koreanCategories = screen.getByRole("combobox", { name: "카테고리" })
+    expect(within(koreanCategories).getByRole("option", { name: "일반" })).toHaveValue("general")
+    expect(within(koreanCategories).getByRole("option", { name: "서비스" })).toHaveValue("service")
+
+    unmount()
+    render(<DocumentEditor />)
+    const englishCategories = screen.getByRole("combobox", { name: "Category" })
+    expect(within(englishCategories).getByRole("option", { name: "General" })).toHaveValue("general")
+    expect(within(englishCategories).getByRole("option", { name: "Service" })).toHaveValue("service")
+  })
+
   it("opens the Markdown writing guide without leaving an unsaved draft", () => {
     render(<DocumentEditor />)
 

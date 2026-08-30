@@ -369,7 +369,9 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
               {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
               {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
               {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
-              {diagnostic.message ? <p>{t.diagnosticMessage}: {diagnostic.message}</p> : null}
+              {diagnostic.providerMessage ? (
+                <p>{t.diagnosticProviderMessage}: {diagnostic.providerMessage}</p>
+              ) : null}
             </details>
           ) : null}
         </div>

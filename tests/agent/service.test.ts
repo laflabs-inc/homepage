@@ -655,7 +655,7 @@ describe("Agent service", () => {
       providerType: "invalid_request_error",
       providerParam: "temperature",
       requestId: "req_diagnostic_123",
-      message: "Unsupported parameter: temperature",
+      providerMessage: "Unsupported parameter: temperature",
     }
     const failing = vi.fn(async () => {
       throw new CredentialVerificationError("verification_request_invalid", diagnostic)

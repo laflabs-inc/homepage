@@ -152,7 +152,7 @@ describe("Agent admin API", () => {
       providerType: "invalid_request_error",
       providerParam: "temperature",
       requestId: "req_diagnostic_123",
-      message: "Unsupported parameter: temperature",
+      providerMessage: "Unsupported parameter: temperature",
     }
     const deps = dependencies()
     deps.service.configureCredential.mockRejectedValue(new AgentServiceError(
@@ -192,7 +192,7 @@ describe("Agent admin API", () => {
           providerType: "invalid_request_error",
           providerParam: "temperature",
           requestId: "req_diagnostic_123",
-          message: "Unsupported parameter: temperature",
+          providerMessage: "Unsupported parameter: temperature",
         },
       },
     ))

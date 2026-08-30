@@ -13,6 +13,8 @@ export const categoriesByKind = {
   disclosure: ["corporate", "financial", "governance", "material"],
 } as const
 
+export type DocumentCategory = (typeof categoriesByKind)[keyof typeof categoriesByKind][number]
+
 const slugSchema = z.string()
   .min(1)
   .max(160)

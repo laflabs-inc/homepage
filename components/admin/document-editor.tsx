@@ -505,7 +505,11 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
             </label>
             <label>{t.category}
               <select disabled={englishSeriesFieldsLocked} value={values.category} onChange={(event) => update("category", event.target.value)}>
-                {categoryOptions.map((category) => <option key={category} value={category}>{category}</option>)}
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {adminCopy[locale].documents.categoryLabels[category]}
+                  </option>
+                ))}
               </select>
             </label>
             <label className={styles.checkboxField}>

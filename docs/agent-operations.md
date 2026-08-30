@@ -41,7 +41,7 @@ The displayed cost is an estimate from provider-reported token counts and the de
 
 ## Credential verification diagnostics
 
-When an authenticated Admin credential verification fails, the Agent screen can show an expandable **OpenAI error details** block. Its only fields are **Status**, **Provider code**, **Provider type**, **Provider parameter**, **Request ID**, and **Message**. Fields that OpenAI did not return are omitted. The message is single-line, length-bounded, and redacted for recognizable OpenAI API keys.
+When an authenticated Admin credential verification fails, the Agent screen can show an expandable **OpenAI error details** block. Its only fields are **Status**, **Provider code**, **Provider type**, **Provider parameter**, **Request ID**, and **Provider message** (`providerMessage`). Fields that OpenAI did not return are omitted. The provider message is single-line, length-bounded, and redacted for recognizable OpenAI API keys.
 
 Use the **Request ID** (the OpenAI `x-request-id` value) when correlating the failed request with OpenAI support or provider logs. Copy that identifier and the displayed status/code, but never include the API key, authorization headers, encrypted credential material, or the original request body in a support request.
 

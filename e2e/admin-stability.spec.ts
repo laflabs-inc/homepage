@@ -42,7 +42,15 @@ test("Admin locale, guide layout, and retired design routes remain stable", asyn
   await expect(page.getByRole("link", { name: "문서 목록으로" })).toBeVisible()
   await expect(page.getByRole("link", { name: "AI용 Markdown 원문" })).toBeVisible()
 
-  await page.getByRole("button", { name: "English" }).click()
+  const englishToggle = page.getByRole("button", { name: "English" })
+  if (testInfo.project.name === "desktop-1440") {
+    await englishToggle.focus()
+    await expect(englishToggle).toBeFocused()
+    await englishToggle.press("Enter")
+    await expect(englishToggle).toBeFocused()
+  } else {
+    await englishToggle.click()
+  }
   await expect(page.getByRole("navigation", { name: "Admin" })).toContainText("Documents")
   await expect(page.getByRole("heading", { name: "Markdown writing guide" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Back to documents" })).toBeVisible()
