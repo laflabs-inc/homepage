@@ -45,13 +45,10 @@ function formatDate(value: string, locale: "ko" | "en") {
 }
 
 function SignalGlitch() {
-  const reduced = useReducedMotion()
-
   return (
     <div className={styles.glitchStage} aria-hidden="true">
       <span className={styles.signalStable}>SIGNAL</span>
-      {!reduced ? (
-        <>
+      <>
           <motion.span
             className={`${styles.glitchLayer} ${styles.glitchLayerTop}`}
             initial={{ opacity: 0, x: 0 }}
@@ -73,8 +70,7 @@ function SignalGlitch() {
             viewport={{ once: true, amount: 0.55 }}
             transition={{ duration: 0.5, times: [0, 0.42, 1], ease: "linear" }}
           />
-        </>
-      ) : null}
+      </>
     </div>
   )
 }

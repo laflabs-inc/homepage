@@ -27,11 +27,19 @@ export default defineConfig({
         isMobile: true,
       },
     },
+    {
+      name: "tablet-chromium",
+      use: {
+        browserName: "chromium",
+        viewport: { width: 768, height: 1024 },
+        hasTouch: true,
+      },
+    },
   ],
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3201",
     url: baseURL,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
       ...process.env,

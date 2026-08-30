@@ -234,6 +234,16 @@
   }
 
   .stageFrame { width: min(100%, 420px); }
+
+  .node,
+  .stageMark {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .connector {
+    transform: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -262,6 +272,16 @@
   }
 
   .stageFrame { max-width: 420px; }
+
+  .node,
+  .stageMark {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .connector {
+    transform: none !important;
+  }
 }
 
 @media (max-width: 620px) {

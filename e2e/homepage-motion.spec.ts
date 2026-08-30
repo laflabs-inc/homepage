@@ -2,7 +2,8 @@ import { expect, test } from "@playwright/test"
 
 const homepageUrl = "http://127.0.0.1:3201"
 
-test("build loop steps keep their scroll motion across responsive layouts", async ({ context, page }, testInfo) => {
+test("desktop build loop pins one stage and advances its scene", async ({ context, page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-chromium")
   await page.emulateMedia({ reducedMotion: "no-preference" })
   await context.addCookies([
     { name: "laf_locale", value: "ko", url: homepageUrl },
@@ -20,26 +21,87 @@ test("build loop steps keep their scroll motion across responsive layouts", asyn
   const section = page.getByRole("region", {
     name: "제품에서 시작해 시스템으로 남깁니다.",
   })
-  const firstStep = section.getByRole("listitem").first()
+  const sticky = section.getByTestId("build-loop-sticky")
+  const dimensions = await section.evaluate((element) => ({
+    height: element.getBoundingClientRect().height,
+    viewport: window.innerHeight,
+  }))
 
-  await page.evaluate(() => {
-    const target = document.querySelector<HTMLElement>('section[aria-labelledby="build-loop-title"]')
-    if (!target) throw new Error("Build loop was not found")
-    window.scrollTo({ top: target.offsetTop - window.innerHeight * 0.78, behavior: "instant" })
+  expect(dimensions.height).toBeGreaterThan(dimensions.viewport * 3)
+  expect(await sticky.evaluate((element) => getComputedStyle(element).position)).toBe("sticky")
+
+  await section.evaluate((element) => {
+    window.scrollTo({
+      top: element.getBoundingClientRect().top + window.scrollY,
+      behavior: "instant",
+    })
   })
   await expect(section).toBeInViewport()
-  const before = await firstStep.evaluate((element) => getComputedStyle(element).transform)
+  await expect(section).toHaveAttribute("data-active-scene", "product")
 
-  await page.evaluate(() => window.scrollBy({ top: window.innerHeight * 0.58, behavior: "instant" }))
-  await page.waitForTimeout(120)
-  const after = await firstStep.evaluate((element) => getComputedStyle(element).transform)
+  await section.evaluate((element) => {
+    const top = element.getBoundingClientRect().top + window.scrollY
+    const travel = element.getBoundingClientRect().height - window.innerHeight
+    window.scrollTo({ top: top + travel * 0.84, behavior: "instant" })
+  })
+  await expect(section).toHaveAttribute("data-active-scene", "system")
 
-  expect(before).not.toBe("none")
-  expect(after).not.toBe(before)
   await page.screenshot({
     path: `test-results/build-loop-${testInfo.project.name}.png`,
     fullPage: false,
   })
+})
+
+test("mobile build loop is a readable vertical sequence", async ({ context, page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop-chromium")
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await context.addCookies([
+    { name: "laf_locale", value: "ko", url: homepageUrl },
+    { name: "laf_consent", value: "1:essential", url: homepageUrl },
+  ])
+  await page.route("**/api/content?**", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], nextCursor: null }) })
+  })
+  await page.goto("/")
+
+  const section = page.getByRole("region", { name: "제품에서 시작해 시스템으로 남깁니다." })
+  await section.scrollIntoViewIfNeeded()
+  const layout = await section.evaluate((element) => {
+    const items = [...element.querySelectorAll("li")]
+    return {
+      height: element.getBoundingClientRect().height,
+      itemOpacity: items.map((item) => getComputedStyle(item).opacity),
+      itemPositions: items.map((item) => getComputedStyle(item).position),
+      width: document.documentElement.scrollWidth,
+      viewport: document.documentElement.clientWidth,
+    }
+  })
+
+  expect(layout.height).toBeLessThan(page.viewportSize()!.height * 3)
+  expect(layout.itemOpacity).toEqual(["1", "1", "1", "1"])
+  expect(layout.itemPositions).toEqual(["relative", "relative", "relative", "relative"])
+  expect(layout.width).toBeLessThanOrEqual(layout.viewport + 1)
+})
+
+test("reduced motion exposes the complete build story", async ({ context, page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await context.addCookies([
+    { name: "laf_locale", value: "ko", url: homepageUrl },
+    { name: "laf_consent", value: "1:essential", url: homepageUrl },
+  ])
+  await page.route("**/api/content?**", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], nextCursor: null }) })
+  })
+  await page.goto("/")
+
+  const section = page.getByRole("region", { name: "제품에서 시작해 시스템으로 남깁니다." })
+  await section.scrollIntoViewIfNeeded()
+  await expect(section).toHaveAttribute("data-active-scene", "system")
+  const itemOpacity = await section.getByRole("listitem").evaluateAll((items) => (
+    items.map((item) => getComputedStyle(item).opacity)
+  ))
+  expect(itemOpacity).toEqual(["1", "1", "1", "1"])
+  await expect(section.getByText("LAF", { exact: true })).toBeVisible()
 })
 
 test("latest signals is scrollable without widening the homepage", async ({ context, page }, testInfo) => {

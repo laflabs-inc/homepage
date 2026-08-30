@@ -26,12 +26,12 @@ export function Landing() {
   const t = copy[locale]
   const ko = locale === "ko"
   const reveal = (delay = 0) => ({
-    initial: reduced ? false as const : { opacity: 0, y: 24, filter: "blur(6px)" },
+    initial: { opacity: 0, y: 24, filter: "blur(6px)" },
     whileInView: { opacity: 1, y: 0, filter: "blur(0px)" }, viewport: { once: true, amount: 0.2 },
     transition: { duration: reduced ? 0 : 0.65, delay, ease: [0.16, 1, 0.3, 1] as const },
   })
   const companyEnter = (delay = 0) => ({
-    initial: reduced ? false as const : { opacity: 0, x: 96, filter: "blur(7px)" },
+    initial: { opacity: 0, x: 96, filter: "blur(7px)" },
     whileInView: { opacity: 1, x: 0, filter: "blur(0px)" },
     viewport: { once: true, amount: 0.45 },
     transition: { duration: reduced ? 0 : 0.8, delay, ease: [0.16, 1, 0.3, 1] as const },
@@ -46,7 +46,7 @@ export function Landing() {
         <h1 aria-label={ko ? "제품에 필요한 다음을 만듭니다." : "We build what products need next."}>{ko ? <><span>제품에 필요한 다음을</span><span>만듭니다.</span></> : <><span>We build what</span><span>products need next.</span></>}</h1>
         <p>{ko ? "LafLabs는 더 나은 디지털 경험을 위한 제품과 기반 기술을 직접 설계하고 개발합니다." : "LafLabs designs and builds the products and infrastructure behind better digital experiences."}</p>
       </motion.div>
-      <motion.div className="hero-block" style={{ y: reduced ? 0 : heroY }} aria-hidden="true">
+      <motion.div className="hero-block" style={{ y: heroY }} aria-hidden="true">
         <div className="hero-block-word">LAF</div><div className="hero-block-meta mono"><span>SOFTWARE</span><span>SEOUL / KR</span></div>
         <video className="hero-block-video" autoPlay muted playsInline preload="metadata" poster="/laf-system-loop-poster.png">
           <source src="/laf-system-loop.mp4" type="video/mp4" />
@@ -66,7 +66,7 @@ export function Landing() {
     <section className="product-stage" id="products" ref={productStage}>
       <div className="product-sticky">
       <div className="section-heading"><p className="section-no mono">02 / SELECTED PRODUCTS</p><h2>{ko ? "우리가 만드는 것" : "What we build"}</h2></div>
-      <motion.div className="product-grid" style={{ "--track-x": reduced ? "0vw" : productX } as never}>{products.map((product, index) => { const item = t.products[product.id]; return <motion.article className="product-panel" key={product.id} {...reveal(index * .07)}>
+      <motion.div className="product-grid" style={{ "--track-x": productX } as never}>{products.map((product, index) => { const item = t.products[product.id]; return <motion.article className="product-panel" key={product.id} {...reveal(index * .07)}>
         <div className="product-top mono"><span>0{index + 1}</span><span>{item.layer}</span></div><div className="product-mark" aria-hidden="true">{productMarks[index]}</div>
         <div className="product-content"><p className="product-status mono">{item.status}</p><h3>{product.name}</h3><p>{item.description}</p>{product.href ? <a href={product.href} data-analytics-event="product_click" data-analytics-target={product.id}>{t.products.visit}<ArrowUpRight /></a> : <span className="product-soon">{t.products.soon}</span>}</div>
       </motion.article> })}</motion.div>
