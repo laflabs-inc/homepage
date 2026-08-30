@@ -1,5 +1,5 @@
 .buildLoop {
-  height: 260svh;
+  height: 320svh;
   position: relative;
   overflow: clip;
   border-block: 1px solid var(--ink);
@@ -12,8 +12,8 @@
   position: sticky;
   top: 0;
   display: grid;
-  grid-template-columns: minmax(300px, 0.85fr) minmax(520px, 1.15fr);
-  gap: clamp(70px, 9vw, 150px);
+  grid-template-columns: minmax(280px, 0.72fr) minmax(600px, 1.28fr);
+  gap: clamp(56px, 7vw, 118px);
   align-items: center;
   overflow: hidden;
 }
@@ -27,7 +27,7 @@
 }
 
 .intro > p {
-  max-width: 520px;
+  max-width: 490px;
   margin: 32px 0 0;
   color: var(--muted);
   font-size: 16px;
@@ -59,19 +59,54 @@
   background: var(--blue);
 }
 
-.steps {
-  margin: 0;
-  padding: 0;
-  border-top: 1px solid var(--ink);
-  list-style: none;
-}
-
 .story {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(280px, 0.82fr) minmax(250px, 0.68fr);
-  gap: clamp(32px, 4vw, 64px);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(300px, 1fr);
+  gap: clamp(36px, 5vw, 76px);
   align-items: center;
+}
+
+.steps {
+  min-height: 250px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  border-block: 1px solid var(--ink);
+  list-style: none;
+  overflow: clip;
+}
+
+.steps li {
+  padding: 38px 0;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  gap: 20px;
+  align-content: center;
+}
+
+.index {
+  padding-top: 7px;
+  color: var(--blue);
+  font-size: 10px;
+}
+
+.steps h3 {
+  margin: 0;
+  font-size: clamp(31px, 3.3vw, 50px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.steps p {
+  max-width: 440px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  word-break: keep-all;
 }
 
 .stage {
@@ -86,83 +121,82 @@
   overflow: hidden;
 }
 
-.stageFrame::before,
-.stageFrame::after {
+.stageFrame::before {
   content: "";
   position: absolute;
-  background: rgba(255, 255, 255, 0.38);
-}
-
-.stageFrame::before {
-  width: 1px;
-  inset-block: 12%;
-  left: 50%;
-}
-
-.stageFrame::after {
-  height: 1px;
-  inset-inline: 12%;
-  top: 50%;
+  inset: 8%;
+  border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .node {
   width: 17%;
   aspect-ratio: 1;
   position: absolute;
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.88);
   background: rgba(15, 23, 42, 0.1);
+  transform-origin: center;
 }
 
 .node[data-scene="product"] { top: 15%; left: 15%; }
 .node[data-scene="foundation"] { top: 15%; right: 15%; }
-.node[data-scene="operations"] { bottom: 15%; left: 15%; }
-.node[data-scene="system"] { right: 15%; bottom: 15%; background: var(--ink); }
+.node[data-scene="operations"] { right: 15%; bottom: 15%; }
+.node[data-scene="system"] { bottom: 15%; left: 15%; background: var(--ink); }
+
+.connector {
+  position: absolute;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.72);
+  transform-origin: left center;
+}
+
+.connectorOne {
+  height: 1px;
+  top: 23.5%;
+  right: 32%;
+  left: 32%;
+}
+
+.connectorTwo {
+  width: 1px;
+  top: 32%;
+  right: 23.5%;
+  bottom: 32%;
+  transform-origin: center top;
+}
+
+.connectorThree {
+  height: 1px;
+  right: 32%;
+  bottom: 23.5%;
+  left: 32%;
+  transform-origin: right center;
+}
 
 .stageMark {
   position: absolute;
-  right: 6%;
-  bottom: 5%;
+  z-index: 3;
+  bottom: 20.5%;
+  left: 19.2%;
   color: #fff;
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: clamp(8px, 0.75vw, 11px);
+  letter-spacing: 0.14em;
 }
 
-.steps li {
-  min-height: 146px;
-  padding: 28px 0;
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 24px;
-  align-items: start;
-  border-bottom: 1px solid #9fb2d7;
-}
+@media (max-width: 1100px) and (min-width: 901px) {
+  .sticky {
+    grid-template-columns: minmax(240px, 0.68fr) minmax(500px, 1.32fr);
+    gap: 40px;
+  }
 
-.index {
-  padding-top: 7px;
-  color: var(--blue);
-  font-size: 10px;
-}
-
-.steps h3 {
-  margin: 0;
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-}
-
-.steps p {
-  max-width: 520px;
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.65;
-  word-break: keep-all;
+  .story {
+    grid-template-columns: minmax(230px, 0.9fr) minmax(250px, 1fr);
+    gap: 28px;
+  }
 }
 
 @media (max-width: 900px) {
-  .buildLoop {
-    height: auto;
-  }
+  .buildLoop { height: auto; }
 
   .sticky {
     min-height: auto;
@@ -178,35 +212,60 @@
     font-size: 48px;
   }
 
-  .intro > p {
-    font-size: 14px;
-  }
+  .intro > p { font-size: 14px; }
+  .rail { display: none; }
+  .story { grid-template-columns: 1fr; }
 
-  .rail {
-    display: none;
+  .steps {
+    min-height: 0;
+    border-bottom: 0;
+    overflow: visible;
   }
 
   .steps li {
     min-height: 132px;
+    padding: 28px 0;
+    position: relative;
+    inset: auto;
     grid-template-columns: 44px 1fr;
+    border-bottom: 1px solid #9fb2d7;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .story {
-    grid-template-columns: 1fr;
-  }
-
-  .stageFrame {
-    width: min(100%, 420px);
-  }
+  .stageFrame { width: min(100%, 420px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .buildLoop {
-    height: auto;
-  }
+  .buildLoop { height: auto; }
 
   .sticky {
     min-height: auto;
     position: relative;
+    grid-template-columns: 1fr;
   }
+
+  .story { grid-template-columns: minmax(0, 1fr) minmax(260px, 0.62fr); }
+
+  .steps {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .steps li {
+    min-height: 128px;
+    position: relative;
+    inset: auto;
+    border-bottom: 1px solid #9fb2d7;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .stageFrame { max-width: 420px; }
+}
+
+@media (max-width: 620px) {
+  .sticky { padding-block: 76px; }
+  .intro h2 { font-size: clamp(40px, 12vw, 48px); }
+  .stageFrame { width: 100%; }
 }

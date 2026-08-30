@@ -38,7 +38,14 @@ describe("BuildLoop styling", () => {
     expect(within(section).getAllByRole("listitem")).toHaveLength(4)
     expect(within(section).getByTestId("build-loop-stage")).toBeInTheDocument()
     expect(within(section).getAllByTestId("build-loop-node")).toHaveLength(4)
-    expect(within(section).getByText("시스템")).toBeVisible()
+    expect(within(section).getByTestId("build-loop-stage")).toHaveAttribute(
+      "data-stage-layout",
+      "sticky",
+    )
+    within(section).getAllByRole("listitem").forEach((item, index) => {
+      expect(item).toHaveAttribute("data-scene-index", String(index))
+    })
+    expect(within(section).getByText("시스템")).toBeInTheDocument()
     expect(within(section).queryByText("오픈소스")).not.toBeInTheDocument()
   })
 })
