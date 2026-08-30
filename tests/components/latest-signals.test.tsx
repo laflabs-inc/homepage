@@ -47,6 +47,7 @@ describe("LatestSignals", () => {
     )
 
     expect(screen.getByRole("status")).toHaveTextContent("최근 소식을 불러오는 중입니다.")
+    expect(screen.getByTestId("signal-lock")).toHaveAttribute("data-signal-state", "loading")
   })
 
   it("renders the newest published items as localized document links", async () => {
@@ -68,6 +69,7 @@ describe("LatestSignals", () => {
       "/notices/hello?locale=ko",
     )
     expect(screen.getByText("새 소식을 전합니다.")).toBeVisible()
+    expect(screen.getByTestId("signal-lock")).toHaveAttribute("data-signal-state", "ready")
     expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
       "/api/content?kind=notice&locale=ko&limit=3",
       "/api/content?kind=disclosure&locale=ko&limit=3",
@@ -86,6 +88,7 @@ describe("LatestSignals", () => {
     )
 
     expect(await screen.findByText("아직 공개된 새 소식이 없습니다.")).toBeVisible()
+    expect(screen.getByTestId("signal-lock")).toHaveAttribute("data-signal-state", "empty")
     expect(screen.getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices?locale=ko")
     expect(screen.getByRole("link", { name: "공시" })).toHaveAttribute("href", "/disclosures?locale=ko")
     expect(screen.queryByRole("link", { name: "디자인 가이드" })).not.toBeInTheDocument()
@@ -101,6 +104,7 @@ describe("LatestSignals", () => {
     )
 
     expect(await screen.findByText("지금은 새 소식을 불러올 수 없습니다.")).toBeVisible()
+    expect(screen.getByTestId("signal-lock")).toHaveAttribute("data-signal-state", "error")
     expect(screen.getByRole("link", { name: "공지사항" })).toBeVisible()
   })
 })

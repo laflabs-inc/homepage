@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import {
   motion,
   type MotionValue,
@@ -111,10 +111,6 @@ export function BuildLoop() {
   const connectorTwo = useTransform(scrollYProgress, [0.45, 0.53], [0, 1])
   const connectorThree = useTransform(scrollYProgress, [0.7, 0.78], [0, 1])
   const markOpacity = useTransform(scrollYProgress, [0.7, 0.78], [0, 1])
-
-  useEffect(() => {
-    if (reduced) setActiveScene("system")
-  }, [reduced])
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
     if (reduced) {

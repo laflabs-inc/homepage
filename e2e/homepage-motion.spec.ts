@@ -114,8 +114,7 @@ test("latest signals is scrollable without widening the homepage", async ({ cont
     const content = {
       notice: { slug: "product-update", title: "제품 업데이트", summary: "제품과 기반 기술의 최근 변경 사항을 전합니다.", category: "company", date: "2026-08-29T00:00:00.000Z" },
       disclosure: { slug: "company-record", title: "회사 정보 공개", summary: "회사의 주요 정보를 확인할 수 있는 형태로 기록합니다.", category: "ir", date: "2026-08-28T00:00:00.000Z" },
-      design: { slug: "brand-assets", title: "브랜드 에셋 안내", summary: "공식 로고와 디자인 리소스의 사용 기준을 정리했습니다.", category: "assets", date: "2026-08-27T00:00:00.000Z" },
-    }[kind as "notice" | "disclosure" | "design"]
+    }[kind as "notice" | "disclosure"]
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -143,6 +142,7 @@ test("latest signals is scrollable without widening the homepage", async ({ cont
   const rail = page.getByRole("region", { name: "최근 소식" })
   await section.scrollIntoViewIfNeeded()
   await expect(page.getByRole("link", { name: /제품 업데이트/ })).toBeVisible()
+  await expect(page.getByTestId("signal-lock")).toHaveAttribute("data-signal-state", "ready")
   await page.waitForTimeout(650)
 
   const pageWidths = await page.evaluate(() => ({
