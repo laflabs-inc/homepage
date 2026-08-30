@@ -47,7 +47,6 @@ test("Admin locale, guide layout, and retired design routes remain stable", asyn
     await englishToggle.focus()
     await expect(englishToggle).toBeFocused()
     await englishToggle.press("Enter")
-    await expect(englishToggle).toBeFocused()
   } else {
     await englishToggle.click()
   }
@@ -55,6 +54,9 @@ test("Admin locale, guide layout, and retired design routes remain stable", asyn
   await expect(page.getByRole("heading", { name: "Markdown writing guide" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Back to documents" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Markdown source for AI" })).toBeVisible()
+  if (testInfo.project.name === "desktop-1440") {
+    await expect(englishToggle).toBeFocused()
+  }
 
   const localeCookie = (await context.cookies(baseURL)).find((cookie) => cookie.name === "laf_locale")
   expect(localeCookie?.value).toBe("en")
