@@ -46,8 +46,25 @@ describe("homepage refresh", () => {
     ).toBeVisible()
     expect(screen.getByRole("heading", { name: "기반 기술" })).toBeVisible()
     expect(screen.getByRole("heading", { name: "운영" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "시스템" })).toBeVisible()
+    expect(
+      screen.getByText("운영에서 확인한 경계와 반복 작업을 오래 쓰는 시스템으로 남깁니다."),
+    ).toBeVisible()
     expect(screen.getByRole("heading", { name: "만든 것과 배운 것을 기록합니다." })).toBeVisible()
     expect(screen.getByRole("region", { name: "최근 소식" })).toBeVisible()
+  })
+
+  it("keeps the product-to-system ending in the English locale", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <Landing />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("heading", { name: "System" })).toBeVisible()
+    expect(
+      screen.getByText("Turn proven boundaries and repeated work into a system designed to last."),
+    ).toBeVisible()
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {

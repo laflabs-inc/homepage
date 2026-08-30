@@ -167,7 +167,7 @@ const ko: Copy = {
       { title: "제품", body: "문제는 실제 제품에서 찾습니다. 쓰임이 분명한 것부터 만듭니다." },
       { title: "기반 기술", body: "여러 제품에서 반복되는 문제는 공통 기반 기술로 묶습니다." },
       { title: "운영", body: "직접 운영하며 실패 경로와 경계를 확인합니다." },
-      { title: "오픈소스", body: "다른 팀에도 쓸모가 확인된 코드는 공개하고 계속 다듬습니다." },
+      { title: "시스템", body: "운영에서 확인한 경계와 반복 작업을 오래 쓰는 시스템으로 남깁니다." },
     ],
   },
   signals: {
@@ -283,7 +283,7 @@ const en: Copy = {
       { title: "Product", body: "Find the problem in a real product. Build the part with a clear use first." },
       { title: "Shared infrastructure", body: "Move repeated problems into a common technical foundation." },
       { title: "Operations", body: "Run it ourselves and inspect failure paths and boundaries." },
-      { title: "Open source", body: "Open code that proves useful to other teams, then keep improving it." },
+      { title: "System", body: "Turn proven boundaries and repeated work into a system designed to last." },
     ],
   },
   signals: {

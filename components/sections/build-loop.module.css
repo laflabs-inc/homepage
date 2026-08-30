@@ -66,6 +66,67 @@
   list-style: none;
 }
 
+.story {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) minmax(250px, 0.68fr);
+  gap: clamp(32px, 4vw, 64px);
+  align-items: center;
+}
+
+.stage {
+  min-width: 0;
+}
+
+.stageFrame {
+  aspect-ratio: 1;
+  position: relative;
+  border: 1px solid var(--ink);
+  background: var(--blue);
+  overflow: hidden;
+}
+
+.stageFrame::before,
+.stageFrame::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.stageFrame::before {
+  width: 1px;
+  inset-block: 12%;
+  left: 50%;
+}
+
+.stageFrame::after {
+  height: 1px;
+  inset-inline: 12%;
+  top: 50%;
+}
+
+.node {
+  width: 17%;
+  aspect-ratio: 1;
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.node[data-scene="product"] { top: 15%; left: 15%; }
+.node[data-scene="foundation"] { top: 15%; right: 15%; }
+.node[data-scene="operations"] { bottom: 15%; left: 15%; }
+.node[data-scene="system"] { right: 15%; bottom: 15%; background: var(--ink); }
+
+.stageMark {
+  position: absolute;
+  right: 6%;
+  bottom: 5%;
+  color: #fff;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+
 .steps li {
   min-height: 146px;
   padding: 28px 0;
@@ -128,6 +189,14 @@
   .steps li {
     min-height: 132px;
     grid-template-columns: 44px 1fr;
+  }
+
+  .story {
+    grid-template-columns: 1fr;
+  }
+
+  .stageFrame {
+    width: min(100%, 420px);
   }
 }
 

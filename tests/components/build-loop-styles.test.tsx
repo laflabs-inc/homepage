@@ -26,7 +26,8 @@ describe("BuildLoop styling", () => {
 
     const section = screen.getByRole("region", { name: "제품에서 시작해 시스템으로 남깁니다." })
     expect(section).toHaveClass("buildLoop")
-    expect(section).toHaveAttribute("data-motion-sequence", "scroll")
+    expect(section).toHaveAttribute("data-motion-sequence", "build-loop")
+    expect(section).toHaveAttribute("data-scene-count", "4")
 
     const title = within(section).getByRole("heading", {
       level: 2,
@@ -34,5 +35,10 @@ describe("BuildLoop styling", () => {
     })
     expect(title.parentElement).toHaveClass("intro")
     expect(within(section).getByRole("list")).toHaveClass("steps")
+    expect(within(section).getAllByRole("listitem")).toHaveLength(4)
+    expect(within(section).getByTestId("build-loop-stage")).toBeInTheDocument()
+    expect(within(section).getAllByTestId("build-loop-node")).toHaveLength(4)
+    expect(within(section).getByText("시스템")).toBeVisible()
+    expect(within(section).queryByText("오픈소스")).not.toBeInTheDocument()
   })
 })

@@ -7,6 +7,8 @@ import { useLocale } from "@/components/i18n/locale-provider"
 import { copy } from "@/lib/content"
 import styles from "./build-loop.module.css"
 
+const sceneIds = ["product", "foundation", "operations", "system"] as const
+
 function BuildStep({
   body,
   index,
@@ -53,7 +55,8 @@ export function BuildLoop() {
       className={styles.buildLoop}
       ref={section}
       aria-labelledby="build-loop-title"
-      data-motion-sequence="scroll"
+      data-motion-sequence="build-loop"
+      data-scene-count={sceneIds.length}
     >
       <div className={styles.sticky}>
         <motion.div
@@ -68,6 +71,7 @@ export function BuildLoop() {
           </div>
         </motion.div>
 
+        <div className={styles.story}>
         <ol className={styles.steps}>
           {t.steps.map((step, index) => (
             <BuildStep
@@ -79,6 +83,20 @@ export function BuildLoop() {
             />
           ))}
         </ol>
+        <div className={styles.stage} data-testid="build-loop-stage" aria-hidden="true">
+          <div className={styles.stageFrame}>
+            {sceneIds.map((scene) => (
+              <span
+                className={styles.node}
+                data-scene={scene}
+                data-testid="build-loop-node"
+                key={scene}
+              />
+            ))}
+            <span className={`${styles.stageMark} mono`}>LAF</span>
+          </div>
+        </div>
+        </div>
       </div>
     </section>
   )
