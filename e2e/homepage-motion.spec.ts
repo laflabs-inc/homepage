@@ -55,7 +55,7 @@ test("desktop build loop pins one stage and advances its scene", async ({ contex
   })
 })
 
-test("mobile build loop is a readable vertical sequence", async ({ context, page }, testInfo) => {
+test("mobile build loop keeps one scroll-driven scene", async ({ context, page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop-chromium")
   await page.emulateMedia({ reducedMotion: "no-preference" })
   await context.addCookies([
@@ -68,23 +68,44 @@ test("mobile build loop is a readable vertical sequence", async ({ context, page
   await page.goto("/")
 
   const section = page.getByRole("region", { name: "제품에서 시작해 시스템으로 남깁니다." })
-  await section.scrollIntoViewIfNeeded()
+  const sticky = section.getByTestId("build-loop-sticky")
+  const dimensions = await section.evaluate((element) => ({
+    height: element.getBoundingClientRect().height,
+    viewport: window.innerHeight,
+  }))
+
+  expect(dimensions.height).toBeGreaterThan(dimensions.viewport * 3)
+  expect(await sticky.evaluate((element) => getComputedStyle(element).position)).toBe("sticky")
+
+  await section.evaluate((element) => {
+    window.scrollTo({
+      top: element.getBoundingClientRect().top + window.scrollY,
+      behavior: "instant",
+    })
+  })
+  await expect(section).toHaveAttribute("data-active-scene", "product")
+
+  await section.evaluate((element) => {
+    const top = element.getBoundingClientRect().top + window.scrollY
+    const travel = element.getBoundingClientRect().height - window.innerHeight
+    window.scrollTo({ top: top + travel * 0.84, behavior: "instant" })
+  })
+  await expect(section).toHaveAttribute("data-active-scene", "system")
+
+  await expect.poll(async () => section.getByRole("listitem").evaluateAll((items) => (
+    items.map((item) => Number(Number(getComputedStyle(item).opacity).toFixed(2)))
+  ))).toEqual([0, 0, 0, 1])
+
   const layout = await section.evaluate((element) => {
     const items = [...element.querySelectorAll("li")]
     return {
-      height: element.getBoundingClientRect().height,
-      itemOpacity: items.map((item) => getComputedStyle(item).opacity),
       itemPositions: items.map((item) => getComputedStyle(item).position),
-      stickyPosition: getComputedStyle(element.querySelector<HTMLElement>("[data-testid='build-loop-sticky']")!).position,
       width: document.documentElement.scrollWidth,
       viewport: document.documentElement.clientWidth,
     }
   })
 
-  expect(layout.height).toBeGreaterThan(page.viewportSize()!.height)
-  expect(layout.stickyPosition).toBe("relative")
-  expect(layout.itemOpacity).toEqual(["1", "1", "1", "1"])
-  expect(layout.itemPositions).toEqual(["relative", "relative", "relative", "relative"])
+  expect(layout.itemPositions).toEqual(["absolute", "absolute", "absolute", "absolute"])
   expect(layout.width).toBeLessThanOrEqual(layout.viewport + 1)
   await page.screenshot({ path: `test-results/build-loop-${testInfo.project.name}.png`, fullPage: false })
 })

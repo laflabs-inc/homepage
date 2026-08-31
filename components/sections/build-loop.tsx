@@ -119,7 +119,7 @@ export function BuildLoop() {
           </h2>
           <p>{t.lede}</p>
           <div className={styles.rail} aria-hidden="true">
-            <motion.span className={styles.progress} style={{ scaleY: scrollYProgress }} />
+            <motion.span className={styles.progress} style={{ scaleX: scrollYProgress, scaleY: scrollYProgress }} />
             <motion.i style={{ y: markerY }} />
           </div>
         </div>
