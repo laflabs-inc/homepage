@@ -44,14 +44,22 @@ function formatDate(value: string, locale: "ko" | "en") {
   }).format(new Date(value))
 }
 
-function SignalGlitch() {
-  const reduced = useReducedMotion()
-
+function SignalGlitch({
+  pulseKey,
+  state,
+}: {
+  pulseKey: string
+  state: LoadState["status"]
+}) {
   return (
-    <div className={styles.glitchStage} aria-hidden="true">
+    <div
+      className={styles.glitchStage}
+      aria-hidden="true"
+      data-signal-state={state}
+      data-testid="signal-lock"
+    >
       <span className={styles.signalStable}>SIGNAL</span>
-      {!reduced ? (
-        <>
+      <>
           <motion.span
             className={`${styles.glitchLayer} ${styles.glitchLayerTop}`}
             initial={{ opacity: 0, x: 0 }}
@@ -73,7 +81,15 @@ function SignalGlitch() {
             viewport={{ once: true, amount: 0.55 }}
             transition={{ duration: 0.5, times: [0, 0.42, 1], ease: "linear" }}
           />
-        </>
+      </>
+      {state === "ready" ? (
+        <motion.span
+          className={styles.lockPulse}
+          key={pulseKey}
+          initial={{ opacity: 0, scaleX: 0.22 }}
+          animate={{ opacity: [0, 0.82, 0], scaleX: [0.22, 1, 1] }}
+          transition={{ duration: 0.24, times: [0, 0.42, 1], ease: "linear" }}
+        />
       ) : null}
     </div>
   )
@@ -146,7 +162,12 @@ export function LatestSignals() {
             <h2 id="latest-signals-title">{t.title}</h2>
             <p className={styles.signalLede}>{t.lede}</p>
           </div>
-          <SignalGlitch />
+          <SignalGlitch
+            state={displayState.status}
+            pulseKey={`${locale}:${displayState.status === "ready"
+              ? displayState.items.map(({ id }) => id).join(",")
+              : displayState.status}`}
+          />
         </div>
 
         <div className={styles.stories}>

@@ -1,36 +1,74 @@
 "use client"
 
-import { useRef } from "react"
-import { motion, type MotionValue, useReducedMotion, useScroll, useTransform } from "motion/react"
+import Image from "next/image"
+import { useRef, useState } from "react"
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "motion/react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { copy } from "@/lib/content"
 import styles from "./build-loop.module.css"
 
+const sceneIds = ["product", "foundation", "operations", "system"] as const
+
+type SceneId = (typeof sceneIds)[number]
+
 function BuildStep({
+  active,
   body,
+  caption,
   index,
-  progress,
-  reduced,
+  scene,
   title,
 }: {
+  active: boolean
   body: string
+  caption: string
   index: number
-  progress: MotionValue<number>
-  reduced: boolean | null
+  scene: SceneId
   title: string
 }) {
-  const start = 0.08 + index * 0.18
-  const opacity = useTransform(progress, [start, start + 0.22], [0.22, 1])
-  const x = useTransform(progress, [start, start + 0.22], [72, 0])
-
   return (
-    <motion.li style={reduced ? undefined : { opacity, x }}>
-      <span className={`${styles.index} mono`}>{String(index + 1).padStart(2, "0")}</span>
-      <div>
-        <h3>{title}</h3>
-        <p>{body}</p>
+    <motion.li
+      animate={{
+        clipPath: active ? "inset(0% 0% 0% 0%)" : "inset(0% 0% 0% 7%)",
+        opacity: active ? 1 : 0,
+        x: active ? 0 : index === 0 ? -24 : 48,
+      }}
+      aria-current={active ? "step" : undefined}
+      data-scene={scene}
+      data-scene-index={index}
+      initial={false}
+      transition={{ duration: 0.46, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <div className={styles.sceneCopy}>
+        <span className={`${styles.index} mono`}>{String(index + 1).padStart(2, "0")}</span>
+        <div>
+          <h3>{title}</h3>
+          <p>{body}</p>
+        </div>
       </div>
+
+      <figure
+        className={styles.visual}
+        data-scene={scene}
+        data-testid="build-loop-visual"
+      >
+        <div className={styles.visualFrame}>
+          <Image
+            alt=""
+            fill
+            sizes="(max-width: 900px) calc(100vw - 36px), (max-width: 1200px) 58vw, 760px"
+            src={`/images/build-loop/${scene}-transparent.webp`}
+          />
+        </div>
+        <figcaption>{caption}</figcaption>
+      </figure>
     </motion.li>
   )
 }
@@ -40,45 +78,65 @@ export function BuildLoop() {
   const reduced = useReducedMotion()
   const section = useRef<HTMLElement>(null)
   const t = copy[locale].buildLoop
+  const titleLines = locale === "ko"
+    ? ["제품에서 시작해", "시스템으로", "남깁니다."]
+    : ["Products first.", "Systems follow."]
+  const [activeScene, setActiveScene] = useState<SceneId>("product")
   const { scrollYProgress } = useScroll({
     target: section,
-    offset: ["start 0.85", "end 0.2"],
+    offset: ["start start", "end end"],
   })
-  const introOpacity = useTransform(scrollYProgress, [0, 0.12], [0.24, 1])
-  const introX = useTransform(scrollYProgress, [0, 0.12], [84, 0])
-  const markerY = useTransform(scrollYProgress, [0.08, 0.9], [0, 244])
+  const markerY = useTransform(scrollYProgress, [0, 1], [0, 244])
+
+  useMotionValueEvent(scrollYProgress, "change", (value) => {
+    if (reduced) {
+      setActiveScene("system")
+      return
+    }
+    const next = value >= 0.74
+      ? "system"
+      : value >= 0.49
+        ? "operations"
+        : value >= 0.24
+          ? "foundation"
+          : "product"
+    setActiveScene((current) => current === next ? current : next)
+  })
 
   return (
     <section
       className={styles.buildLoop}
       ref={section}
       aria-labelledby="build-loop-title"
-      data-motion-sequence="scroll"
+      data-active-scene={activeScene}
+      data-motion-sequence="build-loop"
+      data-scene-count={sceneIds.length}
     >
-      <div className={styles.sticky}>
-        <motion.div
-          className={styles.intro}
-          style={reduced ? undefined : { opacity: introOpacity, x: introX }}
-        >
-          <h2 id="build-loop-title">{t.title}</h2>
+      <div className={styles.sticky} data-testid="build-loop-sticky">
+        <div className={styles.intro}>
+          <h2 id="build-loop-title" aria-label={t.title}>
+            {titleLines.map((line) => <span key={line}>{line}</span>)}
+          </h2>
           <p>{t.lede}</p>
           <div className={styles.rail} aria-hidden="true">
-            <motion.span className={styles.progress} style={reduced ? undefined : { scaleY: scrollYProgress }} />
-            <motion.i style={reduced ? undefined : { y: markerY }} />
+            <motion.span className={styles.progress} style={{ scaleX: scrollYProgress, scaleY: scrollYProgress }} />
+            <motion.i style={{ y: markerY }} />
           </div>
-        </motion.div>
+        </div>
 
-        <ol className={styles.steps}>
-          {t.steps.map((step, index) => (
-            <BuildStep
-              key={step.title}
-              {...step}
-              index={index}
-              progress={scrollYProgress}
-              reduced={reduced}
-            />
-          ))}
-        </ol>
+        <div className={styles.story}>
+          <ol className={styles.steps}>
+            {t.steps.map((step, index) => (
+              <BuildStep
+                active={activeScene === sceneIds[index]}
+                key={sceneIds[index]}
+                {...step}
+                index={index}
+                scene={sceneIds[index]}
+              />
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   )

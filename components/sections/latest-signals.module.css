@@ -104,6 +104,18 @@
   pointer-events: none;
 }
 
+.lockPulse {
+  height: 1px;
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: -12px;
+  left: 0;
+  background: white;
+  transform-origin: left center;
+  pointer-events: none;
+}
+
 .stories {
   min-width: 0;
   display: flex;
@@ -441,6 +453,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .glitchLayer,
+  .scanBand,
+  .lockPulse {
+    display: none;
+  }
+
   .skeleton span,
   .skeleton strong,
   .skeleton i {

@@ -1,5 +1,5 @@
 .buildLoop {
-  height: 260svh;
+  height: 320svh;
   position: relative;
   overflow: clip;
   border-block: 1px solid var(--ink);
@@ -8,26 +8,30 @@
 
 .sticky {
   min-height: 100svh;
-  padding: 110px var(--gutter);
+  padding: clamp(56px, 7svh, 92px) var(--gutter);
   position: sticky;
   top: 0;
   display: grid;
-  grid-template-columns: minmax(300px, 0.85fr) minmax(520px, 1.15fr);
-  gap: clamp(70px, 9vw, 150px);
+  grid-template-columns: minmax(280px, 0.68fr) minmax(0, 1.32fr);
+  gap: clamp(52px, 6vw, 108px);
   align-items: center;
   overflow: hidden;
 }
 
 .intro h2 {
-  max-width: 9ch;
+  max-width: 7.5em;
   margin: 0;
-  font-size: clamp(50px, 6vw, 88px);
+  font-size: clamp(48px, 4.6vw, 66px);
   line-height: 0.98;
   letter-spacing: -0.04em;
 }
 
+.intro h2 span {
+  display: block;
+}
+
 .intro > p {
-  max-width: 520px;
+  max-width: 490px;
   margin: 32px 0 0;
   color: var(--muted);
   font-size: 16px;
@@ -59,21 +63,34 @@
   background: var(--blue);
 }
 
+.story {
+  min-width: 0;
+}
+
 .steps {
+  height: min(620px, calc(100svh - 112px));
+  min-height: 480px;
   margin: 0;
   padding: 0;
+  position: relative;
   border-top: 1px solid var(--ink);
   list-style: none;
+  overflow: clip;
 }
 
 .steps li {
-  min-height: 146px;
-  padding: 28px 0;
+  padding: 26px 0 0;
+  position: absolute;
+  inset: 0;
   display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 24px;
-  align-items: start;
-  border-bottom: 1px solid #9fb2d7;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(26px, 3.5svh, 40px);
+}
+
+.sceneCopy {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 20px;
 }
 
 .index {
@@ -84,40 +101,71 @@
 
 .steps h3 {
   margin: 0;
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.05;
+  font-size: clamp(36px, 4vw, 58px);
+  line-height: 1;
   letter-spacing: -0.04em;
 }
 
 .steps p {
-  max-width: 520px;
-  margin: 14px 0 0;
+  max-width: 48ch;
+  margin: 16px 0 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.65;
   word-break: keep-all;
 }
 
-@media (max-width: 900px) {
-  .buildLoop {
-    height: auto;
-  }
+.visual {
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
+}
 
+.visualFrame {
+  min-height: 0;
+  position: relative;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.visualFrame img {
+  object-fit: contain;
+}
+
+.visual figcaption {
+  max-width: 58ch;
+  margin-left: 70px;
+  color: #52617a;
+  font-size: 12.5px;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
   .sticky {
-    min-height: auto;
-    padding: 90px var(--gutter);
-    position: relative;
-    grid-template-columns: 1fr;
-    gap: 64px;
-    overflow: visible;
+    grid-template-columns: minmax(240px, 0.64fr) minmax(0, 1.36fr);
+    gap: 40px;
   }
 
   .intro h2 {
-    max-width: 11ch;
     font-size: 48px;
   }
 
+  .steps h3 {
+    font-size: clamp(34px, 4vw, 46px);
+  }
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .sticky {
+    padding-block: 48px;
+  }
+
   .intro > p {
+    margin-top: 22px;
     font-size: 14px;
   }
 
@@ -125,9 +173,148 @@
     display: none;
   }
 
+  .steps {
+    height: calc(100svh - 96px);
+    min-height: 440px;
+  }
+
   .steps li {
-    min-height: 132px;
-    grid-template-columns: 44px 1fr;
+    gap: 22px;
+  }
+}
+
+@media (max-width: 900px) {
+  .buildLoop {
+    height: 340svh;
+  }
+
+  .sticky {
+    min-height: calc(100svh - 76px);
+    height: calc(100svh - 76px);
+    padding: clamp(30px, 4svh, 48px) var(--gutter);
+    position: sticky;
+    top: 76px;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: clamp(30px, 5svh, 48px);
+    overflow: hidden;
+  }
+
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(260px, 1.1fr);
+    gap: 32px;
+    align-items: end;
+  }
+
+  .intro h2 {
+    max-width: 8em;
+    font-size: clamp(40px, 6vw, 48px);
+  }
+
+  .intro > p {
+    max-width: 50ch;
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .rail {
+    width: 100%;
+    height: 1px;
+    margin: 22px 0 0;
+    grid-column: 1 / -1;
+  }
+
+  .progress {
+    transform-origin: left center;
+  }
+
+  .rail i {
+    display: none;
+  }
+
+  .story {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .steps {
+    height: 100%;
+    min-height: 0;
+    overflow: clip;
+  }
+
+  .steps li {
+    min-height: 0;
+    padding: 24px 0 0;
+    position: absolute;
+    inset: 0;
+    gap: clamp(18px, 3svh, 28px);
+    border-bottom: 0;
+  }
+
+  .sceneCopy {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .steps h3 {
+    font-size: clamp(34px, 7vw, 48px);
+  }
+
+  .steps p {
+    max-width: 46ch;
+  }
+
+  .visualFrame {
+    aspect-ratio: auto;
+  }
+
+  .visual figcaption {
+    margin-left: 60px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 720px) {
+  .sticky {
+    padding-block: 24px;
+    gap: 16px;
+  }
+
+  .intro {
+    display: block;
+  }
+
+  .intro h2 {
+    max-width: 9em;
+    font-size: clamp(34px, 8vw, 42px);
+  }
+
+  .intro > p {
+    display: none;
+  }
+
+  .rail {
+    margin-top: 16px;
+  }
+
+  .steps li {
+    padding-top: 18px;
+    gap: 14px;
+  }
+
+  .steps h3 {
+    font-size: clamp(30px, 7vw, 38px);
+  }
+
+  .steps p {
+    margin-top: 9px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .visual figcaption {
+    display: none;
   }
 }
 
@@ -138,6 +325,106 @@
 
   .sticky {
     min-height: auto;
+    height: auto;
     position: relative;
+    top: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .intro > p,
+  .visual figcaption {
+    display: block;
+  }
+
+  .rail {
+    display: none;
+  }
+
+  .steps {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .steps li {
+    min-height: 560px;
+    padding: 38px 0 56px;
+    position: relative;
+    inset: auto;
+    border-bottom: 1px solid #9fb2d7;
+    clip-path: inset(0) !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .visualFrame {
+    aspect-ratio: 2 / 1;
+  }
+}
+
+@media (max-width: 620px) {
+  .sticky {
+    padding-block: clamp(26px, 3.5svh, 36px);
+    gap: clamp(18px, 3svh, 28px);
+  }
+
+  .intro {
+    display: block;
+  }
+
+  .intro h2 {
+    max-width: 9em;
+    font-size: clamp(36px, 11vw, 44px);
+  }
+
+  .intro > p {
+    max-width: 35ch;
+    margin-top: 18px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .rail {
+    margin-top: 18px;
+  }
+
+  .steps li {
+    min-height: 0;
+    padding-top: 18px;
+    gap: 16px;
+  }
+
+  .sceneCopy {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .steps h3 {
+    font-size: clamp(30px, 9vw, 38px);
+  }
+
+  .steps p {
+    margin-top: 10px;
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  .visualFrame {
+    aspect-ratio: auto;
+  }
+
+  .visual figcaption {
+    margin-left: 46px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 620px) and (prefers-reduced-motion: reduce) {
+  .visualFrame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .visual figcaption {
+    margin-left: 0;
   }
 }

@@ -71,7 +71,7 @@ type Copy = {
   buildLoop: {
     title: string
     lede: string
-    steps: readonly { title: string; body: string }[]
+    steps: readonly { title: string; body: string; caption: string }[]
   }
   signals: {
     label: string
@@ -162,12 +162,28 @@ const ko: Copy = {
   },
   buildLoop: {
     title: "제품에서 시작해 시스템으로 남깁니다.",
-    lede: "제품에서 찾은 실제 문제를 공통 인프라로 정리해 직접 운영합니다. 다른 팀에도 쓸모가 확인되면 코드를 공개합니다.",
+    lede: "제품에서 찾은 실제 문제를 공통 기반으로 정리하고 직접 운영합니다. 운영에서 확인한 경계와 반복 작업은 오래 쓰는 시스템으로 남깁니다.",
     steps: [
-      { title: "제품", body: "문제는 실제 제품에서 찾습니다. 쓰임이 분명한 것부터 만듭니다." },
-      { title: "기반 기술", body: "여러 제품에서 반복되는 문제는 공통 기반 기술로 묶습니다." },
-      { title: "운영", body: "직접 운영하며 실패 경로와 경계를 확인합니다." },
-      { title: "오픈소스", body: "다른 팀에도 쓸모가 확인된 코드는 공개하고 계속 다듬습니다." },
+      {
+        title: "제품",
+        body: "문제는 실제 제품에서 찾습니다. 쓰임이 분명한 것부터 만듭니다.",
+        caption: "한 가지 요구가 먼저 작동하는 제품이 됩니다.",
+      },
+      {
+        title: "기반 기술",
+        body: "여러 제품에서 반복되는 문제는 공통 기반 기술로 묶습니다.",
+        caption: "반복되는 기능을 분리해 여러 제품이 함께 쓰는 기반으로 만듭니다.",
+      },
+      {
+        title: "운영",
+        body: "직접 운영하며 실패 경로와 경계를 확인합니다.",
+        caption: "로그와 실패 경로에서 코드의 실제 경계를 확인합니다.",
+      },
+      {
+        title: "시스템",
+        body: "운영에서 확인한 경계와 반복 작업을 오래 쓰는 시스템으로 남깁니다.",
+        caption: "검증된 경계를 다시 조립하지 않아도 되는 구조로 고정합니다.",
+      },
     ],
   },
   signals: {
@@ -278,12 +294,28 @@ const en: Copy = {
   },
   buildLoop: {
     title: "Products first. Systems follow.",
-    lede: "We start with real product problems, turn repeated work into shared infrastructure, operate it ourselves, and open what proves useful.",
+    lede: "We start with real product problems, move repeated work into a shared foundation, and operate it ourselves. What proves durable becomes a system designed to last.",
     steps: [
-      { title: "Product", body: "Find the problem in a real product. Build the part with a clear use first." },
-      { title: "Shared infrastructure", body: "Move repeated problems into a common technical foundation." },
-      { title: "Operations", body: "Run it ourselves and inspect failure paths and boundaries." },
-      { title: "Open source", body: "Open code that proves useful to other teams, then keep improving it." },
+      {
+        title: "Product",
+        body: "Find the problem in a real product. Build the part with a clear use first.",
+        caption: "One concrete need becomes the first working product surface.",
+      },
+      {
+        title: "Shared infrastructure",
+        body: "Move repeated problems into a common technical foundation.",
+        caption: "Repeated capabilities become a foundation shared across products.",
+      },
+      {
+        title: "Operations",
+        body: "Run it ourselves and inspect failure paths and boundaries.",
+        caption: "Logs and failure paths reveal the boundaries the code actually needs.",
+      },
+      {
+        title: "System",
+        body: "Turn proven boundaries and repeated work into a system designed to last.",
+        caption: "Proven boundaries settle into a structure we do not have to rebuild.",
+      },
     ],
   },
   signals: {

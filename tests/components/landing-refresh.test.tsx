@@ -44,10 +44,38 @@ describe("homepage refresh", () => {
     expect(
       screen.getByRole("heading", { name: "직접 쓰고 검증한 코드를 공개합니다." }),
     ).toBeVisible()
-    expect(screen.getByRole("heading", { name: "기반 기술" })).toBeVisible()
-    expect(screen.getByRole("heading", { name: "운영" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "기반 기술" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "운영" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "시스템" })).toBeInTheDocument()
+    expect(
+      screen.getByText("운영에서 확인한 경계와 반복 작업을 오래 쓰는 시스템으로 남깁니다."),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("제품에서 찾은 실제 문제를 공통 기반으로 정리하고 직접 운영합니다. 운영에서 확인한 경계와 반복 작업은 오래 쓰는 시스템으로 남깁니다."),
+    ).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "만든 것과 배운 것을 기록합니다." })).toBeVisible()
     expect(screen.getByRole("region", { name: "최근 소식" })).toBeVisible()
+    expect(screen.getByText(/아이덴티티, 결제, 클라우드/)).toHaveAttribute(
+      "data-company-line",
+      "copy",
+    )
+    expect(screen.getByText(/BUILD QUIETLY/)).toHaveAttribute(
+      "data-company-line",
+      "motto",
+    )
+  })
+
+  it("keeps the product-to-system ending in the English locale", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <Landing />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("heading", { name: "System" })).toBeInTheDocument()
+    expect(
+      screen.getByText("Turn proven boundaries and repeated work into a system designed to last."),
+    ).toBeInTheDocument()
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {
