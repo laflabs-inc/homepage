@@ -318,7 +318,28 @@ describe("document admin", () => {
     expect(screen.getByRole("button", { name: "Generating…" })).toBeDisabled()
 
     await act(async () => resolveGeneration(Response.json({ error: "provider_unavailable" }, { status: 503 })))
-    expect(await screen.findByRole("alert")).toHaveTextContent("The summary could not be generated. Save the draft and try again.")
+    expect(await screen.findByRole("alert")).toHaveTextContent("OpenAI could not generate the summary.")
+    expect(screen.getByRole("alert")).not.toHaveTextContent("Save the draft and try again.")
+  })
+
+  it.each([
+    ["disabled", "Enable AI in Agent settings, then try again."],
+    ["misconfigured", "Check the model, pricing, and OpenAI connection in Agent settings."],
+    ["configuration_unavailable", "Check the model, pricing, and OpenAI connection in Agent settings."],
+    ["in_progress", "A summary is already being generated for this draft."],
+    ["monthly_limit", "The AI monthly limit has been reached."],
+    ["conflict", "This draft changed while the summary was being generated."],
+    ["not_draft", "AI summaries can only be generated for an editable draft."],
+    ["invalid_response", "OpenAI returned an unusable summary. Try again or enter the summary manually."],
+  ])("explains the actionable %s summary failure", async (error, message) => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ error }, { status: 409 }))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Generate with AI" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message)
+    expect(screen.getByRole("alert")).not.toHaveTextContent("Save the draft and try again.")
   })
 
   it("keeps a generated summary successful when the budget estimate is unavailable", async () => {

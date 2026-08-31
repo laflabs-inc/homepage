@@ -178,14 +178,14 @@ export function createAgentStore(database: SqlExecutor): AgentRepository {
             "monthly_cost_limit_microusd" = ${input.monthlyCostLimitMicrousd},
             "input_price_microusd_per_million" = CASE
               WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN NULL
-              ELSE ${input.inputPriceMicrousdPerMillion} END,
+              ELSE ${input.inputPriceMicrousdPerMillion}::bigint END,
             "output_price_microusd_per_million" = CASE
               WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN NULL
-              ELSE ${input.outputPriceMicrousdPerMillion} END,
+              ELSE ${input.outputPriceMicrousdPerMillion}::bigint END,
             "pricing_checked_at" = CASE
               WHEN locked_settings."model" IS DISTINCT FROM ${input.model} THEN NULL
-              WHEN locked_settings."input_price_microusd_per_million" IS DISTINCT FROM ${input.inputPriceMicrousdPerMillion}
-                OR locked_settings."output_price_microusd_per_million" IS DISTINCT FROM ${input.outputPriceMicrousdPerMillion}
+              WHEN locked_settings."input_price_microusd_per_million" IS DISTINCT FROM ${input.inputPriceMicrousdPerMillion}::bigint
+                OR locked_settings."output_price_microusd_per_million" IS DISTINCT FROM ${input.outputPriceMicrousdPerMillion}::bigint
               THEN statement_timestamp() ELSE locked_settings."pricing_checked_at" END,
             "reset_timezone" = ${input.resetTimezone},
             "daily_reset_minute" = ${input.dailyResetMinute},

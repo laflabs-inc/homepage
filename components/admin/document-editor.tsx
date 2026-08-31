@@ -169,6 +169,25 @@ function mutationErrorMessage(
   return t.generic
 }
 
+function summaryErrorMessage(
+  t: AdminCopy["documents"]["editor"]["errors"],
+  payload: unknown,
+): string {
+  if (!payload || typeof payload !== "object" || !("error" in payload)) {
+    return t.summaryFailure
+  }
+  const error = payload.error
+  if (error === "disabled") return t.aiDisabled
+  if (error === "misconfigured" || error === "configuration_unavailable") return t.aiMisconfigured
+  if (error === "in_progress") return t.summaryInProgress
+  if (error === "monthly_limit") return t.summaryMonthlyLimit
+  if (error === "provider_unavailable") return t.summaryProviderUnavailable
+  if (error === "invalid_response") return t.invalidSummaryResponse
+  if (error === "conflict") return t.summaryRevisionChanged
+  if (error === "not_draft") return t.summaryNotDraft
+  return t.summaryFailure
+}
+
 export function DocumentEditor({ revision: initialRevision, seriesId, templateRevision }: DocumentEditorProps) {
   const router = useRouter()
   const locale = useLocale()
@@ -338,10 +357,14 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
         headers: { "content-type": "application/json" },
         body: "{}",
       })
-      if (!response.ok) throw new Error("request failed")
       const payload = await response.json() as {
         summary?: unknown
         remainingMonthlyBudget?: { remainingMicrousd?: unknown } | null
+        error?: unknown
+      }
+      if (!response.ok) {
+        setError(summaryErrorMessage(t.errors, payload))
+        return
       }
       if (
         typeof payload.summary !== "string"

@@ -80,10 +80,11 @@ describe("AI summary provider", () => {
       model: deps.model,
       prompt: "bounded prompt",
       maxOutputTokens: 256,
-      temperature: 0,
       maxRetries: 0,
+      providerOptions: { openai: { reasoningEffort: "none" } },
       abortSignal: expect.any(AbortSignal),
     }))
+    expect(deps.generate).toHaveBeenCalledWith(expect.not.objectContaining({ temperature: expect.anything() }))
   })
 
   it.each([
