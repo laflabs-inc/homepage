@@ -3,7 +3,7 @@ import "server-only"
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { agentStore } from "@/lib/agent/store"
 import type { AgentSettings } from "@/lib/agent/types"
-import { aiTextProvider, type AiTextProvider } from "@/lib/ai/provider"
+import { AiTextProviderError, aiTextProvider, type AiTextProvider } from "@/lib/ai/provider"
 import { buildSummaryPrompt } from "@/lib/ai/prompts"
 import { createAiQuotaService, type SummaryReservation } from "@/lib/ai/quota"
 import { aiQuotaStore } from "@/lib/ai/store"
@@ -60,13 +60,15 @@ type SummaryServiceDependencies = {
 }
 
 export class SummaryGenerationError extends Error {
-  constructor(public readonly code: "not_found" | "not_draft" | "conflict" | "provider_unavailable" | "invalid_response") {
+  constructor(public readonly code: "not_found" | "not_draft" | "conflict" | "configuration_unavailable" | "provider_unavailable" | "invalid_response") {
     super(code === "not_found"
       ? "Document revision was not found"
       : code === "not_draft"
         ? "Only draft revisions can receive an AI summary"
         : code === "conflict"
           ? "The draft changed before summary generation completed"
+        : code === "configuration_unavailable"
+          ? "AI summary configuration is unavailable"
         : code === "invalid_response"
           ? "AI returned an invalid summary"
           : "AI summary generation is unavailable")
@@ -170,9 +172,11 @@ export function createSummaryService(dependencies: SummaryServiceDependencies = 
         prompt,
         maxOutputTokens: reservation.maxOutputTokens,
       })
-    } catch {
+    } catch (error) {
       await releaseReservation(reservation.id)
-      throw new SummaryGenerationError("provider_unavailable")
+      throw new SummaryGenerationError(error instanceof AiTextProviderError
+        ? error.code
+        : "provider_unavailable")
     }
 
     const reconciled = await dependencies.quota.reconcileSummaryUsage(reservation, result.usage)

@@ -34,11 +34,23 @@ const defaultDependencies: SummaryRouteDependencies = {
 
 function errorResponse(error: unknown): Response {
   if (error instanceof SummaryGenerationError) {
-    const status = error.code === "not_found" ? 404 : error.code === "not_draft" || error.code === "conflict" ? 409 : 503
+    const status = error.code === "not_found"
+      ? 404
+      : error.code === "not_draft"
+        || error.code === "conflict"
+        || error.code === "configuration_unavailable"
+        ? 409
+        : 503
     return jsonNoStore({ error: error.code }, { status })
   }
   if (error instanceof AiQuotaError) {
-    const status = error.code === "monthly_limit" ? 429 : error.code === "content_too_large" ? 400 : error.code === "in_progress" ? 409 : 503
+    const status = error.code === "monthly_limit"
+      ? 429
+      : error.code === "content_too_large"
+        ? 400
+        : error.code === "in_progress" || error.code === "disabled" || error.code === "misconfigured"
+          ? 409
+          : 503
     return jsonNoStore({ error: error.code }, { status })
   }
   if (error instanceof DocumentServiceError) {

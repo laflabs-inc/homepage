@@ -26,10 +26,14 @@ export interface AiTextProvider {
 type GenerateRequest = {
   model: LanguageModel
   prompt: string
-  temperature: number
   maxOutputTokens: number
   maxRetries: number
   abortSignal: AbortSignal
+  providerOptions: {
+    openai: {
+      reasoningEffort: "none"
+    }
+  }
 }
 
 type ProviderDependencies = {
@@ -95,9 +99,9 @@ export function createAiTextProvider(dependencies: ProviderDependencies = defaul
         result = await dependencies.generate({
           model,
           prompt,
-          temperature: 0,
           maxOutputTokens: Math.min(settings.maxOutputTokens, maxOutputTokens, SUMMARY_OUTPUT_TOKEN_LIMIT),
           maxRetries: 0,
+          providerOptions: { openai: { reasoningEffort: "none" } },
           abortSignal: AbortSignal.timeout(15_000),
         })
       } catch {

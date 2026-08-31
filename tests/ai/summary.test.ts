@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
 import type { AgentSettings } from "@/lib/agent/types"
+import { AiTextProviderError } from "@/lib/ai/provider"
 import { AiQuotaError } from "@/lib/ai/quota"
 import { createSummaryService, SummaryGenerationError } from "@/lib/ai/summary"
 import type { DocumentRevision } from "@/lib/documents/types"
@@ -155,6 +156,19 @@ describe("draft summary generation", () => {
     expect(deps.quota.releaseReservation).toHaveBeenCalledWith(deps.reservation.id)
     expect(deps.quota.reconcileSummaryUsage).not.toHaveBeenCalled()
     expect(deps.documents.updateDraftSummary).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["configuration_unavailable", "configuration_unavailable"],
+    ["provider_unavailable", "provider_unavailable"],
+    ["invalid_response", "invalid_response"],
+  ] as const)("preserves the safe %s provider failure code", async (providerCode, summaryCode) => {
+    const deps = dependencies()
+    deps.provider.generateSummary.mockRejectedValue(new AiTextProviderError(providerCode))
+
+    await expect(createSummaryService(deps).generateDraftSummary(revision.id, actor))
+      .rejects.toMatchObject({ code: summaryCode })
+    expect(deps.quota.releaseReservation).toHaveBeenCalledWith(deps.reservation.id)
   })
 
   it("records provider usage exactly once even when the draft update fails afterward", async () => {
