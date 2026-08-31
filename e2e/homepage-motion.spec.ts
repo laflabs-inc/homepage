@@ -55,6 +55,52 @@ test("desktop build loop pins one stage and advances its scene", async ({ contex
   })
 })
 
+test("mobile products use a native snap rail without pinning the page", async ({ context, page }, testInfo) => {
+  test.skip(testInfo.project.name === "desktop-chromium")
+  await page.emulateMedia({ reducedMotion: "no-preference" })
+  await context.addCookies([
+    { name: "laf_locale", value: "ko", url: homepageUrl },
+    { name: "laf_consent", value: "1:essential", url: homepageUrl },
+  ])
+  await page.route("**/api/content?**", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], nextCursor: null }) })
+  })
+  await page.goto("/")
+
+  const products = page.locator("#products")
+  const sticky = products.locator(".product-sticky")
+  const rail = products.locator(".product-grid")
+  const layout = await products.evaluate((element) => {
+    const railElement = element.querySelector<HTMLElement>(".product-grid")!
+    return {
+      height: element.getBoundingClientRect().height,
+      overflowX: getComputedStyle(railElement).overflowX,
+      scrollSnapType: getComputedStyle(railElement).scrollSnapType,
+      viewport: window.innerHeight,
+    }
+  })
+
+  expect(await sticky.evaluate((element) => getComputedStyle(element).position)).not.toBe("sticky")
+  expect(layout.height).toBeLessThan(layout.viewport * 2)
+  expect(["auto", "scroll"]).toContain(layout.overflowX)
+  expect(layout.scrollSnapType).toContain("x")
+
+  await products.scrollIntoViewIfNeeded()
+  await expect.poll(async () => Number(await products.locator(".product-panel").first().evaluate((element) => (
+    Number(getComputedStyle(element).opacity).toFixed(2)
+  )))).toBe(1)
+  expect(await products.locator(".product-panel").evaluateAll((panels) => (
+    panels.map((panel) => Number(Number(getComputedStyle(panel).opacity).toFixed(2)))
+  ))).toEqual([1, 1, 1])
+  await page.screenshot({ path: `test-results/product-rail-${testInfo.project.name}.png`, fullPage: false })
+  const horizontalTravel = await rail.evaluate((element) => {
+    const before = element.scrollLeft
+    element.scrollTo({ left: element.clientWidth * 0.8, behavior: "instant" })
+    return element.scrollLeft - before
+  })
+  expect(horizontalTravel).toBeGreaterThan(0)
+})
+
 test("mobile build loop keeps one scroll-driven scene", async ({ context, page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop-chromium")
   await page.emulateMedia({ reducedMotion: "no-preference" })

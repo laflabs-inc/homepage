@@ -37,3 +37,96 @@
 @media(max-width:900px){.strip{height:72px;grid-template-columns:140px 1fr}.strip-label{padding:0 var(--gutter);font-size:9px;letter-spacing:.04em}.strip-marquee,.strip-track{gap:32px}.strip-track li{font-size:12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition-duration:.01ms!important}.hero-block-video{display:none}.product-grid{transform:none!important}.strip-marquee{animation:none}}
 @media(min-width:901px) and (prefers-reduced-motion:reduce){.hero-block{transform:translateX(7vw)!important}}
+
+@media (max-width: 900px) {
+  .product-stage {
+    height: auto;
+    padding: 0 0 110px;
+    overflow: hidden;
+  }
+
+  .product-sticky {
+    height: auto;
+    padding: 76px 0 0 var(--gutter);
+    position: relative;
+    top: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .product-grid {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    padding: 0 0 18px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline-start: 0;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    transform: none !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue) var(--line);
+  }
+
+  .product-grid::after {
+    content: "";
+    width: var(--gutter);
+    flex: 0 0 auto;
+  }
+
+  .product-grid::-webkit-scrollbar {
+    height: 2px;
+  }
+
+  .product-grid::-webkit-scrollbar-track {
+    background: var(--line);
+  }
+
+  .product-grid::-webkit-scrollbar-thumb {
+    background: var(--blue);
+  }
+
+  .product-panel {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .product-progress {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .product-stage {
+    padding: 90px var(--gutter);
+    overflow: visible;
+  }
+
+  .product-sticky {
+    padding: 0;
+    position: static;
+  }
+
+  .product-grid {
+    width: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .product-grid::after {
+    display: none;
+  }
+
+  .product-panel {
+    width: auto;
+    scroll-snap-align: none;
+  }
+}
