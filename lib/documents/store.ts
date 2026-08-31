@@ -4,7 +4,7 @@ import { sql, type SQL } from "drizzle-orm"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { getDb } from "@/lib/db"
-import { adminAuditLog, documentRevisions, documentSeries } from "@/lib/db/schema"
+import { adminAuditLog, documentCategories, documentRevisions, documentSeries } from "@/lib/db/schema"
 import { documentLocales } from "@/lib/documents/types"
 import type {
   AdminDocumentSummary,
@@ -594,9 +594,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND locked_revision."category" IS NOT DISTINCT FROM ${snapshot.category}
             AND locked_revision."pinned" = ${snapshot.pinned}
             AND (
-              (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
-              OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
-              OR (locked_revision."kind" = 'disclosure' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('corporate', 'financial', 'governance', 'material')))
+              locked_revision."category" IS NULL
+              OR EXISTS (
+                SELECT 1
+                FROM ${documentCategories} managed_category
+                WHERE managed_category."kind" = locked_revision."kind"
+                  AND managed_category."slug" = locked_revision."category"
+              )
             )
         ), locked_metadata AS (
           UPDATE ${documentSeries} s
@@ -708,9 +712,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND locked_revision."category" IS NOT DISTINCT FROM ${snapshot.category}
             AND locked_revision."pinned" = ${snapshot.pinned}
             AND (
-              (locked_revision."kind" = 'notice' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('general', 'service', 'maintenance', 'security')))
-              OR (locked_revision."kind" = 'legal' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('privacy', 'terms', 'cookies', 'policy')))
-              OR (locked_revision."kind" = 'disclosure' AND (locked_revision."category" IS NULL OR locked_revision."category" IN ('corporate', 'financial', 'governance', 'material')))
+              locked_revision."category" IS NULL
+              OR EXISTS (
+                SELECT 1
+                FROM ${documentCategories} managed_category
+                WHERE managed_category."kind" = locked_revision."kind"
+                  AND managed_category."slug" = locked_revision."category"
+              )
             )
             AND (
               locked_revision."locale" = 'ko'

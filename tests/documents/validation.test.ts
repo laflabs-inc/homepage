@@ -107,21 +107,16 @@ describe("document validation", () => {
     expect(documentDraftSchema.safeParse({ ...validDraft, locale }).success).toBe(true)
   })
 
-  it("uses an explicit allowlist for every document kind", () => {
-    expect(categoriesByKind).toEqual({
-      notice: ["general", "service", "maintenance", "security"],
-      legal: ["privacy", "terms", "cookies", "policy"],
-      disclosure: ["corporate", "financial", "governance", "material"],
-    })
-
+  it("keeps category validation structural so managed taxonomy decides membership", () => {
     for (const kind of ["notice", "legal", "disclosure"] as const) {
       for (const category of categoriesByKind[kind]) {
         expect(documentDraftSchema.safeParse({ ...validDraft, kind, category }).success).toBe(true)
       }
-      expect(documentDraftSchema.safeParse({ ...validDraft, kind, category: "not-allowed" }).success).toBe(false)
+      expect(documentDraftSchema.safeParse({ ...validDraft, kind, category: "managed-category" }).success).toBe(true)
     }
 
-    expect(documentDraftSchema.safeParse({ ...validDraft, kind: "legal", category: "service" }).success).toBe(false)
+    expect(documentDraftSchema.safeParse({ ...validDraft, category: "not allowed" }).success).toBe(false)
+    expect(documentDraftSchema.safeParse({ ...validDraft, category: "" }).success).toBe(false)
   })
 
   it("accepts only a future scheduled publication date", () => {

@@ -1,7 +1,9 @@
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
+import { CategoryServiceError } from "@/lib/document-categories/service"
 import { createDocumentService } from "@/lib/documents/service"
+import type { CategoryAssignmentService } from "@/lib/documents/service"
 import type {
   AdminDocumentSummary,
   AdminDocumentSummaryFilter,
@@ -383,13 +385,33 @@ function toPublished(revision: DocumentRevision): PublishedDocument {
 
 let repository: MemoryDocumentRepository
 let service: ReturnType<typeof createDocumentService>
+let requireAssignable: ReturnType<typeof vi.fn<CategoryAssignmentService["requireAssignable"]>>
 
 beforeEach(() => {
   repository = new MemoryDocumentRepository()
-  service = createDocumentService(repository)
+  requireAssignable = vi.fn<CategoryAssignmentService["requireAssignable"]>().mockResolvedValue(undefined)
+  service = createDocumentService(repository, { requireAssignable })
 })
 
 describe("document workflow service", () => {
+  it("checks a new category against managed taxonomy before creating a draft", async () => {
+    await service.createDraft(input, actor)
+
+    expect(requireAssignable).toHaveBeenCalledWith("notice", "service", null)
+  })
+
+  it("returns a stable document error when a selected category is inactive", async () => {
+    requireAssignable.mockRejectedValueOnce(
+      new CategoryServiceError("category_inactive", "Inactive categories cannot be assigned"),
+    )
+
+    await expect(service.createDraft(input, actor)).rejects.toMatchObject({
+      code: "conflict",
+      message: "The selected document category is unavailable",
+    })
+    await expect(repository.listAdminSummaries()).resolves.toMatchObject({ items: [] })
+  })
+
   it("updates only a draft summary and preserves safe generation audit metadata", async () => {
     const draft = repository.seed({
       seriesId: "series-1",
