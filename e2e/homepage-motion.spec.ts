@@ -49,6 +49,21 @@ test("desktop build loop pins one stage and advances its scene", async ({ contex
     items.map((item) => Number(getComputedStyle(item).opacity).toFixed(2))
   ))).toEqual(["0.00", "0.00", "0.00", "1.00"])
 
+  const visualFrame = section.getByTestId("build-loop-visual").last().locator("div").first()
+  const visualTreatment = await visualFrame.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    return {
+      backgroundColor: styles.backgroundColor,
+      borderTopWidth: styles.borderTopWidth,
+      objectFit: getComputedStyle(element.querySelector("img")!).objectFit,
+    }
+  })
+  expect(visualTreatment).toEqual({
+    backgroundColor: "rgba(0, 0, 0, 0)",
+    borderTopWidth: "0px",
+    objectFit: "contain",
+  })
+
   await page.screenshot({
     path: `test-results/build-loop-${testInfo.project.name}.png`,
     fullPage: false,

@@ -64,7 +64,7 @@ function BuildStep({
             alt=""
             fill
             sizes="(max-width: 900px) calc(100vw - 36px), (max-width: 1200px) 58vw, 760px"
-            src={`/images/build-loop/${scene}.webp`}
+            src={`/images/build-loop/${scene}-transparent.webp`}
           />
         </div>
         <figcaption>{caption}</figcaption>
