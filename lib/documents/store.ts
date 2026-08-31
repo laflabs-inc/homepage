@@ -346,7 +346,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           )
           SELECT 'document.summary.generate', 'document_revision', updated_revision."id"::text,
             ${actor.githubId}, ${actor.name}, jsonb_build_object(
-              'model', ${metadata.model}, 'generatedAt', ${metadata.generatedAt}
+              'model', ${metadata.model}::text,
+              'generatedAt', ${metadata.generatedAt}::timestamptz
             )
           FROM updated_revision
           RETURNING "id"
