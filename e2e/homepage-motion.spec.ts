@@ -45,6 +45,9 @@ test("desktop build loop pins one stage and advances its scene", async ({ contex
     window.scrollTo({ top: top + travel * 0.84, behavior: "instant" })
   })
   await expect(section).toHaveAttribute("data-active-scene", "system")
+  await expect.poll(async () => section.getByRole("listitem").evaluateAll((items) => (
+    items.map((item) => Number(getComputedStyle(item).opacity).toFixed(2))
+  ))).toEqual(["0.00", "0.00", "0.00", "1.00"])
 
   await page.screenshot({
     path: `test-results/build-loop-${testInfo.project.name}.png`,
@@ -81,6 +84,7 @@ test("mobile build loop is a readable vertical sequence", async ({ context, page
   expect(layout.itemOpacity).toEqual(["1", "1", "1", "1"])
   expect(layout.itemPositions).toEqual(["relative", "relative", "relative", "relative"])
   expect(layout.width).toBeLessThanOrEqual(layout.viewport + 1)
+  await page.screenshot({ path: `test-results/build-loop-${testInfo.project.name}.png`, fullPage: false })
 })
 
 test("reduced motion exposes the complete build story", async ({ context, page }) => {

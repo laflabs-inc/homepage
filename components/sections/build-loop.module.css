@@ -19,11 +19,15 @@
 }
 
 .intro h2 {
-  max-width: 9ch;
+  max-width: 7.5em;
   margin: 0;
-  font-size: clamp(50px, 6vw, 88px);
+  font-size: clamp(48px, 4.6vw, 66px);
   line-height: 0.98;
   letter-spacing: -0.04em;
+}
+
+.intro h2 span {
+  display: block;
 }
 
 .intro > p {
@@ -208,7 +212,7 @@
   }
 
   .intro h2 {
-    max-width: 11ch;
+    max-width: 11em;
     font-size: 48px;
   }
 

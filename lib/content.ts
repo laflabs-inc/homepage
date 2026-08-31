@@ -162,7 +162,7 @@ const ko: Copy = {
   },
   buildLoop: {
     title: "제품에서 시작해 시스템으로 남깁니다.",
-    lede: "제품에서 찾은 실제 문제를 공통 인프라로 정리해 직접 운영합니다. 다른 팀에도 쓸모가 확인되면 코드를 공개합니다.",
+    lede: "제품에서 찾은 실제 문제를 공통 기반으로 정리하고 직접 운영합니다. 운영에서 확인한 경계와 반복 작업은 오래 쓰는 시스템으로 남깁니다.",
     steps: [
       { title: "제품", body: "문제는 실제 제품에서 찾습니다. 쓰임이 분명한 것부터 만듭니다." },
       { title: "기반 기술", body: "여러 제품에서 반복되는 문제는 공통 기반 기술로 묶습니다." },
@@ -278,7 +278,7 @@ const en: Copy = {
   },
   buildLoop: {
     title: "Products first. Systems follow.",
-    lede: "We start with real product problems, turn repeated work into shared infrastructure, operate it ourselves, and open what proves useful.",
+    lede: "We start with real product problems, move repeated work into a shared foundation, and operate it ourselves. What proves durable becomes a system designed to last.",
     steps: [
       { title: "Product", body: "Find the problem in a real product. Build the part with a clear use first." },
       { title: "Shared infrastructure", body: "Move repeated problems into a common technical foundation." },

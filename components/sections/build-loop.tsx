@@ -25,40 +25,25 @@ const sceneWindows = [
 type SceneId = (typeof sceneIds)[number]
 
 function BuildStep({
+  active,
   body,
   index,
-  progress,
   scene,
   title,
 }: {
+  active: boolean
   body: string
   index: number
-  progress: MotionValue<number>
   scene: SceneId
   title: string
 }) {
-  const [entry, exit] = sceneWindows[index]
-  const input = index === 0
-    ? [0, exit, exit + 0.06]
-    : index === sceneIds.length - 1
-      ? [entry - 0.08, entry, 1]
-      : [entry - 0.08, entry, exit, exit + 0.06]
-  const opacity = useTransform(
-    progress,
-    input,
-    index === 0 ? [1, 1, 0] : index === sceneIds.length - 1 ? [0, 1, 1] : [0, 1, 1, 0],
-  )
-  const x = useTransform(
-    progress,
-    input,
-    index === 0 ? [0, 0, -24] : index === sceneIds.length - 1 ? [48, 0, 0] : [48, 0, 0, -24],
-  )
-
   return (
     <motion.li
+      animate={{ opacity: active ? 1 : 0, x: active ? 0 : index === 0 ? -24 : 48 }}
       data-scene={scene}
       data-scene-index={index}
-      style={{ opacity, x }}
+      initial={false}
+      transition={{ duration: 0.46, ease: [0.16, 1, 0.3, 1] }}
     >
       <span className={`${styles.index} mono`}>{String(index + 1).padStart(2, "0")}</span>
       <div>
@@ -101,6 +86,9 @@ export function BuildLoop() {
   const reduced = useReducedMotion()
   const section = useRef<HTMLElement>(null)
   const t = copy[locale].buildLoop
+  const titleLines = locale === "ko"
+    ? ["제품에서 시작해", "시스템으로", "남깁니다."]
+    : ["Products first.", "Systems follow."]
   const [activeScene, setActiveScene] = useState<SceneId>("product")
   const { scrollYProgress } = useScroll({
     target: section,
@@ -138,7 +126,9 @@ export function BuildLoop() {
     >
       <div className={styles.sticky} data-testid="build-loop-sticky">
         <div className={styles.intro}>
-          <h2 id="build-loop-title">{t.title}</h2>
+          <h2 id="build-loop-title" aria-label={t.title}>
+            {titleLines.map((line) => <span key={line}>{line}</span>)}
+          </h2>
           <p>{t.lede}</p>
           <div className={styles.rail} aria-hidden="true">
             <motion.span className={styles.progress} style={{ scaleY: scrollYProgress }} />
@@ -150,10 +140,10 @@ export function BuildLoop() {
           <ol className={styles.steps}>
             {t.steps.map((step, index) => (
               <BuildStep
+                active={activeScene === sceneIds[index]}
                 key={sceneIds[index]}
                 {...step}
                 index={index}
-                progress={scrollYProgress}
                 scene={sceneIds[index]}
               />
             ))}
