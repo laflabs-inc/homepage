@@ -8,12 +8,12 @@
 
 .sticky {
   min-height: 100svh;
-  padding: 110px var(--gutter);
+  padding: clamp(56px, 7svh, 92px) var(--gutter);
   position: sticky;
   top: 0;
   display: grid;
-  grid-template-columns: minmax(280px, 0.72fr) minmax(600px, 1.28fr);
-  gap: clamp(56px, 7vw, 118px);
+  grid-template-columns: minmax(280px, 0.68fr) minmax(0, 1.32fr);
+  gap: clamp(52px, 6vw, 108px);
   align-items: center;
   overflow: hidden;
 }
@@ -65,30 +65,32 @@
 
 .story {
   min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(260px, 0.85fr) minmax(300px, 1fr);
-  gap: clamp(36px, 5vw, 76px);
-  align-items: center;
 }
 
 .steps {
-  min-height: 250px;
+  height: min(620px, calc(100svh - 112px));
+  min-height: 480px;
   margin: 0;
   padding: 0;
   position: relative;
-  border-block: 1px solid var(--ink);
+  border-top: 1px solid var(--ink);
   list-style: none;
   overflow: clip;
 }
 
 .steps li {
-  padding: 38px 0;
+  padding: 26px 0 0;
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: 50px 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(26px, 3.5svh, 40px);
+}
+
+.sceneCopy {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
   gap: 20px;
-  align-content: center;
 }
 
 .index {
@@ -99,108 +101,92 @@
 
 .steps h3 {
   margin: 0;
-  font-size: clamp(31px, 3.3vw, 50px);
-  line-height: 1.02;
+  font-size: clamp(36px, 4vw, 58px);
+  line-height: 1;
   letter-spacing: -0.04em;
 }
 
 .steps p {
-  max-width: 440px;
-  margin: 18px 0 0;
+  max-width: 48ch;
+  margin: 16px 0 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.65;
   word-break: keep-all;
 }
 
-.stage {
-  min-width: 0;
+.visual {
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
 }
 
-.stageFrame {
-  aspect-ratio: 1;
+.visualFrame {
+  min-height: 0;
   position: relative;
-  border: 1px solid var(--ink);
-  background: var(--blue);
   overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.7);
+  background: #f8fafc;
 }
 
-.stageFrame::before {
-  content: "";
-  position: absolute;
-  inset: 8%;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+.visualFrame img {
+  object-fit: cover;
 }
 
-.node {
-  width: 17%;
-  aspect-ratio: 1;
-  position: absolute;
-  z-index: 2;
-  border: 1px solid rgba(255, 255, 255, 0.88);
-  background: rgba(15, 23, 42, 0.1);
-  transform-origin: center;
-}
-
-.node[data-scene="product"] { top: 15%; left: 15%; }
-.node[data-scene="foundation"] { top: 15%; right: 15%; }
-.node[data-scene="operations"] { right: 15%; bottom: 15%; }
-.node[data-scene="system"] { bottom: 15%; left: 15%; background: var(--ink); }
-
-.connector {
-  position: absolute;
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.72);
-  transform-origin: left center;
-}
-
-.connectorOne {
-  height: 1px;
-  top: 23.5%;
-  right: 32%;
-  left: 32%;
-}
-
-.connectorTwo {
-  width: 1px;
-  top: 32%;
-  right: 23.5%;
-  bottom: 32%;
-  transform-origin: center top;
-}
-
-.connectorThree {
-  height: 1px;
-  right: 32%;
-  bottom: 23.5%;
-  left: 32%;
-  transform-origin: right center;
-}
-
-.stageMark {
-  position: absolute;
-  z-index: 3;
-  bottom: 20.5%;
-  left: 19.2%;
-  color: #fff;
-  font-size: clamp(8px, 0.75vw, 11px);
-  letter-spacing: 0.14em;
+.visual figcaption {
+  max-width: 58ch;
+  margin-left: 70px;
+  color: #52617a;
+  font-size: 12.5px;
+  line-height: 1.55;
+  word-break: keep-all;
 }
 
 @media (max-width: 1100px) and (min-width: 901px) {
   .sticky {
-    grid-template-columns: minmax(240px, 0.68fr) minmax(500px, 1.32fr);
+    grid-template-columns: minmax(240px, 0.64fr) minmax(0, 1.36fr);
     gap: 40px;
   }
 
-  .story {
-    grid-template-columns: minmax(230px, 0.9fr) minmax(250px, 1fr);
-    gap: 28px;
+  .intro h2 {
+    font-size: 48px;
+  }
+
+  .steps h3 {
+    font-size: clamp(34px, 4vw, 46px);
+  }
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+  .sticky {
+    padding-block: 48px;
+  }
+
+  .intro > p {
+    margin-top: 22px;
+    font-size: 14px;
+  }
+
+  .rail {
+    display: none;
+  }
+
+  .steps {
+    height: calc(100svh - 96px);
+    min-height: 440px;
+  }
+
+  .steps li {
+    gap: 22px;
   }
 }
 
 @media (max-width: 900px) {
-  .buildLoop { height: auto; }
+  .buildLoop {
+    height: auto;
+  }
 
   .sticky {
     min-height: auto;
@@ -216,42 +202,58 @@
     font-size: 48px;
   }
 
-  .intro > p { font-size: 14px; }
-  .rail { display: none; }
-  .story { grid-template-columns: 1fr; }
+  .intro > p {
+    font-size: 14px;
+  }
+
+  .rail {
+    display: none;
+  }
 
   .steps {
+    height: auto;
     min-height: 0;
-    border-bottom: 0;
     overflow: visible;
   }
 
   .steps li {
-    min-height: 132px;
-    padding: 28px 0;
+    min-height: 0;
+    padding: 30px 0 50px;
     position: relative;
     inset: auto;
-    grid-template-columns: 44px 1fr;
+    gap: 28px;
     border-bottom: 1px solid #9fb2d7;
+    clip-path: inset(0) !important;
     opacity: 1 !important;
     transform: none !important;
   }
 
-  .stageFrame { width: min(100%, 420px); }
-
-  .node,
-  .stageMark {
-    opacity: 1 !important;
-    transform: none !important;
+  .sceneCopy {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 16px;
   }
 
-  .connector {
-    transform: none !important;
+  .steps h3 {
+    font-size: clamp(34px, 7vw, 48px);
+  }
+
+  .steps p {
+    max-width: 46ch;
+  }
+
+  .visualFrame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .visual figcaption {
+    margin-left: 60px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .buildLoop { height: auto; }
+  .buildLoop {
+    height: auto;
+  }
 
   .sticky {
     min-height: auto;
@@ -259,37 +261,51 @@
     grid-template-columns: 1fr;
   }
 
-  .story { grid-template-columns: minmax(0, 1fr) minmax(260px, 0.62fr); }
+  .rail {
+    display: none;
+  }
 
   .steps {
+    height: auto;
     min-height: 0;
     overflow: visible;
   }
 
   .steps li {
-    min-height: 128px;
+    min-height: 560px;
+    padding: 38px 0 56px;
     position: relative;
     inset: auto;
     border-bottom: 1px solid #9fb2d7;
+    clip-path: inset(0) !important;
     opacity: 1 !important;
     transform: none !important;
   }
 
-  .stageFrame { max-width: 420px; }
-
-  .node,
-  .stageMark {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-
-  .connector {
-    transform: none !important;
+  .visualFrame {
+    aspect-ratio: 2 / 1;
   }
 }
 
 @media (max-width: 620px) {
-  .sticky { padding-block: 76px; }
-  .intro h2 { font-size: clamp(40px, 12vw, 48px); }
-  .stageFrame { width: 100%; }
+  .sticky {
+    padding-block: 76px;
+  }
+
+  .intro h2 {
+    font-size: clamp(40px, 12vw, 48px);
+  }
+
+  .steps li {
+    min-height: 0;
+  }
+
+  .visualFrame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .visual figcaption {
+    margin-left: 0;
+    font-size: 12px;
+  }
 }

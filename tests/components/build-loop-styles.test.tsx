@@ -17,7 +17,7 @@ beforeEach(() => {
 })
 
 describe("BuildLoop styling", () => {
-  it("owns the styling hooks required to preserve its mobile layout", () => {
+  it("keeps each build stage and its visual together across responsive layouts", () => {
     render(
       <LocaleProvider initialLocale="ko">
         <BuildLoop />
@@ -36,14 +36,14 @@ describe("BuildLoop styling", () => {
     expect(title.parentElement).toHaveClass("intro")
     expect(within(section).getByRole("list")).toHaveClass("steps")
     expect(within(section).getAllByRole("listitem")).toHaveLength(4)
-    expect(within(section).getByTestId("build-loop-stage")).toBeInTheDocument()
-    expect(within(section).getAllByTestId("build-loop-node")).toHaveLength(4)
-    expect(within(section).getByTestId("build-loop-stage")).toHaveAttribute(
-      "data-stage-layout",
-      "sticky",
-    )
-    within(section).getAllByRole("listitem").forEach((item, index) => {
+    expect(within(section).queryByTestId("build-loop-stage")).not.toBeInTheDocument()
+    expect(within(section).queryByTestId("build-loop-node")).not.toBeInTheDocument()
+    const items = within(section).getAllByRole("listitem")
+    items.forEach((item, index) => {
       expect(item).toHaveAttribute("data-scene-index", String(index))
+      const visual = within(item).getByTestId("build-loop-visual")
+      expect(visual).toHaveAttribute("data-scene", ["product", "foundation", "operations", "system"][index])
+      expect(visual.querySelector("img")).toHaveAttribute("alt", "")
     })
     expect(within(section).getByText("시스템")).toBeInTheDocument()
     expect(within(section).queryByText("오픈소스")).not.toBeInTheDocument()

@@ -1,9 +1,9 @@
 "use client"
 
+import Image from "next/image"
 import { useRef, useState } from "react"
 import {
   motion,
-  type MotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -15,69 +15,61 @@ import { copy } from "@/lib/content"
 import styles from "./build-loop.module.css"
 
 const sceneIds = ["product", "foundation", "operations", "system"] as const
-const sceneWindows = [
-  [0, 0.2],
-  [0.28, 0.45],
-  [0.53, 0.7],
-  [0.78, 1],
-] as const
 
 type SceneId = (typeof sceneIds)[number]
 
 function BuildStep({
   active,
   body,
+  caption,
   index,
   scene,
   title,
 }: {
   active: boolean
   body: string
+  caption: string
   index: number
   scene: SceneId
   title: string
 }) {
   return (
     <motion.li
-      animate={{ opacity: active ? 1 : 0, x: active ? 0 : index === 0 ? -24 : 48 }}
+      animate={{
+        clipPath: active ? "inset(0% 0% 0% 0%)" : "inset(0% 0% 0% 7%)",
+        opacity: active ? 1 : 0,
+        x: active ? 0 : index === 0 ? -24 : 48,
+      }}
+      aria-current={active ? "step" : undefined}
       data-scene={scene}
       data-scene-index={index}
       initial={false}
       transition={{ duration: 0.46, ease: [0.16, 1, 0.3, 1] }}
     >
-      <span className={`${styles.index} mono`}>{String(index + 1).padStart(2, "0")}</span>
-      <div>
-        <h3>{title}</h3>
-        <p>{body}</p>
+      <div className={styles.sceneCopy}>
+        <span className={`${styles.index} mono`}>{String(index + 1).padStart(2, "0")}</span>
+        <div>
+          <h3>{title}</h3>
+          <p>{body}</p>
+        </div>
       </div>
+
+      <figure
+        className={styles.visual}
+        data-scene={scene}
+        data-testid="build-loop-visual"
+      >
+        <div className={styles.visualFrame}>
+          <Image
+            alt=""
+            fill
+            sizes="(max-width: 900px) calc(100vw - 36px), (max-width: 1200px) 58vw, 760px"
+            src={`/images/build-loop/${scene}.webp`}
+          />
+        </div>
+        <figcaption>{caption}</figcaption>
+      </figure>
     </motion.li>
-  )
-}
-
-function TopologyNode({
-  index,
-  progress,
-  scene,
-}: {
-  index: number
-  progress: MotionValue<number>
-  scene: SceneId
-}) {
-  const entry = sceneWindows[index][0]
-  const opacity = useTransform(
-    progress,
-    index === 0 ? [0, 0.01] : [entry - 0.08, entry],
-    index === 0 ? [1, 1] : [0, 1],
-  )
-  const scale = useTransform(progress, index === 0 ? [0, 0.01] : [entry - 0.08, entry], [0.72, 1])
-
-  return (
-    <motion.span
-      className={styles.node}
-      data-scene={scene}
-      data-testid="build-loop-node"
-      style={{ opacity, scale }}
-    />
   )
 }
 
@@ -95,10 +87,6 @@ export function BuildLoop() {
     offset: ["start start", "end end"],
   })
   const markerY = useTransform(scrollYProgress, [0, 1], [0, 244])
-  const connectorOne = useTransform(scrollYProgress, [0.2, 0.28], [0, 1])
-  const connectorTwo = useTransform(scrollYProgress, [0.45, 0.53], [0, 1])
-  const connectorThree = useTransform(scrollYProgress, [0.7, 0.78], [0, 1])
-  const markOpacity = useTransform(scrollYProgress, [0.7, 0.78], [0, 1])
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
     if (reduced) {
@@ -148,31 +136,6 @@ export function BuildLoop() {
               />
             ))}
           </ol>
-
-          <div
-            className={styles.stage}
-            data-stage-layout="sticky"
-            data-testid="build-loop-stage"
-            aria-hidden="true"
-          >
-            <div className={styles.stageFrame}>
-              <motion.span className={`${styles.connector} ${styles.connectorOne}`} style={{ scaleX: connectorOne }} />
-              <motion.span className={`${styles.connector} ${styles.connectorTwo}`} style={{ scaleY: connectorTwo }} />
-              <motion.span className={`${styles.connector} ${styles.connectorThree}`} style={{ scaleX: connectorThree }} />
-              {sceneIds.map((scene, index) => (
-                <TopologyNode
-                  index={index}
-                  key={scene}
-                  progress={scrollYProgress}
-                  scene={scene}
-                />
-              ))}
-              <motion.span
-                className={`${styles.stageMark} mono`}
-                style={{ opacity: markOpacity }}
-              >LAF</motion.span>
-            </div>
-          </div>
         </div>
       </div>
     </section>

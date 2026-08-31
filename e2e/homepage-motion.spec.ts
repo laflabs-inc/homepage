@@ -75,12 +75,14 @@ test("mobile build loop is a readable vertical sequence", async ({ context, page
       height: element.getBoundingClientRect().height,
       itemOpacity: items.map((item) => getComputedStyle(item).opacity),
       itemPositions: items.map((item) => getComputedStyle(item).position),
+      stickyPosition: getComputedStyle(element.querySelector<HTMLElement>("[data-testid='build-loop-sticky']")!).position,
       width: document.documentElement.scrollWidth,
       viewport: document.documentElement.clientWidth,
     }
   })
 
-  expect(layout.height).toBeLessThan(page.viewportSize()!.height * 3)
+  expect(layout.height).toBeGreaterThan(page.viewportSize()!.height)
+  expect(layout.stickyPosition).toBe("relative")
   expect(layout.itemOpacity).toEqual(["1", "1", "1", "1"])
   expect(layout.itemPositions).toEqual(["relative", "relative", "relative", "relative"])
   expect(layout.width).toBeLessThanOrEqual(layout.viewport + 1)
@@ -105,7 +107,12 @@ test("reduced motion exposes the complete build story", async ({ context, page }
     items.map((item) => getComputedStyle(item).opacity)
   ))
   expect(itemOpacity).toEqual(["1", "1", "1", "1"])
-  await expect(section.getByText("LAF", { exact: true })).toBeVisible()
+  const visuals = section.getByTestId("build-loop-visual")
+  await expect(visuals).toHaveCount(4)
+  for (const visual of await visuals.all()) {
+    await expect(visual).toBeVisible()
+    await expect(visual.locator("img")).toHaveJSProperty("complete", true)
+  }
 })
 
 test("latest signals is scrollable without widening the homepage", async ({ context, page }, testInfo) => {
