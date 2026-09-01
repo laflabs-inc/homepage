@@ -9,7 +9,7 @@ import { DocumentPreview } from "@/components/admin/document-preview"
 import { useDirtyNavigationGuard } from "@/components/admin/use-dirty-navigation-guard"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
-import { categoriesByKind } from "@/lib/documents/validation"
+import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import type { DocumentDraftInput, DocumentKind, DocumentRevision, Locale } from "@/lib/documents/types"
 
 type EditorValues = {
@@ -28,13 +28,14 @@ type DocumentEditorProps = {
   revision?: DocumentRevision
   seriesId?: string
   templateRevision?: DocumentRevision
+  categories?: DocumentCategorySnapshot[]
 }
 
 const blankValues: EditorValues = {
   kind: "notice",
   locale: "ko",
   slug: "",
-  category: "general",
+  category: "",
   pinned: false,
   title: "",
   summary: "",
@@ -67,9 +68,13 @@ function initialValues(
   revision?: DocumentRevision,
   seriesId?: string,
   templateRevision?: DocumentRevision,
+  categories: DocumentCategorySnapshot[] = [],
 ): EditorValues {
   if (revision) return valuesFromRevision(revision)
-  if (!seriesId || !templateRevision) return { ...blankValues }
+  if (!seriesId || !templateRevision) return {
+    ...blankValues,
+    category: categories.find((category) => category.kind === "notice" && category.active)?.slug ?? "",
+  }
   return {
     ...valuesFromRevision(templateRevision),
     locale: "en",
@@ -188,12 +193,19 @@ function summaryErrorMessage(
   return t.summaryFailure
 }
 
-export function DocumentEditor({ revision: initialRevision, seriesId, templateRevision }: DocumentEditorProps) {
+export function DocumentEditor({
+  revision: initialRevision,
+  seriesId,
+  templateRevision,
+  categories = [],
+}: DocumentEditorProps) {
   const router = useRouter()
   const locale = useLocale()
   const t = adminCopy[locale].documents.editor
   const [revision, setRevision] = useState(initialRevision)
-  const [values, setValues] = useState(() => initialValues(initialRevision, seriesId, templateRevision))
+  const [values, setValues] = useState(() => (
+    initialValues(initialRevision, seriesId, templateRevision, categories)
+  ))
   const valuesRef = useRef(values)
   const [dirty, setDirty] = useState(false)
   const [activeTab, setActiveTab] = useState<"source" | "preview">("source")
@@ -207,7 +219,10 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
   const discardChanges = useCallback(() => setDirty(false), [])
   const retireDirtyNavigationGuard = useDirtyNavigationGuard(dirty, discardChanges, t.dirtyNavigation)
 
-  const categoryOptions = useMemo(() => categoriesByKind[values.kind], [values.kind])
+  const categoryOptions = useMemo(() => categories.filter((category) => (
+    category.kind === values.kind
+      && (category.active || category.slug === values.category)
+  )), [categories, values.category, values.kind])
   const editable = !revision || revision.status === "draft"
   const englishSeriesFieldsLocked = values.locale === "en"
 
@@ -508,7 +523,11 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
             <label>{t.kind}
               <select disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
                 const kind = event.target.value as DocumentKind
-                const next = { ...valuesRef.current, kind, category: categoriesByKind[kind][0] }
+                const next = {
+                  ...valuesRef.current,
+                  kind,
+                  category: categories.find((category) => category.kind === kind && category.active)?.slug ?? "",
+                }
                 valuesRef.current = next
                 setValues(next)
                 setDirty(true)
@@ -528,9 +547,10 @@ export function DocumentEditor({ revision: initialRevision, seriesId, templateRe
             </label>
             <label>{t.category}
               <select disabled={englishSeriesFieldsLocked} value={values.category} onChange={(event) => update("category", event.target.value)}>
+                {categoryOptions.length === 0 ? <option value="">—</option> : null}
                 {categoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {adminCopy[locale].documents.categoryLabels[category]}
+                  <option key={category.id} value={category.slug} disabled={!category.active}>
+                    {locale === "ko" ? category.labelKo : category.labelEn}
                   </option>
                 ))}
               </select>

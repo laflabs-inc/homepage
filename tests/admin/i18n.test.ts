@@ -18,7 +18,6 @@ vi.mock("next/headers", () => ({
 
 import { adminCopy } from "@/lib/admin/i18n"
 import { getAdminLocale } from "@/lib/admin/locale"
-import { categoriesByKind } from "@/lib/documents/validation"
 
 function copyKeys(value: unknown, prefix = ""): string[] {
   if (typeof value !== "object" || value === null) return [prefix]
@@ -30,23 +29,6 @@ function copyKeys(value: unknown, prefix = ""): string[] {
 describe("admin locale foundation", () => {
   it("keeps the Korean and English catalog shapes recursively identical", () => {
     expect(copyKeys(adminCopy.ko)).toEqual(copyKeys(adminCopy.en))
-  })
-
-  it("provides Korean and English display labels for every canonical document category", () => {
-    const categories = Object.values(categoriesByKind).flat()
-
-    expect(Object.keys(adminCopy.ko.documents.categoryLabels).sort()).toEqual([...categories].sort())
-    expect(Object.keys(adminCopy.en.documents.categoryLabels).sort()).toEqual([...categories].sort())
-    expect(adminCopy.ko.documents.categoryLabels).toMatchObject({
-      general: "일반",
-      privacy: "개인정보 처리방침",
-      financial: "재무",
-    })
-    expect(adminCopy.en.documents.categoryLabels).toMatchObject({
-      general: "General",
-      privacy: "Privacy",
-      financial: "Financial",
-    })
   })
 
   it("localizes the category workspace and recovery actions", () => {

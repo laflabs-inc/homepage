@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const serviceMocks = vi.hoisted(() => ({
@@ -8,10 +8,15 @@ const serviceMocks = vi.hoisted(() => ({
 }))
 const authMocks = vi.hoisted(() => ({ requireAdmin: vi.fn() }))
 const localeMocks = vi.hoisted(() => ({ getAdminLocale: vi.fn() }))
+const categoryMocks = vi.hoisted(() => ({ list: vi.fn() }))
 
 vi.mock("@/lib/auth/require-admin", () => authMocks)
 vi.mock("@/lib/admin/locale", () => localeMocks)
 vi.mock("@/lib/documents/service", () => ({ documentService: serviceMocks }))
+vi.mock("@/lib/document-categories/service", () => ({
+  createDocumentCategoryService: () => categoryMocks,
+}))
+vi.mock("@/lib/document-categories/store", () => ({ documentCategoryStore: {} }))
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => { throw new Error("not found") }),
   useRouter: () => ({ replace: vi.fn() }),
@@ -33,6 +38,7 @@ import DocumentRevisionPage from "@/app/admin/(protected)/documents/[revisionId]
 import MarkdownGuidePage, { generateMetadata as generateMarkdownGuideMetadata } from "@/app/admin/(protected)/documents/markdown-guide/page"
 import NewDocumentPage from "@/app/admin/(protected)/documents/new/page"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
+import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import type { DocumentRevision } from "@/lib/documents/types"
 
 const revision: DocumentRevision = {
@@ -70,6 +76,16 @@ const summary = {
   updatedBy: revision.updatedBy,
   publishedBy: revision.publishedBy,
 }
+const categories: DocumentCategorySnapshot[] = [{
+  id: "11111111-1111-4111-8111-111111111111",
+  kind: "notice",
+  slug: "service",
+  labelKo: "서비스 알림",
+  labelEn: "Service updates",
+  sortOrder: 0,
+  active: true,
+  version: 1,
+}]
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -77,6 +93,7 @@ beforeEach(() => {
   serviceMocks.listAdminSummaries.mockReset().mockResolvedValue({ items: [summary], nextCursor: null })
   serviceMocks.getRevision.mockReset().mockResolvedValue(revision)
   localeMocks.getAdminLocale.mockReset().mockResolvedValue("en")
+  categoryMocks.list.mockReset().mockResolvedValue(categories)
 })
 
 describe("protected admin document queries", () => {
@@ -124,7 +141,7 @@ describe("protected admin document queries", () => {
       "/admin/documents/categories",
     )
     expect(screen.getByRole("searchbox", { name: "문서 검색" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "필터 적용" })).toHaveAttribute("href", "/admin/documents?limit=50")
+    expect(screen.queryByRole("link", { name: "필터 적용" })).not.toBeInTheDocument()
   })
 
   it("passes filters/search/cursor to the summary query and preserves them in pagination", async () => {
@@ -191,6 +208,9 @@ describe("protected admin document queries", () => {
 
     expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(revision.title)
     expect(serviceMocks.getRevision).toHaveBeenCalledWith(revision.id)
+    expect(categoryMocks.list).toHaveBeenCalledWith({ kind: "notice" })
+    expect(within(screen.getByRole("combobox", { name: "Category" }))
+      .getByRole("option", { name: "Service updates" })).toHaveValue("service")
     expect(serviceMocks.listAdmin).not.toHaveBeenCalled()
   })
 
@@ -215,6 +235,20 @@ describe("protected admin document queries", () => {
 
     expect(screen.getByRole("combobox", { name: "Locale" })).toHaveValue("en")
     expect(serviceMocks.getRevision).toHaveBeenCalledWith(revision.id)
+    expect(categoryMocks.list).toHaveBeenCalledWith({ kind: "notice" })
     expect(serviceMocks.listAdmin).not.toHaveBeenCalled()
+  })
+
+  it("loads all active categories once for a new document", async () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        {await NewDocumentPage({ searchParams: Promise.resolve({}) })}
+      </LocaleProvider>,
+    )
+
+    expect(categoryMocks.list).toHaveBeenCalledTimes(1)
+    expect(categoryMocks.list).toHaveBeenCalledWith({ active: true })
+    expect(within(screen.getByRole("combobox", { name: "Category" }))
+      .getByRole("option", { name: "Service updates" })).toHaveValue("service")
   })
 })

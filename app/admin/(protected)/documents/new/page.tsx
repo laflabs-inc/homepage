@@ -1,11 +1,15 @@
 import styles from "@/app/admin/admin.module.css"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { requireAdmin } from "@/lib/auth/require-admin"
+import { createDocumentCategoryService } from "@/lib/document-categories/service"
+import { documentCategoryStore } from "@/lib/document-categories/store"
 import { documentService } from "@/lib/documents/service"
 import type { DocumentRevision } from "@/lib/documents/types"
 import { revisionIdSchema } from "@/lib/documents/validation"
 import { adminCopy } from "@/lib/admin/i18n"
 import { getAdminLocale } from "@/lib/admin/locale"
+
+const categoryService = createDocumentCategoryService(documentCategoryStore)
 
 export default async function NewDocumentPage({
   searchParams,
@@ -27,6 +31,9 @@ export default async function NewDocumentPage({
       ? candidate
       : undefined
   }
+  const categories = await categoryService.list(
+    templateRevision ? { kind: templateRevision.kind } : { active: true },
+  )
 
   return (
     <div className={styles.documentsPage}>
@@ -39,6 +46,7 @@ export default async function NewDocumentPage({
       <DocumentEditor
         seriesId={templateRevision ? seriesId : undefined}
         templateRevision={templateRevision}
+        categories={categories}
       />
     </div>
   )

@@ -1,5 +1,4 @@
 import type { Locale } from "@/lib/i18n"
-import type { DocumentCategory } from "@/lib/documents/validation"
 
 type CopyShape<T> = {
   [K in keyof T]: T[K] extends (...args: infer Arguments) => string
@@ -8,36 +7,6 @@ type CopyShape<T> = {
       ? CopyShape<T[K]>
       : string
 }
-
-const enCategoryLabels = {
-  general: "General",
-  service: "Service",
-  maintenance: "Maintenance",
-  security: "Security",
-  privacy: "Privacy",
-  terms: "Terms",
-  cookies: "Cookies",
-  policy: "Policy",
-  corporate: "Corporate",
-  financial: "Financial",
-  governance: "Governance",
-  material: "Material",
-} satisfies Record<DocumentCategory, string>
-
-const koCategoryLabels = {
-  general: "일반",
-  service: "서비스",
-  maintenance: "점검",
-  security: "보안",
-  privacy: "개인정보 처리방침",
-  terms: "이용약관",
-  cookies: "쿠키",
-  policy: "정책",
-  corporate: "기업",
-  financial: "재무",
-  governance: "지배구조",
-  material: "주요사항",
-} satisfies Record<DocumentCategory, string>
 
 const en = {
   shell: {
@@ -203,7 +172,6 @@ const en = {
     notice: "Notice",
     legal: "Legal",
     disclosure: "Disclosure",
-    categoryLabels: enCategoryLabels,
     statusFilter: "Status filter",
     allStatuses: "All statuses",
     draft: "Draft",
@@ -214,7 +182,8 @@ const en = {
     allLocales: "All locales",
     korean: "Korean",
     english: "English",
-    applyFilters: "Apply filters",
+    clearFilters: "Clear filters",
+    resultsCount: (count: number) => `${count} results`,
     nextPage: "Next page",
     noDocumentsYet: "No documents yet",
     noMatchingDocuments: "No documents match these filters.",
@@ -542,7 +511,6 @@ const ko = {
     notice: "공지사항",
     legal: "법적 고지",
     disclosure: "공시",
-    categoryLabels: koCategoryLabels,
     statusFilter: "상태",
     allStatuses: "모든 상태",
     draft: "초안",
@@ -553,7 +521,8 @@ const ko = {
     allLocales: "모든 언어",
     korean: "한국어",
     english: "영어",
-    applyFilters: "필터 적용",
+    clearFilters: "필터 초기화",
+    resultsCount: (count: number) => `결과 ${count}개`,
     nextPage: "다음 페이지",
     noDocumentsYet: "아직 문서가 없습니다",
     noMatchingDocuments: "현재 필터와 일치하는 문서가 없습니다.",

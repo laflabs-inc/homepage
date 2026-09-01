@@ -61,6 +61,13 @@ export default async function DocumentsPage({
         </div>
       </div>
       <DocumentList
+        key={[
+          search ?? "",
+          filter.kind ?? "",
+          filter.status ?? "",
+          filter.locale ?? "",
+          filter.limit,
+        ].join(":")}
         rows={rows}
         nextCursor={page.nextCursor ? encodeAdminDocumentCursor(page.nextCursor) : null}
         limit={filter.limit}
