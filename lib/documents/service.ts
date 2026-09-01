@@ -1,4 +1,6 @@
 import type { AdminActor } from "@/lib/auth/admin-api"
+import { CategoryServiceError, createDocumentCategoryService } from "@/lib/document-categories/service"
+import { documentCategoryStore } from "@/lib/document-categories/store"
 import type {
   DocumentDraftInput,
   DocumentRepository,
@@ -132,7 +134,25 @@ function withStableRepositoryErrors(repository: DocumentRepository): DocumentRep
   })
 }
 
-export function createDocumentService(repository: DocumentRepository) {
+export type CategoryAssignmentService = {
+  requireAssignable(kind: DocumentDraftInput["kind"], category: string | null | undefined, currentCategory: string | null): Promise<void>
+}
+
+const permissiveCategories: CategoryAssignmentService = { async requireAssignable() {} }
+
+async function requireAssignableCategory(categories: CategoryAssignmentService, input: DocumentDraftInput, currentCategory: string | null): Promise<void> {
+  try {
+    await categories.requireAssignable(input.kind, input.category, currentCategory)
+  } catch (error) {
+    if (error instanceof CategoryServiceError) {
+      const code = error.code === "unavailable" ? "unavailable" : "conflict"
+      throw new DocumentServiceError(code, "The selected document category is unavailable", { cause: error })
+    }
+    throw error
+  }
+}
+
+export function createDocumentService(repository: DocumentRepository, categories: CategoryAssignmentService = permissiveCategories) {
   repository = withStableRepositoryErrors(repository)
 
   async function publishRevision(
@@ -153,6 +173,7 @@ export function createDocumentService(repository: DocumentRepository) {
       throw new DocumentServiceError("conflict", "The document changed before publication")
     }
     const snapshot = requirePublishable(revision)
+    await requireAssignableCategory(categories, publicInput(revision), revision.category)
     if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
     return repository.publishRevision(revisionId, snapshot, actor, now)
   }
@@ -160,6 +181,7 @@ export function createDocumentService(repository: DocumentRepository) {
   return {
     async createDraft(input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
       const validInput = requireValidDraft(input)
+      await requireAssignableCategory(categories, validInput, null)
       if (validInput.locale !== "ko") {
         throw new DocumentServiceError("korean_required", "Create the Korean revision first")
       }
@@ -184,6 +206,7 @@ export function createDocumentService(repository: DocumentRepository) {
       ) {
         throw new DocumentServiceError("conflict", "Localized revisions must share their series metadata")
       }
+      await requireAssignableCategory(categories, validInput, korean.category)
       if (series.some(({ locale, status }) => locale === "en" && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable English revision already exists")
       }
@@ -202,6 +225,7 @@ export function createDocumentService(repository: DocumentRepository) {
       if (sharedMetadataChanged(revision, validInput) && (revision.locale === "en" || seriesState.metadataLocked)) {
         throw new DocumentServiceError("conflict", "Shared series metadata cannot be changed")
       }
+      await requireAssignableCategory(categories, validInput, revision.category)
       return repository.updateDraft(revisionId, validInput, actor)
     },
 
@@ -272,6 +296,7 @@ export function createDocumentService(repository: DocumentRepository) {
       if (!Number.isFinite(scheduledAt.getTime()) || scheduledAt.getTime() <= now.getTime()) {
         throw new DocumentServiceError("invalid_schedule", "Scheduled publication must be in the future")
       }
+      await requireAssignableCategory(categories, publicInput(revision), revision.category)
       return repository.scheduleRevision(revisionId, scheduledAt, snapshot, actor)
     },
 
@@ -328,7 +353,7 @@ export function createDocumentService(repository: DocumentRepository) {
   }
 }
 
-export const documentService = createDocumentService(documentStore)
+export const documentService = createDocumentService(documentStore, createDocumentCategoryService(documentCategoryStore))
 
 async function requirePublishedKorean(repository: DocumentRepository, seriesId: string): Promise<void> {
   const series = await repository.listSeriesRevisionStates(seriesId)

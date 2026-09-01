@@ -71,6 +71,13 @@
       "when": 1788004907983,
       "tag": "0009_retire_design_documents",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788175739774,
+      "tag": "0010_busy_typhoid_mary",
+      "breakpoints": true
     }
   ]
 }

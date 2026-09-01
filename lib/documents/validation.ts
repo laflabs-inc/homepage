@@ -20,6 +20,11 @@ const slugSchema = z.string()
   .max(160)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
 
+const categorySlugSchema = z.string()
+  .min(1)
+  .max(40)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+
 const nullableDateSchema = z.coerce.date().nullable().optional()
 const markdownParser = unified().use(remarkParse)
 const SUMMARY_VISIBLE_CHARACTER_LIMIT = 240
@@ -36,7 +41,7 @@ const draftFields = {
   kind: z.enum(documentKinds),
   locale: z.enum(documentLocales),
   slug: slugSchema,
-  category: z.string().nullable().optional(),
+  category: categorySlugSchema.nullable().optional(),
   pinned: z.boolean().optional(),
   title: z.string().min(1).max(160),
   summary: z.string().refine(hasBoundedVisibleLength),
@@ -44,25 +49,14 @@ const draftFields = {
   effectiveAt: nullableDateSchema,
 }
 
-function categoryMatchesKind(value: { kind: keyof typeof categoriesByKind; category?: string | null }): boolean {
-  return value.category == null
-    || (categoriesByKind[value.kind] as readonly string[]).includes(value.category)
-}
-
-export const documentDraftSchema = z.object(draftFields).strict().refine(categoryMatchesKind, {
-  message: "Category is not allowed for this document kind",
-  path: ["category"],
-})
+export const documentDraftSchema = z.object(draftFields).strict()
 
 export const generatedSummarySchema = z.string().trim().min(1).regex(/^[^\r\n]*$/).refine(hasBoundedVisibleLength)
 
 export const publishDocumentSchema = z.object({
   ...draftFields,
   summary: generatedSummarySchema,
-}).strict().refine(categoryMatchesKind, {
-  message: "Category is not allowed for this document kind",
-  path: ["category"],
-}).superRefine(({ bodyMarkdown }, context) => {
+}).strict().superRefine(({ bodyMarkdown }, context) => {
   const tree = markdownParser.parse(bodyMarkdown)
   visit(tree, (node) => {
     if (node.type !== "image" && node.type !== "imageReference") return

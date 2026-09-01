@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm"
 import { bigint, boolean, check, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { foreignKey } from "drizzle-orm/pg-core"
 
 export const analyticsEvents = pgTable("analytics_events", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -76,6 +77,30 @@ export const aiProviderCredentials = pgTable("ai_provider_credentials", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 })
 
+export const documentCategories = pgTable("document_categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  kind: documentKindEnum("kind").notNull(),
+  slug: text("slug").notNull(),
+  labelKo: text("label_ko").notNull(),
+  labelEn: text("label_en").notNull(),
+  sortOrder: integer("sort_order").notNull(),
+  active: boolean("active").default(true).notNull(),
+  version: integer("version").default(1).notNull(),
+  createdBy: text("created_by").notNull(),
+  updatedBy: text("updated_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex("document_categories_kind_slug_unique").on(table.kind, table.slug),
+  index("document_categories_kind_active_order_idx").on(
+    table.kind,
+    table.active,
+    table.sortOrder,
+  ),
+  check("document_categories_sort_order_nonnegative", sql`${table.sortOrder} >= 0`),
+  check("document_categories_version_positive", sql`${table.version} > 0`),
+])
+
 export const documentSeries = pgTable("document_series", {
   id: uuid("id").defaultRandom().primaryKey(),
   kind: documentKindEnum("kind").notNull(),
@@ -90,6 +115,11 @@ export const documentSeries = pgTable("document_series", {
 }, (table) => [
   uniqueIndex("document_series_kind_slug_unique").on(table.kind, table.slug),
   index("document_series_kind_archived_at_idx").on(table.kind, table.archivedAt),
+  foreignKey({
+    columns: [table.kind, table.category],
+    foreignColumns: [documentCategories.kind, documentCategories.slug],
+    name: "document_series_kind_category_fk",
+  }).onDelete("restrict"),
 ])
 
 export const documentRevisions = pgTable("document_revisions", {
