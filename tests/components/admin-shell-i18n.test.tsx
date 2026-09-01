@@ -37,6 +37,10 @@ describe("Admin shell localization", () => {
     )
 
     expect(screen.getByRole("link", { name: "문서" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "카테고리" })).toHaveAttribute(
+      "href",
+      "/admin/documents/categories",
+    )
     expect(screen.getByRole("link", { name: "분석" })).toBeInTheDocument()
     expect(screen.queryByText(/Analytics \/ 분석/)).not.toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "다시 시도" }))
@@ -68,6 +72,10 @@ describe("Admin shell localization", () => {
     )
 
     expect(screen.getByRole("link", { name: "Documents" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Categories" })).toHaveAttribute(
+      "href",
+      "/admin/documents/categories",
+    )
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument()
   })
 })

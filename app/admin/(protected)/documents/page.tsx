@@ -53,7 +53,12 @@ export default async function DocumentsPage({
           <p className={styles.eyebrow}>{t.publishingWorkspace}</p>
           <h1>{t.heading}</h1>
         </div>
-        <Link className={styles.primaryLink} href="/admin/documents/new">{t.newDocument}</Link>
+        <div className={styles.documentsHeadingActions}>
+          <Link className={styles.secondaryLink} href="/admin/documents/categories">
+            {t.manageCategories}
+          </Link>
+          <Link className={styles.primaryLink} href="/admin/documents/new">{t.newDocument}</Link>
+        </div>
       </div>
       <DocumentList
         rows={rows}
