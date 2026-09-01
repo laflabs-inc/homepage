@@ -2,10 +2,15 @@ import { createHash } from "node:crypto"
 
 import { z } from "zod"
 
-import { listPublishedDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
+import { documentCategoryStore } from "@/lib/document-categories/store"
+import {
+  listPublishedDocumentCategories,
+  listPublishedDocuments,
+  type PublishedCategoryReader,
+  type PublishedDocumentReader,
+} from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
 import { documentKinds, documentLocales, type PublishedDocument } from "@/lib/documents/types"
-import { categoriesByKind } from "@/lib/documents/validation"
 import { decodePublishedCursor, encodePublishedCursor } from "@/lib/http/cursor"
 
 const cacheControl = "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
@@ -13,14 +18,16 @@ const cacheControl = "public, max-age=60, s-maxage=300, stale-while-revalidate=6
 const listQuerySchema = z.object({
   kind: z.enum(documentKinds),
   locale: z.enum(documentLocales),
-  category: z.string().min(1).max(40).optional(),
+  category: z.string().min(1).max(64).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+  sort: z.enum(["latest", "oldest"]).default("latest"),
+  q: z.string()
+    .transform((value) => value.trim())
+    .refine((value) => Array.from(value).length <= 100)
+    .transform((value) => value || undefined)
+    .optional(),
   limit: z.coerce.number().int().min(1).max(50).default(20),
   cursor: z.string().min(1).max(512).optional(),
-}).strict().superRefine(({ kind, category }, context) => {
-  if (category && !(categoriesByKind[kind] as readonly string[]).includes(category)) {
-    context.addIssue({ code: "custom", path: ["category"], message: "Category is not allowed for this kind" })
-  }
-})
+}).strict()
 
 function listItem(document: PublishedDocument) {
   return {
@@ -38,10 +45,10 @@ function listItem(document: PublishedDocument) {
   }
 }
 
-function responseWithEtag(request: Request, body: unknown): Response {
+function responseWithEtag(request: Request, body: unknown, responseCacheControl = cacheControl): Response {
   const json = JSON.stringify(body)
   const etag = `"${createHash("sha256").update(json).digest("hex")}"`
-  const headers = { "Cache-Control": cacheControl, ETag: etag }
+  const headers = { "Cache-Control": responseCacheControl, ETag: etag }
   const validators = request.headers.get("if-none-match")
   const matches = validators?.trim() === "*" || validators?.split(",").some((validator) => (
     validator.trim().replace(/^W\//, "") === etag
@@ -53,15 +60,15 @@ function responseWithEtag(request: Request, body: unknown): Response {
 export async function handleContentList(
   request: Request,
   repository: PublishedDocumentReader = documentStore,
+  categoryRepository: PublishedCategoryReader = documentCategoryStore,
 ): Promise<Response> {
   const url = new URL(request.url)
-  const parsed = listQuerySchema.safeParse({
-    kind: url.searchParams.get("kind") ?? undefined,
-    locale: url.searchParams.get("locale") ?? undefined,
-    category: url.searchParams.get("category") ?? undefined,
-    limit: url.searchParams.get("limit") ?? undefined,
-    cursor: url.searchParams.get("cursor") ?? undefined,
-  })
+  const query: Record<string, string> = {}
+  for (const [key, value] of url.searchParams) {
+    if (key in query) return Response.json({ error: "invalid_request" }, { status: 400 })
+    query[key] = value
+  }
+  const parsed = listQuerySchema.safeParse(query)
   if (!parsed.success) return Response.json({ error: "invalid_request" }, { status: 400 })
 
   let before
@@ -72,10 +79,18 @@ export async function handleContentList(
   }
 
   try {
+    if (parsed.data.category) {
+      const categories = await listPublishedDocumentCategories(parsed.data.kind, categoryRepository)
+      if (!categories.some((category) => category.slug === parsed.data.category)) {
+        return Response.json({ error: "invalid_category" }, { status: 400 })
+      }
+    }
     const baseFilter = {
       kind: parsed.data.kind,
       locale: parsed.data.locale,
+      sort: parsed.data.sort,
       ...(parsed.data.category ? { category: parsed.data.category } : {}),
+      ...(parsed.data.q ? { search: parsed.data.q } : {}),
     }
     const fetchLimit = Math.min(50, parsed.data.limit + 1)
     const documents = await listPublishedDocuments({
@@ -101,7 +116,7 @@ export async function handleContentList(
       nextCursor: hasNext && last
         ? encodePublishedCursor({ pinned: last.pinned, publishedAt: last.publishedAt, id: last.id })
         : null,
-    })
+    }, parsed.data.q ? "no-store" : cacheControl)
   } catch {
     return Response.json(
       { error: "unavailable" },

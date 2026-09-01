@@ -1,9 +1,10 @@
 import { listPublishedDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
 import type { DocumentKind, Locale, PublishedDocument } from "@/lib/documents/types"
-import { categoriesByKind } from "@/lib/documents/validation"
+import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import { decodePublishedCursor, encodePublishedCursor } from "@/lib/http/cursor"
 import { documentCategoryCopy, type DocumentSectionCopy } from "@/lib/content"
+import { DocumentIndexToolbar } from "./document-index-toolbar"
 import styles from "./content.module.css"
 
 type DocumentIndexProps = {
@@ -12,6 +13,9 @@ type DocumentIndexProps = {
   section: DocumentSectionCopy
   cursor?: string
   category?: string
+  sort?: string
+  q?: string
+  categories?: DocumentCategorySnapshot[]
   repository?: PublishedDocumentReader
 }
 
@@ -28,17 +32,28 @@ export async function DocumentIndex({
   section,
   cursor,
   category,
+  sort,
+  q,
+  categories = [],
   repository = documentStore,
 }: DocumentIndexProps) {
   const copy = section.localized[locale]
   const categoryCopy = documentCategoryCopy[locale]
-  const allowedCategories = categoriesByKind[kind] as readonly string[]
-  const selectedCategory = category && allowedCategories.includes(category) ? category : undefined
+  const selectedCategory = category && categories.some((candidate) => candidate.slug === category)
+    ? category
+    : undefined
+  const selectedSort = sort === "oldest" ? "oldest" : "latest"
+  const trimmedQuery = q?.trim()
+  const selectedQuery = trimmedQuery && Array.from(trimmedQuery).length <= 100
+    ? trimmedQuery
+    : undefined
   const before = cursor ? decodePublishedCursor(cursor) ?? undefined : undefined
   const documents = await listPublishedDocuments({
     kind,
     locale,
     category: selectedCategory,
+    sort: selectedSort,
+    search: selectedQuery,
     before,
     limit: 21,
   }, repository)
@@ -47,10 +62,12 @@ export async function DocumentIndex({
   const nextCursor = documents.length > 20 && last
     ? encodePublishedCursor({ pinned: last.pinned, publishedAt: last.publishedAt, id: last.id })
     : null
-  const usesFilters = kind === "notice" || kind === "disclosure"
   const usesGroups = kind === "legal"
   const categoryLabel = (value: string | null) => value
-    ? categoryCopy.labels[value as keyof typeof categoryCopy.labels] ?? value
+    ? (() => {
+        const match = categories.find((candidate) => candidate.slug === value)
+        return match ? (locale === "ko" ? match.labelKo : match.labelEn) : value
+      })()
     : categoryCopy.uncategorized
   const detailHref = (document: PublishedDocument) => (
     `${section.path}/${document.slug}?locale=${locale}${selectedCategory ? `&category=${selectedCategory}` : ""}`
@@ -80,28 +97,20 @@ export async function DocumentIndex({
         <p>{copy.description}</p>
       </header>
 
-      {usesFilters ? (
-        <nav className={styles.categoryFilters} aria-label={categoryCopy.filterLabel[kind]}>
-          <a href={`${section.path}?locale=${locale}`} aria-current={!selectedCategory ? "page" : undefined}>
-            {categoryCopy.all}
-          </a>
-          {allowedCategories.map((value) => (
-            <a
-              key={value}
-              href={`${section.path}?locale=${locale}&category=${value}`}
-              aria-current={selectedCategory === value ? "page" : undefined}
-            >
-              {categoryLabel(value)}
-            </a>
-          ))}
-        </nav>
-      ) : null}
+      <DocumentIndexToolbar
+        kind={kind}
+        locale={locale}
+        categories={categories}
+        category={selectedCategory}
+        sort={selectedSort}
+        q={selectedQuery}
+      />
 
       {visible.length === 0 ? (
         <div className={styles.emptyState}><span aria-hidden="true">□</span><p>{copy.empty}</p></div>
       ) : usesGroups ? (
         <div className={styles.categoryGroups}>
-          {[...allowedCategories, null].map((groupCategory) => {
+          {[...categories.map((candidate) => candidate.slug), null].map((groupCategory) => {
             const groupedDocuments = visible.filter((document) => document.category === groupCategory)
             if (groupedDocuments.length === 0) return null
             const id = `document-category-${groupCategory ?? "other"}`
@@ -122,7 +131,13 @@ export async function DocumentIndex({
       )}
 
       {nextCursor ? (
-        <a className={styles.nextPage} href={`${section.path}?locale=${locale}&cursor=${encodeURIComponent(nextCursor)}${selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : ""}`}>
+        <a className={styles.nextPage} href={(() => {
+          const params = new URLSearchParams({ locale, cursor: nextCursor })
+          if (selectedCategory) params.set("category", selectedCategory)
+          if (selectedSort === "oldest") params.set("sort", selectedSort)
+          if (selectedQuery) params.set("q", selectedQuery)
+          return `${section.path}?${params.toString()}`
+        })()}>
           {locale === "ko" ? "다음 문서" : "More documents"}
         </a>
       ) : null}

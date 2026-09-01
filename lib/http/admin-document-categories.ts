@@ -9,6 +9,7 @@ import {
   createDocumentCategoryService,
 } from "@/lib/document-categories/service"
 import { documentCategoryStore } from "@/lib/document-categories/store"
+import type { DocumentKind } from "@/lib/documents/types"
 import { isSameOriginRequest } from "@/lib/http/same-origin"
 import { jsonNoStore, withNoStore } from "@/lib/http/json-body"
 
@@ -66,10 +67,17 @@ export function categoryErrorResponse(error: unknown): Response {
 
 export function invalidateCategoryCache(
   dependencies: AdminCategoryDependencies,
+  kind: DocumentKind,
 ): void {
-  try {
-    dependencies.revalidate("document-categories", "max")
-  } catch {
-    // The mutation is already committed; cache invalidation is best effort.
+  for (const tag of [
+    "document-categories",
+    `document-categories:${kind}`,
+    `documents:index:${kind}`,
+  ]) {
+    try {
+      dependencies.revalidate(tag, "max")
+    } catch {
+      // The mutation is already committed; cache invalidation is best effort.
+    }
   }
 }

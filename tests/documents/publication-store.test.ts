@@ -515,6 +515,39 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("order by s.\"pinned\" desc, r.\"published_at\" desc, r.\"id\" desc")
   })
 
+  it("reverses the public tuple boundary and order for oldest-first pagination", async () => {
+    execute.mockResolvedValue({ rows: [] })
+
+    await store.listPublished({
+      kind: "notice",
+      locale: "ko",
+      sort: "oldest",
+      before: { pinned: false, publishedAt: now, id: publishedRow.id },
+    })
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain('(r."published_at", r."id") >')
+    expect(normalizedSql).toContain('order by s."pinned" desc, r."published_at" asc, r."id" asc')
+  })
+
+  it("searches published titles and summaries using an escaped literal pattern", async () => {
+    execute.mockResolvedValue({ rows: [] })
+
+    await store.listPublished({
+      kind: "notice",
+      locale: "ko",
+      search: String.raw`50%_off\today`,
+    })
+
+    const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain('r."title" ilike')
+    expect(normalizedSql).toContain('r."summary" ilike')
+    expect(normalizedSql).toContain("escape '\\'")
+    expect(compiled.params.filter((value) => value === String.raw`%50\%\_off\\today%`)).toHaveLength(2)
+  })
+
   it("returns cursor-paginated minimal admin summaries without scanning content", async () => {
     const firstUpdatedAt = new Date("2026-08-23T11:00:00.000Z")
     const secondUpdatedAt = new Date("2026-08-23T10:00:00.000Z")

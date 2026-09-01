@@ -3,10 +3,10 @@ import { notFound } from "next/navigation"
 
 import { MarkdownDocument } from "@/components/content/markdown-document"
 import type { DocumentSectionCopy } from "@/lib/content"
+import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import { getPublishedDocument, type PublishedDocumentReader } from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
 import type { DocumentKind, Locale } from "@/lib/documents/types"
-import { categoriesByKind } from "@/lib/documents/validation"
 import { buildDocumentOutline } from "@/lib/markdown/outline"
 import styles from "./content.module.css"
 
@@ -16,6 +16,7 @@ type DocumentDetailProps = {
   locale: Locale
   section: DocumentSectionCopy
   category?: string
+  categories?: DocumentCategorySnapshot[]
   repository?: PublishedDocumentReader
 }
 
@@ -32,11 +33,12 @@ export async function DocumentDetail({
   locale,
   section,
   category,
+  categories = [],
   repository = documentStore,
 }: DocumentDetailProps) {
   const lookup = await getPublishedDocument(kind, slug, locale, repository)
   const copy = section.localized[locale]
-  const selectedCategory = category && (categoriesByKind[kind] as readonly string[]).includes(category)
+  const selectedCategory = category && categories.some((candidate) => candidate.slug === category)
     ? category
     : undefined
   const categoryQuery = selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : ""

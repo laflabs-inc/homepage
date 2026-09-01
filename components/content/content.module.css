@@ -425,25 +425,105 @@
   border-bottom: 1px solid var(--ink);
 }
 
-.categoryFilters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.discoveryToolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, auto) minmax(280px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
   padding: 28px 0;
   border-bottom: 1px solid var(--ink);
 }
 
-.categoryFilters a {
-  padding: 8px 13px;
-  border: 1px solid var(--line);
-  color: var(--muted);
-  font: 650 12px var(--font-geist-mono), "Pretendard", monospace;
+.discoverySelects,
+.discoverySearch {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
 }
 
-.categoryFilters a[aria-current="page"] {
+.discoverySelects {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.discoverySearch {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.discoveryControl {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.discoveryControl > span {
+  color: var(--muted);
+  font: 650 10px var(--font-geist-mono), "Pretendard", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.discoveryControl select,
+.discoveryControl input,
+.discoverySearch button,
+.discoveryClear {
+  min-width: 0;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  background: white;
+  font: 650 13px var(--font-geist-sans), "Pretendard", sans-serif;
+}
+
+.discoveryControl select,
+.discoveryControl input {
+  width: 100%;
+  padding: 0 13px;
+}
+
+.discoveryControl input::placeholder {
+  color: var(--muted);
+}
+
+.discoverySearch button,
+.discoveryClear {
+  padding: 0 18px;
+  cursor: pointer;
+}
+
+.discoverySearch button {
   border-color: var(--ink);
   color: white;
   background: var(--ink);
+}
+
+.discoveryClear {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.discoveryControl select:hover,
+.discoveryControl input:hover,
+.discoveryClear:hover {
+  border-color: var(--ink);
+}
+
+.discoverySearch button:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.discoveryControl select:focus-visible,
+.discoveryControl input:focus-visible,
+.discoverySearch button:focus-visible,
+.discoveryClear:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.discoveryToolbar[aria-busy="true"] {
+  cursor: progress;
 }
 
 .categoryGroups {
@@ -611,6 +691,20 @@
 
   .contents {
     padding: 22px 20px;
+  }
+
+  .discoveryToolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .discoverySelects,
+  .discoverySearch,
+  .discoveryClear {
+    grid-column: 1 / -1;
+  }
+
+  .discoveryClear {
+    justify-self: start;
   }
 
   .document {

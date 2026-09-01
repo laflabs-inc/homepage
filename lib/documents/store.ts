@@ -854,15 +854,30 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async listPublished(filter: PublishedDocumentFilter) {
       const category = filter.category ? sql`AND s."category" = ${filter.category}` : sql``
+      const searchPattern = filter.search
+        ? `%${filter.search.replace(/[\\%_]/g, "\\$&")}%`
+        : null
+      const search = searchPattern
+        ? sql`AND (
+            r."title" ILIKE ${searchPattern} ESCAPE '\\'
+            OR r."summary" ILIKE ${searchPattern} ESCAPE '\\'
+          )`
+        : sql``
+      const oldestFirst = filter.sort === "oldest"
       const before = filter.before
         ? sql`AND (
             (s."pinned" = false AND ${filter.before.pinned} = true)
             OR (
               s."pinned" = ${filter.before.pinned}
-              AND (r."published_at", r."id") < (${filter.before.publishedAt}, ${filter.before.id}::uuid)
+              AND ${oldestFirst
+                ? sql`(r."published_at", r."id") > (${filter.before.publishedAt}, ${filter.before.id}::uuid)`
+                : sql`(r."published_at", r."id") < (${filter.before.publishedAt}, ${filter.before.id}::uuid)`}
             )
           )`
         : sql``
+      const order = oldestFirst
+        ? sql`s."pinned" DESC, r."published_at" ASC, r."id" ASC`
+        : sql`s."pinned" DESC, r."published_at" DESC, r."id" DESC`
       const limit = Math.min(50, Math.max(1, filter.limit ?? 20))
       const result = await database.execute(sql`
         SELECT ${publicSelect}
@@ -871,8 +886,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         WHERE r."status" = 'published' AND s."archived_at" IS NULL
           AND s."kind" = ${filter.kind}::document_kind
           AND r."locale" = ${filter.locale}::document_locale
-          ${category} ${before}
-        ORDER BY s."pinned" DESC, r."published_at" DESC, r."id" DESC
+          ${category} ${search} ${before}
+        ORDER BY ${order}
         LIMIT ${limit}
       `)
       return result.rows.map(mapPublished)

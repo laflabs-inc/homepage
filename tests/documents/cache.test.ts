@@ -5,6 +5,7 @@ import type { PublishedDocument } from "@/lib/documents/types"
 const mocks = vi.hoisted(() => ({
   listPublished: vi.fn(),
   getPublished: vi.fn(),
+  listCategories: vi.fn(),
   unstableCache: vi.fn((callback: () => Promise<unknown>) => async () => (
     JSON.parse(JSON.stringify(await callback()))
   )),
@@ -21,7 +22,17 @@ vi.mock("@/lib/documents/store", () => ({
   },
 }))
 
-import { getPublishedDocument, listPublishedDocuments } from "@/lib/documents/cache"
+vi.mock("@/lib/document-categories/store", () => ({
+  documentCategoryStore: {
+    list: mocks.listCategories,
+  },
+}))
+
+import {
+  getPublishedDocument,
+  listPublishedDocumentCategories,
+  listPublishedDocuments,
+} from "@/lib/documents/cache"
 import { buildSitemap } from "@/app/sitemap"
 
 const published: PublishedDocument = {
@@ -43,6 +54,7 @@ const published: PublishedDocument = {
 beforeEach(() => {
   mocks.listPublished.mockReset()
   mocks.getPublished.mockReset()
+  mocks.listCategories.mockReset()
   mocks.unstableCache.mockClear()
 })
 
@@ -75,10 +87,75 @@ describe("published document cache boundary", () => {
 
     expect(mocks.unstableCache).toHaveBeenCalledWith(
       expect.any(Function),
-      ["published-documents", "notice", "ko", "", "20", "", "", ""],
+      ["published-documents", "notice", "ko", "", "latest", "20", "", "", ""],
       {
         revalidate: 60,
         tags: ["documents:index:notice", "documents:index:notice:ko"],
+      },
+    )
+  })
+
+  it("keys category and sort reads while bypassing shared cache for search", async () => {
+    mocks.listPublished.mockResolvedValue([published])
+
+    await listPublishedDocuments({
+      kind: "notice",
+      locale: "ko",
+      category: "service",
+      sort: "oldest",
+      limit: 20,
+    })
+
+    expect(mocks.unstableCache).toHaveBeenLastCalledWith(
+      expect.any(Function),
+      ["published-documents", "notice", "ko", "service", "oldest", "20", "", "", ""],
+      expect.any(Object),
+    )
+
+    mocks.unstableCache.mockClear()
+    await listPublishedDocuments({
+      kind: "notice",
+      locale: "ko",
+      sort: "latest",
+      search: "routing",
+    })
+
+    expect(mocks.unstableCache).not.toHaveBeenCalled()
+    expect(mocks.listPublished).toHaveBeenLastCalledWith(expect.objectContaining({ search: "routing" }))
+  })
+
+  it("caches public category snapshots by document kind", async () => {
+    mocks.listCategories.mockResolvedValue([{
+      id: "00000000-0000-4000-8000-000000000001",
+      kind: "notice",
+      slug: "engineering",
+      labelKo: "기술",
+      labelEn: "Engineering",
+      sortOrder: 0,
+      active: true,
+      version: 1,
+      createdBy: "42",
+      updatedBy: "42",
+      createdAt: new Date("2026-08-31T00:00:00.000Z"),
+      updatedAt: new Date("2026-08-31T00:00:00.000Z"),
+    }])
+
+    await expect(listPublishedDocumentCategories("notice")).resolves.toEqual([{
+      id: "00000000-0000-4000-8000-000000000001",
+      kind: "notice",
+      slug: "engineering",
+      labelKo: "기술",
+      labelEn: "Engineering",
+      sortOrder: 0,
+      active: true,
+      version: 1,
+    }])
+    expect(mocks.unstableCache).toHaveBeenLastCalledWith(
+      expect.any(Function),
+      ["document-categories", "notice"],
+      {
+        revalidate: 60,
+        tags: ["document-categories", "document-categories:notice"],
       },
     )
   })

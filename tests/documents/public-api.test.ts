@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest"
 
 import { handleContentDetail } from "@/app/api/content/[kind]/[slug]/route"
 import { handleContentList } from "@/app/api/content/route"
+import type { DocumentCategoryRepository } from "@/lib/document-categories/types"
 import type { DocumentRepository, PublishedDocument } from "@/lib/documents/types"
 import { decodePublishedCursor, encodePublishedCursor } from "@/lib/http/cursor"
 
@@ -21,12 +22,33 @@ const first: PublishedDocument = {
   publishedAt: new Date("2026-08-23T12:00:00.000Z"),
 }
 
+const category = {
+  id: "00000000-0000-4000-8000-000000000001",
+  kind: "notice" as const,
+  slug: "engineering",
+  labelKo: "기술",
+  labelEn: "Engineering",
+  sortOrder: 0,
+  active: true,
+  version: 1,
+  createdBy: "42",
+  updatedBy: "42",
+  createdAt: new Date("2026-08-31T00:00:00.000Z"),
+  updatedAt: new Date("2026-08-31T00:00:00.000Z"),
+}
+
 function repository(overrides: Partial<Pick<DocumentRepository, "listPublished" | "getPublished">> = {}) {
   return {
     listPublished: vi.fn().mockResolvedValue([first]),
     getPublished: vi.fn().mockResolvedValue({ document: first, availableLocales: ["ko"] }),
     ...overrides,
   } as Pick<DocumentRepository, "listPublished" | "getPublished">
+}
+
+function categoryRepository(categories = [category]) {
+  return {
+    list: vi.fn().mockResolvedValue(categories),
+  } as Pick<DocumentCategoryRepository, "list">
 }
 
 function publishedDocuments(count: number): PublishedDocument[] {
@@ -48,6 +70,10 @@ describe("public content list API", () => {
     ["/api/content?kind=notice&locale=ko&limit=0", "zero limit"],
     ["/api/content?kind=notice&locale=ko&limit=51", "limit above cap"],
     ["/api/content?kind=notice&locale=ko&limit=2.5", "fractional limit"],
+    ["/api/content?kind=notice&locale=ko&sort=popular", "unknown sort"],
+    [`/api/content?kind=notice&locale=ko&q=${"a".repeat(101)}`, "search above cap"],
+    ["/api/content?kind=notice&locale=ko&kind=legal", "duplicate parameter"],
+    ["/api/content?kind=notice&locale=ko&unknown=value", "unknown parameter"],
   ])("rejects %s (%s)", async (path) => {
     const store = repository()
     const response = await handleContentList(new Request(`https://laflabs.co${path}`), store)
@@ -72,30 +98,66 @@ describe("public content list API", () => {
     }
   })
 
-  it("rejects categories outside the selected kind before reading", async () => {
+  it("rejects categories missing from the managed taxonomy before reading documents", async () => {
     const store = repository()
     const response = await handleContentList(
-      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=financial"),
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=missing"),
       store,
+      categoryRepository([]),
     )
 
     expect(response.status).toBe(400)
-    await expect(response.json()).resolves.toEqual({ error: "invalid_request" })
+    await expect(response.json()).resolves.toEqual({ error: "invalid_category" })
     expect(store.listPublished).not.toHaveBeenCalled()
   })
 
-  it("passes an exact valid category to the repository", async () => {
+  it("passes an exact managed category to the repository", async () => {
     const store = repository()
     const response = await handleContentList(
-      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=service"),
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=engineering"),
       store,
+      categoryRepository(),
     )
 
     expect(response.status).toBe(200)
     expect(store.listPublished).toHaveBeenCalledWith({
       kind: "notice",
       locale: "ko",
-      category: "service",
+      category: "engineering",
+      sort: "latest",
+      limit: 21,
+      before: undefined,
+    })
+  })
+
+  it("accepts an inactive managed category for historical direct links", async () => {
+    const store = repository()
+    const response = await handleContentList(
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&category=engineering"),
+      store,
+      categoryRepository([{ ...category, active: false }]),
+    )
+
+    expect(response.status).toBe(200)
+    expect(store.listPublished).toHaveBeenCalledWith(expect.objectContaining({
+      category: "engineering",
+    }))
+  })
+
+  it("trims bounded search, applies oldest ordering, and disables shared response caching", async () => {
+    const store = repository()
+    const response = await handleContentList(
+      new Request("https://laflabs.co/api/content?kind=notice&locale=ko&sort=oldest&q=%20%20routing%20%20"),
+      store,
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get("cache-control")).toBe("no-store")
+    expect(store.listPublished).toHaveBeenCalledWith({
+      kind: "notice",
+      locale: "ko",
+      sort: "oldest",
+      search: "routing",
       limit: 21,
       before: undefined,
     })
@@ -165,6 +227,7 @@ describe("public content list API", () => {
     expect(store.listPublished).toHaveBeenCalledWith({
       kind: "notice",
       locale: "ko",
+      sort: "latest",
       limit: 2,
       before: { pinned: true, publishedAt: first.publishedAt, id: first.id },
     })
