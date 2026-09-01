@@ -119,6 +119,10 @@ describe("protected admin document queries", () => {
 
     expect(screen.getByRole("heading", { name: "문서" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "새 문서" })).toHaveAttribute("href", "/admin/documents/new")
+    expect(screen.getByRole("link", { name: "카테고리 관리" })).toHaveAttribute(
+      "href",
+      "/admin/documents/categories",
+    )
     expect(screen.getByRole("searchbox", { name: "문서 검색" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "필터 적용" })).toHaveAttribute("href", "/admin/documents?limit=50")
   })

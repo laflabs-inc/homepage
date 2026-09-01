@@ -1518,3 +1518,356 @@
     transition: none;
   }
 }
+.documentsHeadingActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.secondaryLink {
+  min-height: 46px;
+  padding: 0 18px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--ink);
+  font: 650 11px var(--font-geist-mono), monospace;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.secondaryLink:hover {
+  color: white;
+  background: var(--ink);
+}
+
+.secondaryLink:focus-visible,
+.categoryCreateForm input:focus-visible,
+.categoryCreateForm select:focus-visible,
+.categoryCreateForm button:focus-visible,
+.categoryRow input:focus-visible,
+.categoryRow button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.categoryWorkspace {
+  min-width: 0;
+  display: grid;
+  gap: 48px;
+}
+
+.categoryHeading {
+  padding-bottom: 28px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.categoryHeading h1 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.categoryHeading p {
+  max-width: 70ch;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.categoryCreatePanel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.32fr) minmax(0, 1fr);
+  border: 1px solid var(--ink);
+}
+
+.categorySectionIntro {
+  min-width: 0;
+  padding: 24px;
+  border-right: 1px solid var(--ink);
+}
+
+.categorySectionIntro h2,
+.categoryGroupHeading h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.categorySectionIntro p,
+.categoryGroupHeading p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.categoryCreateForm {
+  min-width: 0;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(130px, 0.7fr) minmax(130px, 0.8fr) repeat(2, minmax(160px, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.categoryCreateForm label,
+.categoryLabelFields label {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font: 600 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.categoryCreateForm input,
+.categoryCreateForm select,
+.categoryLabelFields input {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 11px;
+  color: var(--ink);
+  background: white;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  font: 400 14px var(--font-geist-sans), sans-serif;
+  text-transform: none;
+}
+
+.categoryCreateForm button,
+.categoryRowActions button {
+  min-height: 44px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  font: 650 10px var(--font-geist-mono), monospace;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.categoryCreateForm button {
+  color: white;
+  background: var(--blue);
+}
+
+.categoryCreateForm button:hover:not(:disabled) {
+  background: var(--ink);
+}
+
+.categoryCreateForm button:disabled,
+.categoryRowActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.categoryGroups {
+  min-width: 0;
+  display: grid;
+  gap: 40px;
+}
+
+.categoryGroup {
+  min-width: 0;
+  border-top: 1px solid var(--ink);
+}
+
+.categoryGroupHeading {
+  min-height: 92px;
+  padding: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.categoryGroupHeading > span {
+  color: var(--muted);
+  font: 650 11px var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.categoryList {
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ink);
+  list-style: none;
+}
+
+.categoryRow {
+  min-width: 0;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(130px, 0.24fr) minmax(300px, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  background: var(--paper);
+}
+
+.categoryRow + .categoryRow {
+  border-top: 1px solid var(--ink);
+}
+
+.categoryRow[data-inactive="true"] {
+  background: #f1f3f6;
+}
+
+.categoryIdentity {
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.categoryIdentity code {
+  overflow: hidden;
+  color: var(--ink);
+  font: 650 12px var(--font-geist-mono), monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoryIdentity span {
+  color: var(--muted);
+  font: 600 10px var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+}
+
+.categoryLabelFields {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.categoryRowActions {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  align-items: end;
+  gap: 8px;
+}
+
+.categoryRowActions button:hover:not(:disabled) {
+  color: white;
+  background: var(--ink);
+}
+
+.categoryRowActions .categoryStateButton {
+  min-width: 82px;
+  color: #9b1c1c;
+  background: white;
+}
+
+.categoryRow[data-inactive="true"] .categoryStateButton {
+  color: white;
+  background: var(--blue);
+}
+
+.categoryEmpty {
+  min-height: 120px;
+  padding: 28px;
+  display: grid;
+  align-items: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 1080px) {
+  .categoryCreatePanel {
+    grid-template-columns: 1fr;
+  }
+
+  .categorySectionIntro {
+    border-right: 0;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .categoryCreateForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .categoryCreateForm button {
+    width: 100%;
+  }
+
+  .categoryRow {
+    grid-template-columns: minmax(130px, 0.24fr) minmax(0, 1fr);
+  }
+
+  .categoryRowActions {
+    grid-column: 1 / -1;
+    justify-content: end;
+  }
+}
+
+@media (max-width: 640px) {
+  .documentsHeadingActions,
+  .documentsHeadingActions a,
+  .categoryHeading,
+  .categoryHeading .secondaryLink {
+    width: 100%;
+  }
+
+  .documentsHeadingActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .categoryHeading {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .categoryHeading h1 {
+    font-size: 34px;
+  }
+
+  .categoryCreateForm,
+  .categoryRow,
+  .categoryLabelFields {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryCreateForm {
+    padding: 16px;
+  }
+
+  .categoryRow {
+    padding: 16px;
+    align-items: stretch;
+  }
+
+  .categoryRowActions {
+    grid-column: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .categoryRowActions button {
+    width: 100%;
+  }
+
+  .categoryGroupHeading {
+    min-height: 0;
+    align-items: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secondaryLink,
+  .categoryCreateForm button,
+  .categoryRowActions button {
+    transition: none;
+  }
+}

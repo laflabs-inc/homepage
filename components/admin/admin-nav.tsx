@@ -13,6 +13,7 @@ export function AdminNav() {
     <nav className={styles.adminNav} aria-label={t.label}>
       <Link href="/admin/analytics">{t.analytics}</Link>
       <Link href="/admin/documents">{t.documents}</Link>
+      <Link href="/admin/documents/categories">{t.categories}</Link>
       <Link href="/admin/agent">{t.agent}</Link>
     </nav>
   )
