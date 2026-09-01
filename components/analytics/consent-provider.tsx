@@ -17,6 +17,7 @@ type ConsentContextValue = {
   state: ConsentState
   openSettings: () => void
   choose: (choice: ConsentChoice) => Promise<void>
+  track: (type: AnalyticsEventType, targetId: string | null) => void
   pending: boolean
   error: string | null
 }
@@ -109,6 +110,10 @@ export function ConsentProvider({
 
   const closeSettings = useCallback(() => setSettingsOpen(false), [])
 
+  const track = useCallback((type: AnalyticsEventType, targetId: string | null) => {
+    clientRef.current?.track(type, targetId)
+  }, [])
+
   const choose = useCallback(async (choice: ConsentChoice) => {
     setPending(true)
     setError(null)
@@ -150,9 +155,10 @@ export function ConsentProvider({
     state,
     openSettings,
     choose,
+    track,
     pending,
     error,
-  }), [state, openSettings, choose, pending, error])
+  }), [state, openSettings, choose, track, pending, error])
 
   return (
     <ConsentContext.Provider value={value}>
@@ -180,4 +186,9 @@ export function useConsent(): ConsentContextValue {
   const context = useContext(ConsentContext)
   if (!context) throw new Error("useConsent must be used within ConsentProvider")
   return context
+}
+
+export function useAnalytics(): Pick<ConsentContextValue, "track"> {
+  const { track } = useConsent()
+  return useMemo(() => ({ track }), [track])
 }
