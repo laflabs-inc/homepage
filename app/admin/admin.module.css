@@ -153,6 +153,31 @@
   gap: 24px;
 }
 
+.documentListMeta {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.documentListMeta p {
+  margin: 0;
+  color: var(--muted);
+  font: 600 11px var(--font-geist-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.editorActions .secondaryButton {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.documentListWorkspace [aria-busy="true"] {
+  opacity: 0.58;
+  transition: opacity 160ms ease;
+}
+
 .documentFilters {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, auto));

@@ -26,6 +26,7 @@ import { DocumentEditor } from "@/components/admin/document-editor"
 import { DocumentList } from "@/components/admin/document-list"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
+import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import type { DocumentRevision } from "@/lib/documents/types"
 
 function EnglishLocaleTestProvider({ children }: { children: React.ReactNode }) {
@@ -59,6 +60,28 @@ const revision: DocumentRevision = {
   updatedAt: new Date("2026-08-23T09:00:00.000Z"),
 }
 const revisionPath = `/admin/documents/${revision.id}`
+const categories: DocumentCategorySnapshot[] = [
+  {
+    id: "11111111-1111-4111-8111-111111111111",
+    kind: "notice",
+    slug: "general",
+    labelKo: "일반",
+    labelEn: "General",
+    sortOrder: 0,
+    active: true,
+    version: 1,
+  },
+  {
+    id: "22222222-2222-4222-8222-222222222222",
+    kind: "notice",
+    slug: "service",
+    labelKo: "서비스 알림",
+    labelEn: "Service updates",
+    sortOrder: 1,
+    active: true,
+    version: 1,
+  },
+]
 
 function AppRouterTreeHarness() {
   const [tree, setTree] = useState({ path: revisionPath, traversals: 0 })
@@ -104,6 +127,7 @@ function okDeleteResponse() {
 }
 
 beforeEach(() => {
+  vi.useRealTimers()
   vi.restoreAllMocks()
   navigationMocks.replace.mockReset()
   navigationMocks.push.mockReset()
@@ -207,19 +231,42 @@ describe("document admin", () => {
     expect(screen.getByRole("tabpanel", { name: "Source" })).toBeInTheDocument()
   })
 
-  it("shows localized category labels while preserving canonical option values", () => {
+  it("shows server-managed localized category labels while preserving canonical option values", () => {
     const { unmount } = render(
-      <LocaleProvider initialLocale="ko"><DocumentEditor /></LocaleProvider>,
+      <LocaleProvider initialLocale="ko"><DocumentEditor categories={categories} /></LocaleProvider>,
     )
     const koreanCategories = screen.getByRole("combobox", { name: "카테고리" })
     expect(within(koreanCategories).getByRole("option", { name: "일반" })).toHaveValue("general")
-    expect(within(koreanCategories).getByRole("option", { name: "서비스" })).toHaveValue("service")
+    expect(within(koreanCategories).getByRole("option", { name: "서비스 알림" })).toHaveValue("service")
 
     unmount()
-    render(<DocumentEditor />)
+    render(<DocumentEditor categories={categories} />)
     const englishCategories = screen.getByRole("combobox", { name: "Category" })
     expect(within(englishCategories).getByRole("option", { name: "General" })).toHaveValue("general")
-    expect(within(englishCategories).getByRole("option", { name: "Service" })).toHaveValue("service")
+    expect(within(englishCategories).getByRole("option", { name: "Service updates" })).toHaveValue("service")
+  })
+
+  it("keeps the current inactive category visible but prevents assigning it to a new document", () => {
+    const inactive = {
+      ...categories[1],
+      slug: "legacy",
+      labelKo: "이전 분류",
+      labelEn: "Legacy",
+      active: false,
+    }
+    const { unmount } = render(
+      <DocumentEditor revision={{ ...revision, category: "legacy" }} categories={[...categories, inactive]} />,
+    )
+
+    const categorySelect = screen.getByRole("combobox", { name: "Category" })
+    const currentCategory = within(categorySelect).getByRole("option", { name: "Legacy" })
+    expect(currentCategory).toBeDisabled()
+    expect(categorySelect).toHaveValue("legacy")
+
+    unmount()
+    render(<DocumentEditor categories={[...categories, inactive]} />)
+    expect(within(screen.getByRole("combobox", { name: "Category" }))
+      .queryByRole("option", { name: "Legacy" })).not.toBeInTheDocument()
   })
 
   it("opens the Markdown writing guide without leaving an unsaved draft", () => {
@@ -592,7 +639,7 @@ describe("document admin", () => {
     expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("published Korean counterpart"))
   })
 
-  it("filters loaded revisions and shows publisher plus the relevant date", async () => {
+  it("updates URL filters immediately without client-filtering the loaded server page", async () => {
     const user = userEvent.setup()
     const published = {
       ...revision,
@@ -620,10 +667,9 @@ describe("document admin", () => {
     }).format(published.publishedAt)}`)).toBeInTheDocument()
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
-    expect(screen.queryByRole("link", { name: /서비스 업데이트/ })).not.toBeInTheDocument()
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith("/admin/documents?kind=legal&limit=50")
+    expect(screen.getByRole("link", { name: /서비스 업데이트/ })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /Privacy policy/ })).toBeInTheDocument()
-    await user.type(screen.getByRole("searchbox", { name: "Search documents" }), "missing")
-    expect(screen.getByText("No documents match these filters.")).toBeInTheDocument()
   })
 
   it("localizes list row locales and dates while keeping canonical list values", () => {
@@ -666,8 +712,8 @@ describe("document admin", () => {
     expect(screen.getByText(`Published ${englishDate}`)).toBeInTheDocument()
   })
 
-  it("keeps Next pagination on applied filters while controls have unapplied edits", async () => {
-    const user = userEvent.setup()
+  it("debounces bounded search, clears the cursor, and keeps pagination on server-applied filters", async () => {
+    vi.useFakeTimers()
     render(<LocaleProvider initialLocale="en"><DocumentList
       rows={[revision].map(toAdminDocumentListRow)}
       nextCursor="opaque-next"
@@ -675,18 +721,23 @@ describe("document admin", () => {
       initialFilters={{ search: "service", kind: "notice", locale: "ko", status: "draft" }}
     /></LocaleProvider>)
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
-    await user.clear(screen.getByRole("searchbox", { name: "Search documents" }))
-    await user.type(screen.getByRole("searchbox", { name: "Search documents" }), "privacy")
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search documents" }), {
+      target: { value: `  ${"x".repeat(170)}  ` },
+    })
+    expect(navigationMocks.replace).not.toHaveBeenCalled()
+    await act(async () => vi.advanceTimersByTime(300))
 
-    expect(screen.getByRole("link", { name: "Apply filters" })).toHaveAttribute(
-      "href",
-      "/admin/documents?search=privacy&kind=legal&status=draft&locale=ko&limit=25",
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith(
+      `/admin/documents?search=${"x".repeat(158)}&kind=notice&status=draft&locale=ko&limit=25`,
     )
+    expect(screen.queryByRole("link", { name: "Apply filters" })).not.toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute(
       "href",
       "/admin/documents?search=service&kind=notice&status=draft&locale=ko&limit=25&cursor=opaque-next",
     )
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }))
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith("/admin/documents?limit=25")
   })
 
   it("confirms draft deletion and navigates safely to the document list", async () => {
