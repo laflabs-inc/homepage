@@ -8,6 +8,7 @@ import type {
   AnalyticsSummary,
 } from "@/lib/analytics/store"
 import styles from "@/app/admin/admin.module.css"
+import { AnalyticsCharts } from "@/components/admin/analytics-charts"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
 
@@ -172,6 +173,8 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
             <MetricCell label={t.productClicks} value={summary.productClicks} locale={locale} />
             <MetricCell label={t.contactClicks} value={summary.contactClicks} locale={locale} />
           </dl>
+
+          <AnalyticsCharts daily={summary.daily} locale={locale} copy={t} />
 
           <section className={styles.funnel} aria-labelledby="funnel-heading">
             <div className={styles.sectionHeading}>

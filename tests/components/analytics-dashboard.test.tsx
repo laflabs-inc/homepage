@@ -41,7 +41,10 @@ const summary: AnalyticsSummary = {
   referrers: [{ key: "github.com", count: 5 }],
   products: [{ key: "laf-id", count: 7 }],
   githubTargets: [{ key: "lafetch", count: 4 }],
-  daily: [],
+  daily: [
+    { date: "2026-01-17", visitors: 8, pageViews: 14 },
+    { date: "2026-01-18", visitors: 12, pageViews: 20 },
+  ],
 }
 
 beforeEach(() => {
@@ -50,12 +53,26 @@ beforeEach(() => {
 })
 
 describe("AnalyticsDashboard", () => {
+  it("renders daily traffic with exact values in an accessible table", () => {
+    render(<LocaleProvider initialLocale="en"><AnalyticsDashboard summary={summary} /></LocaleProvider>)
+
+    expect(screen.getByRole("region", { name: "Traffic" })).toBeInTheDocument()
+
+    const table = screen.getByRole("table", { name: "Daily traffic data" })
+    expect(within(table).getByRole("columnheader", { name: "Date" })).toBeInTheDocument()
+    expect(within(table).getByRole("columnheader", { name: "Visitors" })).toBeInTheDocument()
+    expect(within(table).getByRole("columnheader", { name: "Page views" })).toBeInTheDocument()
+    expect(within(table).getByRole("row", { name: /Jan 17, 2026.*8.*14/ })).toBeInTheDocument()
+    expect(within(table).getByRole("row", { name: /Jan 18, 2026.*12.*20/ })).toBeInTheDocument()
+  })
+
   it("renders real aggregates, funnel context, tables, and non-JavaScript range links", () => {
     render(<LocaleProvider initialLocale="en"><AnalyticsDashboard summary={summary} /></LocaleProvider>)
 
     expect(screen.getByRole("heading", { name: "Analytics" })).toBeInTheDocument()
-    expect(screen.getByText("Consented visitors").nextElementSibling).toHaveTextContent("12")
-    expect(screen.getByText("Page views").nextElementSibling).toHaveTextContent("30")
+    const totals = screen.getByLabelText("Consented analytics totals")
+    expect(within(totals).getByText("Consented visitors").nextElementSibling).toHaveTextContent("12")
+    expect(within(totals).getByText("Page views").nextElementSibling).toHaveTextContent("30")
     expect(screen.getByText("4 GitHub clicks")).toBeInTheDocument()
     expect(screen.getByText("58.33%")).toBeInTheDocument()
     expect(screen.getByText("28.57%")).toBeInTheDocument()

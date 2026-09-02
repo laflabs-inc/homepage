@@ -741,6 +741,7 @@
 }
 
 .funnel,
+.traffic,
 .distributionGrid,
 .tableGrid {
   border-top: 1px solid var(--ink);
@@ -816,6 +817,57 @@
 
 .funnelRate span {
   color: var(--paper);
+}
+
+.traffic {
+  min-width: 0;
+}
+
+.trafficLegend {
+  margin: 0 0 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.trafficLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.trafficLegend i {
+  width: 18px;
+  height: 2px;
+  display: block;
+}
+
+.visitorsKey {
+  background: var(--blue);
+}
+
+.pageViewsKey {
+  background: var(--ink);
+}
+
+.trafficPlot {
+  width: 100%;
+  height: 256px;
+  min-width: 0;
+  border: 1px solid var(--ink);
+}
+
+.visuallyHidden {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .distributionGrid {
