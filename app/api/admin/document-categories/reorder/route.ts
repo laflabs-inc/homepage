@@ -21,7 +21,7 @@ export async function handleReorderCategories(
 
   try {
     const categories = await dependencies.service.reorder(parsed.data, authorization.actor)
-    invalidateCategoryCache(dependencies)
+    invalidateCategoryCache(dependencies, parsed.data.kind)
     return jsonNoStore({ categories })
   } catch (error) {
     return categoryErrorResponse(error)

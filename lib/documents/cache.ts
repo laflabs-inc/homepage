@@ -2,6 +2,11 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
+import { documentCategoryStore } from "@/lib/document-categories/store"
+import type {
+  DocumentCategoryRepository,
+  DocumentCategorySnapshot,
+} from "@/lib/document-categories/types"
 import { documentStore } from "@/lib/documents/store"
 import type {
   DocumentKind,
@@ -13,6 +18,7 @@ import type {
 import { documentKinds } from "@/lib/documents/types"
 
 export type PublishedDocumentReader = Pick<DocumentRepository, "listPublished" | "getPublished">
+export type PublishedCategoryReader = Pick<DocumentCategoryRepository, "list">
 
 function restorePublishedDates(document: PublishedDocument): PublishedDocument {
   return {
@@ -53,6 +59,7 @@ export async function listPublishedDocuments(
   repository: PublishedDocumentReader = documentStore,
 ) {
   if (repository !== documentStore) return repository.listPublished(filter)
+  if (filter.search) return documentStore.listPublished(filter)
 
   const before = filter.before
   const documents = await unstable_cache(
@@ -62,6 +69,7 @@ export async function listPublishedDocuments(
       filter.kind,
       filter.locale,
       filter.category ?? "",
+      filter.sort ?? "latest",
       String(filter.limit ?? 20),
       before ? String(before.pinned) : "",
       before?.publishedAt.toISOString() ?? "",
@@ -70,6 +78,36 @@ export async function listPublishedDocuments(
     { revalidate: 60, tags: documentCacheTags.index(filter.kind, filter.locale) },
   )()
   return documents.map(restorePublishedDates)
+}
+
+function publicCategorySnapshot(category: Awaited<ReturnType<PublishedCategoryReader["list"]>>[number]): DocumentCategorySnapshot {
+  return {
+    id: category.id,
+    kind: category.kind,
+    slug: category.slug,
+    labelKo: category.labelKo,
+    labelEn: category.labelEn,
+    sortOrder: category.sortOrder,
+    active: category.active,
+    version: category.version,
+  }
+}
+
+export async function listPublishedDocumentCategories(
+  kind: DocumentKind,
+  repository: PublishedCategoryReader = documentCategoryStore,
+): Promise<DocumentCategorySnapshot[]> {
+  const read = async () => (await repository.list({ kind })).map(publicCategorySnapshot)
+  if (repository !== documentCategoryStore) return read()
+
+  return unstable_cache(
+    read,
+    ["document-categories", kind],
+    {
+      revalidate: 60,
+      tags: ["document-categories", `document-categories:${kind}`],
+    },
+  )()
 }
 
 export async function getPublishedDocument(

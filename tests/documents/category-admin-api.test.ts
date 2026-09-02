@@ -105,7 +105,11 @@ describe("document category admin API", () => {
 
     expect(response.status).toBe(201)
     expect(deps.service.create).toHaveBeenCalledWith(input, actor)
-    expect(deps.revalidate).toHaveBeenCalledWith("document-categories", "max")
+    expect(deps.revalidate.mock.calls).toEqual([
+      ["document-categories", "max"],
+      ["document-categories:notice", "max"],
+      ["documents:index:notice", "max"],
+    ])
   })
 
   it("validates the path ID and maps version conflicts", async () => {
@@ -141,7 +145,11 @@ describe("document category admin API", () => {
 
     expect(response.status).toBe(200)
     expect(deps.service.reorder).toHaveBeenCalledWith(input, actor)
-    expect(deps.revalidate).toHaveBeenCalledWith("document-categories", "max")
+    expect(deps.revalidate.mock.calls).toEqual([
+      ["document-categories", "max"],
+      ["document-categories:notice", "max"],
+      ["documents:index:notice", "max"],
+    ])
   })
 
   it("returns authorization decisions without exposing storage errors", async () => {

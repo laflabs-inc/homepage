@@ -103,6 +103,8 @@ export type PublishedDocumentFilter = {
   kind: DocumentKind
   locale: Locale
   category?: string
+  sort?: "latest" | "oldest"
+  search?: string
   limit?: number
   before?: { pinned: boolean; publishedAt: Date; id: string }
 }

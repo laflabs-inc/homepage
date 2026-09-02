@@ -29,6 +29,7 @@ import DocumentLayout from "@/app/(documents)/layout"
 import DocumentError from "@/app/(documents)/error"
 import DocumentNotFound from "@/app/(documents)/not-found"
 import { documentSections, siteUrl } from "@/lib/content"
+import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import type { DocumentRepository, PublishedDocument, PublishedDocumentFilter } from "@/lib/documents/types"
 
 const published: PublishedDocument = {
@@ -46,6 +47,39 @@ const published: PublishedDocument = {
   effectiveAt: new Date("2026-09-01T00:00:00.000Z"),
   publishedAt: new Date("2026-08-23T12:00:00.000Z"),
 }
+
+const managedCategories: DocumentCategorySnapshot[] = [
+  {
+    id: "00000000-0000-4000-8000-000000000001",
+    kind: "notice",
+    slug: "service",
+    labelKo: "서비스",
+    labelEn: "Service",
+    sortOrder: 0,
+    active: true,
+    version: 1,
+  },
+  {
+    id: "00000000-0000-4000-8000-000000000002",
+    kind: "notice",
+    slug: "engineering",
+    labelKo: "기술",
+    labelEn: "Engineering",
+    sortOrder: 1,
+    active: true,
+    version: 1,
+  },
+  {
+    id: "00000000-0000-4000-8000-000000000003",
+    kind: "notice",
+    slug: "retired",
+    labelKo: "종료됨",
+    labelEn: "Retired",
+    sortOrder: 2,
+    active: false,
+    version: 1,
+  },
+]
 
 function repository(overrides: Partial<Pick<DocumentRepository, "listPublished" | "getPublished">> = {}) {
   return {
@@ -132,23 +166,20 @@ describe("public document pages", () => {
     )
   })
 
-  it.each([
-    ["notice", "en", "Filter notices by category", "Service"],
-    ["disclosure", "ko", "공시 카테고리 필터", "재무"],
-  ] as const)("renders localized category filters for %s", async (kind, locale, filterLabel, categoryLabel) => {
-    const section = documentSections[kind]
+  it("renders managed active categories in the localized discovery toolbar", async () => {
     render(await DocumentIndex({
-      kind,
-      locale,
-      section,
+      kind: "notice",
+      locale: "en",
+      section: documentSections.notice,
+      categories: managedCategories,
       repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
     }))
 
-    const filters = screen.getByRole("navigation", { name: filterLabel })
-    expect(within(filters).getByRole("link", { name: categoryLabel })).toHaveAttribute(
-      "href",
-      `${section.path}?locale=${locale}&category=${kind === "notice" ? "service" : "financial"}`,
-    )
+    const category = screen.getByRole("combobox", { name: "Category" })
+    expect(within(category).getByRole("option", { name: "Engineering" })).toBeInTheDocument()
+    expect(within(category).queryByRole("option", { name: "Retired" })).not.toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveValue("latest")
+    expect(screen.getByRole("searchbox", { name: "Search notices" })).toBeInTheDocument()
   })
 
   it("visibly groups legal documents by category", async () => {
@@ -159,6 +190,13 @@ describe("public document pages", () => {
       kind,
       locale,
       section: documentSections[kind],
+      categories: [{
+        ...managedCategories[0],
+        kind,
+        slug: category,
+        labelKo: "개인정보",
+        labelEn: "Privacy",
+      }],
       repository: repository({ listPublished: vi.fn().mockResolvedValue([{ ...published, kind, locale, category }]) }),
     }))
 
@@ -172,6 +210,7 @@ describe("public document pages", () => {
       locale: "ko",
       section: documentSections.notice,
       category: "financial",
+      categories: managedCategories,
       repository: store,
     }))
 
@@ -194,6 +233,7 @@ describe("public document pages", () => {
       locale: "ko",
       section: documentSections.notice,
       category: "service",
+      categories: managedCategories,
       repository: repository({ listPublished: vi.fn().mockResolvedValue(documents) }),
     }))
 
@@ -212,11 +252,101 @@ describe("public document pages", () => {
       locale: "ko",
       section: documentSections.notice,
       category: "service",
+      categories: managedCategories,
       repository: repository(),
     }))
     expect(screen.getByRole("link", { name: "← 목록으로" })).toHaveAttribute(
       "href",
       "/notices?locale=ko&category=service",
+    )
+  })
+
+  it("keeps a selected inactive category valid without exposing other inactive categories", async () => {
+    const store = repository({ listPublished: vi.fn().mockResolvedValue([]) })
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "ko",
+      section: documentSections.notice,
+      category: "retired",
+      categories: managedCategories,
+      repository: store,
+    }))
+
+    expect(store.listPublished).toHaveBeenCalledWith(expect.objectContaining({ category: "retired" }))
+    const category = screen.getByRole("combobox", { name: "카테고리" })
+    expect(category).toHaveValue("retired")
+    expect(within(category).getByRole("option", { name: "종료됨" })).toBeDisabled()
+  })
+
+  it("preserves a newly managed category in document detail back links", async () => {
+    render(await DocumentDetail({
+      kind: "notice",
+      slug: "service-update",
+      locale: "ko",
+      section: documentSections.notice,
+      category: "engineering",
+      categories: managedCategories,
+      repository: repository(),
+    }))
+
+    expect(screen.getByRole("link", { name: "← 목록으로" })).toHaveAttribute(
+      "href",
+      "/notices?locale=ko&category=engineering",
+    )
+  })
+
+  it("passes bounded search and oldest sorting through pagination", async () => {
+    const documents = Array.from({ length: 21 }, (_, index) => ({
+      ...published,
+      id: `8ca55b3d-a4fc-4a41-b922-${String(index + 1).padStart(12, "0")}`,
+      slug: `service-update-${index + 1}`,
+      publishedAt: new Date(published.publishedAt.getTime() + index * 1_000),
+    }))
+    const store = repository({ listPublished: vi.fn().mockResolvedValue(documents) })
+
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "ko",
+      section: documentSections.notice,
+      category: "service",
+      sort: "oldest",
+      q: "  운영 소식  ",
+      categories: managedCategories,
+      repository: store,
+    }))
+
+    expect(store.listPublished).toHaveBeenCalledWith(expect.objectContaining({
+      category: "service",
+      sort: "oldest",
+      search: "운영 소식",
+    }))
+    const next = screen.getByRole("link", { name: "다음 문서" })
+    expect(next).toHaveAttribute("href", expect.stringContaining("sort=oldest"))
+    expect(next).toHaveAttribute("href", expect.stringContaining("q=%EC%9A%B4%EC%98%81+%EC%86%8C%EC%8B%9D"))
+  })
+
+  it("updates URL-backed discovery controls and clears the cursor", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({}, "", "/notices?locale=en&cursor=old")
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "en",
+      section: documentSections.notice,
+      categories: managedCategories,
+      repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
+    }))
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Category" }), "engineering")
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith(
+      "/notices?locale=en&category=engineering",
+      { scroll: false },
+    )
+
+    await user.type(screen.getByRole("searchbox", { name: "Search notices" }), "routing")
+    await user.click(screen.getByRole("button", { name: "Search" }))
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith(
+      "/notices?locale=en&q=routing",
+      { scroll: false },
     )
   })
 

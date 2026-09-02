@@ -29,7 +29,7 @@ export async function handleUpdateCategory(
 
   try {
     const category = await dependencies.service.update(id, parsed.data, authorization.actor)
-    invalidateCategoryCache(dependencies)
+    invalidateCategoryCache(dependencies, category.kind)
     return jsonNoStore({ category })
   } catch (error) {
     return categoryErrorResponse(error)

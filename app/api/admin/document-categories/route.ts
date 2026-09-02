@@ -52,7 +52,7 @@ export async function handleCreateCategory(
 
   try {
     const category = await dependencies.service.create(parsed.data, authorization.actor)
-    invalidateCategoryCache(dependencies)
+    invalidateCategoryCache(dependencies, category.kind)
     return jsonNoStore({ category }, { status: 201 })
   } catch (error) {
     return categoryErrorResponse(error)
