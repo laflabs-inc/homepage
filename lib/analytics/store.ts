@@ -25,6 +25,12 @@ export type AnalyticsCountRow = {
   count: number
 }
 
+export type AnalyticsDailyPoint = {
+  date: string
+  visitors: number
+  pageViews: number
+}
+
 export type AnalyticsSummary = {
   rangeDays: AnalyticsRange
   consentedVisitors: number
@@ -44,6 +50,7 @@ export type AnalyticsSummary = {
   referrers: AnalyticsCountRow[]
   products: AnalyticsCountRow[]
   githubTargets: AnalyticsCountRow[]
+  daily: AnalyticsDailyPoint[]
 }
 
 type AnalyticsSummaryRow = {
@@ -60,6 +67,7 @@ type AnalyticsSummaryRow = {
   referrers: unknown
   products: unknown
   githubTargets: unknown
+  daily: unknown
 }
 
 const productTargets = products.map(({ id }) => id)
@@ -92,6 +100,33 @@ function conversionRate(numerator: number, denominator: number): number {
   return Math.round((numerator / denominator) * 10_000) / 10_000
 }
 
+function toDailyPoints(
+  value: unknown,
+  range: AnalyticsRange,
+  now: Date,
+): AnalyticsDailyPoint[] {
+  const rows = new Map<string, AnalyticsDailyPoint>()
+  if (Array.isArray(value)) {
+    for (const row of value) {
+      if (typeof row !== "object" || row === null) continue
+      const { date, visitors, pageViews } = row as Record<string, unknown>
+      if (typeof date !== "string") continue
+      rows.set(date, {
+        date,
+        visitors: toCount(typeof visitors === "string" || typeof visitors === "number" ? visitors : undefined),
+        pageViews: toCount(typeof pageViews === "string" || typeof pageViews === "number" ? pageViews : undefined),
+      })
+    }
+  }
+
+  const end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  const start = end - (range - 1) * DAY_MS
+  return Array.from({ length: range }, (_, index) => {
+    const date = new Date(start + index * DAY_MS).toISOString().slice(0, 10)
+    return rows.get(date) ?? { date, visitors: 0, pageViews: 0 }
+  })
+}
+
 export async function getAnalyticsSummary(
   range: AnalyticsRange,
   now: Date,
@@ -107,7 +142,8 @@ export async function getAnalyticsSummary(
         "locale",
         "device_category",
         "referrer_host",
-        "occurred_at"
+        "occurred_at",
+        "received_at"
       FROM ${analyticsEvents}
       WHERE ${analyticsEvents.receivedAt} >= ${cutoff}
         AND ${analyticsEvents.receivedAt} <= ${now}
@@ -142,6 +178,13 @@ export async function getAnalyticsSummary(
         (SELECT count(*)::integer FROM product_stage) AS "productVisitors",
         (SELECT count(*)::integer FROM contact_stage) AS "contactVisitors"
       FROM selected
+    ), daily_rows AS (
+      SELECT
+        date_trunc('day', received_at AT TIME ZONE 'UTC')::date::text AS date,
+        count(DISTINCT visitor_hash)::integer AS visitors,
+        count(*) FILTER (WHERE event_type = 'page_view')::integer AS "pageViews"
+      FROM selected
+      GROUP BY 1
     ), locale_rows AS (
       SELECT locale AS key, count(*)::integer AS count
       FROM selected
@@ -194,7 +237,11 @@ export async function getAnalyticsSummary(
       COALESCE(
         (SELECT jsonb_agg(jsonb_build_object('key', key, 'count', count) ORDER BY count DESC, key ASC) FROM github_rows),
         '[]'::jsonb
-      ) AS "githubTargets"
+      ) AS "githubTargets",
+      COALESCE(
+        (SELECT jsonb_agg(jsonb_build_object('date', date, 'visitors', visitors, 'pageViews', "pageViews") ORDER BY date) FROM daily_rows),
+        '[]'::jsonb
+      ) AS daily
     FROM metrics
   `)
   const row = result.rows[0]
@@ -221,6 +268,7 @@ export async function getAnalyticsSummary(
     referrers: toCountRows(row?.referrers),
     products: toCountRows(row?.products),
     githubTargets: toCountRows(row?.githubTargets),
+    daily: toDailyPoints(row?.daily, range, now),
   }
 }
 

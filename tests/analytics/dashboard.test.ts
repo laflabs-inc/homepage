@@ -60,6 +60,7 @@ describe("analytics dashboard aggregation", () => {
       referrers: [{ key: "github.com", count: 5 }],
       products: [{ key: "laf-id", count: 7 }],
       githubTargets: [{ key: "lafetch", count: 4 }],
+      daily: expect.any(Array),
     })
 
     const compiled = new PgDialect().sqlToQuery(executeMock.mock.calls[0][0])
@@ -87,6 +88,50 @@ describe("analytics dashboard aggregation", () => {
     expect(normalizedSql).toContain("event_type = 'contact_click'")
     expect(normalizedSql).toContain("limit 10")
     expect(JSON.stringify(await getAnalyticsSummary(30, now))).not.toContain("visitorHash")
+  })
+
+  it("returns seven UTC days and fills dates without traffic", async () => {
+    executeMock.mockResolvedValue({
+      rows: [{
+        consentedVisitors: 3,
+        pageViews: 8,
+        productClicks: 0,
+        githubClicks: 0,
+        contactClicks: 0,
+        pageVisitors: 3,
+        productVisitors: 0,
+        contactVisitors: 0,
+        locales: [],
+        devices: [],
+        referrers: [],
+        products: [],
+        githubTargets: [],
+        daily: [
+          { date: "2026-08-15", visitors: 9, pageViews: 9 },
+          { date: "2026-08-16", visitors: "2", pageViews: "3" },
+          { date: "2026-08-18", visitors: 1, pageViews: 4 },
+          { date: "2026-08-22", visitors: 1, pageViews: 1 },
+        ],
+      }],
+    })
+
+    const summary = await getAnalyticsSummary(7, now)
+
+    expect(summary.daily).toEqual([
+      { date: "2026-08-16", visitors: 2, pageViews: 3 },
+      { date: "2026-08-17", visitors: 0, pageViews: 0 },
+      { date: "2026-08-18", visitors: 1, pageViews: 4 },
+      { date: "2026-08-19", visitors: 0, pageViews: 0 },
+      { date: "2026-08-20", visitors: 0, pageViews: 0 },
+      { date: "2026-08-21", visitors: 0, pageViews: 0 },
+      { date: "2026-08-22", visitors: 1, pageViews: 1 },
+    ])
+
+    const compiled = new PgDialect().sqlToQuery(executeMock.mock.calls[0][0])
+    const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
+    expect(normalizedSql).toContain("date_trunc('day'")
+    expect(normalizedSql).toContain("count(distinct visitor_hash)")
+    expect(normalizedSql).toContain("where event_type = 'page_view'")
   })
 
   it("never exposes a downstream funnel stage above its upstream cohort", async () => {

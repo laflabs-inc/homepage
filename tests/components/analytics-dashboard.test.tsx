@@ -41,6 +41,7 @@ const summary: AnalyticsSummary = {
   referrers: [{ key: "github.com", count: 5 }],
   products: [{ key: "laf-id", count: 7 }],
   githubTargets: [{ key: "lafetch", count: 4 }],
+  daily: [],
 }
 
 beforeEach(() => {
