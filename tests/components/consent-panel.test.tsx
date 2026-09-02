@@ -46,7 +46,7 @@ vi.mock("@vercel/speed-insights/next", () => ({
 }))
 
 import { ConsentPanel } from "@/components/analytics/consent-panel"
-import { ConsentProvider, useConsent } from "@/components/analytics/consent-provider"
+import { ConsentProvider, useAnalytics, useConsent } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { Landing } from "@/components/landing"
 import { SiteFooter } from "@/components/layout/site-footer"
@@ -84,6 +84,16 @@ function ConsentProbe() {
       <output aria-label="consent error">{error ?? ""}</output>
       <button type="button" onClick={openSettings}>Open settings</button>
     </div>
+  )
+}
+
+function AnalyticsProbe() {
+  const { track } = useAnalytics()
+
+  return (
+    <button type="button" onClick={() => track("contact_click", "email")}>
+      Track contact
+    </button>
   )
 }
 
@@ -224,6 +234,24 @@ describe("ConsentPanel", () => {
 })
 
 describe("ConsentProvider", () => {
+  it("lets public features track through the consent-owned client", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <AnalyticsProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledOnce())
+    analyticsClientMocks.track.mockClear()
+    await user.click(screen.getByRole("button", { name: "Track contact" }))
+
+    expect(analyticsClientMocks.track).toHaveBeenCalledWith("contact_click", "email")
+  })
+
   it.each([
     ["unknown", false],
     ["essential", false],
