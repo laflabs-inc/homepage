@@ -121,7 +121,20 @@ describe("SiteHeader search overlay", () => {
     await user.type(screen.getByRole("searchbox"), "a")
     await user.click(screen.getByRole("button", { name: "검색 실행" }))
 
-    expect(screen.getByText("두 글자 이상 입력해 주세요.")).toBeInTheDocument()
+    expect(screen.getByText("검색어는 2자 이상 100자 이하로 입력해 주세요.")).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("explains the full query length range in English", async () => {
+    const user = userEvent.setup()
+    renderHeader("en")
+    const trigger = screen.getByRole("button", { name: "Search" })
+    await user.click(trigger)
+
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "a".repeat(101) } })
+    await user.click(screen.getByRole("button", { name: "Search" }))
+
+    expect(screen.getByText("Enter a search query between 2 and 100 characters.")).toBeInTheDocument()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -159,7 +172,7 @@ describe("SiteHeader search overlay", () => {
 
     fireEvent.change(searchbox, { target: { value: "a".repeat(101) } })
     await user.click(screen.getByRole("button", { name: "검색 실행" }))
-    expect(screen.getByText("두 글자 이상 입력해 주세요.")).toBeInTheDocument()
+    expect(screen.getByText("검색어는 2자 이상 100자 이하로 입력해 주세요.")).toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
@@ -190,7 +203,7 @@ describe("SiteHeader search overlay", () => {
     fireEvent.change(searchbox, { target: { value: "a" } })
     await user.click(screen.getByRole("button", { name: "검색 실행" }))
 
-    expect(screen.getByText("두 글자 이상 입력해 주세요.")).toBeInTheDocument()
+    expect(screen.getByText("검색어는 2자 이상 100자 이하로 입력해 주세요.")).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: /Laf ID/ })).not.toBeInTheDocument()
   })
 
