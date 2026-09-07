@@ -422,6 +422,22 @@
   }
 }
 
+@media (max-height: 600px) {
+  .overlay {
+    overflow-y: auto;
+  }
+
+  .inner {
+    height: auto;
+    min-height: 100%;
+    display: block;
+  }
+
+  .results {
+    overflow-y: visible;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .trigger,
   .submit,

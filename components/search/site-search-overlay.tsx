@@ -65,10 +65,17 @@ function SearchDialog({
   const reducedMotion = useReducedMotion()
   const inputRef = useRef<HTMLInputElement>(null)
   const controllerRef = useRef<AbortController | null>(null)
+  const [stateLocale, setStateLocale] = useState(locale)
   const [query, setQuery] = useState("")
   const [response, setResponse] = useState<SearchState<SiteSearchResponse> | null>(null)
   const [error, setError] = useState<SearchState<"invalid" | "unavailable"> | null>(null)
   const [pending, setPending] = useState(false)
+  if (stateLocale !== locale) {
+    setStateLocale(locale)
+    setResponse(null)
+    setError(null)
+    setPending(false)
+  }
 
   const visibleResponse = response?.locale === locale ? response.value : null
   const visibleError = error?.locale === locale ? error.value : null
@@ -113,7 +120,10 @@ function SearchDialog({
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [onClose, triggerRef])
 
-  useEffect(() => () => controllerRef.current?.abort(), [locale])
+  useEffect(() => {
+    controllerRef.current?.abort()
+    controllerRef.current = null
+  }, [locale])
 
   const submit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
@@ -125,6 +135,7 @@ function SearchDialog({
     setPending(false)
 
     if (queryLength < 2 || queryLength > 100) {
+      setResponse(null)
       setError({ locale, value: "invalid" })
       return
     }
@@ -149,6 +160,7 @@ function SearchDialog({
     } catch (cause) {
       if (controller.signal.aborted || (cause instanceof DOMException && cause.name === "AbortError")) return
       if (controllerRef.current === controller) {
+        setResponse(null)
         setError({ locale, value: "unavailable" })
       }
     } finally {
@@ -195,7 +207,6 @@ function SearchDialog({
             type="search"
             name="q"
             value={query}
-            maxLength={100}
             autoComplete="off"
             spellCheck="false"
             aria-describedby={`${SITE_SEARCH_OVERLAY_ID}-status`}
