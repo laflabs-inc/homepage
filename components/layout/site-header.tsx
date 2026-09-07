@@ -1,10 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
 import { usePathname, useRouter } from "next/navigation"
 
+import { useAnalytics } from "@/components/analytics/consent-provider"
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
+import { SITE_SEARCH_OVERLAY_ID, SiteSearchOverlay } from "@/components/search/site-search-overlay"
+import searchStyles from "@/components/search/site-search-overlay.module.css"
 import { Logo } from "@/components/ui/logo"
 import { contactEmail, copy, githubOrg } from "@/lib/content"
 import { locales } from "@/lib/i18n"
@@ -56,10 +59,20 @@ function LanguageToggle({ navigateDocumentLocale = false }: { navigateDocumentLo
   )
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return true
+  return target.isContentEditable || Boolean(target.closest('[contenteditable="true"], [contenteditable=""]'))
+}
+
 export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
   const locale = useLocale()
   const t = copy[locale].nav
+  const searchCopy = copy[locale].search
+  const { track } = useAnalytics()
   const [stuck, setStuck] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchTriggerRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const onScroll = () => setStuck(window.scrollY > 8)
@@ -68,8 +81,30 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k" || isEditableTarget(event.target)) return
+      event.preventDefault()
+      setSearchOpen((currentlyOpen) => {
+        if (!currentlyOpen) track("search_open", null)
+        return true
+      })
+    }
+
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [track])
+
+  const toggleSearch = () => {
+    setSearchOpen((currentlyOpen) => {
+      if (!currentlyOpen) track("search_open", null)
+      return !currentlyOpen
+    })
+  }
+
   return (
-    <header className="site-header" data-stuck={stuck}>
+    <>
+      <header className="site-header" data-stuck={stuck || searchOpen}>
       <div className="header-inner">
         <a href={homeHref ?? "#top"} aria-label="LafLabs">
           <Logo />
@@ -88,6 +123,17 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
 
         <div className="header-actions">
           <LanguageToggle navigateDocumentLocale={Boolean(homeHref)} />
+          <button
+            ref={searchTriggerRef}
+            className={searchStyles.trigger}
+            type="button"
+            aria-label={searchOpen ? searchCopy.close : searchCopy.open}
+            aria-expanded={searchOpen}
+            aria-controls={SITE_SEARCH_OVERLAY_ID}
+            onClick={toggleSearch}
+          >
+            {searchOpen ? <CloseGlyph /> : <SearchGlyph />}
+          </button>
           <a
             href={githubOrg}
             target="_blank"
@@ -101,8 +147,22 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
           </a>
         </div>
       </div>
-    </header>
+      </header>
+      <SiteSearchOverlay
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        triggerRef={searchTriggerRef}
+      />
+    </>
   )
+}
+
+function SearchGlyph() {
+  return <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="m12.2 12.2 4.1 4.1" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+}
+
+function CloseGlyph() {
+  return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 4.5 11 11m0-11-11 11" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
 }
 
 export function GithubGlyph({ size = 16 }: { size?: number }) {

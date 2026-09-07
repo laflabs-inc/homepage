@@ -9,6 +9,9 @@ export const eventTypes = [
   "contact_click",
   "locale_change",
   "consent_update",
+  "search_open",
+  "search_submit",
+  "search_result_click",
 ] as const
 
 export type AnalyticsEventType = (typeof eventTypes)[number]
@@ -21,6 +24,11 @@ const githubTargets = new Set<string>([
   ...repositories.map(({ name }) => name),
 ])
 const publicPaths = new Set(["/"])
+
+const searchResultGroups = new Set([
+  "page", "product", "open-source", "notice", "legal", "disclosure",
+])
+const searchSubmitTarget = /^q(?:[2-9]|[1-9]\d|100):r(?:0|[1-9]\d{0,2})$/
 
 const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): boolean => {
   switch (type) {
@@ -36,6 +44,12 @@ const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): bool
       return targetId === "ko" || targetId === "en"
     case "consent_update":
       return targetId === "analytics"
+    case "search_open":
+      return targetId === null
+    case "search_submit":
+      return targetId !== null && searchSubmitTarget.test(targetId)
+    case "search_result_click":
+      return targetId !== null && searchResultGroups.has(targetId)
   }
 }
 

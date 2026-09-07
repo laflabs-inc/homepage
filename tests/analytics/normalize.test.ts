@@ -65,6 +65,9 @@ describe("analytics event schema", () => {
     ["contact_click", "email"],
     ["locale_change", "ko"],
     ["consent_update", "analytics"],
+    ["search_open", null],
+    ["search_submit", "q6:r6"],
+    ["search_result_click", "product"],
   ])("accepts the allowlisted %s target %s", (type, targetId) => {
     expect(AnalyticsEventInputSchema.safeParse({ ...baseEvent, type, targetId }).success).toBe(true)
   })
@@ -87,6 +90,16 @@ describe("analytics event schema", () => {
       ...baseEvent,
       type: "page_view",
       targetId: "email",
+    }).success).toBe(false)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "search_submit",
+      targetId: "Laf ID",
+    }).success).toBe(false)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "search_result_click",
+      targetId: "/products/laf-id",
     }).success).toBe(false)
   })
 
