@@ -30,8 +30,25 @@ function scoreResult(result: SearchableResult, query: string, locale: Locale) {
   return null
 }
 
+function toSiteSearchResult(result: SearchableResult): SiteSearchResult {
+  return {
+    id: result.id,
+    group: result.group,
+    title: result.title,
+    description: result.description,
+    href: result.href,
+  }
+}
+
 function staticResults(locale: Locale): SearchableResult[] {
   const t = copy[locale]
+  const company = locale === "ko" ? {
+    title: "분야를 가리지 않고, 필요한 것을 만듭니다.",
+    description: "아이덴티티, 결제, 클라우드, 오픈소스. 문제는 달라도 만드는 원칙은 같습니다.",
+  } : {
+    title: "We don't build for one category. We build what is needed.",
+    description: "Identity, payments, cloud, and open source. Different problems, one way of building.",
+  }
 
   return [
     {
@@ -41,6 +58,34 @@ function staticResults(locale: Locale): SearchableResult[] {
       description: t.hero.lede,
       href: "/",
       keywords: ["home", "homepage", "홈", "홈페이지"],
+    },
+    {
+      id: "company",
+      group: "page",
+      title: company.title,
+      description: company.description,
+      href: "/#company",
+      keywords: ["company", "회사", "BUILD QUIETLY", "WORK RELIABLY"],
+    },
+    {
+      id: "build-loop",
+      group: "page",
+      title: t.buildLoop.title,
+      description: t.buildLoop.lede,
+      href: "/#build-loop",
+      keywords: t.buildLoop.steps.flatMap((step) => [step.title, step.body, step.caption]),
+    },
+    {
+      id: "latest-signals",
+      group: "page",
+      title: t.signals.title,
+      description: t.signals.lede,
+      href: "/#latest-signals",
+      keywords: [
+        t.signals.label,
+        t.signals.listTitle,
+        ...Object.values(t.signals.kinds),
+      ],
     },
     {
       id: "products",
@@ -134,10 +179,7 @@ export async function searchSite(
       return score === null ? [] : [{ result, score }]
     })
     .sort((left, right) => left.score - right.score)
-    .map(({ result }) => {
-      const { keywords: _keywords, ...searchResult } = result
-      return searchResult
-    })
+    .map(({ result }) => toSiteSearchResult(result))
 
   try {
     const documentLists = await Promise.all(documentKinds.map((kind) => listPublishedDocuments({

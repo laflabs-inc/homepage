@@ -217,11 +217,10 @@
   gap: 24px;
   align-items: center;
   border-bottom: 1px solid var(--line);
-  transition: background 180ms ease, color 180ms ease, padding 180ms ease;
+  transition: background 180ms ease, color 180ms ease;
 }
 
 .result:hover {
-  padding-inline: 12px;
   background: #eff6ff;
 }
 
@@ -325,7 +324,7 @@
   border: 0;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 720px) {
   .trigger {
     width: 44px;
     height: 44px;
@@ -389,9 +388,6 @@
     gap: 10px 14px;
   }
 
-  .result:hover {
-    padding-inline: 8px;
-  }
 
   .resultLabel {
     grid-column: 1;
@@ -420,6 +416,12 @@
     border-top: 1px solid var(--line);
     border-left: 0;
   }
+
+  .empty a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
 @media (max-height: 600px) {
@@ -428,13 +430,72 @@
   }
 
   .inner {
+    padding-top: 12px;
     height: auto;
     min-height: 100%;
     display: block;
   }
 
+  .intro {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 16px;
+    align-items: end;
+  }
+
+  .intro h1 {
+    font-size: 24px;
+  }
+
+  .intro p {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+    text-align: right;
+  }
+
+  .form {
+    margin-top: 10px;
+    grid-template-columns: minmax(0, 1fr) 48px;
+  }
+
+  .input {
+    height: 48px;
+    font-size: clamp(28px, 7vw, 40px);
+  }
+
+  .submit svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .status {
+    min-height: 32px;
+    padding: 7px 0 6px;
+  }
+
   .results {
+    padding-bottom: 20px;
     overflow-y: visible;
+  }
+
+  .notice {
+    margin-bottom: 12px;
+    padding: 8px 0;
+  }
+
+  .group + .group {
+    margin-top: 24px;
+  }
+
+  .group h2 {
+    margin-bottom: 8px;
+  }
+
+  .idle,
+  .empty {
+    min-height: 0;
+    padding: 10px 0;
   }
 }
 

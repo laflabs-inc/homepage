@@ -66,7 +66,14 @@ type Copy = {
     groupProducts: string
     groupDocuments: string
     noResult: string
+    partialEmpty: string
     partialResult: string
+    resultPage: string
+    resultProduct: string
+    resultRepository: string
+    resultNotice: string
+    resultLegal: string
+    resultDisclosure: string
     unavailable: string
     retry: string
     fallbackNotices: string
@@ -155,7 +162,14 @@ const ko: Copy = {
     groupProducts: "제품·오픈소스",
     groupDocuments: "공지·공시·약관",
     noResult: "검색 결과가 없습니다.",
+    partialEmpty: "문서 검색을 확인할 수 없어 결과가 없는지 확정할 수 없습니다.",
     partialResult: "문서 검색은 일시적으로 사용할 수 없습니다. 나머지 결과를 표시합니다.",
+    resultPage: "페이지",
+    resultProduct: "제품",
+    resultRepository: "저장소",
+    resultNotice: "공지사항",
+    resultLegal: "법적 고지",
+    resultDisclosure: "공시",
     unavailable: "검색을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
     retry: "다시 시도",
     fallbackNotices: "공지사항",
@@ -308,7 +322,14 @@ const en: Copy = {
     groupProducts: "Products & open source",
     groupDocuments: "Notices, disclosures & legal",
     noResult: "No search results found.",
+    partialEmpty: "Document search is unavailable, so we can't confirm that there are no results.",
     partialResult: "Document search is temporarily unavailable. Showing the remaining results.",
+    resultPage: "Page",
+    resultProduct: "Product",
+    resultRepository: "Repository",
+    resultNotice: "Notice",
+    resultLegal: "Legal",
+    resultDisclosure: "Disclosure",
     unavailable: "Search is unavailable. Please try again shortly.",
     retry: "Try again",
     fallbackNotices: "Notices",

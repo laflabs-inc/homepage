@@ -69,6 +69,19 @@ describe("public site search API", () => {
     await expect(response.json()).resolves.toEqual(payload)
   })
 
+  it("accepts one hundred astral Unicode code points at the API boundary", async () => {
+    const query = "😀".repeat(100)
+    const repositoryOverride = repository()
+
+    const response = await handleSiteSearch(
+      request(`q=${encodeURIComponent(query)}&locale=en`),
+      repositoryOverride,
+    )
+
+    expect(response.status).toBe(200)
+    expect(searchSiteMock).toHaveBeenCalledWith(query, "en", repositoryOverride)
+  })
+
   it("hides search failures behind an unavailable error", async () => {
     searchSiteMock.mockRejectedValueOnce(new Error("DATABASE_URL=postgres://secret"))
 

@@ -134,4 +134,29 @@ describe("searchSite", () => {
       title: "Laf ID",
     }))
   })
+
+  it.each([
+    ["ko", "필요한 것", "company", "/#company"],
+    ["en", "one category", "company", "/#company"],
+    ["ko", "공통 기반", "build-loop", "/#build-loop"],
+    ["en", "Systems follow", "build-loop", "/#build-loop"],
+    ["ko", "만든 것과 배운 것", "latest-signals", "/#latest-signals"],
+    ["en", "document what we build", "latest-signals", "/#latest-signals"],
+  ] as const)("indexes the displayed %s homepage section content for %s", async (
+    locale,
+    query,
+    id,
+    href,
+  ) => {
+    const repository = createRepository(vi.fn().mockResolvedValue([]))
+
+    const result = await searchSite(query, locale, repository)
+
+    expect(result.results).toContainEqual(expect.objectContaining({
+      id,
+      group: "page",
+      href,
+    }))
+  })
+
 })

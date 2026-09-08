@@ -105,6 +105,7 @@ export function BuildLoop() {
 
   return (
     <section
+      id="build-loop"
       className={styles.buildLoop}
       ref={section}
       aria-labelledby="build-loop-title"

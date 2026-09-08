@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { StrictMode } from "react"
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -17,6 +18,7 @@ vi.mock("@/components/search/site-search-overlay.module.css", () => ({
 }))
 vi.mock("@/components/analytics/consent-provider", () => ({
   useAnalytics: () => ({ track: analyticsTrackMock }),
+  useConsent: () => ({ panelOpen: false, track: analyticsTrackMock }),
 }))
 vi.mock("motion/react", () => ({
   motion: {
@@ -55,11 +57,11 @@ const searchResponse: SiteSearchResponse = {
   ],
 }
 
-function renderHeader(locale: "ko" | "en" = "ko") {
+function renderHeader(locale: "ko" | "en" = "ko", homeHref?: string) {
   const main = document.createElement("main")
   const footer = document.createElement("footer")
   document.body.append(main, footer)
-  return { ...render(<LocaleProvider initialLocale={locale}><SiteHeader /></LocaleProvider>), main, footer }
+  return { ...render(<LocaleProvider initialLocale={locale}><SiteHeader homeHref={homeHref} /></LocaleProvider>), main, footer }
 }
 
 async function openSearch(user: ReturnType<typeof userEvent.setup>) {
@@ -94,6 +96,21 @@ describe("SiteHeader search overlay", () => {
     expect(analyticsTrackMock).toHaveBeenCalledWith("search_open", null)
   })
 
+  it("tracks one search-open event per closed-to-open transition under Strict Mode", async () => {
+    const user = userEvent.setup()
+    render(
+      <StrictMode>
+        <LocaleProvider initialLocale="ko"><SiteHeader /></LocaleProvider>
+      </StrictMode>,
+    )
+
+    await user.keyboard("{Control>}k{/Control}")
+    await user.keyboard("{Control>}k{/Control}")
+
+    expect(analyticsTrackMock.mock.calls.filter(([type]) => type === "search_open")).toHaveLength(1)
+  })
+
+
   it("submits the active locale and groups returned results", async () => {
     const user = userEvent.setup()
     renderHeader()
@@ -112,6 +129,45 @@ describe("SiteHeader search overlay", () => {
     expect(screen.getByRole("heading", { name: "공지·공시·약관" })).toBeInTheDocument()
     expect(analyticsTrackMock).toHaveBeenCalledWith("search_submit", "q6:r6")
   })
+
+  it.each([
+    ["ko", "검색", "검색 실행", [
+      ["LafLabs", "페이지"],
+      ["Laf ID", "제품"],
+      ["lafetch", "저장소"],
+      ["Notice", "공지사항"],
+      ["Legal", "법적 고지"],
+      ["Disclosure", "공시"],
+    ]],
+    ["en", "Search", "Search", [
+      ["LafLabs", "Page"],
+      ["Laf ID", "Product"],
+      ["lafetch", "Repository"],
+      ["Notice", "Notice"],
+      ["Legal", "Legal"],
+      ["Disclosure", "Disclosure"],
+    ]],
+  ] as const)("labels every %s result row by its specific content type", async (
+    locale,
+    openLabel,
+    submitLabel,
+    expectedRows,
+  ) => {
+    const user = userEvent.setup()
+    renderHeader(locale)
+    await user.click(screen.getByRole("button", { name: openLabel }))
+    await user.type(screen.getByRole("searchbox"), "Laf ID")
+    await user.click(screen.getByRole("button", { name: submitLabel }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce())
+    for (const [title, label] of expectedRows) {
+      const resultLink = within(screen.getByRole("dialog")).getByRole("link", {
+        name: new RegExp(title),
+      })
+      expect(within(resultLink).getByText(label, { selector: "span.resultLabel" })).toBeVisible()
+    }
+  })
+
 
   it("shows a local validation message instead of fetching a short query", async () => {
     const user = userEvent.setup()
@@ -265,31 +321,72 @@ describe("SiteHeader search overlay", () => {
     expect(screen.getByRole("link", { name: /Second current/ })).toBeInTheDocument()
   })
 
-  it("renders no-result fallbacks and partial-result warnings", async () => {
+  it("announces a definitive no-result state once and closes after persistent fallback navigation", async () => {
     const user = userEvent.setup()
-    fetchMock
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ query: "missing", partial: false, results: [] } satisfies SiteSearchResponse),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ ...searchResponse, partial: true }),
-      })
-    renderHeader()
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ query: "missing", partial: false, results: [] } satisfies SiteSearchResponse),
+    })
+    renderHeader("ko", "/")
     const { searchbox } = await openSearch(user)
 
     fireEvent.change(searchbox, { target: { value: "missing" } })
     await user.click(screen.getByRole("button", { name: "검색 실행" }))
-    expect(await screen.findByText("검색 결과가 없습니다.")).toBeInTheDocument()
+
+    const status = screen.getByRole("status")
+    expect(status).toHaveTextContent("검색 결과가 없습니다.")
+    expect(screen.getByText("검색 결과가 없습니다.", { selector: "p" })).toHaveAttribute("aria-hidden", "true")
     expect(screen.getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices")
     expect(screen.getByRole("link", { name: "디자인 가이드" })).toHaveAttribute("href", "/design")
     expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", "https://github.com/laflabs-inc")
 
+    await user.click(screen.getByRole("link", { name: "디자인 가이드" }))
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+  })
+
+  it("announces partial results through the single live status", async () => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ...searchResponse, partial: true }),
+    })
+    renderHeader()
+    const { searchbox } = await openSearch(user)
+
     fireEvent.change(searchbox, { target: { value: "Laf ID" } })
     await user.click(screen.getByRole("button", { name: "검색 실행" }))
-    expect(await screen.findByText("문서 검색은 일시적으로 사용할 수 없습니다. 나머지 결과를 표시합니다.")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: /Laf ID/ })).toBeInTheDocument()
+
+    const warning = "문서 검색은 일시적으로 사용할 수 없습니다. 나머지 결과를 표시합니다."
+    expect(await screen.findByRole("link", { name: /Laf ID/ })).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent(`검색 결과 6개 ${warning}`)
+    expect(screen.getByText(warning, { selector: "p" })).toHaveAttribute("aria-hidden", "true")
+    expect(screen.getAllByRole("status")).toHaveLength(1)
+  })
+
+  it.each([
+    ["ko", "검색", "검색 실행", "검색 결과가 없습니다.", "문서 검색을 확인할 수 없어 결과가 없는지 확정할 수 없습니다."],
+    ["en", "Search", "Search", "No search results found.", "Document search is unavailable, so we can't confirm that there are no results."],
+  ] as const)("uses a localized indeterminate empty state for partial %s responses", async (
+    locale,
+    openLabel,
+    submitLabel,
+    definitiveEmpty,
+    partialEmpty,
+  ) => {
+    const user = userEvent.setup()
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ query: "missing", partial: true, results: [] } satisfies SiteSearchResponse),
+    })
+    renderHeader(locale)
+    await user.click(screen.getByRole("button", { name: openLabel }))
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "missing" } })
+    await user.click(screen.getByRole("button", { name: submitLabel }))
+
+    expect(screen.getByRole("status")).toHaveTextContent(partialEmpty)
+    expect(screen.getByText(partialEmpty, { selector: "p" })).toHaveAttribute("aria-hidden", "true")
+    expect(screen.queryByText(definitiveEmpty)).not.toBeInTheDocument()
+    expect(screen.getAllByRole("status")).toHaveLength(1)
   })
 
   it("ignores Command/Ctrl+K from every editable target", async () => {
@@ -320,14 +417,23 @@ describe("SiteHeader search overlay", () => {
     expect(screen.getByRole("dialog", { name: "사이트 검색" })).toBeInTheDocument()
   })
 
-  it("scrolls the complete inner surface on short-height viewports", () => {
+  it("keeps mobile targets, breakpoint alignment, compact short-height feedback, and stable row hover layout", () => {
     const css = readFileSync(
       resolve(process.cwd(), "components/search/site-search-overlay.module.css"),
       "utf8",
     )
 
+    expect(css).toContain("@media (max-width: 720px)")
+    expect(css).not.toContain("@media (max-width: 700px)")
+    expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.empty a\s*\{[\s\S]*?min-height: 44px/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.overlay\s*\{[\s\S]*?overflow-y: auto/)
-    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.inner\s*\{[\s\S]*?height: auto[\s\S]*?display: block/)
+    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.inner\s*\{[\s\S]*?padding-top: 12px[\s\S]*?height: auto/)
+    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.intro\s*\{[\s\S]*?grid-template-columns/)
+    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.form\s*\{[\s\S]*?margin-top: 10px/)
+    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.input\s*\{[\s\S]*?height: 48px/)
+    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.status\s*\{[\s\S]*?min-height: 32px/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.results\s*\{[\s\S]*?overflow-y: visible/)
+    expect(css).not.toMatch(/\.result\s*\{[^}]*transition:[^;]*padding/)
+    expect(css).not.toMatch(/\.result:hover\s*\{[^}]*padding/)
   })
 })

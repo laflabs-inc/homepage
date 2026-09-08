@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { motion, useReducedMotion } from "motion/react"
 import { usePathname, useRouter } from "next/navigation"
 
-import { useAnalytics } from "@/components/analytics/consent-provider"
+import { useConsent } from "@/components/analytics/consent-provider"
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { SITE_SEARCH_OVERLAY_ID, SiteSearchOverlay } from "@/components/search/site-search-overlay"
 import searchStyles from "@/components/search/site-search-overlay.module.css"
@@ -69,10 +69,16 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
   const locale = useLocale()
   const t = copy[locale].nav
   const searchCopy = copy[locale].search
-  const { track } = useAnalytics()
+  const { panelOpen, track } = useConsent()
   const [stuck, setStuck] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const searchTriggerRef = useRef<HTMLButtonElement>(null)
+
+  const openSearch = useCallback(() => {
+    if (panelOpen || searchOpen) return
+    track("search_open", null)
+    setSearchOpen(true)
+  }, [panelOpen, searchOpen, track])
 
   useEffect(() => {
     const onScroll = () => setStuck(window.scrollY > 8)
@@ -85,21 +91,16 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
     const onKeyDown = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "k" || isEditableTarget(event.target)) return
       event.preventDefault()
-      setSearchOpen((currentlyOpen) => {
-        if (!currentlyOpen) track("search_open", null)
-        return true
-      })
+      openSearch()
     }
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [track])
+  }, [openSearch])
 
   const toggleSearch = () => {
-    setSearchOpen((currentlyOpen) => {
-      if (!currentlyOpen) track("search_open", null)
-      return !currentlyOpen
-    })
+    if (searchOpen) setSearchOpen(false)
+    else openSearch()
   }
 
   return (
@@ -130,6 +131,7 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
             aria-label={searchOpen ? searchCopy.close : searchCopy.open}
             aria-expanded={searchOpen}
             aria-controls={SITE_SEARCH_OVERLAY_ID}
+            disabled={panelOpen}
             onClick={toggleSearch}
           >
             {searchOpen ? <CloseGlyph /> : <SearchGlyph />}

@@ -33,7 +33,7 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe("homepage refresh", () => {
   it("presents the humanized Korean company and engineering story", () => {
-    render(
+    const { container } = render(
       <LocaleProvider initialLocale="ko">
         <Landing />
       </LocaleProvider>,
@@ -63,6 +63,9 @@ describe("homepage refresh", () => {
       "data-company-line",
       "motto",
     )
+    expect(container.querySelector("section#company")).toBeInTheDocument()
+    expect(container.querySelector("section#build-loop")).toBeInTheDocument()
+    expect(container.querySelector("section#latest-signals")).toBeInTheDocument()
   })
 
   it("keeps the product-to-system ending in the English locale", () => {

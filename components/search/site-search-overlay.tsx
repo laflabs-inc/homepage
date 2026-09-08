@@ -180,6 +180,24 @@ function SearchDialog({
     products: t.groupProducts,
     documents: t.groupDocuments,
   }
+  const resultLabels: Record<SiteSearchGroup, string> = {
+    page: t.resultPage,
+    product: t.resultProduct,
+    "open-source": t.resultRepository,
+    notice: t.resultNotice,
+    legal: t.resultLegal,
+    disclosure: t.resultDisclosure,
+  }
+  const resultCount = visibleResponse?.results.length ?? 0
+  const responseStatus = !visibleResponse
+    ? null
+    : visibleResponse.partial && resultCount === 0
+      ? t.partialEmpty
+      : resultCount === 0
+        ? t.noResult
+        : visibleResponse.partial
+          ? `${t.resultCount(resultCount)} ${t.partialResult}`
+          : t.resultCount(resultCount)
 
   return (
     <motion.div
@@ -234,11 +252,13 @@ function SearchDialog({
             </span>
           ) : null}
           {pending ? t.loading : null}
-          {!pending && !visibleError && visibleResponse ? t.resultCount(visibleResponse.results.length) : null}
+          {!pending && !visibleError ? responseStatus : null}
         </div>
 
         <div className={styles.results} data-loading={pending || undefined}>
-          {visibleResponse?.partial ? <p className={styles.notice}>{t.partialResult}</p> : null}
+          {visibleResponse?.partial && resultCount > 0 ? (
+            <p className={styles.notice} aria-hidden="true">{t.partialResult}</p>
+          ) : null}
 
           {visibleResponse && visibleResponse.results.length > 0 ? groupedResults.map((group) => group.results.length > 0 ? (
             <section className={styles.group} key={group.key}>
@@ -248,7 +268,7 @@ function SearchDialog({
                   <ResultRow
                     key={`${result.group}:${result.id}`}
                     result={result}
-                    label={groupLabels[group.key]}
+                    label={resultLabels[result.group]}
                     onSelect={() => {
                       track("search_result_click", result.group)
                       onClose()
@@ -261,11 +281,18 @@ function SearchDialog({
 
           {visibleResponse && visibleResponse.results.length === 0 ? (
             <div className={styles.empty}>
-              <p>{t.noResult}</p>
-              <nav aria-label={t.noResult}>
-                <Link href="/notices">{t.fallbackNotices}</Link>
-                <Link href="/design">{t.fallbackDesign}</Link>
-                <a href={githubOrg} target="_blank" rel="noreferrer noopener">{t.fallbackGithub}</a>
+              <p aria-hidden="true">{visibleResponse.partial ? t.partialEmpty : t.noResult}</p>
+              <nav aria-label={visibleResponse.partial ? t.partialEmpty : t.noResult}>
+                <Link href="/notices" onClick={onClose}>{t.fallbackNotices}</Link>
+                <Link href="/design" onClick={onClose}>{t.fallbackDesign}</Link>
+                <a
+                  href={githubOrg}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  onClick={onClose}
+                >
+                  {t.fallbackGithub}
+                </a>
               </nav>
             </div>
           ) : null}
