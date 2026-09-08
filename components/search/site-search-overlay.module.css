@@ -12,11 +12,16 @@
   transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
 
-.trigger:hover,
+.trigger:hover:not(:disabled),
 .trigger[aria-expanded="true"] {
   border-color: var(--blue);
   background: var(--blue);
   color: white;
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .trigger svg {

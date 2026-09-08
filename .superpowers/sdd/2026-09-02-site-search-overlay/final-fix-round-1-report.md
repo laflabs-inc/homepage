@@ -60,3 +60,9 @@ Screenshots:
 - `/tmp/site-search-verification-fix1/search-390x844.png`
 - `/tmp/site-search-verification-fix1/search-568x320.png`
 - `/tmp/site-search-verification-fix1/search-1440x900-reduced.png`
+
+## Impeccable re-review addendum
+
+The remaining Minor finding is resolved. The search trigger's blue hover state now applies only while enabled, and mandatory-consent lockout uses an explicit `not-allowed` cursor with reduced opacity.
+
+The CSS source regression test failed before the style change and passed afterward. Focused verification: 1 file, 19 tests passed; `git diff --check` passed.

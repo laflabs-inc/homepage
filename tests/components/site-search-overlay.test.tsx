@@ -425,6 +425,8 @@ describe("SiteHeader search overlay", () => {
 
     expect(css).toContain("@media (max-width: 720px)")
     expect(css).not.toContain("@media (max-width: 700px)")
+    expect(css).toContain(".trigger:hover:not(:disabled),")
+    expect(css).toMatch(/\.trigger:disabled\s*\{[^}]*cursor: not-allowed[^}]*opacity:/)
     expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.empty a\s*\{[\s\S]*?min-height: 44px/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.overlay\s*\{[\s\S]*?overflow-y: auto/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.inner\s*\{[\s\S]*?padding-top: 12px[\s\S]*?height: auto/)
