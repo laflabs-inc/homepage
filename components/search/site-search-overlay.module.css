@@ -333,6 +333,40 @@
   .trigger {
     width: 44px;
     height: 44px;
+    position: relative;
+    isolation: isolate;
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .trigger::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    z-index: 0;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    pointer-events: none;
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+
+  .trigger:hover:not(:disabled),
+  .trigger[aria-expanded="true"] {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  .trigger:hover:not(:disabled)::before,
+  .trigger[aria-expanded="true"]::before {
+    border-color: var(--blue);
+    background: var(--blue);
+  }
+
+  .trigger svg {
+    width: 14px;
+    height: 14px;
+    position: relative;
+    z-index: 1;
   }
 
   .overlay {

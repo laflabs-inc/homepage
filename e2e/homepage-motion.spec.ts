@@ -2,6 +2,71 @@ import { expect, test } from "@playwright/test"
 
 const homepageUrl = "http://127.0.0.1:3201"
 
+test("mobile header keeps generous tap targets without oversized visuals", async ({ context, page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-chromium")
+  await context.addCookies([
+    { name: "laf_locale", value: "ko", url: homepageUrl },
+    { name: "laf_consent", value: "2:essential", url: homepageUrl },
+  ])
+  await page.route("**/api/content?**", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], nextCursor: null }) })
+  })
+  await page.goto("/")
+
+  const search = page.getByRole("button", { name: "검색" })
+  await search.click()
+
+  const headerGeometry = await page.locator(".site-header").evaluate((header) => {
+    const logoImage = header.querySelector<HTMLElement>(".laf-logo img")!
+    const logoText = header.querySelector<HTMLElement>(".laf-logo-text")!
+    const actions = header.querySelector<HTMLElement>(".header-actions")!
+    const searchTrigger = header.querySelector<HTMLElement>('button[aria-controls="site-search-overlay"]')!
+    const searchIcon = searchTrigger.querySelector<HTMLElement>("svg")!
+    const github = header.querySelector<HTMLElement>(".icon-toggle")!
+    const githubIcon = github.querySelector<HTMLElement>("svg")!
+    const searchFrame = getComputedStyle(searchTrigger, "::before")
+    const githubFrame = getComputedStyle(github, "::before")
+
+    return {
+      logoImage: logoImage.getBoundingClientRect().width,
+      logoText: getComputedStyle(logoText).fontSize,
+      actionsGap: getComputedStyle(actions).gap,
+      searchTarget: searchTrigger.getBoundingClientRect().width,
+      searchVisual: [searchFrame.width, searchFrame.height],
+      searchIcon: searchIcon.getBoundingClientRect().width,
+      githubTarget: github.getBoundingClientRect().width,
+      githubVisual: [githubFrame.width, githubFrame.height],
+      githubIcon: githubIcon.getBoundingClientRect().width,
+      pageWidth: document.documentElement.scrollWidth,
+      viewportWidth: document.documentElement.clientWidth,
+    }
+  })
+
+  expect(headerGeometry).toEqual({
+    logoImage: 20,
+    logoText: "16px",
+    actionsGap: "4px",
+    searchTarget: 44,
+    searchVisual: ["34px", "34px"],
+    searchIcon: 14,
+    githubTarget: 44,
+    githubVisual: ["34px", "34px"],
+    githubIcon: 15,
+    pageWidth: headerGeometry.viewportWidth,
+    viewportWidth: headerGeometry.viewportWidth,
+  })
+
+  await page.screenshot({
+    path: `test-results/mobile-header-390-${testInfo.project.name}.png`,
+    fullPage: false,
+  })
+  await page.setViewportSize({ width: 320, height: 568 })
+  await page.screenshot({
+    path: `test-results/mobile-header-320-${testInfo.project.name}.png`,
+    fullPage: false,
+  })
+})
+
 test("desktop build loop pins one stage and advances its scene", async ({ context, page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-chromium")
   await page.emulateMedia({ reducedMotion: "no-preference" })
