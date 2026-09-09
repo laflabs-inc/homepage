@@ -1,69 +1,94 @@
-# Company-first homepage redesign spec
+# Hybrid company-first homepage redesign
 
 ## Goal
 
-Move the homepage emphasis from unreleased products to LafLabs itself: what the company builds, how it works, and which public artifacts prove its engineering practice.
+Combine the original homepage's expressive Hero, Company, and framed-card language with the remake's clearer work registry and open-source structure. The finished page should introduce LafLabs as a software company before it presents individual work, while preserving the square blue identity and avoiding oversized typography or forced scrolling.
 
-## Information architecture
+## Page order
 
-1. Hero: identify LafLabs as a software company and lead to the company section.
-2. Company: explain the scope from visible product work through operating infrastructure.
-3. How we work: reuse the square three-column `ID / PAY / DOCK` composition for `Problem / Build / Operate`.
-4. Selected work: a data-driven, manually controlled showcase for products, open source, internal systems, and future client work.
-5. Engineering proof: show real public code and explain the result it produces.
-6. Open source: keep the public repository list.
-7. News: keep the existing notice/disclosure feed and restrained SIGNAL treatment.
-8. Contact: keep the direct email action.
+1. Original Hero composition and motion, with a reduced responsive type scale.
+2. Original Company composition and right-to-left entrance motion.
+3. Original three-panel product-grid composition repurposed as the LafLabs work method.
+4. Remade Selected Work registry in an image-led customer-story composition.
+5. Remade open-source section with one public repository and two undisclosed entries.
+6. Existing Latest Signals section.
+7. Existing contact section without recruitment language.
 
-## Content rules
+The standalone careers page is explicitly deferred to the next pull request.
 
-- Korean copy is short, direct, and written in Korean sentence order.
-- Do not invent customers, testimonials, metrics, investment information, product availability, or performance claims.
-- Product names first appear after the company and work-method sections.
-- Status labels make preview and in-progress work explicit.
-- Real code, public repositories, and working site systems are preferred to abstract imagery.
-- No generated UI that could be mistaken for a shipped product.
+## Hero and Company
 
-## Visual and interaction rules
+- Restore the original `LAF / 001` Hero, copy layout, blue motion field, and restrained vertical movement.
+- Restore the original dark Company section and its offset copy composition.
+- Keep the current company-first meaning and natural Korean sentence order rather than restoring translation-like legacy copy verbatim.
+- Reduce the original oversized headings so the Hero remains expressive without dominating smaller screens.
 
-- Preserve the official logo, route blue, ink/paper palette, thin rules, and square geometry.
-- Hero: 64–80px desktop, 40–52px mobile. Section headings: 40–56px desktop, 30–38px mobile. Body: 15–18px.
-- Remove long virtual scroll stages, wheel-to-horizontal conversion, and large parallax travel.
-- Selected work changes only through explicit previous/next controls, keyboard arrows, or touch swipe. It does not autoplay.
-- Entrance motion stays within 8–16px and 300–450ms. Reduced motion reveals final states immediately.
+## Work method
+
+- Reuse the original bordered three-panel `ID / PAY / DOCK` layout.
+- Replace product content with the company's work method: `ASK`, `BUILD`, and `RUN`.
+- Keep the English marks because their letterforms work as the large decorative layer.
+- Let the marks crop inside each panel and move a short distance on hover or entrance, matching the existing animation language.
+- Do not restore sticky scroll stages or wheel-to-horizontal conversion. Desktop uses a three-column grid; mobile uses native horizontal scroll with snap points.
+
+## Selected Work
+
+- Keep the typed work registry and explicit manual navigation from the remake.
+- Present the active item as a 56/44 split similar to the supplied customer-success reference: project image on the left, factual copy and metadata on the right.
+- Use a real public image or project asset when one exists. Where no product image is public, use an editorial brand image that is clearly decorative and never resembles a fabricated product screenshot.
+- Restyle navigation as square previous/next controls with a segmented progress rail. No autoplay.
+- Preserve keyboard arrows, touch swipe, visible focus, reduced motion, and privacy-safe analytics.
+
+## Open source
+
+- Keep the remake's restrained repository-list composition.
+- Show `lafetch` as the only named, linked public repository.
+- Render the remaining two rows as `Undisclosed / 미공개 프로젝트`, without links, fabricated descriptions, or implied release status.
+- Keep the organization-level GitHub link.
+
+## Typography system
+
+- Hero display: 64–80px desktop, 40–48px mobile.
+- Company display: 52–72px desktop, 36–44px mobile.
+- Section headings: 44–60px desktop, 32–40px mobile.
+- Work-card titles: 28–40px desktop, 26–32px mobile.
+- Body: 15–17px desktop, 14–16px mobile, with 1.6–1.75 line height.
+- Mono labels: 9–11px with restrained tracking.
+- Use Pretendard for Korean and the existing Geist fonts for Latin and mono content.
+
+## Search overlay
+
+- Preserve the existing full-screen dialog, keyboard behavior, loading/error states, grouping, and analytics.
+- Reduce the search heading and input scale: input 52–64px desktop and 30–38px mobile.
+- Tighten the intro, form, status, and result spacing so useful results appear without unnecessary scrolling.
+- Reduce result titles to 20–26px desktop and 18–22px mobile while keeping descriptions readable.
+- Keep square controls and the existing paper, ink, line, and route-blue palette.
+
+## Content and trust rules
+
+- Do not invent customers, testimonials, performance metrics, investment facts, or product availability.
+- Product names appear only after the company and work-method sections.
+- Real public artifacts take priority over generated proof.
+- Decorative images must not be presented as product screenshots.
+- Remove `코드가 결과를 설명합니다` from the homepage.
+- Remove recruitment from the main contact copy; do not create a careers route in this pull request.
+
+## Responsive and motion rules
+
 - Support 320px through 1440px without document-level horizontal overflow.
-- Preserve locale switching, site search, consent, analytics, documents, admin, GitHub links, and keyboard focus.
-
-## Selected work contract
-
-```ts
-type WorkItem = {
-  slug: string
-  title: string
-  category: "product" | "open-source" | "internal" | "client"
-  status: "released" | "preview" | "in-progress" | "archived"
-  summary: Record<"ko" | "en", string>
-  tags: readonly string[]
-  href?: string
-  featured: boolean
-  order: number
-  visual: {
-    kind: "code" | "document" | "system"
-    label: Record<"ko" | "en", string>
-    lines: readonly string[]
-  }
-}
-```
-
-The initial entries use only public, verifiable LafLabs work. The visual is authored from real code or a real system structure rather than an invented product screenshot.
+- Do not intercept the vertical wheel or create a sticky stage taller than the viewport.
+- Motion should stay within short transforms and purposeful section entrances.
+- Native touch scrolling remains available for the mobile work-method rail.
+- Reduced-motion users receive the final state immediately and retain every interaction.
 
 ## Completion criteria
 
-- Company identity and scope are clear before any product name appears.
-- The former product grid communicates `Problem / Build / Operate` without a sticky or horizontal-scroll stage.
-- Selected Work is extensible from data and fully operable without a mouse.
-- At least one real code sample and its purpose are visible.
-- Abstract generated imagery is not used as the main proof.
-- Korean and English remain complete.
-- Search registry and analytics targets reflect the new sections.
-- Unit tests, Playwright behavior checks, typecheck, lint, and production build pass.
+- Original Hero and Company compositions are recognizable and use the updated copy and type scale.
+- The original product panels now communicate `ASK / BUILD / RUN` without naming products.
+- Selected Work is image-led, extensible from data, and fully operable without a mouse.
+- The engineering-code section is gone.
+- Only `lafetch` is named in the open-source list; two additional entries remain undisclosed.
+- Latest Signals behaves as before.
+- Main-page recruitment language is removed and no careers route is added.
+- Search proportions and typography are visibly calmer on desktop and mobile.
+- Unit tests, Playwright checks, typecheck, lint, and production build pass.
