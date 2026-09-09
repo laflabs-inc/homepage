@@ -4,6 +4,11 @@ export type WorkCategory = "product" | "open-source" | "internal" | "client"
 export type WorkStatus = "released" | "preview" | "in-progress" | "archived"
 export type WorkVisualKind = "code" | "document" | "system"
 
+export type WorkImage = {
+  src: string
+  alt: Record<Locale, string>
+}
+
 export type WorkItem = {
   slug: string
   title: string
@@ -18,6 +23,7 @@ export type WorkItem = {
     kind: WorkVisualKind
     label: Record<Locale, string>
     lines: readonly string[]
+    image: WorkImage
   }
 }
 
@@ -38,6 +44,13 @@ export const workItems: readonly WorkItem[] = [
       kind: "system",
       label: { ko: "현재 공개 범위", en: "Current public scope" },
       lines: ["Authorization Code + PKCE", "OIDC Discovery", "JWKS", "Verify API"],
+      image: {
+        src: "/work/laf-id.webp",
+        alt: {
+          ko: "Laf ID 인증 작업을 표현한 에디토리얼 이미지",
+          en: "Editorial image representing Laf ID identity work",
+        },
+      },
     },
   },
   {
@@ -66,6 +79,13 @@ export const workItems: readonly WorkItem[] = [
         'const response = await api.get<User>("/users/123");',
         "response.data;",
       ],
+      image: {
+        src: "/work/lafetch.webp",
+        alt: {
+          ko: "lafetch 요청 흐름을 표현한 에디토리얼 이미지",
+          en: "Editorial image representing lafetch request flow",
+        },
+      },
     },
   },
   {
@@ -85,21 +105,56 @@ export const workItems: readonly WorkItem[] = [
       kind: "system",
       label: { ko: "설계 원칙", en: "System principles" },
       lines: ["Encryption boundary", "Deny by default", "Immutable versions", "API first"],
+      image: {
+        src: "/work/lafwall.webp",
+        alt: {
+          ko: "lafwall 보호 경계를 표현한 에디토리얼 이미지",
+          en: "Editorial image representing the lafwall protection boundary",
+        },
+      },
     },
   },
 ] as const
 
-const lafetchSnippet = [
-  'import { lafetch } from "@laflabs/lafetch";',
-  "",
-  "const api = lafetch.create({",
-  '  baseUrl: "https://api.example.com",',
-  "});",
-  "",
-  "const { data: users } = await api",
-  '  .get<User[]>("/users")',
-  '  .timeout("3s")',
-  "  .retry(2);",
+export type OpenSourceRow = {
+  id: string
+  title: Record<Locale, string>
+  description: Record<Locale, string>
+  language?: string
+  href?: string
+  public: boolean
+}
+
+export const openSourceRows: readonly OpenSourceRow[] = [
+  {
+    id: "lafetch",
+    title: { ko: "lafetch", en: "lafetch" },
+    description: {
+      ko: "브라우저와 서버에서 쓸 수 있는 TypeScript HTTP 클라이언트입니다.",
+      en: "A TypeScript HTTP client for browsers and servers.",
+    },
+    language: "TypeScript",
+    href: "https://github.com/laflabs-inc/lafetch",
+    public: true,
+  },
+  {
+    id: "undisclosed-01",
+    title: { ko: "미공개 프로젝트", en: "Undisclosed project" },
+    description: {
+      ko: "아직 공개하지 않은 작업입니다.",
+      en: "This work has not been made public yet.",
+    },
+    public: false,
+  },
+  {
+    id: "undisclosed-02",
+    title: { ko: "미공개 프로젝트", en: "Undisclosed project" },
+    description: {
+      ko: "아직 공개하지 않은 작업입니다.",
+      en: "This work has not been made public yet.",
+    },
+    public: false,
+  },
 ] as const
 
 type HomepageCopy = {
@@ -131,15 +186,6 @@ type HomepageCopy = {
     unavailable: string
     categories: Record<WorkCategory, string>
     statuses: Record<WorkStatus, string>
-  }
-  engineering: {
-    title: string
-    lede: string
-    file: string
-    resultTitle: string
-    resultBody: string
-    repository: string
-    snippet: readonly string[]
   }
   open: {
     title: string
@@ -175,9 +221,9 @@ const ko: HomepageCopy = {
     title: "문제를 찾고, 만들고, 직접 운영합니다.",
     lede: "제품은 실제 문제에서 시작합니다. 필요한 만큼 만들고, 운영에서 확인한 사실을 다음 작업에 남깁니다.",
     items: [
-      { mark: "문제", title: "실제 문제부터", body: "쓰임이 분명한 문제부터 풉니다. 기능보다 먼저 누가, 왜 쓰는지 확인합니다." },
-      { mark: "구축", title: "필요한 만큼 단순하게", body: "처음부터 큰 시스템을 만들지 않습니다. 반복되는 문제만 함께 쓸 수 있는 기반으로 정리합니다." },
-      { mark: "운영", title: "직접 운영하며 확인", body: "만드는 데서 끝내지 않습니다. 직접 운영하며 실패 경로와 개선할 지점을 확인합니다." },
+      { mark: "ASK", title: "실제 문제부터", body: "쓰임이 분명한 문제부터 풉니다. 기능보다 먼저 누가, 왜 쓰는지 확인합니다." },
+      { mark: "BUILD", title: "필요한 만큼 단순하게", body: "처음부터 큰 시스템을 만들지 않습니다. 반복되는 문제만 함께 쓸 수 있는 기반으로 정리합니다." },
+      { mark: "RUN", title: "직접 운영하며 확인", body: "만드는 데서 끝내지 않습니다. 직접 운영하며 실패 경로와 개선할 지점을 확인합니다." },
     ],
   },
   work: {
@@ -191,15 +237,6 @@ const ko: HomepageCopy = {
     categories: { product: "제품", "open-source": "오픈소스", internal: "내부 시스템", client: "고객 작업" },
     statuses: { released: "공개", preview: "개발자 미리보기", "in-progress": "개발 중", archived: "보관" },
   },
-  engineering: {
-    title: "코드가 결과를 설명합니다.",
-    lede: "동작을 설정 파일 뒤에 숨기지 않고 요청 코드에 드러냅니다. 아래 코드는 lafetch의 공개 README에 있는 예시입니다.",
-    file: "examples/basic.ts",
-    resultTitle: "요청 코드에 드러난 실패 처리",
-    resultBody: "Timeout과 Retry가 요청 흐름에 그대로 남습니다. 별도 설정 파일을 오가지 않아도 어떻게 동작할지 알 수 있습니다.",
-    repository: "GitHub에서 lafetch 보기",
-    snippet: lafetchSnippet,
-  },
   open: {
     title: "직접 쓰는 코드를 공개합니다.",
     lede: "제품을 만들며 반복해서 필요했던 기능을 분리해 공개합니다. 실제로 사용하는 코드인 만큼 계속 고치고 기록합니다.",
@@ -207,7 +244,7 @@ const ko: HomepageCopy = {
   },
   contact: {
     title: "함께할 이야기가 있다면 연락해 주세요.",
-    lede: "제품 도입, 기술 협업, 투자, 채용 문의를 받습니다.",
+    lede: "제품 도입, 기술 협업, 투자 문의를 받습니다.",
   },
 }
 
@@ -250,15 +287,6 @@ const en: HomepageCopy = {
     categories: { product: "Product", "open-source": "Open source", internal: "Internal system", client: "Client work" },
     statuses: { released: "Released", preview: "Developer preview", "in-progress": "In progress", archived: "Archived" },
   },
-  engineering: {
-    title: "The code is part of the proof.",
-    lede: "Instead of hiding behavior behind configuration, we keep the request policy readable. This is a real usage example from the public lafetch README.",
-    file: "examples/basic.ts",
-    resultTitle: "Failure policy you can read",
-    resultBody: "Timeout and retry stay in the request flow. A team can understand the behavior without jumping between configuration files.",
-    repository: "View lafetch on GitHub",
-    snippet: lafetchSnippet,
-  },
   open: {
     title: "We open the code we use ourselves.",
     lede: "These projects began as repeated needs in our own product work. We keep using them, fixing them, and documenting the result in public.",
@@ -266,7 +294,7 @@ const en: HomepageCopy = {
   },
   contact: {
     title: "Have something to build together? Get in touch.",
-    lede: "We welcome product, technical partnership, investment, and career inquiries.",
+    lede: "We welcome product, technical partnership, and investment inquiries.",
   },
 }
 

@@ -71,9 +71,11 @@ describe("SelectedWork", () => {
 
     expect(screen.getByRole("region", { name: "Selected work" })).toBeVisible()
     expect(screen.getByText("Developer preview")).toBeVisible()
+    expect(screen.getByRole("img", { name: "Editorial image representing Laf ID identity work" })).toBeVisible()
     expect(screen.queryByRole("link", { name: /Open project/ })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole("button", { name: "Next work" }))
+    expect(screen.getByRole("img", { name: "Editorial image representing lafetch request flow" })).toBeVisible()
     expect(screen.getByRole("link", { name: "Open repository" })).toHaveAttribute(
       "href",
       "https://github.com/laflabs-inc/lafetch",

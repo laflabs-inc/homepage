@@ -1,146 +1,119 @@
 "use client"
 
-import { ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
-import { motion, useScroll } from "motion/react"
+import { ArrowDown, ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
 import { LatestSignals } from "@/components/sections/latest-signals"
 import { SelectedWork } from "@/components/sections/selected-work"
 import { StackStrip } from "@/components/sections/stack-strip"
-import { contactEmail, copy, githubOrg, repositories } from "@/lib/content"
-import { homepageCopy } from "@/lib/homepage"
+import { contactEmail, githubOrg } from "@/lib/content"
+import { homepageCopy, openSourceRows } from "@/lib/homepage"
 import styles from "./landing.module.css"
 
 export function Landing() {
   const locale = useLocale()
+  const reducedMotion = useReducedMotion()
   const { scrollYProgress } = useScroll()
+  const heroY = useTransform(scrollYProgress, [0, 0.16], ["0px", "64px"])
   const t = homepageCopy[locale]
-  const shared = copy[locale]
+  const reveal = (delay = 0) => ({
+    initial: { opacity: 0.2, y: 18 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.25 },
+    transition: {
+      duration: reducedMotion ? 0 : 0.56,
+      delay,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  })
+  const companyEnter = (delay = 0) => ({
+    initial: { opacity: 0.25, x: 48 },
+    whileInView: { opacity: 1, x: 0 },
+    viewport: { once: true, amount: 0.4 },
+    transition: {
+      duration: reducedMotion ? 0 : 0.64,
+      delay,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  })
 
   return (
     <main className={styles.root}>
       <motion.div className="page-progress" style={{ scaleX: scrollYProgress }} />
 
       <section className={styles.hero} id="top">
-        <div className={styles.heroCopy}>
+        <div className={styles.heroIndex}>LAF / 001</div>
+        <motion.div className={styles.heroCopy} {...reveal()}>
+          <p className={styles.kicker}>{t.hero.companyType} · {t.hero.location}</p>
           <h1>{t.hero.title}</h1>
           <p>{t.hero.lede}</p>
-          <div className={styles.heroActions}>
-            <a href="#company">
-              {t.hero.primary}
-              <ArrowRight size={17} aria-hidden="true" />
-            </a>
-            <a href="#work">
-              {t.hero.secondary}
-              <ArrowRight size={17} aria-hidden="true" />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.heroField} aria-hidden="true">
-          <div className={styles.fieldHeader}>
-            <span>{t.hero.companyType}</span>
-            <span>{t.hero.location}</span>
-          </div>
+        </motion.div>
+        <motion.div
+          className={styles.heroBlock}
+          style={{ y: reducedMotion ? 0 : heroY }}
+          aria-hidden="true"
+        >
           <strong>LAF</strong>
-          <div className={styles.fieldRoute}>
-            <span>PRODUCT</span>
-            <span>API</span>
-            <span>OPERATIONS</span>
-            <span>SYSTEM</span>
+          <div className={styles.heroBlockMeta}>
+            <span>SOFTWARE</span>
+            <span>SEOUL / KR</span>
           </div>
-          <div className={styles.fieldFooter}>
-            <span>BUILD QUIETLY.</span>
-            <span>WORK RELIABLY.</span>
-          </div>
-        </div>
+          <video
+            className={styles.heroVideo}
+            autoPlay
+            muted
+            playsInline
+            preload="metadata"
+            poster="/laf-system-loop-poster.png"
+          >
+            <source src="/laf-system-loop.mp4" type="video/mp4" />
+          </video>
+        </motion.div>
+        <a className={styles.heroScroll} href="#company">
+          <ArrowDown size={16} aria-hidden="true" />
+          COMPANY
+        </a>
       </section>
 
       <section className={styles.company} id="company">
-        <div className={styles.companyIntro}>
-          <h2>{t.company.title}</h2>
-          <p>{t.company.lede}</p>
+        <p className={styles.sectionLabel}>01 / COMPANY</p>
+        <motion.h2 {...reveal()}>{t.company.title}</motion.h2>
+        <div className={styles.companyCopy}>
+          <motion.p {...companyEnter()}>{t.company.lede}</motion.p>
+          <motion.span {...companyEnter(0.1)}>
+            BUILD QUIETLY.<br />WORK RELIABLY.
+          </motion.span>
         </div>
-        <ul className={styles.scopeList}>
-          {t.company.scopes.map((scope) => (
-            <li key={scope.title}>
-              <h3>{scope.title}</h3>
-              <p>{scope.body}</p>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <StackStrip />
 
       <section className={styles.method} id="work-method">
-        <div className={styles.methodIntro}>
+        <div className={styles.sectionHeading}>
+          <p className={styles.sectionLabel}>02 / HOW WE WORK</p>
           <h2>{t.method.title}</h2>
           <p>{t.method.lede}</p>
         </div>
-        <ol className={styles.methodGrid}>
-          {t.method.items.map((item) => (
-            <li key={item.title}>
-              <span aria-hidden="true">{item.mark}</span>
-              <div>
+        <ol className={styles.methodPanels}>
+          {t.method.items.map((item, index) => (
+            <motion.li className={styles.methodPanel} key={item.mark} {...reveal(index * 0.07)}>
+              <div className={styles.panelTop}>
+                <span>0{index + 1}</span>
+                <span>{item.title}</span>
+              </div>
+              <strong className={styles.panelMark} aria-hidden="true">{item.mark}</strong>
+              <div className={styles.panelCopy}>
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>
               </div>
-            </li>
+            </motion.li>
           ))}
         </ol>
       </section>
 
       <SelectedWork />
-
-      <section className={styles.engineering} id="engineering">
-        <div className={styles.engineeringIntro}>
-          <h2>{t.engineering.title}</h2>
-          <p>{t.engineering.lede}</p>
-        </div>
-        <div className={styles.engineeringFrame}>
-          <div className={styles.codePanel}>
-            <div className={styles.codeHeader}>
-              <span>{t.engineering.file}</span>
-              <span>TypeScript</span>
-            </div>
-            <pre aria-label={t.engineering.file}>
-              <code>
-                {t.engineering.snippet.map((line, index) => (
-                  <span key={`${index}:${line}`}>
-                    <i aria-hidden="true">{String(index + 1).padStart(2, "0")}</i>
-                    <b>{line || " "}</b>
-                  </span>
-                ))}
-              </code>
-            </pre>
-          </div>
-          <div className={styles.engineeringResult}>
-            <div className={styles.requestFlow} aria-hidden="true">
-              <span>REQUEST</span>
-              <i />
-              <strong>POLICY IN CODE</strong>
-              <i />
-              <span>RESPONSE</span>
-            </div>
-            <div>
-              <h3>{t.engineering.resultTitle}</h3>
-              <p>{t.engineering.resultBody}</p>
-              <a
-                href="https://github.com/laflabs-inc/lafetch"
-                target="_blank"
-                rel="noreferrer noopener"
-                data-analytics-event="github_click"
-                data-analytics-target="lafetch"
-              >
-                {t.engineering.repository}
-                <ArrowUpRight size={18} aria-hidden="true" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className={styles.open} id="open-source">
         <div className={styles.openIntro}>
@@ -159,21 +132,34 @@ export function Landing() {
           </a>
         </div>
         <div className={styles.repoList}>
-          {repositories.map((repository) => (
-            <a
-              href={repository.href}
-              target="_blank"
-              rel="noreferrer noopener"
-              key={repository.name}
-              data-analytics-event="github_click"
-              data-analytics-target={repository.name}
-            >
-              <strong>{repository.name}</strong>
-              <span>{shared.open.descriptions[repository.name]}</span>
-              <small>{repository.language}</small>
-              <ArrowUpRight size={20} aria-hidden="true" />
-            </a>
-          ))}
+          {openSourceRows.map((row, index) => {
+            const content = (
+              <>
+                <small>{String(index + 1).padStart(2, "0")}</small>
+                <strong>{row.title[locale]}</strong>
+                <span>{row.description[locale]}</span>
+                <i>{row.language ?? "—"}</i>
+                {row.public ? <ArrowUpRight size={20} aria-hidden="true" /> : null}
+              </>
+            )
+
+            return row.public && row.href ? (
+              <a
+                href={row.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                key={row.id}
+                data-analytics-event="github_click"
+                data-analytics-target={row.id}
+              >
+                {content}
+              </a>
+            ) : (
+              <div className={styles.privateRepo} key={row.id}>
+                {content}
+              </div>
+            )
+          })}
         </div>
       </section>
 

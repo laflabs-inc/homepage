@@ -50,9 +50,13 @@ describe("homepage refresh", () => {
     expect(screen.getByRole("heading", {
       name: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
     })).toBeVisible()
+    expect(screen.getByText("LAF / 001")).toBeVisible()
     expect(screen.getByRole("heading", {
       name: "제품과 그 아래의 기술을 함께 만듭니다.",
     })).toBeVisible()
+    expect(screen.getByText("ASK")).toBeVisible()
+    expect(screen.getByText("BUILD")).toBeVisible()
+    expect(screen.getByText("RUN")).toBeVisible()
     expect(screen.getByRole("heading", { name: "실제 문제부터" })).toBeVisible()
     expect(screen.getByRole("heading", { name: "필요한 만큼 단순하게" })).toBeVisible()
     expect(screen.getByRole("heading", { name: "직접 운영하며 확인" })).toBeVisible()
@@ -70,9 +74,9 @@ describe("homepage refresh", () => {
     expect(method).not.toHaveTextContent("Laf ID")
   })
 
-  it("shows verifiable engineering evidence in both locales", () => {
-    render(
-      <LocaleProvider initialLocale="en">
+  it("keeps work factual, hides undisclosed repositories, and removes recruiting copy", () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="ko">
         <ConsentProvider initialState="essential" dnt={false}>
           <Landing />
         </ConsentProvider>
@@ -80,14 +84,19 @@ describe("homepage refresh", () => {
     )
 
     expect(screen.getByRole("heading", {
-      name: "We build products and the systems they need.",
+      name: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
     })).toBeVisible()
-    expect(screen.getByRole("heading", { name: "The code is part of the proof." })).toBeVisible()
-    expect(screen.getByText('import { lafetch } from "@laflabs/lafetch";')).toBeVisible()
-    expect(screen.getByRole("link", { name: /View lafetch on GitHub/ })).toHaveAttribute(
+    expect(screen.queryByRole("heading", { name: "코드가 결과를 설명합니다." })).not.toBeInTheDocument()
+    expect(container).not.toHaveTextContent("채용")
+
+    const openSource = container.querySelector<HTMLElement>("section#open-source")!
+    expect(within(openSource).getByRole("link", { name: /lafetch/ })).toHaveAttribute(
       "href",
       "https://github.com/laflabs-inc/lafetch",
     )
+    expect(within(openSource).getAllByText("미공개 프로젝트")).toHaveLength(2)
+    expect(openSource).not.toHaveTextContent("lafwall")
+    expect(openSource).not.toHaveTextContent("lafinvest")
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {

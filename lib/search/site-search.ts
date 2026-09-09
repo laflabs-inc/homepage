@@ -1,6 +1,6 @@
 import "server-only"
 
-import { copy, documentSections, repositories } from "@/lib/content"
+import { copy, documentSections } from "@/lib/content"
 import {
   listPublishedDocuments,
   type PublishedDocumentReader,
@@ -8,7 +8,7 @@ import {
 import { documentStore } from "@/lib/documents/store"
 import { documentKinds } from "@/lib/documents/types"
 import type { Locale } from "@/lib/i18n"
-import { homepageCopy, workItems } from "@/lib/homepage"
+import { homepageCopy, openSourceRows, workItems } from "@/lib/homepage"
 
 import type {
   SiteSearchResponse,
@@ -97,18 +97,6 @@ function staticResults(locale: Locale): SearchableResult[] {
       keywords: ["work", "selected work", "작업", "제품", "오픈소스"],
     },
     {
-      id: "engineering",
-      group: "page",
-      title: home.engineering.title,
-      description: home.engineering.lede,
-      href: "/#engineering",
-      keywords: [
-        home.engineering.resultTitle,
-        home.engineering.resultBody,
-        ...home.engineering.snippet,
-      ],
-    },
-    {
       id: "open-source",
       group: "page",
       title: t.nav.open,
@@ -148,13 +136,13 @@ function staticResults(locale: Locale): SearchableResult[] {
       href: "/#work",
       keywords: [item.slug, ...item.tags],
     })),
-    ...repositories.map((repository) => ({
-      id: repository.name,
+    ...openSourceRows.filter((row) => row.public && row.href).map((row) => ({
+      id: row.id,
       group: "open-source" as const,
-      title: repository.name,
-      description: t.open.descriptions[repository.name],
-      href: repository.href,
-      keywords: [repository.language, "github"],
+      title: row.title[locale],
+      description: row.description[locale],
+      href: row.href!,
+      keywords: [row.language ?? "", "github"],
     })),
   ]
 }

@@ -1,44 +1,13 @@
 "use client"
 
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
+import Image from "next/image"
 import { useRef, useState } from "react"
 
 import { useAnalytics } from "@/components/analytics/consent-provider"
 import { useLocale } from "@/components/i18n/locale-provider"
-import { homepageCopy, workItems, type WorkItem } from "@/lib/homepage"
+import { homepageCopy, workItems } from "@/lib/homepage"
 import styles from "./selected-work.module.css"
-
-function WorkVisual({ item, locale }: { item: WorkItem; locale: "ko" | "en" }) {
-  return (
-    <div className={styles.visual} data-visual-kind={item.visual.kind}>
-      <div className={styles.visualHeader}>
-        <span>{item.visual.label[locale]}</span>
-        <span>{item.title}</span>
-      </div>
-      {item.visual.kind === "code" ? (
-        <pre className={styles.code} aria-label={item.visual.label[locale]}>
-          <code>
-            {item.visual.lines.map((line, index) => (
-              <span key={`${index}:${line}`}>
-                <i aria-hidden="true">{String(index + 1).padStart(2, "0")}</i>
-                <b>{line || " "}</b>
-              </span>
-            ))}
-          </code>
-        </pre>
-      ) : (
-        <ol className={styles.system}>
-          {item.visual.lines.map((line, index) => (
-            <li key={line}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{line}</strong>
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
-  )
-}
 
 export function SelectedWork() {
   const locale = useLocale()
@@ -100,7 +69,19 @@ export function SelectedWork() {
           data-work-slug={item.slug}
           key={item.slug}
         >
-          <WorkVisual item={item} locale={locale} />
+          <div className={styles.visual}>
+            <Image
+              src={item.visual.image.src}
+              alt={item.visual.image.alt[locale]}
+              fill
+              priority={index === 0}
+              sizes="(max-width: 820px) 100vw, 58vw"
+            />
+            <div className={styles.visualCaption} aria-hidden="true">
+              <span>{item.visual.label[locale]}</span>
+              <span>{item.title}</span>
+            </div>
+          </div>
           <div className={styles.details}>
             <div className={styles.meta}>
               <span>{t.categories[item.category]}</span>

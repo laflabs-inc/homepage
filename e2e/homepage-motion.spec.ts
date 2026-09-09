@@ -16,6 +16,11 @@ test("mobile header keeps generous tap targets without oversized visuals", async
   const search = page.getByRole("button", { name: "검색" })
   await search.click()
 
+  const searchInputSize = await page.getByRole("searchbox").evaluate((input) => (
+    Number.parseFloat(getComputedStyle(input).fontSize)
+  ))
+  expect(searchInputSize).toBeLessThanOrEqual(38)
+
   const headerGeometry = await page.locator(".site-header").evaluate((header) => {
     const logoImage = header.querySelector<HTMLElement>(".laf-logo img")!
     const logoText = header.querySelector<HTMLElement>(".laf-logo-text")!
@@ -125,6 +130,13 @@ test("mobile selected work changes only through an explicit gesture", async ({ c
   await page.goto("/")
 
   const work = page.getByRole("region", { name: "우리가 만든 것" })
+  const methodRail = page.locator("#work-method ol")
+  const methodOverflow = await methodRail.evaluate((element) => ({
+    overflowX: getComputedStyle(element).overflowX,
+    scrollSnapType: getComputedStyle(element).scrollSnapType,
+  }))
+  expect(methodOverflow.overflowX).toBe("auto")
+  expect(methodOverflow.scrollSnapType).toContain("x")
   await work.scrollIntoViewIfNeeded()
   await expect(work.getByRole("heading", { name: "Laf ID" })).toBeVisible()
   await page.waitForTimeout(500)
@@ -157,7 +169,7 @@ test("reduced motion keeps selected work fully operable", async ({ context, page
   await work.scrollIntoViewIfNeeded()
   await work.getByRole("button", { name: "다음 작업" }).click()
   await expect(work.getByRole("heading", { name: "lafetch" })).toBeVisible()
-  await expect(work.getByText('import { lafetch } from "@laflabs/lafetch";')).toBeVisible()
+  await expect(work.getByRole("img", { name: "lafetch 요청 흐름을 표현한 에디토리얼 이미지" })).toBeVisible()
 })
 
 test("latest signals is scrollable without widening the homepage", async ({ context, page }, testInfo) => {

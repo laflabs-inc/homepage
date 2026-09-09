@@ -72,6 +72,16 @@ describe("searchSite", () => {
     }))
   })
 
+  it("does not expose undisclosed repository names", async () => {
+    const repository = createRepository(vi.fn().mockResolvedValue([]))
+
+    const lafwall = await searchSite("lafwall", "en", repository)
+    const lafinvest = await searchSite("lafinvest", "en", repository)
+
+    expect(lafwall.results).not.toContainEqual(expect.objectContaining({ title: "lafwall" }))
+    expect(lafinvest.results).not.toContainEqual(expect.objectContaining({ title: "lafinvest" }))
+  })
+
   it("queries every published document kind with the localized search filter", async () => {
     const listPublished = vi.fn().mockResolvedValue([])
     const repository = createRepository(listPublished)
@@ -140,8 +150,6 @@ describe("searchSite", () => {
     ["en", "technology underneath", "company", "/#company"],
     ["ko", "직접 운영", "work-method", "/#work-method"],
     ["en", "Operate what we ship", "work-method", "/#work-method"],
-    ["ko", "코드가 결과", "engineering", "/#engineering"],
-    ["en", "code is part", "engineering", "/#engineering"],
     ["ko", "최근 작업과 회사 소식", "latest-signals", "/#latest-signals"],
     ["en", "Recent work", "latest-signals", "/#latest-signals"],
   ] as const)("indexes the displayed %s homepage section content for %s", async (

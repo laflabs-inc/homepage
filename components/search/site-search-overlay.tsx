@@ -225,6 +225,7 @@ function SearchDialog({
             type="search"
             name="q"
             value={query}
+            placeholder={t.input}
             autoComplete="off"
             spellCheck="false"
             aria-describedby={`${SITE_SEARCH_OVERLAY_ID}-status`}
