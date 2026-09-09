@@ -112,9 +112,9 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
         </a>
 
         <nav className="header-nav">
-          <a href={homeHref ? `${homeHref}#products` : "#products"}>{t.products}</a>
+          <a href={homeHref ? `${homeHref}#company` : "#company"}>{t.principles}</a>
+          <a href={homeHref ? `${homeHref}#work` : "#work"}>{t.products}</a>
           <a href={homeHref ? `${homeHref}#open-source` : "#open-source"}>{t.open}</a>
-          <a href={homeHref ? `${homeHref}#principles` : "#principles"}>{t.principles}</a>
           <a
             href={`mailto:${contactEmail}`}
             data-analytics-event="contact_click"

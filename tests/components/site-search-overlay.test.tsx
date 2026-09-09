@@ -49,7 +49,7 @@ const searchResponse: SiteSearchResponse = {
   partial: false,
   results: [
     { id: "home", group: "page", title: "LafLabs", description: "Company home.", href: "/" },
-    { id: "laf-id", group: "product", title: "Laf ID", description: "Identity.", href: "/#products" },
+    { id: "laf-id", group: "product", title: "Laf ID", description: "Identity.", href: "/#work" },
     { id: "lafetch", group: "open-source", title: "lafetch", description: "HTTP client.", href: "https://github.com/laflabs-inc/lafetch" },
     { id: "notice-1", group: "notice", title: "Notice", description: "Update.", href: "/notices/update?locale=ko" },
     { id: "legal-1", group: "legal", title: "Legal", description: "Terms.", href: "/legal/terms?locale=ko" },

@@ -11,6 +11,12 @@ vi.mock("@/components/sections/build-loop.module.css", () => ({
 vi.mock("@/components/sections/latest-signals.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
+vi.mock("@/components/landing.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
+vi.mock("@/components/sections/selected-work.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
 
 import { ConsentPanel } from "@/components/analytics/consent-panel"
 import { ConsentProvider } from "@/components/analytics/consent-provider"
@@ -32,53 +38,56 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe("homepage refresh", () => {
-  it("presents the humanized Korean company and engineering story", () => {
+  it("introduces the company and its work method before any product", () => {
     const { container } = render(
       <LocaleProvider initialLocale="ko">
-        <Landing />
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
       </LocaleProvider>,
     )
 
-    expect(screen.getByRole("heading", { name: "제품에 필요한 다음을 만듭니다." })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "제품에서 시작해 시스템으로 남깁니다." })).toBeVisible()
-    expect(
-      screen.getByRole("heading", { name: "직접 쓰고 검증한 코드를 공개합니다." }),
-    ).toBeVisible()
-    expect(screen.getByRole("heading", { name: "기반 기술" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "운영" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "시스템" })).toBeInTheDocument()
-    expect(
-      screen.getByText("운영에서 확인한 경계와 반복 작업을 오래 쓰는 시스템으로 남깁니다."),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("제품에서 찾은 실제 문제를 공통 기반으로 정리하고 직접 운영합니다. 운영에서 확인한 경계와 반복 작업은 오래 쓰는 시스템으로 남깁니다."),
-    ).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "만든 것과 배운 것을 기록합니다." })).toBeVisible()
-    expect(screen.getByRole("region", { name: "최근 소식" })).toBeVisible()
-    expect(screen.getByText(/아이덴티티, 결제, 클라우드/)).toHaveAttribute(
-      "data-company-line",
-      "copy",
-    )
-    expect(screen.getByText(/BUILD QUIETLY/)).toHaveAttribute(
-      "data-company-line",
-      "motto",
-    )
-    expect(container.querySelector("section#company")).toBeInTheDocument()
-    expect(container.querySelector("section#build-loop")).toBeInTheDocument()
-    expect(container.querySelector("section#latest-signals")).toBeInTheDocument()
+    expect(screen.getByRole("heading", {
+      name: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
+    })).toBeVisible()
+    expect(screen.getByRole("heading", {
+      name: "제품과 그 아래의 기술을 함께 만듭니다.",
+    })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "실제 문제부터" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "필요한 만큼 단순하게" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "직접 운영하며 확인" })).toBeVisible()
+
+    const company = container.querySelector<HTMLElement>("section#company")
+    const method = container.querySelector<HTMLElement>("section#work-method")
+    const work = container.querySelector<HTMLElement>("section#work")
+    expect(company).toBeInTheDocument()
+    expect(method).toBeInTheDocument()
+    expect(work).toBeInTheDocument()
+    expect(company!.compareDocumentPosition(method!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(method!.compareDocumentPosition(work!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(work).toHaveTextContent("Laf ID")
+    expect(company).not.toHaveTextContent("Laf ID")
+    expect(method).not.toHaveTextContent("Laf ID")
   })
 
-  it("keeps the product-to-system ending in the English locale", () => {
+  it("shows verifiable engineering evidence in both locales", () => {
     render(
       <LocaleProvider initialLocale="en">
-        <Landing />
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
       </LocaleProvider>,
     )
 
-    expect(screen.getByRole("heading", { name: "System" })).toBeInTheDocument()
-    expect(
-      screen.getByText("Turn proven boundaries and repeated work into a system designed to last."),
-    ).toBeInTheDocument()
+    expect(screen.getByRole("heading", {
+      name: "We build products and the systems they need.",
+    })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "The code is part of the proof." })).toBeVisible()
+    expect(screen.getByText('import { lafetch } from "@laflabs/lafetch";')).toBeVisible()
+    expect(screen.getByRole("link", { name: /View lafetch on GitHub/ })).toHaveAttribute(
+      "href",
+      "https://github.com/laflabs-inc/lafetch",
+    )
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {

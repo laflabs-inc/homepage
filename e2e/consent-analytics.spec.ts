@@ -180,7 +180,7 @@ test("locale change translates the panel while laf_consent remains", async ({ pa
 
   await page.reload()
   await expect(page.locator("html")).toHaveAttribute("lang", "en")
-  await expect(page.getByRole("heading", { name: /We build what products need next\./ })).toBeVisible()
+  await expect(page.getByRole("heading", { name: /We build products and the systems they need\./ })).toBeVisible()
   await expectCookie(context, "laf_locale", "en")
   await expectCookie(context, CONSENT_COOKIE, "1:essential")
 
@@ -202,9 +202,9 @@ test("a forced analytics 503 does not block product, GitHub, contact, locale, or
   const { visitorHash } = await chooseAnalytics(page, context)
   await expect.poll(() => failedResponses.length).toBeGreaterThan(0)
 
-  await page.locator('a.hero-scroll[href="#products"]').click()
-  await expect(page).toHaveURL(/#products$/)
-  await expect(page.locator("#products")).toBeInViewport()
+  await page.locator('main a[href="#work"]').click()
+  await expect(page).toHaveURL(/#work$/)
+  await expect(page.locator("#work")).toBeInViewport()
 
   const popupPromise = context.waitForEvent("page")
   await page.locator('a[aria-label="LafLabs on GitHub"]').click()

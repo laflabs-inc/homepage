@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     template: "%s · LafLabs",
   },
   description:
-    "LafLabs는 신원, 결제, 클라우드 인프라를 하나의 경험으로 잇는 소프트웨어 개발사입니다. Laf ID, Laf Pay, LafDock을 만듭니다.",
-  keywords: ["LafLabs", "Laf ID", "Laf Pay", "LafDock", "identity", "payments", "cloud infrastructure"],
+    "LafLabs는 제품을 기획하고 개발하며, 운영에 필요한 기반 기술까지 직접 구축하는 소프트웨어 개발사입니다.",
+  keywords: ["LafLabs", "software company", "product development", "open source", "TypeScript"],
   authors: [{ name: "LafLabs Inc.", url: siteUrl }],
   openGraph: {
     type: "website",
@@ -47,13 +47,13 @@ export const metadata: Metadata = {
     alternateLocale: ["en_US"],
     title: "LafLabs — Build quietly. Work reliably.",
     description:
-      "재미있는 것을 만드는 소프트웨어 개발사. 신원, 결제, 클라우드 인프라를 하나의 경험으로 잇습니다.",
+      "제품을 만들고, 운영에 필요한 기반 기술까지 직접 구축하는 소프트웨어 개발사입니다.",
     url: "/",
   },
   twitter: {
     card: "summary",
     title: "LafLabs — Build quietly. Work reliably.",
-    description: "A software company that builds fun things. Identity, payments, and cloud infrastructure as one experience.",
+    description: "A software company that builds products and the technology required to operate them.",
   },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },

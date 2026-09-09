@@ -59,12 +59,12 @@ describe("searchSite", () => {
   it("keeps products and repositories in their corresponding result groups", async () => {
     const repository = createRepository(vi.fn().mockResolvedValue([]))
 
-    const productResults = await searchSite("Laf Pay", "en", repository)
+    const productResults = await searchSite("Laf ID", "en", repository)
     const repositoryResults = await searchSite("lafetch", "en", repository)
 
     expect(productResults.results).toContainEqual(expect.objectContaining({
       group: "product",
-      title: "Laf Pay",
+      title: "Laf ID",
     }))
     expect(repositoryResults.results).toContainEqual(expect.objectContaining({
       group: "open-source",
@@ -136,12 +136,14 @@ describe("searchSite", () => {
   })
 
   it.each([
-    ["ko", "필요한 것", "company", "/#company"],
-    ["en", "one category", "company", "/#company"],
-    ["ko", "공통 기반", "build-loop", "/#build-loop"],
-    ["en", "Systems follow", "build-loop", "/#build-loop"],
-    ["ko", "만든 것과 배운 것", "latest-signals", "/#latest-signals"],
-    ["en", "document what we build", "latest-signals", "/#latest-signals"],
+    ["ko", "제품과 그 아래의 기술", "company", "/#company"],
+    ["en", "technology underneath", "company", "/#company"],
+    ["ko", "직접 운영", "work-method", "/#work-method"],
+    ["en", "Operate what we ship", "work-method", "/#work-method"],
+    ["ko", "코드가 결과", "engineering", "/#engineering"],
+    ["en", "code is part", "engineering", "/#engineering"],
+    ["ko", "최근 작업과 회사 소식", "latest-signals", "/#latest-signals"],
+    ["en", "Recent work", "latest-signals", "/#latest-signals"],
   ] as const)("indexes the displayed %s homepage section content for %s", async (
     locale,
     query,

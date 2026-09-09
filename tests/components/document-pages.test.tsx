@@ -424,10 +424,9 @@ describe("public document pages", () => {
     )
 
     expect(screen.getByRole("link", { name: "LafLabs" })).toHaveAttribute("href", "#top")
-    expect(screen.getByRole("link", { name: "Products" })).toHaveAttribute("href", "#products")
-    for (const link of screen.getAllByRole("link", { name: "Principles" })) {
-      expect(link).toHaveAttribute("href", "#principles")
-    }
+    expect(screen.getByRole("link", { name: "Company" })).toHaveAttribute("href", "#company")
+    expect(screen.getByRole("link", { name: "Work" })).toHaveAttribute("href", "#work")
+    expect(screen.getByRole("link", { name: "How we work" })).toHaveAttribute("href", "#work-method")
   })
 
   it("uses homepage URLs for document-layout chrome navigation", () => {
@@ -440,12 +439,11 @@ describe("public document pages", () => {
     )
 
     expect(screen.getByRole("link", { name: "LafLabs" })).toHaveAttribute("href", "/")
-    expect(screen.getByRole("link", { name: "Products" })).toHaveAttribute("href", "/#products")
+    expect(screen.getByRole("link", { name: "Company" })).toHaveAttribute("href", "/#company")
+    expect(screen.getByRole("link", { name: "Work" })).toHaveAttribute("href", "/#work")
     expect(screen.getByRole("link", { name: "Open source" })).toHaveAttribute("href", "/#open-source")
-    for (const link of screen.getAllByRole("link", { name: "Principles" })) {
-      expect(link).toHaveAttribute("href", "/#principles")
-    }
-    expect(screen.getByRole("link", { name: "Laf ID" })).toHaveAttribute("href", "/#products")
+    expect(screen.getByRole("link", { name: "How we work" })).toHaveAttribute("href", "/#work-method")
+    expect(screen.getByRole("link", { name: "Laf ID" })).toHaveAttribute("href", "/#work")
   })
 
   it("navigates document routes to the selected locale and drops the old cursor", async () => {
