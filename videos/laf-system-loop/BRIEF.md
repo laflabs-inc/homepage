@@ -12,7 +12,7 @@ length: 6s
 
 ## Intent
 
-A quiet technical build animation embedded in the homepage hero. Real, minimal HTML for the final lockup is written directly on a transparent field, executed, and resolved into the exact static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`. The sequence is intentionally product-independent so the asset survives future portfolio changes.
+A quiet technical build animation embedded in the homepage hero. Real, minimal HTML for the final lockup is written in dark ink directly on a truly transparent field, executed, and only then resolved into the blue static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`. The sequence is intentionally product-independent so the asset survives future portfolio changes.
 
 ## Assets
 
@@ -22,6 +22,7 @@ A quiet technical build animation embedded in the homepage hero. Real, minimal H
 
 - Primary `#2563EB`, secondary `#1E40AF`, neutral `#0F172A`, white `#F8FAFC`
 - Square geometry only; no IDE chrome, rounded cards, gradients, glow, or product references
+- No blue field behind the code phase; the surrounding homepage paper must remain visible through it
 - The existing final `LAF / SOFTWARE / SEOUL · KR` frame must remain visually unchanged
 - Silent, deterministic, and designed to loop on the website
 

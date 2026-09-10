@@ -101,7 +101,7 @@
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
-  background: var(--blue);
+  background: transparent;
   color: white;
   transform: translateX(4vw);
 }
@@ -131,7 +131,7 @@
   z-index: 2;
   inset: 0;
   object-fit: cover;
-  background: var(--blue);
+  background: transparent;
 }
 
 .heroScroll {
@@ -594,6 +594,7 @@
   }
 
   .heroBlock {
+    background: var(--blue);
     transform: translateX(4vw) !important;
   }
 

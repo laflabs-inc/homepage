@@ -95,7 +95,6 @@ export function Landing() {
             muted
             playsInline
             preload="metadata"
-            poster="/laf-system-loop-poster.png"
           >
             <source src="/laf-system-loop.webm" type="video/webm" />
             <source src="/laf-system-loop.mp4" type="video/mp4" />
