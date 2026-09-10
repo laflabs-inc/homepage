@@ -54,6 +54,14 @@ describe("homepage refresh", () => {
     expect(screen.getByRole("heading", {
       name: "제품과 그 아래의 기술을 함께 만듭니다.",
     })).toBeVisible()
+    expect(screen.getByText("필요한 기반", { selector: "em" })).toBeVisible()
+    expect(screen.getByText("기술", { selector: "em" })).toBeVisible()
+    expect(screen.getByText(
+      "LafLabs는 제품을 기획하고 개발합니다. 화면부터 운영 기반까지 직접 설계합니다.",
+    )).toBeVisible()
+    expect(screen.getByText(
+      "직접 운영하고, 반복되는 문제는 다시 쓸 수 있는 기술로 정리합니다.",
+    )).toBeVisible()
     expect(screen.getByText("ASK")).toBeVisible()
     expect(screen.getByText("BUILD")).toBeVisible()
     expect(screen.getByText("RUN")).toBeVisible()
@@ -97,6 +105,21 @@ describe("homepage refresh", () => {
     expect(within(openSource).getAllByText("미공개 프로젝트")).toHaveLength(2)
     expect(openSource).not.toHaveTextContent("lafwall")
     expect(openSource).not.toHaveTextContent("lafinvest")
+  })
+
+  it("presents contact as one focused email action", () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="ko">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    const contact = container.querySelector<HTMLElement>("section#contact")!
+    const email = within(contact).getByRole("link", { name: /contact@laflabs\.co/ })
+    expect(email).toHaveAttribute("href", "mailto:contact@laflabs.co")
+    expect(email.querySelector(".contactArrow")).toBeInTheDocument()
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {

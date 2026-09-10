@@ -58,6 +58,7 @@ type Copy = {
     heading: string
     prompt: string
     input: string
+    prompts: readonly [string, string, string]
     submit: string
     invalid: string
     loading: string
@@ -154,6 +155,7 @@ const ko: Copy = {
     heading: "사이트 검색",
     prompt: "페이지, 제품, 오픈소스와 공개 문서를 검색하세요.",
     input: "무엇을 찾고 있나요?",
+    prompts: ["LafLabs에 대해 검색하기", "제품과 오픈소스 찾기", "공개 문서 찾기"],
     submit: "검색 실행",
     invalid: "검색어는 2자 이상 100자 이하로 입력해 주세요.",
     loading: "검색 중입니다.",
@@ -314,6 +316,7 @@ const en: Copy = {
     heading: "Site search",
     prompt: "Search pages, products, open source, and public documents.",
     input: "What are you looking for?",
+    prompts: ["Search LafLabs", "Find products and open source", "Find public documents"],
     submit: "Search",
     invalid: "Enter a search query between 2 and 100 characters.",
     loading: "Searching.",

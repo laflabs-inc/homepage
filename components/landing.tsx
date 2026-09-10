@@ -12,6 +12,19 @@ import { contactEmail, githubOrg } from "@/lib/content"
 import { homepageCopy, openSourceRows } from "@/lib/homepage"
 import styles from "./landing.module.css"
 
+function EmphasisTitle({ title, highlight }: { title: string; highlight: string }) {
+  const start = title.indexOf(highlight)
+  if (start < 0) return title
+
+  return (
+    <>
+      {title.slice(0, start)}
+      <em>{highlight}</em>
+      {title.slice(start + highlight.length)}
+    </>
+  )
+}
+
 export function Landing() {
   const locale = useLocale()
   const reducedMotion = useReducedMotion()
@@ -47,7 +60,7 @@ export function Landing() {
         <div className={styles.heroIndex}>LAF / 001</div>
         <motion.div className={styles.heroCopy} {...reveal()}>
           <p className={styles.kicker}>{t.hero.companyType} · {t.hero.location}</p>
-          <h1>{t.hero.title}</h1>
+          <h1><EmphasisTitle title={t.hero.title} highlight={t.hero.highlight} /></h1>
           <p>{t.hero.lede}</p>
         </motion.div>
         <motion.div
@@ -79,7 +92,9 @@ export function Landing() {
 
       <section className={styles.company} id="company">
         <p className={styles.sectionLabel}>01 / COMPANY</p>
-        <motion.h2 {...reveal()}>{t.company.title}</motion.h2>
+        <motion.h2 {...reveal()}>
+          <EmphasisTitle title={t.company.title} highlight={t.company.highlight} />
+        </motion.h2>
         <div className={styles.companyCopy}>
           <motion.p {...companyEnter()}>{t.company.lede}</motion.p>
           <motion.span {...companyEnter(0.1)}>
@@ -175,8 +190,10 @@ export function Landing() {
           data-analytics-event="contact_click"
           data-analytics-target="email"
         >
-          {contactEmail}
-          <ArrowRight size={22} aria-hidden="true" />
+          <span>{contactEmail}</span>
+          <span className={styles.contactArrow}>
+            <ArrowRight size={22} aria-hidden="true" />
+          </span>
         </a>
       </section>
     </main>

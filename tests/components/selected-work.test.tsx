@@ -29,12 +29,18 @@ describe("SelectedWork", () => {
     )
 
     expect(screen.getByRole("heading", { name: "Laf ID" })).toBeVisible()
-    expect(screen.getByText("1 / 3")).toBeVisible()
+    expect(screen.getByRole("status", { name: "1 / 3" })).toHaveClass("srOnly")
+    const position = document.querySelector(".position")!
+    expect(position.querySelectorAll("i")).toHaveLength(3)
+    expect(position.querySelectorAll('i[data-active="true"]')).toHaveLength(1)
+    expect(position.querySelector('i[data-active="true"]')).toBe(position.firstElementChild)
 
     await user.click(screen.getByRole("button", { name: "다음 작업" }))
 
     expect(screen.getByRole("heading", { name: "lafetch" })).toBeVisible()
-    expect(screen.getByText("2 / 3")).toBeVisible()
+    expect(screen.getByRole("status", { name: "2 / 3" })).toHaveClass("srOnly")
+    const nextPosition = document.querySelector(".position")!
+    expect(nextPosition.querySelector('i[data-active="true"]')).toBe(nextPosition.children[1])
     expect(track).toHaveBeenCalledWith("work_navigate", "next:lafetch")
 
     await user.click(screen.getByRole("button", { name: "이전 작업" }))

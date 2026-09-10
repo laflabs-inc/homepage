@@ -1,16 +1,17 @@
 import { readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { StrictMode } from "react"
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import type { SiteSearchResponse } from "@/lib/search/types"
 
-const { analyticsTrackMock, fetchMock } = vi.hoisted(() => ({
+const { analyticsTrackMock, fetchMock, reducedMotionMock } = vi.hoisted(() => ({
   analyticsTrackMock: vi.fn(),
   fetchMock: vi.fn(),
+  reducedMotionMock: vi.fn(() => true),
 }))
 
 vi.mock("@/components/search/site-search-overlay.module.css", () => ({
@@ -35,7 +36,7 @@ vi.mock("motion/react", () => ({
     ),
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
-  useReducedMotion: () => true,
+  useReducedMotion: reducedMotionMock,
 }))
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
@@ -79,7 +80,10 @@ beforeEach(() => {
     json: async () => searchResponse,
   })
   vi.stubGlobal("fetch", fetchMock)
+  reducedMotionMock.mockReturnValue(true)
 })
+
+afterEach(() => vi.useRealTimers())
 
 describe("SiteHeader search overlay", () => {
   it("opens the localized dialog and focuses its search input", async () => {
@@ -92,9 +96,27 @@ describe("SiteHeader search overlay", () => {
     expect(screen.getByRole("dialog")).not.toHaveAttribute("aria-modal")
     expect(trigger).toHaveAttribute("aria-expanded", "true")
     expect(trigger).toHaveAttribute("aria-controls", "site-search-overlay")
-    expect(searchbox).toHaveAttribute("placeholder", "무엇을 찾고 있나요?")
+    expect(searchbox).toHaveAttribute("placeholder", "LafLabs에 대해 검색하기")
     await waitFor(() => expect(searchbox).toHaveFocus())
     expect(analyticsTrackMock).toHaveBeenCalledWith("search_open", null)
+  })
+
+  it("rotates idle prompts and stops showing them as soon as the user types", () => {
+    vi.useFakeTimers()
+    reducedMotionMock.mockReturnValue(false)
+    renderHeader()
+
+    fireEvent.click(screen.getByRole("button", { name: "검색" }))
+    const searchbox = screen.getByRole("searchbox")
+    expect(searchbox).toHaveAttribute("placeholder", "LafLabs에 대해 검색하기")
+
+    act(() => vi.advanceTimersByTime(3200))
+    expect(searchbox).toHaveAttribute("placeholder", "제품과 오픈소스 찾기")
+
+    fireEvent.change(searchbox, { target: { value: "Laf" } })
+    act(() => vi.advanceTimersByTime(6400))
+    expect(searchbox).toHaveValue("Laf")
+    expect(searchbox).toHaveAttribute("placeholder", "")
   })
 
   it("tracks one search-open event per closed-to-open transition under Strict Mode", async () => {
@@ -430,15 +452,13 @@ describe("SiteHeader search overlay", () => {
     expect(css).toMatch(/\.trigger:disabled\s*\{[^}]*cursor: not-allowed[^}]*opacity:/)
     expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.empty a\s*\{[\s\S]*?min-height: 44px/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.overlay\s*\{[\s\S]*?overflow-y: auto/)
-    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.inner\s*\{[\s\S]*?padding-top: 12px[\s\S]*?height: auto/)
-    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.intro\s*\{[\s\S]*?grid-template-columns/)
-    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.form\s*\{[\s\S]*?margin-top: 10px/)
+    expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.inner\s*\{[\s\S]*?padding-top: 20px[\s\S]*?height: auto/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.input\s*\{[\s\S]*?height: 48px/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.status\s*\{[\s\S]*?min-height: 32px/)
     expect(css).toMatch(/@media \(max-height: 600px\)[\s\S]*?\.results\s*\{[\s\S]*?overflow-y: visible/)
-    expect(css).toMatch(/\.intro h1\s*\{[^}]*font-size: clamp\(32px, 3\.4vw, 48px\)/)
-    expect(css).toMatch(/\.input\s*\{[^}]*font:[^;]*clamp\(42px, 4\.5vw, 64px\)/)
-    expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.input\s*\{[^}]*font-size: clamp\(30px, 9vw, 38px\)/)
+    expect(css).toMatch(/\.input\s*\{[^}]*font:[^;]*clamp\(32px, 3\.2vw, 44px\)/)
+    expect(css).toMatch(/\.rotatingPrompt\s*\{[^}]*color: #64748b[^}]*font:[^;]*clamp\(32px, 3\.2vw, 44px\)/)
+    expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*?\.input\s*\{[^}]*font-size: clamp\(26px, 7\.5vw, 32px\)/)
     expect(css).toMatch(/\.resultCopy strong\s*\{[^}]*font-size: clamp\(20px, 1\.8vw, 26px\)/)
     expect(css).not.toMatch(/\.result\s*\{[^}]*transition:[^;]*padding/)
     expect(css).not.toMatch(/\.result:hover\s*\{[^}]*padding/)

@@ -113,9 +113,6 @@ export function SelectedWork() {
           <button type="button" aria-label={t.previous} onClick={() => move("previous")}>
             <ArrowLeft size={18} aria-hidden="true" />
           </button>
-          <span aria-live="polite" aria-atomic="true">
-            {index + 1} / {workItems.length}
-          </span>
           <div className={styles.position} aria-hidden="true">
             {workItems.map((work, workIndex) => (
               <i data-active={workIndex === index} key={work.slug} />
@@ -124,6 +121,13 @@ export function SelectedWork() {
           <button type="button" aria-label={t.next} onClick={() => move("next")}>
             <ArrowRight size={18} aria-hidden="true" />
           </button>
+          <span
+            className={styles.srOnly}
+            role="status"
+            aria-label={`${index + 1} / ${workItems.length}`}
+            aria-live="polite"
+            aria-atomic="true"
+          />
         </div>
       </div>
     </section>

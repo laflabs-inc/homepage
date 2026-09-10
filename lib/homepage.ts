@@ -160,6 +160,7 @@ export const openSourceRows: readonly OpenSourceRow[] = [
 type HomepageCopy = {
   hero: {
     title: string
+    highlight: string
     lede: string
     primary: string
     secondary: string
@@ -168,6 +169,7 @@ type HomepageCopy = {
   }
   company: {
     title: string
+    highlight: string
     lede: string
     scopes: readonly { title: string; body: string }[]
   }
@@ -201,7 +203,8 @@ type HomepageCopy = {
 const ko: HomepageCopy = {
   hero: {
     title: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
-    lede: "LafLabs는 제품을 기획하고 개발하는 소프트웨어 회사입니다. 사용자에게 보이는 화면부터 운영에 필요한 기반까지 직접 설계합니다.",
+    highlight: "필요한 기반",
+    lede: "LafLabs는 제품을 기획하고 개발합니다. 화면부터 운영 기반까지 직접 설계합니다.",
     primary: "회사 알아보기",
     secondary: "우리가 만든 것",
     companyType: "소프트웨어 개발사",
@@ -209,7 +212,8 @@ const ko: HomepageCopy = {
   },
   company: {
     title: "제품과 그 아래의 기술을 함께 만듭니다.",
-    lede: "화면에 보이는 기능만 만들고 끝내지 않습니다. 제품을 직접 운영하고, 반복되는 문제는 다음 작업에도 쓸 수 있는 기반으로 정리합니다.",
+    highlight: "기술",
+    lede: "직접 운영하고, 반복되는 문제는 다시 쓸 수 있는 기술로 정리합니다.",
     scopes: [
       { title: "제품 설계와 개발", body: "문제를 정의하고 실제로 쓰이는 제품까지 만듭니다." },
       { title: "웹과 API", body: "화면과 서버가 같은 기준으로 움직이도록 설계합니다." },
@@ -251,7 +255,8 @@ const ko: HomepageCopy = {
 const en: HomepageCopy = {
   hero: {
     title: "We build products and the systems they need.",
-    lede: "LafLabs is a software company that plans and builds products, from the interface people use to the infrastructure that keeps it running.",
+    highlight: "systems they need",
+    lede: "LafLabs plans and builds software products, from the interface to the systems that keep them running.",
     primary: "About the company",
     secondary: "Selected work",
     companyType: "Software company",
@@ -259,7 +264,8 @@ const en: HomepageCopy = {
   },
   company: {
     title: "We build the product and the technology underneath it.",
-    lede: "Our work does not stop at the visible feature. We operate what we build and turn repeated problems into foundations the next project can reuse.",
+    highlight: "technology",
+    lede: "We operate what we build and turn repeated problems into reusable foundations.",
     scopes: [
       { title: "Product design and development", body: "Define the problem and build through to a product people can use." },
       { title: "Web and API", body: "Design interfaces and servers around the same contract." },
