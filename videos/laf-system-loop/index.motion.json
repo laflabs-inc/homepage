@@ -1,11 +1,10 @@
 {
   "duration": 6,
-  "maxStaticSec": 2,
   "assertions": [
-    { "kind": "appearsBy", "selector": ".origin", "bySec": 0.7 },
-    { "kind": "before", "a": ".origin", "b": ".cell:nth-child(1)" },
-    { "kind": "staysInFrame", "selector": ".matrix" },
-    { "kind": "appearsBy", "selector": ".lockup h1", "bySec": 4.3 },
-    { "kind": "staysInFrame", "selector": ".lockup h1" }
+    { "kind": "appearsBy", "selector": "#code-line-1", "bySec": 0.85 },
+    { "kind": "appearsBy", "selector": "#execute", "bySec": 2.2 },
+    { "kind": "appearsBy", "selector": "#lockup", "bySec": 3.8 },
+    { "kind": "staysInFrame", "selector": ".code" },
+    { "kind": "staysInFrame", "selector": "#lockup" }
   ]
 }

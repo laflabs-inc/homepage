@@ -112,6 +112,7 @@
   line-height: 0.75;
   letter-spacing: -0.04em;
   transform: translateX(-0.04em);
+  opacity: 0;
 }
 
 .heroBlockMeta {
@@ -120,6 +121,7 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.09em;
+  opacity: 0;
 }
 
 .heroVideo {
@@ -584,6 +586,11 @@
 @media (prefers-reduced-motion: reduce) {
   .heroVideo {
     display: none;
+  }
+
+  .heroBlock > strong,
+  .heroBlockMeta {
+    opacity: 1;
   }
 
   .heroBlock {
