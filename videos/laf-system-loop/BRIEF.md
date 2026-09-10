@@ -2,7 +2,7 @@
 workflow: motion-graphics
 flow: automation
 storyboard: no
-message: "LafLabs turns a clear signal into a reliable software system."
+message: "LafLabs turns working code into a reliable software surface."
 destination: website hero
 aspect: "1:1"
 language: English
@@ -12,7 +12,7 @@ length: 6s
 
 ## Intent
 
-A quiet technical system animation embedded in the homepage hero. One square origin routes through a proprietary 3×3 module field, then resolves into the exact static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`. The middle scene is intentionally product-independent so the asset survives future portfolio changes.
+A quiet technical build animation embedded in the homepage hero. Real, minimal HTML for the final lockup is written in dark ink directly on a truly transparent field, executed, and only then resolved into the blue static homepage square: top-left `LAF`, bottom `SOFTWARE / SEOUL · KR`. The sequence is intentionally product-independent so the asset survives future portfolio changes.
 
 ## Assets
 
@@ -21,7 +21,9 @@ A quiet technical system animation embedded in the homepage hero. One square ori
 ## Customizations
 
 - Primary `#2563EB`, secondary `#1E40AF`, neutral `#0F172A`, white `#F8FAFC`
-- Square geometry only; no rounded cards, gradients, glow, or idle floating
+- Square geometry only; no IDE chrome, rounded cards, gradients, glow, or product references
+- No blue field behind the code phase; the surrounding homepage paper must remain visible through it
+- The existing final `LAF / SOFTWARE / SEOUL · KR` frame must remain visually unchanged
 - Silent, deterministic, and designed to loop on the website
 
 ## Notes

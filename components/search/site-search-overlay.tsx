@@ -67,6 +67,7 @@ function SearchDialog({
   const controllerRef = useRef<AbortController | null>(null)
   const [stateLocale, setStateLocale] = useState(locale)
   const [query, setQuery] = useState("")
+  const [promptIndex, setPromptIndex] = useState(0)
   const [response, setResponse] = useState<SearchState<SiteSearchResponse> | null>(null)
   const [error, setError] = useState<SearchState<"invalid" | "unavailable"> | null>(null)
   const [pending, setPending] = useState(false)
@@ -124,6 +125,16 @@ function SearchDialog({
     controllerRef.current?.abort()
     controllerRef.current = null
   }, [locale])
+
+  useEffect(() => {
+    if (reducedMotion || query) return
+
+    const interval = window.setInterval(() => {
+      setPromptIndex((current) => (current + 1) % t.prompts.length)
+    }, 3200)
+
+    return () => window.clearInterval(interval)
+  }, [query, reducedMotion, t.prompts.length])
 
   const submit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
@@ -189,6 +200,7 @@ function SearchDialog({
     disclosure: t.resultDisclosure,
   }
   const resultCount = visibleResponse?.results.length ?? 0
+  const activePrompt = t.prompts[promptIndex]
   const responseStatus = !visibleResponse
     ? null
     : visibleResponse.partial && resultCount === 0
@@ -211,13 +223,25 @@ function SearchDialog({
       transition={reducedMotion ? { duration: 0 } : { duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className={styles.inner}>
-        <div className={styles.intro}>
-          <h1 id={`${SITE_SEARCH_OVERLAY_ID}-heading`}>{t.heading}</h1>
-          <p>{t.prompt}</p>
-        </div>
+        <h1 className={styles.srOnly} id={`${SITE_SEARCH_OVERLAY_ID}-heading`}>{t.heading}</h1>
 
         <form className={styles.form} role="search" onSubmit={submit}>
           <label className={styles.srOnly} htmlFor={`${SITE_SEARCH_OVERLAY_ID}-input`}>{t.input}</label>
+          <AnimatePresence mode="wait">
+            {!query ? (
+              <motion.span
+                aria-hidden="true"
+                className={styles.rotatingPrompt}
+                key={`${locale}:${activePrompt}`}
+                initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+                transition={reducedMotion ? { duration: 0 } : { duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {activePrompt}
+              </motion.span>
+            ) : null}
+          </AnimatePresence>
           <input
             ref={inputRef}
             id={`${SITE_SEARCH_OVERLAY_ID}-input`}
@@ -225,6 +249,7 @@ function SearchDialog({
             type="search"
             name="q"
             value={query}
+            placeholder={query ? "" : activePrompt}
             autoComplete="off"
             spellCheck="false"
             aria-describedby={`${SITE_SEARCH_OVERLAY_ID}-status`}

@@ -49,15 +49,6 @@
   word-break: keep-all;
 }
 
-.signalLede {
-  max-width: 38ch;
-  margin: 28px 0 0;
-  color: #dbeafe;
-  font-size: 14px;
-  line-height: 1.72;
-  word-break: keep-all;
-}
-
 .glitchStage {
   min-height: 128px;
   position: relative;
@@ -382,10 +373,6 @@
   .signalCopy h2 {
     max-width: 11ch;
     font-size: clamp(42px, 12vw, 60px);
-  }
-
-  .signalLede {
-    font-size: 14px;
   }
 
   .glitchStage {

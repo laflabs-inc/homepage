@@ -68,6 +68,7 @@ describe("analytics event schema", () => {
     ["search_open", null],
     ["search_submit", "q6:r6"],
     ["search_result_click", "product"],
+    ["work_navigate", "next:lafetch"],
   ])("accepts the allowlisted %s target %s", (type, targetId) => {
     expect(AnalyticsEventInputSchema.safeParse({ ...baseEvent, type, targetId }).success).toBe(true)
   })
@@ -100,6 +101,11 @@ describe("analytics event schema", () => {
       ...baseEvent,
       type: "search_result_click",
       targetId: "/products/laf-id",
+    }).success).toBe(false)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "work_navigate",
+      targetId: "next:private-project",
     }).success).toBe(false)
   })
 

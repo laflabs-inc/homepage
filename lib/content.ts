@@ -58,6 +58,7 @@ type Copy = {
     heading: string
     prompt: string
     input: string
+    prompts: readonly [string, string, string]
     submit: string
     invalid: string
     loading: string
@@ -147,13 +148,14 @@ type Copy = {
 }
 
 const ko: Copy = {
-  nav: { products: "제품", open: "오픈소스", principles: "원칙", contact: "문의" },
+  nav: { products: "작업", open: "오픈소스", principles: "회사", contact: "문의" },
   search: {
     open: "검색",
     close: "검색 닫기",
     heading: "사이트 검색",
     prompt: "페이지, 제품, 오픈소스와 공개 문서를 검색하세요.",
-    input: "검색어",
+    input: "무엇을 찾고 있나요?",
+    prompts: ["LafLabs에 대해 검색하기", "제품과 오픈소스 찾기", "공개 문서 찾기"],
     submit: "검색 실행",
     invalid: "검색어는 2자 이상 100자 이하로 입력해 주세요.",
     loading: "검색 중입니다.",
@@ -244,8 +246,8 @@ const ko: Copy = {
   },
   signals: {
     label: "LATEST SIGNALS",
-    title: "만든 것과 배운 것을 기록합니다.",
-    lede: "제품 소식부터 기술 기준과 회사 정보까지, 확인할 수 있는 형태로 남깁니다.",
+    title: "새 소식을 전합니다.",
+    lede: "제품 업데이트와 기술 기록, 회사 정보를 공개합니다.",
     listTitle: "최근 소식",
     previous: "이전 소식",
     next: "다음 소식",
@@ -259,9 +261,9 @@ const ko: Copy = {
     lede: "전부 제품을 만들다 막혀서 직접 만든 것들입니다. 우리가 실제로 운영에 쓰고 있고, 그래서 계속 고쳐집니다.",
     all: "GitHub에서 전체 보기",
     descriptions: {
-      lafetch: "브라우저와 서버에서 모두 동작하는 가벼운 타입 우선 HTTP 클라이언트.",
-      lafwall: "Laf Secrets. 암호화 경계, 기본 차단 방식의 권한 관리, 변경할 수 없는 버전 기록을 갖춘 API 우선 시크릿 관리 플랫폼.",
-      lafinvest: "금융 정보의 주장과 수치, 출처, 시점의 정확성을 검증하는 AI 인프라.",
+      lafetch: "브라우저와 서버에서 쓸 수 있는 TypeScript HTTP 클라이언트입니다.",
+      lafwall: "암호화 경계와 기본 차단 권한, 변경할 수 없는 버전 기록을 갖춘 시크릿 관리 플랫폼입니다.",
+      lafinvest: "금융 정보에 담긴 주장과 수치, 출처, 시점의 정확성을 검증하는 AI 인프라입니다.",
     },
   },
   principles: {
@@ -287,13 +289,13 @@ const ko: Copy = {
     github: "GitHub 둘러보기",
   },
   footer: {
-    blurb: "LafLabs는 재미있는 것을 만드는 소프트웨어 개발사입니다. 신원, 결제, 클라우드 인프라를 하나의 경험으로 잇습니다.",
-    products: "제품",
+    blurb: "LafLabs는 제품을 기획하고 개발하며, 운영에 필요한 기반 기술까지 직접 구축하는 소프트웨어 개발사입니다.",
+    products: "작업",
     open: "오픈소스",
     company: "회사",
     documents: "문서",
     links: {
-      principles: "원칙",
+      principles: "일하는 방식",
       contact: "문의하기",
       github: "GitHub",
       notices: "공지사항",
@@ -307,13 +309,14 @@ const ko: Copy = {
 }
 
 const en: Copy = {
-  nav: { products: "Products", open: "Open source", principles: "Principles", contact: "Contact" },
+  nav: { products: "Work", open: "Open source", principles: "Company", contact: "Contact" },
   search: {
     open: "Search",
     close: "Close search",
     heading: "Site search",
     prompt: "Search pages, products, open source, and public documents.",
-    input: "Search query",
+    input: "What are you looking for?",
+    prompts: ["Search LafLabs", "Find products and open source", "Find public documents"],
     submit: "Search",
     invalid: "Enter a search query between 2 and 100 characters.",
     loading: "Searching.",
@@ -404,8 +407,8 @@ const en: Copy = {
   },
   signals: {
     label: "LATEST SIGNALS",
-    title: "We document what we build and learn.",
-    lede: "From product updates to technical standards and company information, we keep the record public.",
+    title: "Recent work and company updates.",
+    lede: "Product updates, engineering notes, and company information in one public record.",
     listTitle: "Latest",
     previous: "Previous story",
     next: "Next story",
@@ -447,13 +450,13 @@ const en: Copy = {
     github: "Browse GitHub",
   },
   footer: {
-    blurb: "A software company that builds fun things, connecting identity, payments, and cloud infrastructure into one experience.",
-    products: "Products",
+    blurb: "LafLabs plans and builds software products, including the technology required to operate them.",
+    products: "Work",
     open: "Open source",
     company: "Company",
     documents: "Documents",
     links: {
-      principles: "Principles",
+      principles: "How we work",
       contact: "Contact",
       github: "GitHub",
       notices: "Notices",

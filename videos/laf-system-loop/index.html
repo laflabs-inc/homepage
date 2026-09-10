@@ -6,64 +6,90 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <style>
     @font-face{font-family:Pretendard;src:url("assets/pretendard-variable.woff2") format("woff2");font-weight:100 900}
-    *{box-sizing:border-box}html,body{margin:0;width:1080px;height:1080px;overflow:hidden;background:#2563eb}body{font-family:Pretendard,Arial,sans-serif;color:#f8fafc}
-    #stage{position:relative;width:1080px;height:1080px;overflow:hidden;background:#2563eb}.grid{position:absolute;inset:0;background-image:linear-gradient(rgb(255 255 255/.12) 1px,transparent 1px),linear-gradient(90deg,rgb(255 255 255/.12) 1px,transparent 1px);background-size:90px 90px}
-    .field{position:absolute;inset:0}.meta{position:absolute;top:44px;left:48px;right:48px;display:flex;justify-content:space-between;font:650 15px/1 monospace;letter-spacing:.14em}
-    .origin{position:absolute;left:108px;top:498px;width:96px;height:96px;border:2px solid #f8fafc;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;opacity:0}.origin i{display:block;background:#f8fafc}.origin-mark{position:absolute;left:108px;top:620px;font:650 13px/1 monospace;letter-spacing:.14em;opacity:0}
-    .routes{position:absolute;inset:0;width:1080px;height:1080px;overflow:visible}.route-path{fill:none;stroke:#f8fafc;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter}.route-end{position:absolute;left:634px;width:20px;height:20px;background:#f8fafc;opacity:0}.end-1{top:306px}.end-2{top:536px}.end-3{top:754px}
-    .matrix{position:absolute;left:680px;top:274px;width:300px;height:544px;display:grid;grid-template-columns:repeat(3,84px);grid-template-rows:repeat(3,84px);gap:146px 24px}.cell{position:relative;border:2px solid #f8fafc;opacity:0;transform-origin:center}.cell-fill{position:absolute;inset:14px;background:#f8fafc;transform:scale(0);transform-origin:center}.cell:nth-child(2n) .cell-fill{inset:25px}.matrix-frame{position:absolute;left:656px;top:250px;width:348px;height:580px;border:2px solid rgb(248 250 252/.38);opacity:0}.scan{position:absolute;left:656px;top:250px;width:348px;height:5px;background:#f8fafc;opacity:0;will-change:transform}
-    .readout{position:absolute;left:108px;bottom:106px;display:grid;grid-template-columns:160px 210px;gap:26px;font:650 13px/1.6 monospace;letter-spacing:.12em;opacity:0}.readout span{padding-top:12px;border-top:2px solid rgb(248 250 252/.5)}.readout b{font-weight:650;color:#fff}
-    .lockup{position:absolute;inset:0;background:#2563eb;opacity:0}.lockup h1{position:absolute;top:42px;left:43px;font-size:330px;line-height:.72;letter-spacing:-.11em;margin:0;transform:translateX(-.055em)}.lockup-meta{position:absolute;left:48px;right:48px;bottom:45px;display:flex;justify-content:space-between;font:650 15px/1 monospace;letter-spacing:.14em}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:1080px;height:1080px;overflow:hidden;background:transparent}
+    body{font-family:Pretendard,Arial,sans-serif;color:#0f172a}
+    #stage{position:relative;width:1080px;height:1080px;overflow:hidden;background:transparent}
+    .code-scene{position:absolute;inset:0;overflow:hidden}
+    .meta{position:absolute;top:44px;left:48px;right:48px;display:flex;justify-content:space-between;font:650 15px/1 monospace;letter-spacing:.14em}
+    .frame-rule{position:absolute;background:rgb(15 23 42/.34);transform-origin:left center}
+    .frame-rule.top{top:106px;left:48px;width:984px;height:2px}
+    .frame-rule.side{top:106px;bottom:48px;left:48px;width:2px;transform-origin:center top}
+    .code{position:absolute;top:178px;left:104px;width:872px;font:560 39px/1.52 monospace;letter-spacing:-.025em;white-space:nowrap}
+    .code-line{display:block;width:max-content;max-width:100%;opacity:0}
+    .indent-1{padding-left:45px}.indent-2{padding-left:90px}
+    .tag{color:#2563eb}.attr{color:#0f172a}.value{color:#1e40af}.text{color:#0f172a}
+    .cursor{display:inline-block;width:22px;height:39px;margin-left:12px;vertical-align:-5px;background:#2563eb;opacity:0}
+    .execute{position:absolute;left:104px;right:48px;bottom:82px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:26px;font:650 16px/1 monospace;letter-spacing:.16em;opacity:0}
+    .execute-track{height:2px;background:rgb(15 23 42/.28);position:relative;overflow:hidden}
+    .execute-progress{position:absolute;inset:0;background:#2563eb;transform:scaleX(0);transform-origin:left center}
+    .execute-cursor{width:22px;height:22px;background:#2563eb;opacity:0}
+    .render-grid{position:absolute;inset:0;opacity:0}
+    .render-grid i{position:absolute;display:block;background:rgb(37 99 235/.66)}
+    .render-grid .x1{left:48px;right:48px;top:106px;height:2px;transform-origin:left center}
+    .render-grid .x2{left:48px;right:48px;bottom:74px;height:2px;transform-origin:right center}
+    .render-grid .y1{top:106px;bottom:74px;left:48px;width:2px;transform-origin:center top}
+    .render-grid .y2{top:106px;bottom:74px;right:48px;width:2px;transform-origin:center bottom}
+    .surface{position:absolute;inset:0;background:#2563eb;transform-origin:left center;opacity:0}
+    .lockup{position:absolute;inset:0;color:#f8fafc;opacity:0}
+    .lockup h1{position:absolute;top:42px;left:43px;font-size:330px;font-weight:850;line-height:.72;letter-spacing:-.11em;margin:0;transform:translateX(-.055em)}
+    .lockup-meta{position:absolute;left:48px;right:48px;bottom:45px;display:flex;justify-content:space-between;font:650 15px/1 monospace;letter-spacing:.14em}
   </style>
 </head>
 <body>
-  <div data-hf-id="hf-zgo2" id="stage" class="clip" data-composition-id="laf-system" data-start="0" data-duration="6" data-fps="30" data-width="1080" data-height="1080" data-track-index="0">
-    <div data-hf-id="hf-80b5" class="grid" data-layout-ignore=""></div>
-    <div data-hf-id="hf-0ztw" class="field">
-      <div data-hf-id="hf-puvz" class="meta"><span data-hf-id="hf-vii5">LAF / SYSTEM 001</span><span data-hf-id="hf-kjqn">SEOUL · KR</span></div>
-      <div data-hf-id="hf-9uv7" class="origin" aria-label="Signal origin"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i><i data-hf-id="hf-y7e5"></i><i data-hf-id="hf-ylp6"></i></div>
-      <div data-hf-id="hf-31mm" class="origin-mark">ORIGIN / 01</div>
-      <svg data-hf-id="hf-0s02" class="routes" viewBox="0 0 1080 1080" aria-hidden="true" data-layout-ignore="">
-        <path data-hf-id="hf-pa0i" class="route-path route-1" d="M204 546 H402 V316 H634" />
-        <path data-hf-id="hf-jah7" class="route-path route-2" d="M204 546 H634" />
-        <path data-hf-id="hf-ith5" class="route-path route-3" d="M204 546 H402 V764 H634" />
-      </svg>
-      <i data-hf-id="hf-d4um" class="route-end end-1"></i><i data-hf-id="hf-96ql" class="route-end end-2"></i><i data-hf-id="hf-8f2s" class="route-end end-3"></i>
-      <div data-hf-id="hf-4jm2" class="matrix-frame" data-layout-ignore=""></div>
-      <div data-hf-id="hf-f9eu" class="matrix" aria-label="Assembled routing field">
-        <i data-hf-id="hf-8m7k" class="cell"><b data-hf-id="hf-9z4p" class="cell-fill"></b></i><i data-hf-id="hf-3sjs" class="cell"><b data-hf-id="hf-lv59" class="cell-fill"></b></i><i data-hf-id="hf-2lmp" class="cell"><b data-hf-id="hf-n22c" class="cell-fill"></b></i>
-        <i data-hf-id="hf-2zxq" class="cell"><b data-hf-id="hf-mnrb" class="cell-fill"></b></i><i data-hf-id="hf-1t0n" class="cell"><b data-hf-id="hf-nuoe" class="cell-fill"></b></i><i data-hf-id="hf-27bo" class="cell"><b data-hf-id="hf-ngdd" class="cell-fill"></b></i>
-        <i data-hf-id="hf-10el" class="cell"><b data-hf-id="hf-onag" class="cell-fill"></b></i><i data-hf-id="hf-1epm" class="cell"><b data-hf-id="hf-o8zf" class="cell-fill"></b></i><i data-hf-id="hf-6koz" class="cell"><b data-hf-id="hf-pfwi" class="cell-fill"></b></i>
+  <div data-hf-id="hf-stage" id="stage" class="clip" data-composition-id="laf-system" data-start="0" data-duration="6" data-fps="30" data-width="1080" data-height="1080" data-track-index="0">
+    <div data-hf-id="hf-code-scene" class="code-scene">
+      <div data-hf-id="hf-code-meta" class="meta"><span>LAF / BUILD 001</span><span>HTML / READY</span></div>
+      <i data-hf-id="hf-rule-top" class="frame-rule top" data-layout-ignore></i>
+      <i data-hf-id="hf-rule-side" class="frame-rule side" data-layout-ignore></i>
+      <div data-hf-id="hf-code" class="code" aria-label="HTML that builds the final LAF frame">
+        <span data-hf-id="hf-line-1" id="code-line-1" class="code-line"><span class="tag">&lt;main</span> <span class="attr">class=</span><span class="value">&quot;laf&quot;</span><span class="tag">&gt;</span></span>
+        <span data-hf-id="hf-line-2" class="code-line indent-1"><span class="tag">&lt;h1&gt;</span><span class="text">LAF</span><span class="tag">&lt;/h1&gt;</span></span>
+        <span data-hf-id="hf-line-3" class="code-line indent-1"><span class="tag">&lt;footer&gt;</span></span>
+        <span data-hf-id="hf-line-4" class="code-line indent-2"><span class="tag">&lt;span&gt;</span><span class="text">SOFTWARE</span><span class="tag">&lt;/span&gt;</span></span>
+        <span data-hf-id="hf-line-5" class="code-line indent-2"><span class="tag">&lt;span&gt;</span><span class="text">SEOUL / KR</span><span class="tag">&lt;/span&gt;</span></span>
+        <span data-hf-id="hf-line-6" class="code-line indent-1"><span class="tag">&lt;/footer&gt;</span></span>
+        <span data-hf-id="hf-line-7" class="code-line"><span class="tag">&lt;/main&gt;</span><i data-hf-id="hf-code-cursor" class="cursor"></i></span>
       </div>
-      <div data-hf-id="hf-ivmq" class="scan" data-layout-ignore=""></div>
-      <div data-hf-id="hf-19k8" class="readout"><span data-hf-id="hf-pswl">ROUTING<br data-hf-id="hf-x5px"><b data-hf-id="hf-ibv3">ACTIVE</b></span><span data-hf-id="hf-nqjp">MODULE FIELD<br data-hf-id="hf-rsrt"><b data-hf-id="hf-ovoe">09 / 09</b></span></div>
+      <div data-hf-id="hf-execute" id="execute" class="execute"><span>RUN / 01</span><i class="execute-track"><b class="execute-progress"></b></i><i class="execute-cursor"></i></div>
     </div>
-    <div data-hf-id="hf-6jvi" class="lockup"><h1 data-hf-id="hf-6cen" data-layout-allow-overflow="">LAF</h1><div data-hf-id="hf-x4eo" class="lockup-meta"><span data-hf-id="hf-gp8k">SOFTWARE</span><span data-hf-id="hf-kcuv">SEOUL / KR</span></div></div>
+    <div data-hf-id="hf-render-grid" class="render-grid" data-layout-ignore>
+      <i class="x1"></i><i class="x2"></i><i class="y1"></i><i class="y2"></i>
+    </div>
+    <div data-hf-id="hf-surface" class="surface" data-layout-ignore></div>
+    <div data-hf-id="hf-lockup" id="lockup" class="lockup">
+      <h1 data-hf-id="hf-lockup-title" data-layout-allow-overflow>LAF</h1>
+      <div data-hf-id="hf-lockup-meta" class="lockup-meta"><span>SOFTWARE</span><span>SEOUL / KR</span></div>
+    </div>
   </div>
   <script>
     window.__timelines=window.__timelines||{};
     const tl=gsap.timeline({paused:true});
-    const paths=Array.from(document.querySelectorAll(".route-path"));
-    paths.forEach((path)=>{const length=path.getTotalLength();gsap.set(path,{strokeDasharray:length,strokeDashoffset:length})});
-    tl.fromTo(".origin",{scale:.35,opacity:0,rotation:-8},{scale:1,opacity:1,rotation:0,duration:.46,ease:"back.out(1.5)"},.2)
-      .fromTo(".origin i",{scale:0,opacity:0},{scale:1,opacity:1,duration:.24,stagger:.06,ease:"power3.out"},.38)
-      .fromTo(".origin-mark",{x:-28,opacity:0},{x:0,opacity:1,duration:.36,ease:"expo.out"},.52);
-    paths.forEach((path,index)=>{
-      const at=.68+index*.26;
-      tl.to(path,{strokeDashoffset:0,duration:.58,ease:"power2.inOut"},at)
-        .fromTo(`.end-${index+1}`,{scale:0,opacity:0},{scale:1,opacity:1,duration:.22,ease:"back.out(2)"},at+.48)
-        .fromTo(`.cell:nth-child(n+${index*3+1}):nth-child(-n+${index*3+3})`,{x:70,scale:.55,opacity:0},{x:0,scale:1,opacity:1,duration:.42,stagger:.07,ease:"power4.out"},at+.52)
-        .fromTo(`.cell:nth-child(n+${index*3+1}):nth-child(-n+${index*3+3}) .cell-fill`,{scale:0},{scale:1,duration:.28,stagger:.05,ease:"power3.out"},at+.72)
-    });
-    tl.fromTo(".matrix-frame",{scale:.92,opacity:0},{scale:1,opacity:1,duration:.48,ease:"power3.out"},1.72)
-      .fromTo(".readout",{y:24,opacity:0},{y:0,opacity:1,duration:.46,ease:"expo.out"},1.86)
-      .fromTo(".scan",{y:0,opacity:0},{y:575,opacity:.82,duration:.72,ease:"power1.inOut"},2.14)
-      .to(".scan",{opacity:0,duration:.12,ease:"power2.in"},2.87)
-      .to(".field",{x:-220,opacity:0,duration:.5,ease:"power4.in"},3.05)
-      .fromTo(".lockup",{x:1080,opacity:1},{x:0,opacity:1,duration:.72,ease:"power4.out"},3.22)
-      .fromTo(".lockup h1",{x:80,opacity:0},{x:0,opacity:1,duration:.6,ease:"power3.out"},3.48)
-      .fromTo(".lockup-meta",{opacity:0},{opacity:1,duration:.35,ease:"power2.out"},4.15);
-    tl.seek(0);window.__timelines["laf-system"]=tl;
+
+    tl.fromTo(".code-scene .meta",{opacity:0,y:-16},{opacity:1,y:0,duration:.34,ease:"expo.out"},.18)
+      .fromTo(".frame-rule.top",{scaleX:0},{scaleX:1,duration:.52,ease:"power3.inOut"},.24)
+      .fromTo(".frame-rule.side",{scaleY:0},{scaleY:1,duration:.68,ease:"power2.inOut"},.42)
+      .fromTo(".code-line",{x:-34,opacity:0},{x:0,opacity:1,duration:.31,stagger:.16,ease:"power4.out"},.48)
+      .fromTo(".cursor",{opacity:0},{opacity:1,duration:.12,ease:"none"},1.62)
+      .to(".cursor",{opacity:.18,duration:.16,yoyo:true,repeat:2,ease:"none"},1.76)
+      .fromTo(".execute",{y:22,opacity:0},{y:0,opacity:1,duration:.28,ease:"expo.out"},1.84)
+      .fromTo(".execute-progress",{scaleX:0},{scaleX:1,duration:.58,ease:"power2.inOut"},2.04)
+      .fromTo(".execute-cursor",{x:-720,opacity:1},{x:0,opacity:1,duration:.58,ease:"power2.inOut"},2.04)
+      .to(".code-line",{x:44,opacity:0,duration:.3,stagger:.025,ease:"power3.in"},2.54)
+      .to(".code-scene .meta, .frame-rule, .execute",{opacity:0,duration:.25,ease:"power2.in"},2.62)
+      .fromTo(".render-grid",{opacity:0},{opacity:1,duration:.01,ease:"none"},2.78)
+      .fromTo(".render-grid .x1",{scaleX:0},{scaleX:1,duration:.42,ease:"expo.out"},2.8)
+      .fromTo(".render-grid .y2",{scaleY:0},{scaleY:1,duration:.36,ease:"power3.out"},2.9)
+      .fromTo(".render-grid .x2",{scaleX:0},{scaleX:1,duration:.42,ease:"power2.out"},3.02)
+      .fromTo(".render-grid .y1",{scaleY:0},{scaleY:1,duration:.34,ease:"expo.out"},3.12)
+      .fromTo(".surface",{scaleX:0,opacity:1},{scaleX:1,opacity:1,duration:.64,ease:"power4.inOut"},3.2)
+      .to(".render-grid",{opacity:0,duration:.2,ease:"power2.in"},3.52)
+      .fromTo(".lockup",{opacity:0},{opacity:1,duration:.01,ease:"none"},3.56)
+      .fromTo(".lockup h1",{x:74,opacity:0},{x:0,opacity:1,duration:.62,ease:"expo.out"},3.58)
+      .fromTo(".lockup-meta",{y:24,opacity:0},{y:0,opacity:1,duration:.42,ease:"power3.out"},3.88);
+
+    tl.seek(0);
+    window.__timelines["laf-system"]=tl;
   </script>
 </body>
 </html>

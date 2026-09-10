@@ -1,6 +1,6 @@
 import "server-only"
 
-import { copy, documentSections, products, repositories } from "@/lib/content"
+import { copy, documentSections } from "@/lib/content"
 import {
   listPublishedDocuments,
   type PublishedDocumentReader,
@@ -8,6 +8,7 @@ import {
 import { documentStore } from "@/lib/documents/store"
 import { documentKinds } from "@/lib/documents/types"
 import type { Locale } from "@/lib/i18n"
+import { homepageCopy, openSourceRows, workItems } from "@/lib/homepage"
 
 import type {
   SiteSearchResponse,
@@ -42,38 +43,38 @@ function toSiteSearchResult(result: SearchableResult): SiteSearchResult {
 
 function staticResults(locale: Locale): SearchableResult[] {
   const t = copy[locale]
-  const company = locale === "ko" ? {
-    title: "분야를 가리지 않고, 필요한 것을 만듭니다.",
-    description: "아이덴티티, 결제, 클라우드, 오픈소스. 문제는 달라도 만드는 원칙은 같습니다.",
-  } : {
-    title: "We don't build for one category. We build what is needed.",
-    description: "Identity, payments, cloud, and open source. Different problems, one way of building.",
-  }
+  const home = homepageCopy[locale]
 
   return [
     {
       id: "home",
       group: "page",
       title: "LafLabs",
-      description: t.hero.lede,
+      description: home.hero.lede,
       href: "/",
       keywords: ["home", "homepage", "홈", "홈페이지"],
     },
     {
       id: "company",
       group: "page",
-      title: company.title,
-      description: company.description,
+      title: home.company.title,
+      description: home.company.lede,
       href: "/#company",
-      keywords: ["company", "회사", "BUILD QUIETLY", "WORK RELIABLY"],
+      keywords: [
+        "company",
+        "회사",
+        "BUILD QUIETLY",
+        "WORK RELIABLY",
+        ...home.company.scopes.flatMap((scope) => [scope.title, scope.body]),
+      ],
     },
     {
-      id: "build-loop",
+      id: "work-method",
       group: "page",
-      title: t.buildLoop.title,
-      description: t.buildLoop.lede,
-      href: "/#build-loop",
-      keywords: t.buildLoop.steps.flatMap((step) => [step.title, step.body, step.caption]),
+      title: home.method.title,
+      description: home.method.lede,
+      href: "/#work-method",
+      keywords: home.method.items.flatMap((item) => [item.mark, item.title, item.body]),
     },
     {
       id: "latest-signals",
@@ -88,12 +89,12 @@ function staticResults(locale: Locale): SearchableResult[] {
       ],
     },
     {
-      id: "products",
+      id: "work",
       group: "page",
-      title: t.nav.products,
-      description: t.products.lede,
-      href: "/#products",
-      keywords: ["products", "product", "제품", "identity", "payments", "cloud", "신원", "결제", "클라우드"],
+      title: home.work.title,
+      description: home.work.lede,
+      href: "/#work",
+      keywords: ["work", "selected work", "작업", "제품", "오픈소스"],
     },
     {
       id: "open-source",
@@ -104,18 +105,10 @@ function staticResults(locale: Locale): SearchableResult[] {
       keywords: ["open source", "opensource", "오픈소스", "github"],
     },
     {
-      id: "principles",
-      group: "page",
-      title: t.nav.principles,
-      description: t.principles.lede,
-      href: "/#principles",
-      keywords: ["principles", "원칙"],
-    },
-    {
       id: "contact",
       group: "page",
       title: t.nav.contact,
-      description: t.cta.lede,
+      description: home.contact.lede,
       href: "/#contact",
       keywords: ["contact", "문의"],
     },
@@ -135,21 +128,21 @@ function staticResults(locale: Locale): SearchableResult[] {
       href: `${documentSections[kind].path}?locale=${locale}`,
       keywords: [kind],
     })),
-    ...products.map((product) => ({
-      id: product.id,
+    ...workItems.filter((item) => item.category === "product").map((item) => ({
+      id: item.slug,
       group: "product" as const,
-      title: product.name,
-      description: t.products[product.id].description,
-      href: "/#products",
-      keywords: [product.id, t.products[product.id].layer, t.products[product.id].tagline],
+      title: item.title,
+      description: item.summary[locale],
+      href: "/#work",
+      keywords: [item.slug, ...item.tags],
     })),
-    ...repositories.map((repository) => ({
-      id: repository.name,
+    ...openSourceRows.filter((row) => row.public && row.href).map((row) => ({
+      id: row.id,
       group: "open-source" as const,
-      title: repository.name,
-      description: t.open.descriptions[repository.name],
-      href: repository.href,
-      keywords: [repository.language, "github"],
+      title: row.title[locale],
+      description: row.description[locale],
+      href: row.href!,
+      keywords: [row.language ?? "", "github"],
     })),
   ]
 }

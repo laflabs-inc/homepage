@@ -160,7 +160,6 @@ export function LatestSignals() {
           <div className={styles.signalCopy}>
             <p className={`${styles.signalLabel} mono`}>{t.label}</p>
             <h2 id="latest-signals-title">{t.title}</h2>
-            <p className={styles.signalLede}>{t.lede}</p>
           </div>
           <SignalGlitch
             state={displayState.status}

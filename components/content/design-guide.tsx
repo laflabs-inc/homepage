@@ -54,6 +54,7 @@ const copy = {
       items: [
         ["Official logo", "PNG · 460 × 460", "/laflabs-logo.png"],
         ["System loop poster", "PNG", "/laf-system-loop-poster.png"],
+        ["System loop motion", "Transparent WebM", "/laf-system-loop.webm"],
         ["System loop motion", "MP4", "/laf-system-loop.mp4"],
       ],
       action: "다운로드",
@@ -96,6 +97,7 @@ const copy = {
       items: [
         ["Official logo", "PNG · 460 × 460", "/laflabs-logo.png"],
         ["System loop poster", "PNG", "/laf-system-loop-poster.png"],
+        ["System loop motion", "Transparent WebM", "/laf-system-loop.webm"],
         ["System loop motion", "MP4", "/laf-system-loop.mp4"],
       ],
       action: "Download",

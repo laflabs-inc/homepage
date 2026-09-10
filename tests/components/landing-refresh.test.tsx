@@ -11,6 +11,12 @@ vi.mock("@/components/sections/build-loop.module.css", () => ({
 vi.mock("@/components/sections/latest-signals.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
+vi.mock("@/components/landing.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
+vi.mock("@/components/sections/selected-work.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
 
 import { ConsentPanel } from "@/components/analytics/consent-panel"
 import { ConsentProvider } from "@/components/analytics/consent-provider"
@@ -32,53 +38,96 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe("homepage refresh", () => {
-  it("presents the humanized Korean company and engineering story", () => {
+  it("introduces the company and its work method before any product", () => {
     const { container } = render(
       <LocaleProvider initialLocale="ko">
-        <Landing />
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
       </LocaleProvider>,
     )
 
-    expect(screen.getByRole("heading", { name: "제품에 필요한 다음을 만듭니다." })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "제품에서 시작해 시스템으로 남깁니다." })).toBeVisible()
+    expect(screen.getByRole("heading", {
+      name: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
+    })).toBeVisible()
     expect(
-      screen.getByRole("heading", { name: "직접 쓰고 검증한 코드를 공개합니다." }),
-    ).toBeVisible()
-    expect(screen.getByRole("heading", { name: "기반 기술" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "운영" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "시스템" })).toBeInTheDocument()
-    expect(
-      screen.getByText("운영에서 확인한 경계와 반복 작업을 오래 쓰는 시스템으로 남깁니다."),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText("제품에서 찾은 실제 문제를 공통 기반으로 정리하고 직접 운영합니다. 운영에서 확인한 경계와 반복 작업은 오래 쓰는 시스템으로 남깁니다."),
-    ).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "만든 것과 배운 것을 기록합니다." })).toBeVisible()
-    expect(screen.getByRole("region", { name: "최근 소식" })).toBeVisible()
-    expect(screen.getByText(/아이덴티티, 결제, 클라우드/)).toHaveAttribute(
-      "data-company-line",
-      "copy",
-    )
-    expect(screen.getByText(/BUILD QUIETLY/)).toHaveAttribute(
-      "data-company-line",
-      "motto",
-    )
-    expect(container.querySelector("section#company")).toBeInTheDocument()
-    expect(container.querySelector("section#build-loop")).toBeInTheDocument()
-    expect(container.querySelector("section#latest-signals")).toBeInTheDocument()
+      Array.from(container.querySelectorAll("h1 .titleLine"), (line) => line.textContent),
+    ).toEqual(["제품을 만들고,", "필요한 기반을 직접", "구축합니다."])
+    expect(screen.getByText("LAF / 001")).toBeVisible()
+    expect(screen.getByRole("heading", {
+      name: "제품과 그 아래의 기술을 함께 만듭니다.",
+    })).toBeVisible()
+    expect(screen.getByText("필요한 기반", { selector: "em" })).toBeVisible()
+    expect(screen.getByText("기술", { selector: "em" })).toBeVisible()
+    expect(screen.getByText(
+      "LafLabs는 제품을 기획하고 개발합니다. 화면부터 운영 기반까지 직접 설계합니다.",
+    )).toBeVisible()
+    expect(screen.getByText(
+      "직접 운영하고, 반복되는 문제는 다시 쓸 수 있는 기술로 정리합니다.",
+    )).toBeVisible()
+    expect(screen.getByText("ASK")).toBeVisible()
+    expect(screen.getByText("BUILD")).toBeVisible()
+    expect(screen.getByText("RUN")).toBeVisible()
+    expect(screen.getByRole("heading", { name: "실제 문제부터" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "필요한 만큼 단순하게" })).toBeVisible()
+    expect(screen.getByRole("heading", { name: "직접 운영하며 확인" })).toBeVisible()
+
+    const company = container.querySelector<HTMLElement>("section#company")
+    const method = container.querySelector<HTMLElement>("section#work-method")
+    const work = container.querySelector<HTMLElement>("section#work")
+    expect(company).toBeInTheDocument()
+    expect(method).toBeInTheDocument()
+    expect(work).toBeInTheDocument()
+    expect(company!.compareDocumentPosition(method!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(method!.compareDocumentPosition(work!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(work).toHaveTextContent("Laf ID")
+    expect(company).not.toHaveTextContent("Laf ID")
+    expect(method).not.toHaveTextContent("Laf ID")
+
+    const methodTitleBlock = method!.querySelector<HTMLElement>(".methodTitleBlock")!
+    expect(company).not.toHaveTextContent("01 / COMPANY")
+    expect(method).not.toHaveTextContent("02 / HOW WE WORK")
+    expect(methodTitleBlock).toContainElement(within(method!).getByRole("heading", {
+      name: "문제를 찾고, 만들고, 직접 운영합니다.",
+    }))
   })
 
-  it("keeps the product-to-system ending in the English locale", () => {
-    render(
-      <LocaleProvider initialLocale="en">
-        <Landing />
+  it("keeps work factual, hides undisclosed repositories, and removes recruiting copy", () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="ko">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
       </LocaleProvider>,
     )
 
-    expect(screen.getByRole("heading", { name: "System" })).toBeInTheDocument()
-    expect(
-      screen.getByText("Turn proven boundaries and repeated work into a system designed to last."),
-    ).toBeInTheDocument()
+    expect(screen.getByRole("heading", {
+      name: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
+    })).toBeVisible()
+    expect(screen.queryByRole("heading", { name: "코드가 결과를 설명합니다." })).not.toBeInTheDocument()
+    expect(container).not.toHaveTextContent("채용")
+
+    const openSource = container.querySelector<HTMLElement>("section#open-source")!
+    expect(within(openSource).getByRole("link", { name: /lafetch/ })).toHaveAttribute(
+      "href",
+      "https://github.com/laflabs-inc/lafetch",
+    )
+    expect(within(openSource).getAllByText("미공개 프로젝트")).toHaveLength(2)
+    expect(openSource).not.toHaveTextContent("lafwall")
+    expect(openSource).not.toHaveTextContent("lafinvest")
+  })
+
+  it("keeps the dedicated contact band off the homepage", () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="ko">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    expect(container.querySelector("section#contact")).not.toBeInTheDocument()
+    expect(container.querySelector('main a[href="mailto:contact@laflabs.co"]')).not.toBeInTheDocument()
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {
@@ -98,6 +147,8 @@ describe("homepage refresh", () => {
     expect(within(footer).getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices")
     expect(within(footer).getByRole("link", { name: "공시" })).toHaveAttribute("href", "/disclosures")
     expect(within(footer).getByRole("link", { name: "디자인 가이드" })).toHaveAttribute("href", "/design")
+    expect(within(footer).queryByText("작업")).not.toBeInTheDocument()
+    expect(within(footer).queryByRole("link", { name: "Laf ID" })).not.toBeInTheDocument()
     expect(within(footer).queryByText("새로운 이야기를 시작하세요")).not.toBeInTheDocument()
   })
 

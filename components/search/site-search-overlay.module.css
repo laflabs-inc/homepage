@@ -40,64 +40,59 @@
 }
 
 .inner {
-  width: var(--shell);
+  width: min(960px, calc(100% - 64px));
   height: 100%;
   margin: 0 auto;
-  padding: clamp(34px, 5vh, 64px) 0 0;
+  padding: clamp(56px, 11vh, 120px) 0 0;
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
-}
-
-.intro {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 32px;
-}
-
-.intro h1 {
-  margin: 0;
-  font-size: clamp(38px, 5vw, 72px);
-  font-weight: 780;
-  line-height: 0.98;
-  letter-spacing: -0.04em;
-  word-break: keep-all;
-}
-
-.intro p {
-  max-width: 42ch;
-  margin: 0 0 4px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.65;
-  text-align: right;
-  word-break: keep-all;
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
 .form {
-  margin-top: clamp(32px, 5vh, 58px);
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(64px, 7vw, 92px);
-  border-bottom: 3px solid var(--ink);
+  grid-template-columns: minmax(0, 1fr) clamp(56px, 5vw, 68px);
+  border-bottom: 1px solid var(--ink);
 }
 
 .input {
   min-width: 0;
-  height: clamp(76px, 11vw, 126px);
-  padding: 0 22px 4px 0;
+  height: clamp(64px, 6vw, 78px);
+  padding: 0 22px 2px 0;
+  position: relative;
+  z-index: 1;
   border: 0;
   border-radius: 0;
   outline: 0;
   background: transparent;
   color: var(--ink);
   caret-color: var(--blue);
-  font: 760 clamp(42px, 7.4vw, 96px) / 1 var(--font-geist-sans), "Pretendard", sans-serif;
-  letter-spacing: -0.04em;
+  font: 650 clamp(32px, 3.2vw, 44px) / 1 var(--font-geist-sans), "Pretendard", sans-serif;
+  letter-spacing: -0.035em;
   appearance: none;
 }
 
 .input::-webkit-search-cancel-button {
   appearance: none;
+}
+
+.input::placeholder {
+  opacity: 0;
+}
+
+.rotatingPrompt {
+  height: 100%;
+  position: absolute;
+  z-index: 0;
+  inset: 0 clamp(56px, 5vw, 68px) 0 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: #64748b;
+  font: 650 clamp(32px, 3.2vw, 44px) / 1 var(--font-geist-sans), "Pretendard", sans-serif;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .input:focus-visible {
@@ -132,8 +127,8 @@
 }
 
 .submit svg {
-  width: 32px;
-  height: 32px;
+  width: 27px;
+  height: 27px;
 }
 
 .status {
@@ -199,7 +194,7 @@
 }
 
 .group + .group {
-  margin-top: 48px;
+  margin-top: 36px;
 }
 
 .group h2 {
@@ -215,8 +210,8 @@
 }
 
 .result {
-  min-height: 96px;
-  padding: 20px 12px 20px 0;
+  min-height: 84px;
+  padding: 16px 12px 16px 0;
   display: grid;
   grid-template-columns: minmax(112px, 0.25fr) minmax(0, 1fr) 28px;
   gap: 24px;
@@ -244,7 +239,7 @@
 
 .resultCopy strong {
   overflow-wrap: anywhere;
-  font-size: clamp(20px, 2.2vw, 30px);
+  font-size: clamp(20px, 1.8vw, 26px);
   font-weight: 720;
   line-height: 1.12;
   letter-spacing: -0.025em;
@@ -374,30 +369,22 @@
   }
 
   .inner {
-    padding-top: 28px;
-  }
-
-  .intro {
-    display: block;
-  }
-
-  .intro h1 {
-    font-size: 38px;
-  }
-
-  .intro p {
-    margin-top: 14px;
-    text-align: left;
+    width: calc(100% - 40px);
+    padding-top: 40px;
   }
 
   .form {
-    margin-top: 24px;
-    grid-template-columns: minmax(0, 1fr) 58px;
+    grid-template-columns: minmax(0, 1fr) 54px;
   }
 
   .input {
-    height: 72px;
-    font-size: clamp(36px, 12vw, 54px);
+    height: 58px;
+    font-size: clamp(26px, 7.5vw, 32px);
+  }
+
+  .rotatingPrompt {
+    right: 54px;
+    font-size: clamp(26px, 7.5vw, 32px);
   }
 
   .submit {
@@ -421,8 +408,8 @@
   }
 
   .result {
-    min-height: 108px;
-    padding: 18px 8px 18px 0;
+    min-height: 92px;
+    padding: 14px 8px 14px 0;
     grid-template-columns: minmax(0, 1fr) 24px;
     gap: 10px 14px;
   }
@@ -434,6 +421,10 @@
 
   .resultCopy {
     grid-column: 1;
+  }
+
+  .resultCopy strong {
+    font-size: clamp(18px, 5.6vw, 22px);
   }
 
   .result > svg {
@@ -469,38 +460,24 @@
   }
 
   .inner {
-    padding-top: 12px;
+    padding-top: 20px;
     height: auto;
     min-height: 100%;
     display: block;
   }
 
-  .intro {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 16px;
-    align-items: end;
-  }
-
-  .intro h1 {
-    font-size: 24px;
-  }
-
-  .intro p {
-    margin: 0;
-    font-size: 11px;
-    line-height: 1.4;
-    text-align: right;
-  }
-
   .form {
-    margin-top: 10px;
     grid-template-columns: minmax(0, 1fr) 48px;
   }
 
   .input {
     height: 48px;
-    font-size: clamp(28px, 7vw, 40px);
+    font-size: clamp(24px, 6vw, 30px);
+  }
+
+  .rotatingPrompt {
+    right: 48px;
+    font-size: clamp(24px, 6vw, 30px);
   }
 
   .submit svg {

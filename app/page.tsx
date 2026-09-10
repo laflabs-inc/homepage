@@ -13,7 +13,7 @@ const organizationSchema = {
   email: contactEmail,
   slogan: "Build quietly. Work reliably.",
   description:
-    "A software company building identity, payments, and cloud infrastructure as one coherent experience.",
+    "A software company that plans and builds products, including the technology required to operate them.",
   address: { "@type": "PostalAddress", addressCountry: "KR", addressLocality: "Seoul" },
   sameAs: [githubOrg],
 }

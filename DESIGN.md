@@ -1,7 +1,17 @@
 ---
 name: LafLabs Homepage
-description: A square, signal-routing visual system for LafLabs company and product surfaces.
+description: A square editorial system for LafLabs company, work, and product surfaces.
 colors:
+  primary-blue: "#2563eb"
+  primary-blue-deep: "#1e40af"
+  paper: "#f8fafc"
+  ink: "#0f172a"
+  line: "#cbd5e1"
+  muted: "#64748b"
+  slate-soft: "#94a3b8"
+  slate-detail: "#475569"
+  blue-pale: "#dbeafe"
+  blue-light: "#60a5fa"
   route-blue: "#165dff"
   route-blue-deep: "#0f4bd8"
   route-blue-soft: "#112b5d"
@@ -19,6 +29,78 @@ colors:
   button-ink: "#0a0e18"
   mask-black: "#000"
 typography:
+  homepage-hero:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(64px, 6.2vw, 80px)"
+    fontWeight: 780
+    lineHeight: 0.98
+    letterSpacing: "-0.04em"
+  company-statement:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(52px, 5.6vw, 72px)"
+    fontWeight: 700
+    lineHeight: 1.04
+    letterSpacing: "-0.04em"
+  section-heading:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(44px, 4.5vw, 60px)"
+    fontWeight: 720
+    lineHeight: 1.06
+    letterSpacing: "-0.04em"
+  method-mark:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(88px, 10.5vw, 154px)"
+    fontWeight: 850
+    lineHeight: 0.75
+    letterSpacing: "-0.04em"
+  hero-field-mark:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(116px, 14vw, 210px)"
+    fontWeight: 850
+    lineHeight: 0.75
+    letterSpacing: "-0.04em"
+  panel-title:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(27px, 2.5vw, 36px)"
+    fontWeight: 710
+    lineHeight: 1.08
+  work-title:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(32px, 3.4vw, 44px)"
+    fontWeight: 720
+    lineHeight: 1
+  search-input:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(42px, 4.5vw, 64px)"
+    fontWeight: 760
+    lineHeight: 1
+  search-result:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(20px, 1.8vw, 26px)"
+    fontWeight: 720
+    lineHeight: 1.12
+  compact-title:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "22px"
+    fontWeight: 700
+  body-default:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "16px"
+  mobile-company:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(36px, 10.8vw, 44px)"
+  mobile-section:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(32px, 9.6vw, 40px)"
+  mobile-method-mark:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(94px, 33vw, 136px)"
+  mobile-search-input:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(30px, 9vw, 38px)"
+  mobile-search-result:
+    fontFamily: "Geist Sans, Pretendard, sans-serif"
+    fontSize: "clamp(18px, 5.6vw, 22px)"
   display:
     fontFamily: "Geist Sans, Pretendard, sans-serif"
     fontSize: "clamp(44px, 6.6vw, 96px)"
@@ -139,26 +221,34 @@ components:
 
 ## Overview
 
-**Creative North Star: "Signal Routing Field"**
+**Creative North Star: "Editorial Systems in Motion"**
 
-LafLabs uses a compact, dark-only technical plane: deep navy surfaces, thin blue-grey rules, one structural blue family, and square geometry. The system should feel like infrastructure made legible rather than a collection of marketing cards.
+LafLabs uses an off-white editorial ground, ink rules, one structural blue family, and square geometry. Dark company bands provide deliberate contrast. The system should feel like a development company making its process legible rather than a collection of marketing cards.
 
-Product discovery is primary. The signature routing field connects one company origin to three product paths, while downstream sections continue as direct editorial rows separated by spacing and rules.
+Company identity and working method come first. Selected work and open source provide evidence downstream through image-led editorial modules and direct rows separated by spacing and rules.
 
 **Key Characteristics:**
 
-- Dark, single-theme technical surfaces with one blue accent.
+- Light editorial surfaces, deliberate dark contrast bands, and one blue accent.
 - Square endpoints, controls, markers, and corners.
-- Large Geist Sans headlines paired with restrained Geist Mono labels.
+- Bounded Geist Sans headlines paired with restrained Geist Mono labels.
 - Flat section bands and dividers instead of cards or decorative depth.
 - Bilingual Korean and English copy with line breaks and measures that survive both locales.
 
 ## Colors
 
-The palette uses Route Blue as the only accent and blue-tinted neutrals for every dark-surface role.
+The active website palette uses Primary Blue as the only accent, with Paper and Ink as its default surface pair. The legacy Route palette remains documented for older dark technical surfaces.
 
 ### Primary
 
+- **Primary Blue (`#2563eb`):** Current company accent, image-section ground, and primary controls.
+- **Primary Blue Deep (`#1e40af`):** Hover and pressed state.
+- **Paper (`#f8fafc`):** Default page and control ground.
+- **Ink (`#0f172a`):** Default text, rule, and company-band ground.
+- **Line (`#cbd5e1`):** Quiet separators and inactive outlines.
+- **Muted (`#64748b`):** Secondary explanatory copy.
+- **Slate Soft (`#94a3b8`), Slate Detail (`#475569`):** Dark-band metadata and compact editorial details.
+- **Blue Pale (`#dbeafe`), Blue Light (`#60a5fa`):** Large passive marks and dark-band highlights.
 - **Route Blue (`#165dff`):** Filled primary actions and large structural accents. Off-white text on Route Blue is `4.83:1`.
 - **Deep Route Blue (`#0f4bd8`):** Primary-button hover state.
 - **Soft Route Blue (`#112b5d`):** Quiet active and hover backgrounds.
@@ -191,7 +281,19 @@ The palette uses Route Blue as the only accent and blue-tinted neutrals for ever
 
 Geist Sans keeps company copy direct and dense. Geist Mono is reserved for route metadata, statuses, repository languages, and compact navigation labels.
 
-### Hierarchy
+### Homepage hierarchy
+
+- **Hero** (780, `64–80px`; mobile `40–48px`): Primary company proposition, never a full-viewport word wall.
+- **Company statement** (700, `52–72px`; mobile `36–44px`): Dark-band manifesto.
+- **Section heading** (720, `44–60px`; mobile `32–40px`): Work method, selected work, open source, and contact.
+- **Method mark** (850, `88–154px`; mobile `94–136px`): Cropped `ASK / BUILD / RUN` only; it is graphic typography rather than reading copy.
+- **Panel title** (710, `27–36px`) and **work title** (720, `32–44px`): Local titles inside bounded modules.
+- **Search input** (760, `42–64px`; mobile `30–38px`): Large enough to establish the overlay without displacing results below the fold.
+- **Search result** (720, `20–26px`; mobile `18–22px`): Compact, scannable result headings.
+- **Body** (`14–17px`, usually 1.68–1.75): Explanations, normally limited to 42–48 characters.
+- **Mono label** (`10–11px`): Indices, metadata, state, and compact navigation labels. Do not use 9px for new UI.
+
+### Legacy hierarchy
 
 - **Display** (780, `clamp(44px, 6.6vw, 96px)`, 1.02): Primary section statements.
 - **Small display** (780, `clamp(34px, 4.6vw, 66px)`, 1.06): Supporting section headlines.

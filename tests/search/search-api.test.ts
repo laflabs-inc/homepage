@@ -29,7 +29,7 @@ const payload: SiteSearchResponse = {
     group: "product",
     title: "Laf ID",
     description: "Identity infrastructure.",
-    href: "/#products",
+    href: "/#work",
   }],
   partial: false,
 }

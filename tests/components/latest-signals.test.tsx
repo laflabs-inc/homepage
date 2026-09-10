@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/components/sections/latest-signals.module.css", () => ({
@@ -37,6 +37,22 @@ afterEach(() => {
 })
 
 describe("LatestSignals", () => {
+  it("keeps one short title in the blue signal panel and leaves the story rail compact", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)))
+
+    const { container } = render(
+      <LocaleProvider initialLocale="ko">
+        <LatestSignals />
+      </LocaleProvider>,
+    )
+
+    const signalPanel = container.querySelector<HTMLElement>(".signalPanel")!
+    const stories = container.querySelector<HTMLElement>(".stories")!
+    expect(within(signalPanel).getByRole("heading", { name: "새 소식을 전합니다." })).toBeVisible()
+    expect(screen.queryByText("제품 업데이트와 기술 기록, 회사 정보를 공개합니다.")).not.toBeInTheDocument()
+    expect(within(stories).getByRole("heading", { name: "최근 소식" })).toBeVisible()
+  })
+
   it("announces loading while published documents are pending", () => {
     vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)))
 
@@ -64,11 +80,12 @@ describe("LatestSignals", () => {
       </LocaleProvider>,
     )
 
-    expect(await screen.findByRole("link", { name: /새 공지/ })).toHaveAttribute(
+    const noticeLink = await screen.findByRole("link", { name: /새 공지/ })
+    expect(noticeLink).toHaveAttribute(
       "href",
       "/notices/hello?locale=ko",
     )
-    expect(screen.getByText("새 소식을 전합니다.")).toBeVisible()
+    expect(within(noticeLink).getByText("새 소식을 전합니다.")).toBeVisible()
     expect(screen.getByTestId("signal-lock")).toHaveAttribute("data-signal-state", "ready")
     expect(fetchMock.mock.calls.map(([input]) => String(input))).toEqual([
       "/api/content?kind=notice&locale=ko&limit=3",

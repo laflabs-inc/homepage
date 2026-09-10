@@ -6,7 +6,7 @@ import { useLocale } from "@/components/i18n/locale-provider"
 import { useConsent } from "@/components/analytics/consent-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
 import { Logo } from "@/components/ui/logo"
-import { contactEmail, copy, githubOrg, products } from "@/lib/content"
+import { contactEmail, copy, githubOrg } from "@/lib/content"
 
 export function SiteFooter({ homeHref }: { homeHref?: string } = {}) {
   const locale = useLocale()
@@ -19,8 +19,7 @@ export function SiteFooter({ homeHref }: { homeHref?: string } = {}) {
         <div className="footer-top">
           <div className="footer-brand"><Logo /><p>{t.blurb}</p></div>
           <div className="footer-nav">
-            <div><h4>{t.products}</h4>{products.map((product) => <a href={homeHref ? `${homeHref}#products` : "#products"} key={product.id}>{product.name}</a>)}</div>
-            <div><h4>{t.company}</h4><a href={homeHref ? `${homeHref}#principles` : "#principles"}>{t.links.principles}</a><a href={`mailto:${contactEmail}`} data-analytics-event="contact_click" data-analytics-target="email">{t.links.contact}</a><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc">GitHub</a></div>
+            <div><h4>{t.company}</h4><a href={homeHref ? `${homeHref}#work-method` : "#work-method"}>{t.links.principles}</a><a href={`mailto:${contactEmail}`} data-analytics-event="contact_click" data-analytics-target="email">{t.links.contact}</a><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc">GitHub</a></div>
             <div><h4>{t.documents}</h4><Link href="/notices">{t.links.notices}</Link><Link href="/legal">{t.links.legal}</Link><Link href="/disclosures">{t.links.disclosures}</Link><Link href="/design">{t.links.design}</Link></div>
           </div>
         </div>
