@@ -443,7 +443,7 @@ describe("public document pages", () => {
     expect(screen.getByRole("link", { name: "Work" })).toHaveAttribute("href", "/#work")
     expect(screen.getByRole("link", { name: "Open source" })).toHaveAttribute("href", "/#open-source")
     expect(screen.getByRole("link", { name: "How we work" })).toHaveAttribute("href", "/#work-method")
-    expect(screen.getByRole("link", { name: "Laf ID" })).toHaveAttribute("href", "/#work")
+    expect(screen.queryByRole("link", { name: "Laf ID" })).not.toBeInTheDocument()
   })
 
   it("navigates document routes to the selected locale and drops the old cursor", async () => {

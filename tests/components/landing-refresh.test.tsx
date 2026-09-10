@@ -85,7 +85,8 @@ describe("homepage refresh", () => {
     expect(method).not.toHaveTextContent("Laf ID")
 
     const methodTitleBlock = method!.querySelector<HTMLElement>(".methodTitleBlock")!
-    expect(methodTitleBlock).toContainElement(within(method!).getByText("02 / HOW WE WORK"))
+    expect(company).not.toHaveTextContent("01 / COMPANY")
+    expect(method).not.toHaveTextContent("02 / HOW WE WORK")
     expect(methodTitleBlock).toContainElement(within(method!).getByRole("heading", {
       name: "문제를 찾고, 만들고, 직접 운영합니다.",
     }))
@@ -146,6 +147,8 @@ describe("homepage refresh", () => {
     expect(within(footer).getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices")
     expect(within(footer).getByRole("link", { name: "공시" })).toHaveAttribute("href", "/disclosures")
     expect(within(footer).getByRole("link", { name: "디자인 가이드" })).toHaveAttribute("href", "/design")
+    expect(within(footer).queryByText("작업")).not.toBeInTheDocument()
+    expect(within(footer).queryByRole("link", { name: "Laf ID" })).not.toBeInTheDocument()
     expect(within(footer).queryByText("새로운 이야기를 시작하세요")).not.toBeInTheDocument()
   })
 

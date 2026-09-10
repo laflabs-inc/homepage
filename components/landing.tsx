@@ -107,7 +107,6 @@ export function Landing() {
       </section>
 
       <section className={styles.company} id="company">
-        <p className={styles.sectionLabel}>01 / COMPANY</p>
         <motion.h2 aria-label={t.company.title} {...reveal()}>
           <EditorialTitle lines={t.company.titleLines} highlight={t.company.highlight} />
         </motion.h2>
@@ -124,7 +123,6 @@ export function Landing() {
       <section className={styles.method} id="work-method">
         <div className={styles.sectionHeading}>
           <div className={styles.methodTitleBlock}>
-            <p className={styles.sectionLabel}>02 / HOW WE WORK</p>
             <motion.h2 aria-label={t.method.title} {...reveal()}>
               <EditorialTitle lines={t.method.titleLines} />
             </motion.h2>
