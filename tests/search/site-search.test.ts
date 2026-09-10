@@ -150,7 +150,7 @@ describe("searchSite", () => {
     ["en", "technology underneath", "company", "/#company"],
     ["ko", "직접 운영", "work-method", "/#work-method"],
     ["en", "Operate what we ship", "work-method", "/#work-method"],
-    ["ko", "최근 작업과 회사 소식", "latest-signals", "/#latest-signals"],
+    ["ko", "새 소식", "latest-signals", "/#latest-signals"],
     ["en", "Recent work", "latest-signals", "/#latest-signals"],
   ] as const)("indexes the displayed %s homepage section content for %s", async (
     locale,

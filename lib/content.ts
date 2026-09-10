@@ -246,7 +246,7 @@ const ko: Copy = {
   },
   signals: {
     label: "LATEST SIGNALS",
-    title: "최근 작업과 회사 소식을 전합니다.",
+    title: "새 소식을 전합니다.",
     lede: "제품 업데이트와 기술 기록, 회사 정보를 공개합니다.",
     listTitle: "최근 소식",
     previous: "이전 소식",
