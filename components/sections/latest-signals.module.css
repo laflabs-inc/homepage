@@ -15,7 +15,7 @@
 }
 
 .signalPanel {
-  min-height: 560px;
+  min-height: 520px;
   padding: 34px;
   position: relative;
   display: flex;
@@ -26,33 +26,35 @@
   color: white;
 }
 
-.signalCopy {
+.signalLabel {
+  margin: 0;
   position: relative;
   z-index: 1;
-}
-
-.signalLabel {
-  margin: 0 0 42px;
   color: #dbeafe;
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.13em;
 }
 
-.signalCopy h2 {
-  max-width: 10ch;
+.storiesIntro {
+  margin: 3px 0 clamp(48px, 6vw, 72px);
+}
+
+.storiesIntro h2 {
+  max-width: 13ch;
   margin: 0;
-  font-size: clamp(44px, 4.4vw, 66px);
+  font-size: clamp(42px, 4.2vw, 60px);
   font-weight: 760;
-  line-height: 1.02;
+  line-height: 1.04;
   letter-spacing: -0.04em;
+  text-wrap: balance;
   word-break: keep-all;
 }
 
-.signalLede {
-  max-width: 38ch;
-  margin: 28px 0 0;
-  color: #dbeafe;
+.storiesIntro p {
+  max-width: 42ch;
+  margin: 24px 0 0;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.72;
   word-break: keep-all;
@@ -132,8 +134,8 @@
 
 .storiesHeader h3 {
   margin: 0;
-  font-size: clamp(42px, 4.2vw, 62px);
-  font-weight: 760;
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 720;
   line-height: 1;
   letter-spacing: -0.04em;
 }
@@ -375,17 +377,17 @@
   }
 
   .signalPanel {
-    min-height: 430px;
+    min-height: 300px;
     padding: 28px;
   }
 
-  .signalCopy h2 {
-    max-width: 11ch;
-    font-size: clamp(42px, 12vw, 60px);
+  .storiesIntro {
+    margin-bottom: 44px;
   }
 
-  .signalLede {
-    font-size: 14px;
+  .storiesIntro h2 {
+    max-width: 14ch;
+    font-size: clamp(36px, 10vw, 48px);
   }
 
   .glitchStage {
@@ -397,7 +399,7 @@
   }
 
   .storiesHeader h3 {
-    font-size: 40px;
+    font-size: 24px;
   }
 
   .track {
@@ -424,12 +426,12 @@
 
 @media (max-width: 560px) {
   .signalPanel {
-    min-height: 410px;
+    min-height: 270px;
     padding: 24px;
   }
 
   .signalLabel {
-    margin-bottom: 30px;
+    margin: 0;
   }
 
   .controls button {

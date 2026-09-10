@@ -50,6 +50,9 @@ describe("homepage refresh", () => {
     expect(screen.getByRole("heading", {
       name: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
     })).toBeVisible()
+    expect(
+      Array.from(container.querySelectorAll("h1 .titleLine"), (line) => line.textContent),
+    ).toEqual(["제품을 만들고,", "필요한 기반을 직접", "구축합니다."])
     expect(screen.getByText("LAF / 001")).toBeVisible()
     expect(screen.getByRole("heading", {
       name: "제품과 그 아래의 기술을 함께 만듭니다.",
@@ -80,6 +83,12 @@ describe("homepage refresh", () => {
     expect(work).toHaveTextContent("Laf ID")
     expect(company).not.toHaveTextContent("Laf ID")
     expect(method).not.toHaveTextContent("Laf ID")
+
+    const methodTitleBlock = method!.querySelector<HTMLElement>(".methodTitleBlock")!
+    expect(methodTitleBlock).toContainElement(within(method!).getByText("02 / HOW WE WORK"))
+    expect(methodTitleBlock).toContainElement(within(method!).getByRole("heading", {
+      name: "문제를 찾고, 만들고, 직접 운영합니다.",
+    }))
   })
 
   it("keeps work factual, hides undisclosed repositories, and removes recruiting copy", () => {
@@ -107,7 +116,7 @@ describe("homepage refresh", () => {
     expect(openSource).not.toHaveTextContent("lafinvest")
   })
 
-  it("presents contact as one focused email action", () => {
+  it("keeps the dedicated contact band off the homepage", () => {
     const { container } = render(
       <LocaleProvider initialLocale="ko">
         <ConsentProvider initialState="essential" dnt={false}>
@@ -116,10 +125,8 @@ describe("homepage refresh", () => {
       </LocaleProvider>,
     )
 
-    const contact = container.querySelector<HTMLElement>("section#contact")!
-    const email = within(contact).getByRole("link", { name: /contact@laflabs\.co/ })
-    expect(email).toHaveAttribute("href", "mailto:contact@laflabs.co")
-    expect(email.querySelector(".contactArrow")).toBeInTheDocument()
+    expect(container.querySelector("section#contact")).not.toBeInTheDocument()
+    expect(container.querySelector('main a[href="mailto:contact@laflabs.co"]')).not.toBeInTheDocument()
   })
 
   it("keeps document and contact access in the footer without a duplicate email feature", () => {

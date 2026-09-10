@@ -157,11 +157,7 @@ export function LatestSignals() {
     <section className={styles.section} id="latest-signals" aria-labelledby="latest-signals-title">
       <div className={styles.inner}>
         <div className={styles.signalPanel}>
-          <div className={styles.signalCopy}>
-            <p className={`${styles.signalLabel} mono`}>{t.label}</p>
-            <h2 id="latest-signals-title">{t.title}</h2>
-            <p className={styles.signalLede}>{t.lede}</p>
-          </div>
+          <p className={`${styles.signalLabel} mono`}>{t.label}</p>
           <SignalGlitch
             state={displayState.status}
             pulseKey={`${locale}:${displayState.status === "ready"
@@ -171,6 +167,10 @@ export function LatestSignals() {
         </div>
 
         <div className={styles.stories}>
+          <div className={styles.storiesIntro}>
+            <h2 id="latest-signals-title">{t.title}</h2>
+            <p>{t.lede}</p>
+          </div>
           <div className={styles.storiesHeader}>
             <h3 id="latest-signal-list-title">{t.listTitle}</h3>
             <div className={styles.controls}>

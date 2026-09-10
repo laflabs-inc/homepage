@@ -74,6 +74,10 @@
   font-style: normal;
 }
 
+.titleLine {
+  display: block;
+}
+
 .company h2 em {
   color: #60a5fa;
 }
@@ -203,9 +207,14 @@
 .sectionHeading {
   margin-bottom: clamp(44px, 6vw, 66px);
   display: grid;
-  grid-template-columns: minmax(150px, 0.46fr) minmax(0, 1fr) minmax(250px, 0.62fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.52fr);
   gap: clamp(26px, 5vw, 72px);
   align-items: end;
+}
+
+.methodTitleBlock {
+  display: grid;
+  gap: clamp(22px, 3vw, 34px);
 }
 
 .sectionHeading .sectionLabel {
@@ -324,8 +333,7 @@
   gap: clamp(54px, 9vw, 134px);
 }
 
-.openIntro h2,
-.contact h2 {
+.openIntro h2 {
   max-width: 15ch;
   margin: 0;
   font-size: clamp(44px, 4.5vw, 60px);
@@ -335,8 +343,7 @@
   word-break: keep-all;
 }
 
-.openIntro > p,
-.contact p {
+.openIntro > p {
   max-width: 46ch;
   margin: 26px 0 0;
   color: var(--muted);
@@ -424,60 +431,6 @@
   color: #94a3b8;
 }
 
-.contact {
-  width: 100%;
-  margin: 0;
-  padding: clamp(88px, 9vw, 124px) max(var(--gutter), calc((100vw - 1280px) / 2));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
-  gap: clamp(48px, 8vw, 120px);
-  align-items: center;
-  background: var(--ink);
-  color: white;
-}
-
-.contact h2 {
-  color: white;
-}
-
-.contact p {
-  color: #94a3b8;
-}
-
-.contact > a {
-  min-width: 0;
-  min-height: 76px;
-  padding-left: 20px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 76px;
-  align-items: center;
-  gap: 18px;
-  border: 1px solid #475569;
-  color: white;
-  font-size: clamp(16px, 1.4vw, 20px);
-  font-weight: 650;
-  transition: border-color 180ms ease;
-}
-
-.contact > a:hover {
-  border-color: var(--blue);
-}
-
-.contactArrow {
-  width: 76px;
-  min-height: 74px;
-  align-self: stretch;
-  display: grid;
-  place-items: center;
-  background: var(--blue);
-  color: white;
-  transition: background 180ms ease;
-}
-
-.contact > a:hover .contactArrow {
-  background: var(--deep);
-}
-
 @media (max-width: 900px) {
   .hero {
     min-height: 0;
@@ -536,8 +489,7 @@
   }
 
   .sectionHeading h2,
-  .openIntro h2,
-  .contact h2 {
+  .openIntro h2 {
     font-size: clamp(32px, 9.6vw, 40px);
   }
 
@@ -604,21 +556,6 @@
     display: none;
   }
 
-  .contact {
-    width: 100%;
-    padding: 80px var(--gutter);
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-
-  .contact > a {
-    width: 100%;
-    grid-template-columns: minmax(0, 1fr) 64px;
-  }
-
-  .contactArrow {
-    width: 64px;
-  }
 }
 
 @media (max-width: 540px) {

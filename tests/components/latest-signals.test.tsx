@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/components/sections/latest-signals.module.css", () => ({
@@ -37,6 +37,23 @@ afterEach(() => {
 })
 
 describe("LatestSignals", () => {
+  it("keeps the blue signal panel visual and places the explanatory copy with the stories", () => {
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)))
+
+    const { container } = render(
+      <LocaleProvider initialLocale="ko">
+        <LatestSignals />
+      </LocaleProvider>,
+    )
+
+    const signalPanel = container.querySelector<HTMLElement>(".signalPanel")!
+    const stories = container.querySelector<HTMLElement>(".stories")!
+    expect(within(signalPanel).queryByRole("heading")).not.toBeInTheDocument()
+    expect(within(signalPanel).queryByText("최근 작업과 회사 소식을 전합니다.")).not.toBeInTheDocument()
+    expect(within(stories).getByRole("heading", { name: "최근 작업과 회사 소식을 전합니다." })).toBeVisible()
+    expect(within(stories).getByText("제품 업데이트와 기술 기록, 회사 정보를 공개합니다.")).toBeVisible()
+  })
+
   it("announces loading while published documents are pending", () => {
     vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)))
 

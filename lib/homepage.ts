@@ -160,6 +160,7 @@ export const openSourceRows: readonly OpenSourceRow[] = [
 type HomepageCopy = {
   hero: {
     title: string
+    titleLines: readonly string[]
     highlight: string
     lede: string
     primary: string
@@ -169,12 +170,14 @@ type HomepageCopy = {
   }
   company: {
     title: string
+    titleLines: readonly string[]
     highlight: string
     lede: string
     scopes: readonly { title: string; body: string }[]
   }
   method: {
     title: string
+    titleLines: readonly string[]
     lede: string
     items: readonly { mark: string; title: string; body: string }[]
   }
@@ -191,6 +194,7 @@ type HomepageCopy = {
   }
   open: {
     title: string
+    titleLines: readonly string[]
     lede: string
     all: string
   }
@@ -203,6 +207,7 @@ type HomepageCopy = {
 const ko: HomepageCopy = {
   hero: {
     title: "제품을 만들고, 필요한 기반을 직접 구축합니다.",
+    titleLines: ["제품을 만들고,", "필요한 기반을 직접", "구축합니다."],
     highlight: "필요한 기반",
     lede: "LafLabs는 제품을 기획하고 개발합니다. 화면부터 운영 기반까지 직접 설계합니다.",
     primary: "회사 알아보기",
@@ -212,6 +217,7 @@ const ko: HomepageCopy = {
   },
   company: {
     title: "제품과 그 아래의 기술을 함께 만듭니다.",
+    titleLines: ["제품과 그 아래의", "기술을 함께 만듭니다."],
     highlight: "기술",
     lede: "직접 운영하고, 반복되는 문제는 다시 쓸 수 있는 기술로 정리합니다.",
     scopes: [
@@ -223,6 +229,7 @@ const ko: HomepageCopy = {
   },
   method: {
     title: "문제를 찾고, 만들고, 직접 운영합니다.",
+    titleLines: ["문제를 찾고,", "만들고, 직접 운영합니다."],
     lede: "제품은 실제 문제에서 시작합니다. 필요한 만큼 만들고, 운영에서 확인한 사실을 다음 작업에 남깁니다.",
     items: [
       { mark: "ASK", title: "실제 문제부터", body: "쓰임이 분명한 문제부터 풉니다. 기능보다 먼저 누가, 왜 쓰는지 확인합니다." },
@@ -243,6 +250,7 @@ const ko: HomepageCopy = {
   },
   open: {
     title: "직접 쓰는 코드를 공개합니다.",
+    titleLines: ["직접 쓰는 코드를", "공개합니다."],
     lede: "제품을 만들며 반복해서 필요했던 기능을 분리해 공개합니다. 실제로 사용하는 코드인 만큼 계속 고치고 기록합니다.",
     all: "GitHub에서 전체 보기",
   },
@@ -255,6 +263,7 @@ const ko: HomepageCopy = {
 const en: HomepageCopy = {
   hero: {
     title: "We build products and the systems they need.",
+    titleLines: ["We build products", "and the systems", "they need."],
     highlight: "systems they need",
     lede: "LafLabs plans and builds software products, from the interface to the systems that keep them running.",
     primary: "About the company",
@@ -264,6 +273,7 @@ const en: HomepageCopy = {
   },
   company: {
     title: "We build the product and the technology underneath it.",
+    titleLines: ["We build the product", "and the technology", "underneath it."],
     highlight: "technology",
     lede: "We operate what we build and turn repeated problems into reusable foundations.",
     scopes: [
@@ -275,6 +285,7 @@ const en: HomepageCopy = {
   },
   method: {
     title: "Find the problem. Build it. Run it.",
+    titleLines: ["Find the problem.", "Build it. Run it."],
     lede: "Our process is easier to trust than a list of abstract values. We build only what is needed and carry what operations teach us into the next project.",
     items: [
       { mark: "ASK", title: "Start with a real problem", body: "Begin where the use is clear. Who needs it and why comes before the feature list." },
@@ -295,6 +306,7 @@ const en: HomepageCopy = {
   },
   open: {
     title: "We open the code we use ourselves.",
+    titleLines: ["We open the code", "we use ourselves."],
     lede: "These projects began as repeated needs in our own product work. We keep using them, fixing them, and documenting the result in public.",
     all: "See everything on GitHub",
   },
