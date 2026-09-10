@@ -154,7 +154,7 @@ export function LatestSignals() {
   const fallback = displayState.status === "error" ? t.error : t.empty
 
   return (
-    <section className={styles.section} aria-labelledby="latest-signals-title">
+    <section className={styles.section} id="latest-signals" aria-labelledby="latest-signals-title">
       <div className={styles.inner}>
         <div className={styles.signalPanel}>
           <div className={styles.signalCopy}>

@@ -52,6 +52,34 @@ type ProductCopy = {
 
 type Copy = {
   nav: { products: string; open: string; principles: string; contact: string }
+  search: {
+    open: string
+    close: string
+    heading: string
+    prompt: string
+    input: string
+    submit: string
+    invalid: string
+    loading: string
+    resultCount: (count: number) => string
+    groupPages: string
+    groupProducts: string
+    groupDocuments: string
+    noResult: string
+    partialEmpty: string
+    partialResult: string
+    resultPage: string
+    resultProduct: string
+    resultRepository: string
+    resultNotice: string
+    resultLegal: string
+    resultDisclosure: string
+    unavailable: string
+    retry: string
+    fallbackNotices: string
+    fallbackDesign: string
+    fallbackGithub: string
+  }
   hero: {
     titleQuiet: string
     titleLoud: string
@@ -120,6 +148,34 @@ type Copy = {
 
 const ko: Copy = {
   nav: { products: "제품", open: "오픈소스", principles: "원칙", contact: "문의" },
+  search: {
+    open: "검색",
+    close: "검색 닫기",
+    heading: "사이트 검색",
+    prompt: "페이지, 제품, 오픈소스와 공개 문서를 검색하세요.",
+    input: "검색어",
+    submit: "검색 실행",
+    invalid: "검색어는 2자 이상 100자 이하로 입력해 주세요.",
+    loading: "검색 중입니다.",
+    resultCount: (count) => `검색 결과 ${count}개`,
+    groupPages: "페이지",
+    groupProducts: "제품·오픈소스",
+    groupDocuments: "공지·공시·약관",
+    noResult: "검색 결과가 없습니다.",
+    partialEmpty: "문서 검색을 확인할 수 없어 결과가 없는지 확정할 수 없습니다.",
+    partialResult: "문서 검색은 일시적으로 사용할 수 없습니다. 나머지 결과를 표시합니다.",
+    resultPage: "페이지",
+    resultProduct: "제품",
+    resultRepository: "저장소",
+    resultNotice: "공지사항",
+    resultLegal: "법적 고지",
+    resultDisclosure: "공시",
+    unavailable: "검색을 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+    retry: "다시 시도",
+    fallbackNotices: "공지사항",
+    fallbackDesign: "디자인 가이드",
+    fallbackGithub: "GitHub",
+  },
   hero: {
     titleQuiet: "보이지 않는",
     titleLoud: "인프라를 만듭니다",
@@ -252,6 +308,34 @@ const ko: Copy = {
 
 const en: Copy = {
   nav: { products: "Products", open: "Open source", principles: "Principles", contact: "Contact" },
+  search: {
+    open: "Search",
+    close: "Close search",
+    heading: "Site search",
+    prompt: "Search pages, products, open source, and public documents.",
+    input: "Search query",
+    submit: "Search",
+    invalid: "Enter a search query between 2 and 100 characters.",
+    loading: "Searching.",
+    resultCount: (count) => `${count} search result${count === 1 ? "" : "s"}`,
+    groupPages: "Pages",
+    groupProducts: "Products & open source",
+    groupDocuments: "Notices, disclosures & legal",
+    noResult: "No search results found.",
+    partialEmpty: "Document search is unavailable, so we can't confirm that there are no results.",
+    partialResult: "Document search is temporarily unavailable. Showing the remaining results.",
+    resultPage: "Page",
+    resultProduct: "Product",
+    resultRepository: "Repository",
+    resultNotice: "Notice",
+    resultLegal: "Legal",
+    resultDisclosure: "Disclosure",
+    unavailable: "Search is unavailable. Please try again shortly.",
+    retry: "Try again",
+    fallbackNotices: "Notices",
+    fallbackDesign: "Design guide",
+    fallbackGithub: "GitHub",
+  },
   hero: {
     titleQuiet: "We build the",
     titleLoud: "invisible parts",

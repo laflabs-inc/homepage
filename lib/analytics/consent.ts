@@ -1,7 +1,7 @@
 import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
 import { matchVisitorToken } from "@/lib/analytics/identity"
 
-export const CONSENT_POLICY_VERSION = "1"
+export const CONSENT_POLICY_VERSION = "2"
 export const CONSENT_COOKIE = "laf_consent"
 export const VISITOR_COOKIE = "laf_visitor"
 export const CONSENT_MAX_AGE = 60 * 60 * 24 * 180

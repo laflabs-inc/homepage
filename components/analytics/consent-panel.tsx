@@ -14,7 +14,15 @@ const consentCopy = {
     details: "수집 항목 보기",
     close: "쿠키 설정 닫기",
     dnt: "브라우저의 추적 거부 설정을 존중하여 분석 쿠키를 사용하지 않습니다.",
-    events: ["페이지 방문", "제품 클릭", "GitHub 클릭", "문의 클릭", "언어 변경", "분석 동의"],
+    events: [
+      "페이지 방문",
+      "제품 클릭",
+      "GitHub 클릭",
+      "문의 클릭",
+      "언어 변경",
+      "분석 동의",
+      "검색 열기·제출·결과 선택(검색어 원문 제외, 검색어 길이·결과 수·결과 유형만)",
+    ],
     retention: "수집한 분석 이벤트는 90일 후 삭제합니다.",
   },
   en: {
@@ -26,7 +34,15 @@ const consentCopy = {
     details: "See what is collected",
     close: "Close cookie settings",
     dnt: "We honor your browser's Do Not Track preference and will not use analytics cookies.",
-    events: ["Page views", "Product clicks", "GitHub clicks", "Contact clicks", "Language changes", "Analytics consent"],
+    events: [
+      "Page views",
+      "Product clicks",
+      "GitHub clicks",
+      "Contact clicks",
+      "Language changes",
+      "Analytics consent",
+      "Search opens, submissions, and result selections (no raw query; query length, result count, and result type only)",
+    ],
     retention: "Collected analytics events are deleted after 90 days.",
   },
 } as const

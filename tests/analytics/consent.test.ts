@@ -17,22 +17,23 @@ const visitorId = "8f5c5c8b-54cf-4de1-9a16-4be9b8c0e3d7"
 
 describe("consent cookies", () => {
   it("parses the current version and an allowlisted choice", () => {
-    expect(parseConsentCookie("1:analytics")).toEqual({ version: "1", choice: "analytics" })
+    expect(parseConsentCookie("2:analytics")).toEqual({ version: "2", choice: "analytics" })
   })
 
   it("treats wrong versions and malformed values as unknown", () => {
     expect(parseConsentCookie("0:analytics")).toBeNull()
-    expect(parseConsentCookie("1:unknown")).toBeNull()
+    expect(parseConsentCookie("1:analytics")).toBeNull()
+    expect(parseConsentCookie("2:unknown")).toBeNull()
     expect(parseConsentCookie("garbage")).toBeNull()
   })
 
   it("serializes choices with the current policy version", () => {
-    expect(consentCookieValue("essential")).toBe("1:essential")
-    expect(consentCookieValue("analytics")).toBe("1:analytics")
+    expect(consentCookieValue("essential")).toBe("2:essential")
+    expect(consentCookieValue("analytics")).toBe("2:analytics")
   })
 
   it("exports the required cookie names and secure options", () => {
-    expect(CONSENT_POLICY_VERSION).toBe("1")
+    expect(CONSENT_POLICY_VERSION).toBe("2")
     expect(CONSENT_COOKIE).toBe("laf_consent")
     expect(VISITOR_COOKIE).toBe("laf_visitor")
     expect(CONSENT_MAX_AGE).toBe(60 * 60 * 24 * 180)

@@ -20,6 +20,7 @@ type ConsentContextValue = {
   track: (type: AnalyticsEventType, targetId: string | null) => void
   pending: boolean
   error: string | null
+  panelOpen: boolean
 }
 
 const ConsentContext = createContext<ConsentContextValue | null>(null)
@@ -47,6 +48,7 @@ export function ConsentProvider({
   const clientRef = useRef<AnalyticsClient | null>(null)
   const previousStateRef = useRef<ConsentState>(initialState)
   const latestLocaleRef = useRef(locale)
+  const panelOpen = state === "unknown" || settingsOpen
 
   useEffect(() => {
     latestLocaleRef.current = locale
@@ -158,14 +160,15 @@ export function ConsentProvider({
     track,
     pending,
     error,
-  }), [state, openSettings, choose, track, pending, error])
+    panelOpen,
+  }), [state, openSettings, choose, track, pending, error, panelOpen])
 
   return (
     <ConsentContext.Provider value={value}>
       {children}
       <ConsentPanel
         locale={locale}
-        open={state === "unknown" || settingsOpen}
+        open={panelOpen}
         pending={pending}
         error={error}
         dnt={dnt}

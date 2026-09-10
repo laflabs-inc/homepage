@@ -55,7 +55,7 @@ export function Landing() {
       <a className="hero-scroll mono" href="#products"><ArrowDown size={16} /> SELECTED PRODUCTS</a>
     </section>
 
-    <section className="manifesto">
+    <section className="manifesto" id="company">
       <p className="section-no mono">01 / COMPANY</p>
       <motion.h2 {...reveal()}>{ko ? <>분야를 가리지 않고,<br /><em>필요한 것</em>을 만듭니다.</> : <>We don&apos;t build for one category.<br />We build <em>what is needed.</em></>}</motion.h2>
       <div className="manifesto-copy"><motion.p data-company-line="copy" {...companyEnter()}>{ko ? "아이덴티티, 결제, 클라우드, 오픈소스. 문제는 달라도 만드는 원칙은 같습니다." : "Identity, payments, cloud, and open source. Different problems, one way of building."}</motion.p><motion.span className="mono" data-company-line="motto" {...companyEnter(0.12)}>BUILD QUIETLY.<br />WORK RELIABLY.</motion.span></div>

@@ -159,6 +159,30 @@ describe("ConsentPanel", () => {
     expect(screen.getByText(/90 days/)).toBeVisible()
   })
 
+  it.each([
+    ["ko", "수집 항목 보기", "검색 열기·제출·결과 선택(검색어 원문 제외, 검색어 길이·결과 수·결과 유형만)"],
+    ["en", "See what is collected", "Search opens, submissions, and result selections (no raw query; query length, result count, and result type only)"],
+  ] as const)("discloses aggregate-only %s search analytics fields", async (
+    locale,
+    detailsLabel,
+    searchDisclosure,
+  ) => {
+    const user = userEvent.setup()
+    render(
+      <ConsentPanel
+        {...baseProps}
+        locale={locale}
+        onChoose={vi.fn()}
+        onClose={null}
+      />,
+    )
+
+    await user.click(screen.getByText(detailsLabel))
+
+    expect(screen.getByText(searchDisclosure)).toBeVisible()
+  })
+
+
   it("cannot close the initial choice but can close footer-opened settings", async () => {
     const user = userEvent.setup()
     const close = vi.fn()
@@ -251,6 +275,43 @@ describe("ConsentProvider", () => {
 
     expect(analyticsClientMocks.track).toHaveBeenCalledWith("contact_click", "email")
   })
+
+  it("keeps mandatory consent and site search mutually exclusive while preserving inert restoration", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      choice: "essential",
+      dntHonored: false,
+    }), { status: 200, headers: { "content-type": "application/json" } })))
+
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="unknown" dnt={false}>
+          <SiteHeader />
+          <main>Page content</main>
+          <footer>Page footer</footer>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+    const searchTrigger = screen.getByRole("button", { name: "Search" })
+    const main = container.querySelector("main")
+
+    expect(searchTrigger).toBeDisabled()
+    await user.keyboard("{Control>}k{/Control}")
+    expect(screen.queryByRole("dialog", { name: "Site search" })).not.toBeInTheDocument()
+    expect(main).not.toHaveAttribute("inert")
+
+    await user.click(screen.getByRole("button", { name: "Essential only" }))
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Cookie settings" })).not.toBeInTheDocument())
+
+    expect(searchTrigger).toBeEnabled()
+    await user.click(searchTrigger)
+    expect(screen.getByRole("dialog", { name: "Site search" })).toBeInTheDocument()
+    expect(main).toHaveAttribute("inert")
+
+    await user.click(screen.getByRole("button", { name: "Close search" }))
+    await waitFor(() => expect(main).not.toHaveAttribute("inert"))
+  })
+
 
   it.each([
     ["unknown", false],
