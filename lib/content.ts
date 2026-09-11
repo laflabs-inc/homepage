@@ -490,11 +490,6 @@ export type DocumentSectionCopy = {
   localized: Record<Locale, LocalizedDocumentCopy>
 }
 
-export const documentNavigationCopy: Record<Locale, { label: string }> = {
-  ko: { label: "문서 종류" },
-  en: { label: "Document sections" },
-}
-
 export const documentCategoryCopy = {
   ko: {
     all: "전체",
