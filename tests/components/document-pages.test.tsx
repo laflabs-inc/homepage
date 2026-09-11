@@ -95,6 +95,39 @@ beforeEach(() => {
 })
 
 describe("public document pages", () => {
+  it("renders a localized document-section navigation with the current type marked", async () => {
+    render(await DocumentIndex({
+      kind: "notice",
+      locale: "ko",
+      section: documentSections.notice,
+      repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
+    }))
+
+    const navigation = screen.getByRole("navigation", { name: "문서 종류" })
+    expect(within(navigation).getByRole("link", { name: "공지사항" })).toHaveAttribute("aria-current", "page")
+    expect(within(navigation).getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices?locale=ko")
+    expect(within(navigation).getByRole("link", { name: "공시" })).toHaveAttribute("href", "/disclosures?locale=ko")
+    expect(within(navigation).getByRole("link", { name: "법적 고지" })).toHaveAttribute("href", "/legal?locale=ko")
+  })
+
+  it("localizes the document-section navigation without carrying stale filters", async () => {
+    render(await DocumentIndex({
+      kind: "disclosure",
+      locale: "en",
+      section: documentSections.disclosure,
+      category: "service",
+      sort: "oldest",
+      q: "operations",
+      categories: managedCategories.map((candidate) => ({ ...candidate, kind: "disclosure" as const })),
+      repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
+    }))
+
+    const navigation = screen.getByRole("navigation", { name: "Document sections" })
+    expect(within(navigation).getByRole("link", { name: "Disclosures" })).toHaveAttribute("aria-current", "page")
+    expect(within(navigation).getByRole("link", { name: "Notices" })).toHaveAttribute("href", "/notices?locale=en")
+    expect(within(navigation).getByRole("link", { name: "Legal" })).toHaveAttribute("href", "/legal?locale=en")
+  })
+
   it("renders an honest Korean empty state when nothing is published", async () => {
     const store = repository({ listPublished: vi.fn().mockResolvedValue([]) })
 
