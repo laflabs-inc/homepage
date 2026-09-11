@@ -96,7 +96,6 @@ export function Landing() {
             playsInline
             preload="metadata"
           >
-            <source src="/laf-system-loop.webm" type="video/webm" />
             <source src="/laf-system-loop.mp4" type="video/mp4" />
           </video>
         </motion.div>

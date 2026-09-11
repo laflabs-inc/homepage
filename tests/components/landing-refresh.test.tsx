@@ -38,6 +38,27 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe("homepage refresh", () => {
+  it("uses the mobile-safe hero motion source", () => {
+    const { container } = render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="essential" dnt={false}>
+          <Landing />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    const video = container.querySelector<HTMLVideoElement>("section#top video")
+    expect(video).toBeInTheDocument()
+    expect(
+      Array.from(video!.querySelectorAll("source"), (source) => ({
+        src: source.getAttribute("src"),
+        type: source.getAttribute("type"),
+      })),
+    ).toEqual([
+      { src: "/laf-system-loop.mp4", type: "video/mp4" },
+    ])
+  })
+
   it("introduces the company and its work method before any product", () => {
     const { container } = render(
       <LocaleProvider initialLocale="ko">
