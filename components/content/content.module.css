@@ -781,6 +781,10 @@
     flex: 0 0 auto;
   }
 
+  .documentKindNav a:focus-visible {
+    outline-offset: -3px;
+  }
+
   .emptyState,
   .unavailableState {
     padding: 30px 24px;
