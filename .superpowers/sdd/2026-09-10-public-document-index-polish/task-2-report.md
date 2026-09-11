@@ -58,6 +58,47 @@ Test Files  2 passed (2)
 Tests       27 passed (27)
 ```
 
+## Fix round 2: corrected pre-fix evidence predicate
+
+The prior corrective evidence command over-escaped the regular expression. The following read-only checks use the correctly escaped JavaScript predicate `/\.indexPage\s*\{[^}]*width:\s*var\(--shell\)/s` and run it against both commit snapshots.
+
+### Parent snapshot (expected RED)
+
+```bash
+git show 8a9111a:components/content/content.module.css | node --input-type=module -e 'let s=""; process.stdin.setEncoding("utf8"); process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const matches = /\.indexPage\s*\{[^}]*width:\s*var\(--shell\)/s.test(s); console.log(`index shell predicate: ${matches}`); process.exit(matches ? 0 : 1) })'
+```
+
+Output and exit code:
+
+```text
+index shell predicate: false
+exit=1
+```
+
+### Fixed snapshot (expected GREEN)
+
+```bash
+git show 4c88295:components/content/content.module.css | node --input-type=module -e 'let s=""; process.stdin.setEncoding("utf8"); process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const matches = /\.indexPage\s*\{[^}]*width:\s*var\(--shell\)/s.test(s); console.log(`index shell predicate: ${matches}`); process.exit(matches ? 0 : 1) })'
+```
+
+Output and exit code:
+
+```text
+index shell predicate: true
+exit=0
+```
+
+### Covering tests after evidence correction
+
+```bash
+npx vitest run tests/components/document-index-layout.test.ts tests/components/document-pages.test.tsx
+```
+
+```text
+Test Files  2 passed (2)
+Tests       27 passed (27)
+```
+
 ## Fix round 1: index-only shell isolation
 
 ### Controller findings addressed
