@@ -377,21 +377,31 @@
   accent-color: var(--blue);
 }
 
-.page,
+.page {
+  width: var(--shell);
+  min-height: 70vh;
+  margin: 0 auto;
+  padding: 132px 0 110px;
+}
+
 .detailPage {
-  width: min(1120px, calc(100% - 64px));
+  width: min(920px, calc(100% - 64px));
   min-height: 70vh;
   margin: 0 auto;
   padding: 150px 0 110px;
 }
 
-.detailPage {
-  width: min(920px, calc(100% - 64px));
+.pageHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 64px;
+  align-items: end;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--ink);
 }
 
-.pageHeader {
-  padding-bottom: 54px;
-  border-bottom: 1px solid var(--ink);
+.pageHeaderCopy {
+  min-width: 0;
 }
 
 .eyebrow,
@@ -409,16 +419,68 @@
 
 .pageHeader h1 {
   margin: 0;
-  font-size: clamp(46px, 7vw, 88px);
-  line-height: 0.98;
-  letter-spacing: -0.065em;
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.055em;
 }
 
-.pageHeader > p:last-child {
-  max-width: 56ch;
-  margin: 24px 0 0;
+.pageHeaderCopy > p:last-child {
+  max-width: 52ch;
+  margin: 18px 0 0;
   color: var(--muted);
-  line-height: 1.7;
+  line-height: 1.65;
+}
+
+.documentKindNav {
+  display: flex;
+  max-width: 100%;
+  border: 1px solid var(--line);
+}
+
+.documentKindNav a {
+  min-height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border-right: 1px solid var(--line);
+  color: var(--muted);
+  font: 650 11px var(--font-geist-mono), "Pretendard", monospace;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.documentKindNav a:last-child {
+  border-right: 0;
+}
+
+.documentKindNav a > span {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+}
+
+.documentKindNav a[aria-current="page"] {
+  color: var(--ink);
+  background: #eff6ff;
+}
+
+.documentKindNav a[aria-current="page"] > span {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+.documentKindNav a:hover {
+  color: var(--blue);
+  background: #eff6ff;
+}
+
+.documentKindNav a:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .documentList {
@@ -677,11 +739,40 @@
   text-underline-offset: 3px;
 }
 
+@media (max-width: 900px) {
+  .pageHeader {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+  }
+}
+
 @media (max-width: 700px) {
-  .page,
+  .page {
+    width: var(--shell);
+    padding: 108px 0 72px;
+  }
+
   .detailPage {
     width: min(100% - 40px, 920px);
     padding: 112px 0 72px;
+  }
+
+  .pageHeader {
+    padding-bottom: 28px;
+  }
+
+  .pageHeader h1 {
+    font-size: clamp(38px, 12vw, 52px);
+  }
+
+  .documentKindNav {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .documentKindNav a {
+    flex: 0 0 auto;
   }
 
   .emptyState,
