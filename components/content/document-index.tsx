@@ -5,6 +5,7 @@ import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import { decodePublishedCursor, encodePublishedCursor } from "@/lib/http/cursor"
 import { documentCategoryCopy, type DocumentSectionCopy } from "@/lib/content"
 import { DocumentIndexToolbar } from "./document-index-toolbar"
+import { DocumentMasthead } from "./document-masthead"
 import styles from "./content.module.css"
 
 type DocumentIndexProps = {
@@ -90,12 +91,8 @@ export async function DocumentIndex({
   }
 
   return (
-    <section className={styles.page} aria-labelledby="document-index-title">
-      <header className={styles.pageHeader}>
-        <p className={styles.eyebrow}>{copy.eyebrow}</p>
-        <h1 id="document-index-title">{copy.title}</h1>
-        <p>{copy.description}</p>
-      </header>
+    <section className={styles.indexPage} aria-labelledby="document-index-title">
+      <DocumentMasthead kind={kind} locale={locale} />
 
       <DocumentIndexToolbar
         kind={kind}
