@@ -91,7 +91,7 @@ export async function DocumentIndex({
   }
 
   return (
-    <section className={styles.page} aria-labelledby="document-index-title">
+    <section className={styles.indexPage} aria-labelledby="document-index-title">
       <DocumentMasthead kind={kind} locale={locale} />
 
       <DocumentIndexToolbar

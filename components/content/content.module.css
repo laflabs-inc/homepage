@@ -377,18 +377,23 @@
   accent-color: var(--blue);
 }
 
-.page {
-  width: var(--shell);
+.page,
+.detailPage {
+  width: min(1120px, calc(100% - 64px));
   min-height: 70vh;
   margin: 0 auto;
-  padding: 132px 0 110px;
+  padding: 150px 0 110px;
 }
 
 .detailPage {
   width: min(920px, calc(100% - 64px));
+}
+
+.indexPage {
+  width: var(--shell);
   min-height: 70vh;
   margin: 0 auto;
-  padding: 150px 0 110px;
+  padding: 132px 0 110px;
 }
 
 .pageHeader {
@@ -747,14 +752,15 @@
 }
 
 @media (max-width: 700px) {
-  .page {
-    width: var(--shell);
-    padding: 108px 0 72px;
-  }
-
+  .page,
   .detailPage {
     width: min(100% - 40px, 920px);
     padding: 112px 0 72px;
+  }
+
+  .indexPage {
+    width: var(--shell);
+    padding: 108px 0 72px;
   }
 
   .pageHeader {

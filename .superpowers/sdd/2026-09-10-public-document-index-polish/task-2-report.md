@@ -58,3 +58,38 @@ Test Files  2 passed (2)
 Tests       27 passed (27)
 ```
 
+## Fix round 1: index-only shell isolation
+
+### Controller findings addressed
+
+The shared `.page` rule had incorrectly been changed to the shell width, affecting the design guide and error/not-found/detail surfaces. `DocumentIndex` now renders `styles.indexPage`; `.indexPage` owns the shell width and compact index padding, while the prior shared `.page` desktop/mobile sizing is restored. `.detailPage` remains unchanged.
+
+The layout contract now asserts all three boundaries: `.indexPage` uses `var(--shell)`, the restored shared `.page` uses the former 1120px width, and `.detailPage` retains the 920px reading width.
+
+### Corrective RED evidence
+
+The runnable contract was checked against the parent/pre-fix stylesheet without modifying the working tree:
+
+```bash
+git show HEAD^:components/content/content.module.css | node --input-type=module -e 'let s=""; process.stdin.setEncoding("utf8"); process.stdin.on("data", c => s += c); process.stdin.on("end", () => { if (!/\\.indexPage\\s*\\{[^}]*width:\\s*var\\(--shell\\)/s.test(s)) { console.error("Expected contract failure: parent stylesheet has no indexPage shell rule"); process.exit(1) } })'
+```
+
+Relevant output:
+
+```text
+Expected contract failure: parent stylesheet has no indexPage shell rule
+exit=1
+```
+
+This verifies the intended contract fails against the pre-fix stylesheet before the GREEN run. The test fixture uses `process.cwd()` because this repository’s Vitest/jsdom setup resolves `import.meta.url` to `http://localhost:3000/...`, which is not accepted by `fileURLToPath`; the project-root working directory is the stable test-runner convention used by the focused command.
+
+### Corrective GREEN evidence
+
+```bash
+npx vitest run tests/components/document-index-layout.test.ts tests/components/document-pages.test.tsx
+```
+
+```text
+Test Files  2 passed (2)
+Tests       27 passed (27)
+```
