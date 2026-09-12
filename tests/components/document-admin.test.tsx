@@ -1,5 +1,7 @@
 import { act, fireEvent, render as renderBase, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { undoDepth } from "@codemirror/commands"
+import { EditorView } from "@codemirror/view"
 import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -24,7 +26,8 @@ vi.mock("@/components/content/content.module.css", () => ({
 import { AdminNav } from "@/components/admin/admin-nav"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { DocumentList } from "@/components/admin/document-list"
-import { LocaleProvider } from "@/components/i18n/locale-provider"
+import { MarkdownLiveEditor } from "@/components/admin/markdown-live-editor"
+import { LocaleProvider, useSetLocale } from "@/components/i18n/locale-provider"
 import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import type { DocumentRevision } from "@/lib/documents/types"
@@ -35,6 +38,28 @@ function EnglishLocaleTestProvider({ children }: { children: React.ReactNode }) 
 
 function render(ui: React.ReactElement) {
   return renderBase(ui, { wrapper: EnglishLocaleTestProvider })
+}
+
+function ControlledMarkdownEditor({ initialValue }: { initialValue: string }) {
+  const [value, setValue] = useState(initialValue)
+  return <MarkdownLiveEditor value={value} onChange={setValue} />
+}
+
+function LocaleSwitchingMarkdownEditor() {
+  const setLocale = useSetLocale()
+  return (
+    <>
+      <button type="button" onClick={() => setLocale("ko")}>Switch editor locale</button>
+      <MarkdownLiveEditor value="first" onChange={() => undefined} />
+    </>
+  )
+}
+
+function getMarkdownEditorView(name = "Markdown body") {
+  const textbox = screen.getByRole("textbox", { name })
+  const view = EditorView.findFromDOM(textbox)
+  if (!view) throw new Error("Expected Markdown textbox to belong to an EditorView")
+  return { textbox, view }
 }
 
 const revision: DocumentRevision = {
@@ -155,7 +180,7 @@ describe("document admin", () => {
     )
 
     expect(screen.getByRole("textbox", { name: "제목" })).toHaveValue("서비스 업데이트")
-    expect(screen.getByRole("heading", { level: 2, name: "변경 사항" })).toBeInTheDocument()
+    expect(getMarkdownEditorView("Markdown 본문").view.state.doc.toString()).toBe(revision.bodyMarkdown)
     await user.click(screen.getByRole("button", { name: "지금 발행" }))
     expect(window.confirm).toHaveBeenCalledWith("지금 이 문서를 발행할까요?")
     expect(await screen.findByRole("status")).toHaveTextContent("문서를 발행했습니다.")
@@ -218,23 +243,18 @@ describe("document admin", () => {
     expect(screen.getAllByText("Published")).toHaveLength(2)
   })
 
-  it("uses one live document surface instead of separate edit and preview panes", async () => {
+  it("uses one continuous editor in both modes", async () => {
     const user = userEvent.setup()
-    render(<DocumentEditor />)
+    render(<ControlledMarkdownEditor initialValue={"first\n\nsecond"} />)
 
-    expect(screen.getByRole("combobox", { name: "Kind" })).toBeInTheDocument()
-    expect(within(screen.getByRole("combobox", { name: "Kind" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
-    expect(screen.getByRole("combobox", { name: "Locale" })).toBeInTheDocument()
-    expect(screen.queryByRole("option", { name: "English" })).not.toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Split" })).not.toBeInTheDocument()
-    expect(screen.getByRole("group", { name: "Markdown view" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Live preview", pressed: true })).toBeInTheDocument()
-    expect(screen.getByRole("textbox", { name: "Markdown body" })).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument()
+    expect(screen.getAllByRole("textbox", { name: "Markdown body" })).toHaveLength(1)
+    const { textbox, view } = getMarkdownEditorView()
 
-    await user.type(screen.getByRole("textbox", { name: "Markdown body" }), "첫 문단")
-    await user.keyboard("{Escape}")
-    expect(screen.getByText("첫 문단")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Full source" }))
+
+    expect(screen.getAllByRole("textbox", { name: "Markdown body" })).toHaveLength(1)
+    expect(screen.getByRole("textbox", { name: "Markdown body" })).toBe(textbox)
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
   })
 
   it("keeps the writing fields ahead of compact document settings", () => {
@@ -297,105 +317,78 @@ describe("document admin", () => {
     expect(screen.getByRole("link", { name: "Markdown writing guide" })).toHaveAttribute("target", "_blank")
   })
 
-  it("edits one rendered Markdown block in place while surrounding blocks stay rendered", async () => {
+  it("preserves document, selection, and history across mode changes", async () => {
     const user = userEvent.setup()
-    render(<DocumentEditor revision={revision} />)
+    const source = "first\n\nsecond"
+    render(<ControlledMarkdownEditor initialValue={source} />)
+    const { textbox, view } = getMarkdownEditorView()
 
-    expect(screen.getByRole("heading", { level: 2, name: "변경 사항" })).toBeInTheDocument()
-    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: /Edit Markdown block/ })).not.toBeInTheDocument()
-
-    await user.click(screen.getByRole("heading", { level: 2, name: "변경 사항" }))
-    const blockEditor = screen.getByRole("textbox", { name: "Editing Markdown block 1" })
-    expect(blockEditor).toHaveValue("## 변경 사항\n")
-    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument()
-
-    await user.clear(blockEditor)
-    await user.type(blockEditor, "## 새 제목\n")
-    await user.click(screen.getByText("본문입니다."))
-
-    expect(screen.queryByRole("textbox", { name: "Editing Markdown block 1" })).not.toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "새 제목" })).toBeInTheDocument()
-    expect(screen.getByRole("textbox", { name: "Editing Markdown block 2" })).toHaveValue("본문입니다.")
-
-    await user.keyboard("{Escape}")
-    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
-  })
-
-  it("creates and focuses a new rendered block when Enter is pressed in prose", async () => {
-    const user = userEvent.setup()
-    render(<DocumentEditor revision={revision} />)
-
-    await user.click(screen.getByText("본문입니다."))
-    const paragraph = screen.getByRole("textbox", { name: "Editing Markdown block 2" }) as HTMLTextAreaElement
-    paragraph.setSelectionRange(paragraph.value.length, paragraph.value.length)
-    await user.keyboard("{Enter}")
-
-    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
-    const nextBlock = screen.getByRole("textbox", { name: "Editing Markdown block 3" })
-    expect(nextBlock).toHaveValue("")
-
-    await user.type(nextBlock, "다음 문단")
-    await user.keyboard("{Escape}")
-    expect(screen.getByText("다음 문단")).toBeInTheDocument()
-  })
-
-  it("returns from an empty block to the previous prose block on Backspace", async () => {
-    const user = userEvent.setup()
-    render(<DocumentEditor revision={revision} />)
-
-    await user.click(screen.getByText("본문입니다."))
-    const paragraph = screen.getByRole("textbox", { name: "Editing Markdown block 2" }) as HTMLTextAreaElement
-    paragraph.setSelectionRange(paragraph.value.length, paragraph.value.length)
-    await user.keyboard("{Enter}")
-    await user.keyboard("{Backspace}")
-
-    expect(screen.getByRole("textbox", { name: "Editing Markdown block 2" })).toHaveValue("본문입니다.")
-  })
-
-  it("moves focus between adjacent rendered blocks at text boundaries", async () => {
-    const user = userEvent.setup()
-    render(<DocumentEditor revision={revision} />)
-
-    await user.click(screen.getByRole("heading", { level: 2, name: "변경 사항" }))
-    const heading = screen.getByRole("textbox", { name: "Editing Markdown block 1" }) as HTMLTextAreaElement
-    heading.setSelectionRange(heading.value.length, heading.value.length)
-    await user.keyboard("{ArrowDown}")
-
-    const paragraph = screen.getByRole("textbox", { name: "Editing Markdown block 2" }) as HTMLTextAreaElement
-    expect(paragraph).toHaveFocus()
-    paragraph.setSelectionRange(0, 0)
-    await user.keyboard("{ArrowUp}")
-    expect(screen.getByRole("textbox", { name: "Editing Markdown block 1" })).toHaveFocus()
-  })
-
-  it("keeps Enter inside multiline Markdown constructs", async () => {
-    const user = userEvent.setup()
-    const bodyMarkdown = "```ts\nconst answer = 42\n```"
-    render(<DocumentEditor revision={{ ...revision, bodyMarkdown }} />)
-
-    await user.click(screen.getByText((_, element) => (
-      element?.tagName === "CODE" && element.textContent?.includes("const answer = 42") === true
-    )))
-    const code = screen.getByRole("textbox", { name: "Editing Markdown block 1" }) as HTMLTextAreaElement
-    code.setSelectionRange("```ts\n".length, "```ts\n".length)
-    await user.keyboard("{Enter}")
-
-    expect(screen.getByRole("textbox", { name: "Editing Markdown block 1" })).toHaveValue(
-      "```ts\n\nconst answer = 42\n```",
-    )
-  })
-
-  it("keeps an exact full-source fallback for advanced Markdown", async () => {
-    const user = userEvent.setup()
-    const complexSource = "$$\\nE = mc^2\\n$$\\n\\n```ts\\nconst answer = 42\\n```"
-    render(<DocumentEditor revision={{ ...revision, bodyMarkdown: complexSource }} />)
+    act(() => view.dispatch({
+      changes: { from: 5, insert: "!" },
+      selection: { anchor: 3 },
+      userEvent: "input.type",
+    }))
+    expect(undoDepth(view.state)).toBe(1)
 
     await user.click(screen.getByRole("button", { name: "Full source" }))
+    await user.click(screen.getByRole("button", { name: "Live preview" }))
 
-    expect(screen.getByRole("textbox", { name: "Markdown body" })).toHaveValue(complexSource)
-    expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument()
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(view.state.doc.toString()).toBe("first!\n\nsecond")
+    expect(view.state.selection.main.anchor).toBe(3)
+    expect(view.state.selection.main.head).toBe(3)
+    expect(undoDepth(view.state)).toBe(1)
+  })
+
+  it("calls onChange once for a local document transaction", () => {
+    const onChange = vi.fn()
+    render(<MarkdownLiveEditor value="first" onChange={onChange} />)
+    const { view } = getMarkdownEditorView()
+
+    act(() => view.dispatch({ changes: { from: 5, insert: "!" } }))
+
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith("first!")
+  })
+
+  it("does not echo an external value replacement through onChange", () => {
+    const onChange = vi.fn()
+    const rendered = render(<MarkdownLiveEditor value="first" onChange={onChange} />)
+    const { textbox, view } = getMarkdownEditorView()
+
+    rendered.rerender(<MarkdownLiveEditor value="replaced" onChange={onChange} />)
+
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(view.state.doc.toString()).toBe("replaced")
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  it("does not echo a same-value rerender and uses the latest callback", () => {
+    const firstOnChange = vi.fn()
+    const latestOnChange = vi.fn()
+    const rendered = render(<MarkdownLiveEditor value="first" onChange={firstOnChange} />)
+    const { textbox, view } = getMarkdownEditorView()
+
+    rendered.rerender(<MarkdownLiveEditor value="first" onChange={latestOnChange} />)
+
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(firstOnChange).not.toHaveBeenCalled()
+    expect(latestOnChange).not.toHaveBeenCalled()
+
+    act(() => view.dispatch({ changes: { from: 5, insert: "!" } }))
+    expect(firstOnChange).not.toHaveBeenCalled()
+    expect(latestOnChange).toHaveBeenCalledOnce()
+  })
+
+  it("updates the localized textbox name without recreating the editor", async () => {
+    const user = userEvent.setup()
+    render(<LocaleSwitchingMarkdownEditor />)
+    const { textbox, view } = getMarkdownEditorView()
+
+    await user.click(screen.getByRole("button", { name: "Switch editor locale" }))
+
+    expect(screen.getByRole("textbox", { name: "Markdown 본문" })).toBe(textbox)
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
   })
 
   it("saves a validated draft payload to the revision endpoint", async () => {
