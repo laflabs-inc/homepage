@@ -72,6 +72,14 @@ describe("Markdown editor model", () => {
     ])
   })
 
+  it("does not treat an unclosed comment marker inside raw text as a comment", () => {
+    const source = '<script>const x = "<!--"\n</script>'
+
+    expect(getPreviewableMarkdownBlocks(source, [])).toMatchObject([
+      { source, type: "html", complete: true },
+    ])
+  })
+
   it("starts a new paragraph from prose", () => {
     expect(getMarkdownEnterEdit("first", 5, 5, false)).toEqual({
       from: 5,

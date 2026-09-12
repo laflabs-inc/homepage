@@ -55,7 +55,7 @@ const voidHtmlElements = new Set([
 
 const proseBlockTypes = new Set(["heading", "paragraph"])
 const complexBlockTypes = new Set(["blockquote", "code", "html", "list", "math", "table"])
-const rawTextHtmlElements = new Set(["pre", "script", "style", "textarea"])
+const rawHtmlBlockElements = new Set(["pre", "script", "style", "textarea"])
 
 function hasClosingFence(source: string): boolean {
   const opening = source.match(/^(?: {0,3})(`{3,}|~{3,})[^\n]*(?:\n|$)/)
@@ -86,34 +86,46 @@ function hasBalancedHtml(source: string): boolean {
 
   const stack: string[] = []
   let foundTag = false
-  let rawTextElement: string | undefined
+  let insideComment = false
+  let rawHtmlBlockElement: string | undefined
 
   const tokens = trimmed.matchAll(
-    /<!--[\s\S]*?(?:-->|$)|<(\/?)([A-Za-z][\w:-]*)\b(?:[^>"']|"[^"]*"|'[^']*')*>/g,
+    /<!--|-->|<(\/?)([A-Za-z][\w:-]*)\b(?:[^>"']|"[^"]*"|'[^']*')*>/g,
   )
 
   for (const match of tokens) {
-    if (match[0].startsWith("<!--")) continue
-
-    foundTag = true
     const [, closing, rawName] = match
-    const name = rawName.toLowerCase()
-    const selfClosing = /\/\s*>$/.test(match[0])
+    const name = rawName?.toLowerCase()
 
-    if (rawTextElement) {
-      if (closing && name === rawTextElement) {
+    if (rawHtmlBlockElement) {
+      if (closing && name === rawHtmlBlockElement) {
         stack.pop()
-        rawTextElement = undefined
+        rawHtmlBlockElement = undefined
       }
       continue
     }
+
+    if (insideComment) {
+      if (match[0] === "-->") insideComment = false
+      continue
+    }
+
+    if (match[0] === "<!--") {
+      insideComment = true
+      continue
+    }
+
+    if (!name) continue
+
+    foundTag = true
+    const selfClosing = /\/\s*>$/.test(match[0])
 
     if (closing) {
       if (stack.at(-1) !== name) return false
       stack.pop()
     } else if (!selfClosing && !voidHtmlElements.has(name)) {
       stack.push(name)
-      if (rawTextHtmlElements.has(name)) rawTextElement = name
+      if (rawHtmlBlockElements.has(name)) rawHtmlBlockElement = name
     }
   }
 
