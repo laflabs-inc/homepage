@@ -1,6 +1,7 @@
 import { EditorSelection, EditorState } from "@codemirror/state"
 import { EditorView } from "@codemirror/view"
-import { act, fireEvent } from "@testing-library/react"
+import { act, fireEvent, render, waitFor } from "@testing-library/react"
+import { useLayoutEffect, useRef } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
@@ -9,7 +10,7 @@ import {
 } from "@/components/admin/markdown-live-preview-extension"
 
 const previewClassName = "markdown-preview-widget"
-const mountedViews = new Set<EditorView>()
+const mountedViews = new Map<EditorView, HTMLElement>()
 
 function createView(doc: string, anchor = 0, head = anchor) {
   const parent = document.createElement("div")
@@ -25,7 +26,7 @@ function createView(doc: string, anchor = 0, head = anchor) {
   act(() => {
     view = new EditorView({ state, parent })
   })
-  mountedViews.add(view)
+  mountedViews.set(view, parent)
   return view
 }
 
@@ -37,20 +38,45 @@ function dispatch(view: EditorView, spec: Parameters<EditorView["dispatch"]>[0])
   act(() => view.dispatch(spec))
 }
 
-afterEach(() => {
-  for (const view of mountedViews) {
-    act(() => view.destroy())
-    view.dom.parentElement?.remove()
+afterEach(async () => {
+  for (const [view, parent] of mountedViews) {
+    await act(async () => {
+      view.destroy()
+      await Promise.resolve()
+    })
+    parent.remove()
   }
   mountedViews.clear()
 })
 
+function EditorViewLifecycleHost() {
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const parent = parentRef.current
+    if (!parent) return
+
+    const view = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: "first\n\nsecond",
+        selection: EditorSelection.cursor(2),
+        extensions: [createMarkdownLivePreview({ className: previewClassName })],
+      }),
+    })
+
+    return () => view.destroy()
+  }, [])
+
+  return <div ref={parentRef} />
+}
+
 describe("Markdown live preview extension", () => {
-  it("keeps the cursor block as source and previews the inactive block", () => {
+  it("keeps the cursor block as source and previews the inactive block", async () => {
     const view = createView("first\n\nsecond", 2)
 
     expect(previewWidgets(view)).toHaveLength(1)
-    expect(previewWidgets(view)[0]).toHaveTextContent("second")
+    await waitFor(() => expect(previewWidgets(view)[0]).toHaveTextContent("second"))
     expect(view.contentDOM.querySelector(".cm-line")).toHaveTextContent("first")
   })
 
@@ -86,7 +112,7 @@ describe("Markdown live preview extension", () => {
     expect(view.state.selection.main.head).toBe(2)
   })
 
-  it("moves the editor selection to a widget source start on pointer activation", () => {
+  it("moves the editor selection to a widget source start on pointer activation", async () => {
     const view = createView("first\n\nsecond", 2)
     const widget = previewWidgets(view)[0]
 
@@ -95,16 +121,19 @@ describe("Markdown live preview extension", () => {
     expect(view.state.selection.main.anchor).toBe(7)
     expect(view.state.selection.main.head).toBe(7)
     expect(previewWidgets(view)).toHaveLength(1)
-    expect(previewWidgets(view)[0]).toHaveTextContent("first")
+    await waitFor(() => expect(previewWidgets(view)[0]).toHaveTextContent("first"))
   })
 
-  it("prevents rendered links from navigating the authoring surface", () => {
+  it("prevents rendered links from navigating the authoring surface", async () => {
     const view = createView("first\n\n[second](https://example.com)", 2)
+    await waitFor(() => (
+      expect(previewWidgets(view)[0]?.querySelector("a")).not.toBeNull()
+    ))
     const link = previewWidgets(view)[0]?.querySelector("a")
+    if (!link) throw new Error("Expected the rendered Markdown link")
     const click = new MouseEvent("click", { bubbles: true, cancelable: true })
 
-    expect(link).not.toBeNull()
-    expect(link?.dispatchEvent(click)).toBe(false)
+    expect(link.dispatchEvent(click)).toBe(false)
     expect(click.defaultPrevented).toBe(true)
     expect(view.state.selection.main.head).toBe(7)
   })
@@ -120,31 +149,63 @@ describe("Markdown live preview extension", () => {
     expect(view.contentDOM).toHaveTextContent("```ts")
   })
 
-  it("renders multiline replacements as direct block decorations", () => {
+  it("renders multiline replacements as direct block decorations", async () => {
     const view = createView("first\n\n- one\n- two", 2)
 
     expect(previewWidgets(view)).toHaveLength(1)
-    expect(previewWidgets(view)[0]?.querySelectorAll("li")).toHaveLength(2)
+    await waitFor(() => (
+      expect(previewWidgets(view)[0]?.querySelectorAll("li")).toHaveLength(2)
+    ))
   })
 
-  it("unmounts widget React roots when the editor view is destroyed", () => {
+  it("unmounts widget React roots when the editor view is destroyed", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
     const view = createView("first\n\nsecond", 2)
+    const parent = mountedViews.get(view)
     const widget = previewWidgets(view)[0]
     let destroyed = false
 
     try {
-      expect(widget).toHaveTextContent("second")
+      await waitFor(() => expect(widget).toHaveTextContent("second"))
       act(() => view.destroy())
       destroyed = true
 
-      expect(widget).toBeEmptyDOMElement()
+      await waitFor(() => expect(widget).toBeEmptyDOMElement())
       expect(consoleError).not.toHaveBeenCalled()
     } finally {
-      if (!destroyed) act(() => view.destroy())
+      if (!destroyed) {
+        await act(async () => {
+          view.destroy()
+          await Promise.resolve()
+        })
+      }
       mountedViews.delete(view)
       consoleError.mockRestore()
-      view.dom.parentElement?.remove()
+      parent?.remove()
+    }
+  })
+
+  it("avoids nested-root warnings in a containing React lifecycle", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined)
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined)
+    let rendered: ReturnType<typeof render> | undefined
+
+    try {
+      rendered = render(<EditorViewLifecycleHost />)
+      const widget = rendered.container.querySelector<HTMLElement>(`.${previewClassName}`)
+
+      expect(widget).not.toBeNull()
+      await waitFor(() => expect(widget).toHaveTextContent("second"))
+      rendered.unmount()
+      await waitFor(() => expect(widget).toBeEmptyDOMElement())
+
+      expect(consoleError).not.toHaveBeenCalled()
+      expect(consoleWarn).not.toHaveBeenCalled()
+    } finally {
+      rendered?.unmount()
+      await Promise.resolve()
+      consoleError.mockRestore()
+      consoleWarn.mockRestore()
     }
   })
 })

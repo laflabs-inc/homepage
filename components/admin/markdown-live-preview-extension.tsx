@@ -59,7 +59,11 @@ class MarkdownPreviewWidget extends WidgetType {
 
     const root = createRoot(dom)
     widgetRoots.set(dom, root)
-    flushSync(() => root.render(<MarkdownBody source={this.source} />))
+    queueMicrotask(() => {
+      if (widgetRoots.get(dom) !== root) return
+      flushSync(() => root.render(<MarkdownBody source={this.source} />))
+      view.requestMeasure()
+    })
 
     return dom
   }
@@ -75,7 +79,7 @@ class MarkdownPreviewWidget extends WidgetType {
     const root = widgetRoots.get(dom)
     if (!root) return
     widgetRoots.delete(dom)
-    root.unmount()
+    queueMicrotask(() => root.unmount())
   }
 }
 
