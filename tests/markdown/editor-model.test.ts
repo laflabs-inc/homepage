@@ -57,6 +57,21 @@ describe("Markdown editor model", () => {
     expect(getMarkdownEditorBlocks(source)).toMatchObject([{ complete: true }])
   })
 
+  it("ignores closing tags inside comments when checking raw HTML completeness", () => {
+    const source = "<div>\n<!-- </div> -->"
+
+    expect(getMarkdownEditorBlocks(source)).toMatchObject([{ complete: false }])
+    expect(getPreviewableMarkdownBlocks(source, [])).toEqual([])
+  })
+
+  it("ignores tag-like strings inside raw-text elements", () => {
+    const source = '<script>\nconst html = "</div>"\n</script>'
+
+    expect(getPreviewableMarkdownBlocks(source, [])).toMatchObject([
+      { source, type: "html", complete: true },
+    ])
+  })
+
   it("starts a new paragraph from prose", () => {
     expect(getMarkdownEnterEdit("first", 5, 5, false)).toEqual({
       from: 5,

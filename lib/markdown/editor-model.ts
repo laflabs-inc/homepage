@@ -55,6 +55,7 @@ const voidHtmlElements = new Set([
 
 const proseBlockTypes = new Set(["heading", "paragraph"])
 const complexBlockTypes = new Set(["blockquote", "code", "html", "list", "math", "table"])
+const rawTextHtmlElements = new Set(["pre", "script", "style", "textarea"])
 
 function hasClosingFence(source: string): boolean {
   const opening = source.match(/^(?: {0,3})(`{3,}|~{3,})[^\n]*(?:\n|$)/)
@@ -85,18 +86,34 @@ function hasBalancedHtml(source: string): boolean {
 
   const stack: string[] = []
   let foundTag = false
+  let rawTextElement: string | undefined
 
-  for (const match of trimmed.matchAll(/<(\/?)([A-Za-z][\w:-]*)\b(?:[^>"']|"[^"]*"|'[^']*')*>/g)) {
+  const tokens = trimmed.matchAll(
+    /<!--[\s\S]*?(?:-->|$)|<(\/?)([A-Za-z][\w:-]*)\b(?:[^>"']|"[^"]*"|'[^']*')*>/g,
+  )
+
+  for (const match of tokens) {
+    if (match[0].startsWith("<!--")) continue
+
     foundTag = true
     const [, closing, rawName] = match
     const name = rawName.toLowerCase()
     const selfClosing = /\/\s*>$/.test(match[0])
+
+    if (rawTextElement) {
+      if (closing && name === rawTextElement) {
+        stack.pop()
+        rawTextElement = undefined
+      }
+      continue
+    }
 
     if (closing) {
       if (stack.at(-1) !== name) return false
       stack.pop()
     } else if (!selfClosing && !voidHtmlElements.has(name)) {
       stack.push(name)
+      if (rawTextHtmlElements.has(name)) rawTextElement = name
     }
   }
 
