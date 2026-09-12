@@ -126,26 +126,11 @@ function okDeleteResponse() {
   }))
 }
 
-function stubViewport(mobile: boolean) {
-  vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({
-    matches: mobile,
-    media: "(max-width: 640px)",
-    onchange: null,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }))
-}
-
 beforeEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
   navigationMocks.replace.mockReset()
   navigationMocks.push.mockReset()
-  window.localStorage.clear()
-  stubViewport(false)
   window.history.replaceState({}, "", `/admin/documents/${revision.id}`)
   vi.stubGlobal("fetch", vi.fn((input: string | URL | Request, init?: RequestInit) => {
     const path = String(input)
@@ -170,9 +155,7 @@ describe("document admin", () => {
     )
 
     expect(screen.getByRole("textbox", { name: "제목" })).toHaveValue("서비스 업데이트")
-    await user.click(screen.getByRole("button", { name: "미리보기" }))
-    expect(screen.getByRole("region", { name: "미리보기" })).toBeInTheDocument()
-    await user.click(screen.getByRole("button", { name: "편집" }))
+    expect(screen.getByRole("heading", { level: 2, name: "변경 사항" })).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "지금 발행" }))
     expect(window.confirm).toHaveBeenCalledWith("지금 이 문서를 발행할까요?")
     expect(await screen.findByRole("status")).toHaveTextContent("문서를 발행했습니다.")
@@ -235,34 +218,22 @@ describe("document admin", () => {
     expect(screen.getAllByText("Published")).toHaveLength(2)
   })
 
-  it("offers an accessible three-mode workspace and defaults to split on desktop", async () => {
+  it("uses one live document surface instead of separate edit and preview panes", async () => {
+    const user = userEvent.setup()
     render(<DocumentEditor />)
 
     expect(screen.getByRole("combobox", { name: "Kind" })).toBeInTheDocument()
     expect(within(screen.getByRole("combobox", { name: "Kind" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale" })).toBeInTheDocument()
     expect(screen.queryByRole("option", { name: "English" })).not.toBeInTheDocument()
-    expect(screen.getByRole("group", { name: "Document workspace" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Edit" })).toHaveAttribute("aria-pressed", "false")
-    expect(screen.getByRole("button", { name: "Split" })).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "false")
-    expect(screen.getByRole("form", { name: "Edit" })).toBeInTheDocument()
-    expect(screen.getByRole("region", { name: "Preview" })).toBeInTheDocument()
-  })
+    expect(screen.queryByRole("button", { name: "Split" })).not.toBeInTheDocument()
+    expect(screen.getByRole("group", { name: "Markdown view" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Live preview", pressed: true })).toBeInTheDocument()
+    expect(screen.getByRole("textbox", { name: "Markdown body" })).toBeInTheDocument()
 
-  it("defaults to edit on mobile and persists an explicit view preference", async () => {
-    stubViewport(true)
-    const user = userEvent.setup()
-    const { unmount } = render(<DocumentEditor />)
-
-    expect(await screen.findByRole("button", { name: "Edit", pressed: true })).toBeInTheDocument()
-    await user.click(screen.getByRole("button", { name: "Preview" }))
-    expect(window.localStorage.getItem("laflabs.admin.documentEditor.viewMode")).toBe("preview")
-
-    unmount()
-    stubViewport(false)
-    render(<DocumentEditor />)
-    expect(await screen.findByRole("button", { name: "Preview", pressed: true })).toBeInTheDocument()
+    await user.type(screen.getByRole("textbox", { name: "Markdown body" }), "첫 문단")
+    await user.keyboard("{Escape}")
+    expect(screen.getByText("첫 문단")).toBeInTheDocument()
   })
 
   it("shows server-managed localized category labels while preserving canonical option values", () => {
@@ -313,18 +284,36 @@ describe("document admin", () => {
     expect(screen.getByRole("link", { name: "Markdown writing guide" })).toHaveAttribute("target", "_blank")
   })
 
-  it("renders the current Markdown through the shared preview", async () => {
+  it("edits one rendered Markdown block in place while surrounding blocks stay rendered", async () => {
     const user = userEvent.setup()
     render(<DocumentEditor revision={revision} />)
 
-    const body = screen.getByRole("textbox", { name: "Markdown body" })
-    await user.clear(body)
-    await user.type(body, "## 새 제목\n새 본문")
-    await user.click(screen.getByRole("button", { name: "Preview" }))
+    expect(screen.getByRole("heading", { level: 2, name: "변경 사항" })).toBeInTheDocument()
+    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
 
-    const preview = screen.getByRole("region", { name: "Preview" })
-    expect(within(preview).getByRole("heading", { level: 2, name: "새 제목" })).toBeInTheDocument()
-    expect(within(preview).getByText("새 본문")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Edit Markdown block 1" }))
+    const blockEditor = screen.getByRole("textbox", { name: "Editing Markdown block 1" })
+    expect(blockEditor).toHaveValue("## 변경 사항\n")
+    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
+
+    await user.clear(blockEditor)
+    await user.type(blockEditor, "## 새 제목\n")
+    await user.keyboard("{Escape}")
+
+    expect(screen.queryByRole("textbox", { name: "Editing Markdown block 1" })).not.toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "새 제목" })).toBeInTheDocument()
+    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
+  })
+
+  it("keeps an exact full-source fallback for advanced Markdown", async () => {
+    const user = userEvent.setup()
+    const complexSource = "$$\\nE = mc^2\\n$$\\n\\n```ts\\nconst answer = 42\\n```"
+    render(<DocumentEditor revision={{ ...revision, bodyMarkdown: complexSource }} />)
+
+    await user.click(screen.getByRole("button", { name: "Full source" }))
+
+    expect(screen.getByRole("textbox", { name: "Markdown body" })).toHaveValue(complexSource)
+    expect(screen.queryByRole("button", { name: /Edit Markdown block/ })).not.toBeInTheDocument()
   })
 
   it("saves a validated draft payload to the revision endpoint", async () => {

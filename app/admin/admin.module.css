@@ -273,117 +273,13 @@
   min-width: 0;
 }
 
-.editorToolbar {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  min-height: 48px;
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  color: var(--muted);
-  background: color-mix(in srgb, var(--paper) 94%, transparent);
-  border: 1px solid var(--ink);
-  border-bottom: 0;
-  backdrop-filter: blur(12px);
-}
-
-.editorViewModes {
-  display: flex;
-  align-items: stretch;
-}
-
-.editorViewModes button {
-  min-width: 88px;
-  padding: 0 16px;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  border-right: 1px solid var(--ink);
-  border-radius: 0;
-  font: 650 10px var(--font-geist-mono), monospace;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.editorViewModes button[aria-pressed="true"] {
-  color: white;
-  background: var(--blue);
-}
-
-.editorSaveState {
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  font: 600 10px var(--font-geist-mono), monospace;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.editorSaveState::before {
-  width: 6px;
-  height: 6px;
-  margin-right: 8px;
-  content: "";
-  background: var(--muted);
-}
-
-.editorSaveState[data-dirty="true"] {
-  color: var(--ink);
-}
-
-.editorSaveState[data-dirty="true"]::before {
-  background: var(--blue);
-}
-
-.editorGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border: 1px solid var(--ink);
-}
-
-.editorGrid[data-view-mode="edit"],
-.editorGrid[data-view-mode="preview"] {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.editorGrid > [hidden] {
-  display: none;
-}
-
-.editorSource,
-.editorPreview {
+.editorSource {
   min-width: 0;
   padding: 28px;
-}
-
-.editorSource {
   display: grid;
   align-content: start;
   gap: 22px;
-}
-
-.editorPreview {
-  max-height: 900px;
-  overflow: auto;
-  border-left: 1px solid var(--ink);
-}
-
-.editorGrid[data-view-mode="preview"] .editorPreview {
-  max-height: none;
-  border-left: 0;
-}
-
-@media (min-width: 901px) {
-  .editorGrid[data-view-mode="split"] {
-    height: clamp(620px, calc(100svh - 124px), 900px);
-  }
-
-  .editorGrid[data-view-mode="split"] .editorSource,
-  .editorGrid[data-view-mode="split"] .editorPreview {
-    overflow-y: auto;
-  }
+  border: 1px solid var(--ink);
 }
 
 .editorSource label,
@@ -437,6 +333,170 @@
 .markdownFieldHeader a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.markdownFieldHeader > span {
+  color: var(--muted);
+  font: 600 11px var(--font-geist-mono), monospace;
+  text-transform: uppercase;
+}
+
+.markdownLiveEditor {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ink);
+  background: white;
+}
+
+.markdownModeToolbar {
+  min-height: 48px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  color: var(--muted);
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+}
+
+.markdownModeToolbar > div {
+  display: flex;
+  align-items: stretch;
+}
+
+.markdownModeToolbar button {
+  min-width: 112px;
+  padding: 0 16px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--ink);
+  border-radius: 0;
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.markdownModeToolbar button[aria-pressed="true"] {
+  color: white;
+  background: var(--blue);
+}
+
+.markdownModeToolbar > span {
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  font: 500 10px var(--font-geist-mono), monospace;
+}
+
+.markdownLiveDocument {
+  min-height: 540px;
+  padding: 42px 56px 64px;
+}
+
+.markdownBlock {
+  position: relative;
+  min-height: 28px;
+  padding: 1px 0;
+  cursor: text;
+}
+
+.markdownBlock::before {
+  position: absolute;
+  inset: -5px -12px;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+  border: 1px solid transparent;
+}
+
+.markdownBlock:hover::before,
+.markdownBlock:focus-within::before {
+  border-color: var(--line);
+  background: #f8fafc;
+}
+
+.markdownBlock > :not(.markdownBlockEditButton) {
+  position: relative;
+  z-index: 1;
+}
+
+.markdownBlock:first-child :is(h2, h3, h4, h5, h6) {
+  margin-top: 0;
+}
+
+.markdownBlockEditButton {
+  position: absolute;
+  top: 4px;
+  left: -44px;
+  z-index: 2;
+  width: 32px;
+  min-height: 32px !important;
+  padding: 0 !important;
+  opacity: 0;
+  color: var(--blue) !important;
+  background: white !important;
+  border: 1px solid var(--blue) !important;
+  font: 650 8px var(--font-geist-mono), monospace !important;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.markdownBlock:hover .markdownBlockEditButton,
+.markdownBlockEditButton:focus-visible {
+  opacity: 1;
+}
+
+.markdownBlockEditor {
+  margin: 10px -18px 20px;
+  background: #f8fafc;
+  border: 1px solid var(--ink);
+  border-left: 4px solid var(--blue);
+}
+
+.markdownBlockEditorMeta {
+  min-height: 38px;
+  padding-left: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--blue);
+  border-bottom: 1px solid var(--line);
+  font: 650 9px var(--font-geist-mono), monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.markdownBlockEditorMeta button {
+  align-self: stretch;
+  min-width: 68px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--line);
+  font: inherit;
+  cursor: pointer;
+}
+
+.editorSource .markdownBlockEditor textarea,
+.editorSource .markdownSourceEditor {
+  padding: 18px;
+  color: var(--ink);
+  background: white;
+  border: 0;
+  font: 13px/1.65 var(--font-geist-mono), monospace;
+  tab-size: 2;
+}
+
+.editorSource .markdownBlockEditor textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.editorSource .markdownSourceEditor {
+  min-height: 560px;
+  resize: vertical;
 }
 
 .markdownGuide {
@@ -1446,13 +1506,8 @@
     border-left: 0;
   }
 
-  .editorGrid,
   .immutableDocument {
     grid-template-columns: 1fr;
-  }
-
-  .editorGrid[data-view-mode="split"] .editorPreview {
-    max-height: none;
   }
 
   .documentFilters {
@@ -1468,7 +1523,6 @@
     border-top: 1px solid var(--ink);
   }
 
-  .editorPreview,
   .immutableMeta {
     border-top: 1px solid var(--ink);
     border-left: 0;
@@ -1602,35 +1656,53 @@
     grid-column: 1 / -1;
   }
 
-  .editorToolbar {
-    position: static;
+  .editorSource,
+  .immutableMeta,
+  .immutablePreview {
+    padding: 20px;
+  }
+
+  .markdownModeToolbar {
     flex-direction: column;
   }
 
-  .editorViewModes {
+  .markdownModeToolbar > div {
     width: 100%;
   }
 
-  .editorViewModes button {
+  .markdownModeToolbar button {
     min-width: 0;
     min-height: 44px;
     flex: 1;
   }
 
-  .editorViewModes button:last-child {
+  .markdownModeToolbar button:last-child {
     border-right: 0;
   }
 
-  .editorSaveState {
+  .markdownModeToolbar > span {
     min-height: 36px;
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
   }
 
-  .editorSource,
-  .editorPreview,
-  .immutableMeta,
-  .immutablePreview {
-    padding: 20px;
+  .markdownLiveDocument {
+    min-height: 420px;
+    padding: 32px 22px 48px;
+  }
+
+  .markdownBlockEditButton {
+    top: -2px;
+    right: 0;
+    left: auto;
+    opacity: 1;
+  }
+
+  .markdownBlockEditor {
+    margin-inline: -10px;
+  }
+
+  .editorSource .markdownSourceEditor {
+    min-height: 440px;
   }
 
   .editorFieldGrid {
