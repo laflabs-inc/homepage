@@ -426,17 +426,24 @@
 .editorSource .markdownActiveBlock textarea {
   display: block;
   min-height: calc(1.65em + 4px);
-  padding: 2px 0 2px 12px;
+  padding: 2px 0;
   overflow: hidden;
   color: var(--ink);
   background: transparent;
   border: 0;
   outline: 0;
-  box-shadow: inset 2px 0 var(--blue);
+  box-shadow: none;
+  caret-color: var(--blue);
   font: 14px/1.65 var(--font-geist-mono), monospace;
   resize: none;
   tab-size: 2;
   field-sizing: content;
+}
+
+.editorSource .markdownActiveBlock textarea:focus {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
 }
 
 .editorSource .markdownSourceEditor {
