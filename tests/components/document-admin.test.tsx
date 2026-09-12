@@ -230,6 +230,7 @@ describe("document admin", () => {
     expect(screen.getByRole("group", { name: "Markdown view" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Live preview", pressed: true })).toBeInTheDocument()
     expect(screen.getByRole("textbox", { name: "Markdown body" })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument()
 
     await user.type(screen.getByRole("textbox", { name: "Markdown body" }), "첫 문단")
     await user.keyboard("{Escape}")
@@ -290,18 +291,23 @@ describe("document admin", () => {
 
     expect(screen.getByRole("heading", { level: 2, name: "변경 사항" })).toBeInTheDocument()
     expect(screen.getByText("본문입니다.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Edit Markdown block/ })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "Edit Markdown block 1" }))
+    await user.click(screen.getByRole("heading", { level: 2, name: "변경 사항" }))
     const blockEditor = screen.getByRole("textbox", { name: "Editing Markdown block 1" })
     expect(blockEditor).toHaveValue("## 변경 사항\n")
     expect(screen.getByText("본문입니다.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument()
 
     await user.clear(blockEditor)
     await user.type(blockEditor, "## 새 제목\n")
-    await user.keyboard("{Escape}")
+    await user.click(screen.getByText("본문입니다."))
 
     expect(screen.queryByRole("textbox", { name: "Editing Markdown block 1" })).not.toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "새 제목" })).toBeInTheDocument()
+    expect(screen.getByRole("textbox", { name: "Editing Markdown block 2" })).toHaveValue("본문입니다.")
+
+    await user.keyboard("{Escape}")
     expect(screen.getByText("본문입니다.")).toBeInTheDocument()
   })
 
@@ -313,7 +319,7 @@ describe("document admin", () => {
     await user.click(screen.getByRole("button", { name: "Full source" }))
 
     expect(screen.getByRole("textbox", { name: "Markdown body" })).toHaveValue(complexSource)
-    expect(screen.queryByRole("button", { name: /Edit Markdown block/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Done" })).not.toBeInTheDocument()
   })
 
   it("saves a validated draft payload to the revision endpoint", async () => {

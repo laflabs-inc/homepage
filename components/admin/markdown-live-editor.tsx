@@ -62,6 +62,19 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
     activeTextareaRef.current?.focus()
   }, [active?.start])
 
+  useEffect(() => {
+    if (!active) return
+
+    function finishFromOutsidePointer(event: PointerEvent) {
+      if (value.length === 0) return
+      if (activeTextareaRef.current?.contains(event.target as Node)) return
+      setActive(null)
+    }
+
+    document.addEventListener("pointerdown", finishFromOutsidePointer, true)
+    return () => document.removeEventListener("pointerdown", finishFromOutsidePointer, true)
+  }, [active, value.length])
+
   function selectLiveMode() {
     setSourceMode(false)
   }
@@ -114,18 +127,16 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
       ) : (
         <div className={`${contentStyles.document} ${styles.markdownLiveDocument}`}>
           {blocks.map((block, index) => block.editing ? (
-            <div className={styles.markdownBlockEditor} key={`editing-${block.start}`}>
-              <div className={styles.markdownBlockEditorMeta}>
-                <span>{t.editingBlock(index + 1)}</span>
-                <button type="button" onClick={finishEditing}>{t.finishEditing}</button>
-              </div>
+            <div className={styles.markdownActiveBlock} key={`editing-${block.start}`}>
               <textarea
                 ref={activeTextareaRef}
                 id="document-markdown-body"
                 aria-label={value.length === 0 ? t.markdownBody : t.editingBlock(index + 1)}
                 required
                 maxLength={maxLength}
-                rows={Math.max(3, block.source.split("\n").length + 1)}
+                rows={value.length === 0
+                  ? 8
+                  : Math.max(1, block.source.replace(/\n$/, "").split("\n").length)}
                 value={block.source}
                 onChange={(event) => updateActiveBlock(event.target.value)}
                 onKeyDown={(event) => {
@@ -140,17 +151,18 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
             <div
               className={styles.markdownBlock}
               key={`${block.start}-${block.end}`}
+              tabIndex={0}
+              aria-label={t.editBlock(index + 1)}
               onClick={(event) => {
                 if ((event.target as HTMLElement).closest("a, button, input, textarea, select")) return
                 beginEditing(block)
               }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter") return
+                event.preventDefault()
+                beginEditing(block)
+              }}
             >
-              <button
-                className={styles.markdownBlockEditButton}
-                type="button"
-                aria-label={t.editBlock(index + 1)}
-                onClick={() => beginEditing(block)}
-              >{t.editBlockShort}</button>
               <MarkdownBody source={block.source} />
             </div>
           ))}

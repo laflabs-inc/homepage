@@ -139,7 +139,7 @@ Editing never requires saving a draft. Block boundaries come from the Markdown s
 ### Workspace layout
 
 - The live document surface has meaningful vertical space on desktop and mobile.
-- Hover, focus, and explicit edit controls make editable blocks discoverable without covering rendered content.
+- Pointer selection and keyboard focus make blocks editable in place without card chrome or persistent controls.
 - Metadata fields remain above the body editor rather than being duplicated in the preview.
 - Switching between Live preview and Full source does not alter dirty state.
 - Published and archived immutable revisions keep the current read-only preview layout.
