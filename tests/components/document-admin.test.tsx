@@ -126,11 +126,26 @@ function okDeleteResponse() {
   }))
 }
 
+function stubViewport(mobile: boolean) {
+  vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({
+    matches: mobile,
+    media: "(max-width: 640px)",
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }))
+}
+
 beforeEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
   navigationMocks.replace.mockReset()
   navigationMocks.push.mockReset()
+  window.localStorage.clear()
+  stubViewport(false)
   window.history.replaceState({}, "", `/admin/documents/${revision.id}`)
   vi.stubGlobal("fetch", vi.fn((input: string | URL | Request, init?: RequestInit) => {
     const path = String(input)
@@ -155,8 +170,9 @@ describe("document admin", () => {
     )
 
     expect(screen.getByRole("textbox", { name: "제목" })).toHaveValue("서비스 업데이트")
-    await user.click(screen.getByRole("tab", { name: "미리보기" }))
-    expect(screen.getByRole("tabpanel", { name: "미리보기" })).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "미리보기" }))
+    expect(screen.getByRole("region", { name: "미리보기" })).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "편집" }))
     await user.click(screen.getByRole("button", { name: "지금 발행" }))
     expect(window.confirm).toHaveBeenCalledWith("지금 이 문서를 발행할까요?")
     expect(await screen.findByRole("status")).toHaveTextContent("문서를 발행했습니다.")
@@ -219,16 +235,34 @@ describe("document admin", () => {
     expect(screen.getAllByText("Published")).toHaveLength(2)
   })
 
-  it("offers kind and locale fields plus accessible source and preview tabs", () => {
+  it("offers an accessible three-mode workspace and defaults to split on desktop", async () => {
     render(<DocumentEditor />)
 
     expect(screen.getByRole("combobox", { name: "Kind" })).toBeInTheDocument()
     expect(within(screen.getByRole("combobox", { name: "Kind" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Locale" })).toBeInTheDocument()
     expect(screen.queryByRole("option", { name: "English" })).not.toBeInTheDocument()
-    expect(screen.getByRole("tab", { name: "Source" })).toHaveAttribute("aria-selected", "true")
-    expect(screen.getByRole("tab", { name: "Preview" })).toHaveAttribute("aria-selected", "false")
-    expect(screen.getByRole("tabpanel", { name: "Source" })).toBeInTheDocument()
+    expect(screen.getByRole("group", { name: "Document workspace" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Edit" })).toHaveAttribute("aria-pressed", "false")
+    expect(screen.getByRole("button", { name: "Split" })).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "false")
+    expect(screen.getByRole("form", { name: "Edit" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "Preview" })).toBeInTheDocument()
+  })
+
+  it("defaults to edit on mobile and persists an explicit view preference", async () => {
+    stubViewport(true)
+    const user = userEvent.setup()
+    const { unmount } = render(<DocumentEditor />)
+
+    expect(await screen.findByRole("button", { name: "Edit", pressed: true })).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Preview" }))
+    expect(window.localStorage.getItem("laflabs.admin.documentEditor.viewMode")).toBe("preview")
+
+    unmount()
+    stubViewport(false)
+    render(<DocumentEditor />)
+    expect(await screen.findByRole("button", { name: "Preview", pressed: true })).toBeInTheDocument()
   })
 
   it("shows server-managed localized category labels while preserving canonical option values", () => {
@@ -286,9 +320,9 @@ describe("document admin", () => {
     const body = screen.getByRole("textbox", { name: "Markdown body" })
     await user.clear(body)
     await user.type(body, "## 새 제목\n새 본문")
-    await user.click(screen.getByRole("tab", { name: "Preview" }))
+    await user.click(screen.getByRole("button", { name: "Preview" }))
 
-    const preview = screen.getByRole("tabpanel", { name: "Preview" })
+    const preview = screen.getByRole("region", { name: "Preview" })
     expect(within(preview).getByRole("heading", { level: 2, name: "새 제목" })).toBeInTheDocument()
     expect(within(preview).getByText("새 본문")).toBeInTheDocument()
   })

@@ -273,14 +273,83 @@
   min-width: 0;
 }
 
-.editorTabs {
-  display: none;
+.editorToolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-height: 48px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  border: 1px solid var(--ink);
+  border-bottom: 0;
+  backdrop-filter: blur(12px);
+}
+
+.editorViewModes {
+  display: flex;
+  align-items: stretch;
+}
+
+.editorViewModes button {
+  min-width: 88px;
+  padding: 0 16px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--ink);
+  border-radius: 0;
+  font: 650 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.editorViewModes button[aria-pressed="true"] {
+  color: white;
+  background: var(--blue);
+}
+
+.editorSaveState {
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  font: 600 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.editorSaveState::before {
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  content: "";
+  background: var(--muted);
+}
+
+.editorSaveState[data-dirty="true"] {
+  color: var(--ink);
+}
+
+.editorSaveState[data-dirty="true"]::before {
+  background: var(--blue);
 }
 
 .editorGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid var(--ink);
+}
+
+.editorGrid[data-view-mode="edit"],
+.editorGrid[data-view-mode="preview"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.editorGrid > [hidden] {
+  display: none;
 }
 
 .editorSource,
@@ -299,6 +368,22 @@
   max-height: 900px;
   overflow: auto;
   border-left: 1px solid var(--ink);
+}
+
+.editorGrid[data-view-mode="preview"] .editorPreview {
+  max-height: none;
+  border-left: 0;
+}
+
+@media (min-width: 901px) {
+  .editorGrid[data-view-mode="split"] {
+    height: clamp(620px, calc(100svh - 124px), 900px);
+  }
+
+  .editorGrid[data-view-mode="split"] .editorSource,
+  .editorGrid[data-view-mode="split"] .editorPreview {
+    overflow-y: auto;
+  }
 }
 
 .editorSource label,
@@ -1366,6 +1451,10 @@
     grid-template-columns: 1fr;
   }
 
+  .editorGrid[data-view-mode="split"] .editorPreview {
+    max-height: none;
+  }
+
   .documentFilters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1513,28 +1602,28 @@
     grid-column: 1 / -1;
   }
 
-  .editorTabs {
-    display: flex;
-    border: 1px solid var(--ink);
-    border-bottom: 0;
+  .editorToolbar {
+    position: static;
+    flex-direction: column;
   }
 
-  .editorTabs button {
+  .editorViewModes {
+    width: 100%;
+  }
+
+  .editorViewModes button {
+    min-width: 0;
     min-height: 44px;
     flex: 1;
-    color: var(--muted);
-    background: var(--paper);
-    border: 0;
-    font: 650 11px var(--font-geist-mono), monospace;
   }
 
-  .editorTabs button + button {
-    border-left: 1px solid var(--ink);
+  .editorViewModes button:last-child {
+    border-right: 0;
   }
 
-  .editorTabs button[aria-selected="true"] {
-    color: white;
-    background: var(--blue);
+  .editorSaveState {
+    min-height: 36px;
+    border-top: 1px solid var(--ink);
   }
 
   .editorSource,
@@ -1542,10 +1631,6 @@
   .immutableMeta,
   .immutablePreview {
     padding: 20px;
-  }
-
-  .editorGrid > [data-active="false"] {
-    display: none;
   }
 
   .editorFieldGrid {
