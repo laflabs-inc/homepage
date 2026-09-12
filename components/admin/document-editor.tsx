@@ -496,8 +496,41 @@ export function DocumentEditor({
         aria-label={revision ? t.editDocument : t.createDocument}
         onSubmit={(event) => { event.preventDefault(); void saveDraft() }}
       >
+          <div className={styles.editorLead}>
+            <label className={styles.editorTitleField}>{t.title}
+              <input required maxLength={160} value={values.title} onChange={(event) => update("title", event.target.value)} />
+            </label>
+            <div className={styles.editorSummary}>
+              <div className={styles.editorSummaryRow}>
+                <label>{t.summary}
+                  <input
+                    aria-describedby="summary-requirements"
+                    maxLength={240}
+                    value={values.summary}
+                    onChange={(event) => update("summary", event.target.value)}
+                  />
+                </label>
+                {revision ? (
+                  <button
+                    className={styles.editorSummaryAction}
+                    aria-busy={summaryPending}
+                    disabled={pending || dirty}
+                    type="button"
+                    onClick={() => void generateSummary()}
+                  >
+                    {summaryPending ? t.generatingSummary : t.generateSummary}
+                  </button>
+                ) : null}
+              </div>
+              <p id="summary-requirements" className={styles.editorSummaryGuidance}>
+                {t.summaryRequirements}
+              </p>
+            </div>
+          </div>
+          <section className={styles.editorProperties} role="group" aria-labelledby="document-settings-title">
+            <h2 id="document-settings-title">{t.documentSettings}</h2>
           <div className={styles.editorFieldGrid}>
-            <label>{t.kind}
+            <label className={styles.editorPropertyKind}>{t.kind}
               <select disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
                 const kind = event.target.value as DocumentKind
                 const next = {
@@ -514,15 +547,12 @@ export function DocumentEditor({
                 <option value="disclosure">{adminCopy[locale].documents.disclosure}</option>
               </select>
             </label>
-            <label>{t.locale}
+            <label className={styles.editorPropertyLocale}>{t.locale}
               <select disabled value={values.locale} onChange={(event) => update("locale", event.target.value as Locale)}>
                 <option value={values.locale}>{values.locale === "ko" ? adminCopy[locale].documents.korean : adminCopy[locale].documents.english}</option>
               </select>
             </label>
-            <label>{t.slug}
-              <input disabled={englishSeriesFieldsLocked} required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
-            </label>
-            <label>{t.category}
+            <label className={styles.editorPropertyCategory}>{t.category}
               <select disabled={englishSeriesFieldsLocked} value={values.category} onChange={(event) => update("category", event.target.value)}>
                 {categoryOptions.length === 0 ? <option value="">—</option> : null}
                 {categoryOptions.map((category) => (
@@ -532,40 +562,18 @@ export function DocumentEditor({
                 ))}
               </select>
             </label>
+            <label className={styles.editorPropertySlug}>{t.slug}
+              <input disabled={englishSeriesFieldsLocked} required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
+            </label>
+            <label className={styles.editorPropertyDate}>{t.effectiveDate}
+              <input type="date" value={values.effectiveAt} onChange={(event) => update("effectiveAt", event.target.value)} />
+            </label>
             <label className={styles.checkboxField}>
               <input disabled={englishSeriesFieldsLocked} type="checkbox" checked={values.pinned} onChange={(event) => update("pinned", event.target.checked)} />
               {t.pinned}
             </label>
-            <label>{t.effectiveDate}
-              <input type="date" value={values.effectiveAt} onChange={(event) => update("effectiveAt", event.target.value)} />
-            </label>
           </div>
-          <label>{t.title}
-            <input required maxLength={160} value={values.title} onChange={(event) => update("title", event.target.value)} />
-          </label>
-          <div>
-            <label>{t.summary}
-              <input
-                aria-describedby="summary-requirements"
-                maxLength={240}
-                value={values.summary}
-                onChange={(event) => update("summary", event.target.value)}
-              />
-            </label>
-            <p id="summary-requirements" className={styles.editorGuidance}>
-              {t.summaryRequirements}
-            </p>
-            {revision ? (
-              <button
-                aria-busy={summaryPending}
-                disabled={pending || dirty}
-                type="button"
-                onClick={() => void generateSummary()}
-              >
-                {summaryPending ? t.generatingSummary : t.generateSummary}
-              </button>
-            ) : null}
-          </div>
+          </section>
           <div className={styles.markdownField}>
             <div className={styles.markdownFieldHeader}>
               <span>{t.markdownBody}</span>

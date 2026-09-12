@@ -237,6 +237,18 @@ describe("document admin", () => {
     expect(screen.getByText("첫 문단")).toBeInTheDocument()
   })
 
+  it("keeps the writing fields ahead of compact document settings", () => {
+    render(<DocumentEditor revision={revision} categories={categories} />)
+
+    const title = screen.getByRole("textbox", { name: "Title" })
+    const settings = screen.getByRole("group", { name: "Document settings" })
+
+    expect(title.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(settings).getByRole("combobox", { name: "Kind" })).toBeInTheDocument()
+    expect(within(settings).getByRole("combobox", { name: "Category" })).toBeInTheDocument()
+    expect(within(settings).getByRole("textbox", { name: "Slug" })).toBeInTheDocument()
+  })
+
   it("shows server-managed localized category labels while preserving canonical option values", () => {
     const { unmount } = render(
       <LocaleProvider initialLocale="ko"><DocumentEditor categories={categories} /></LocaleProvider>,
@@ -309,6 +321,70 @@ describe("document admin", () => {
 
     await user.keyboard("{Escape}")
     expect(screen.getByText("본문입니다.")).toBeInTheDocument()
+  })
+
+  it("creates and focuses a new rendered block when Enter is pressed in prose", async () => {
+    const user = userEvent.setup()
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByText("본문입니다."))
+    const paragraph = screen.getByRole("textbox", { name: "Editing Markdown block 2" }) as HTMLTextAreaElement
+    paragraph.setSelectionRange(paragraph.value.length, paragraph.value.length)
+    await user.keyboard("{Enter}")
+
+    expect(screen.getByText("본문입니다.")).toBeInTheDocument()
+    const nextBlock = screen.getByRole("textbox", { name: "Editing Markdown block 3" })
+    expect(nextBlock).toHaveValue("")
+
+    await user.type(nextBlock, "다음 문단")
+    await user.keyboard("{Escape}")
+    expect(screen.getByText("다음 문단")).toBeInTheDocument()
+  })
+
+  it("returns from an empty block to the previous prose block on Backspace", async () => {
+    const user = userEvent.setup()
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByText("본문입니다."))
+    const paragraph = screen.getByRole("textbox", { name: "Editing Markdown block 2" }) as HTMLTextAreaElement
+    paragraph.setSelectionRange(paragraph.value.length, paragraph.value.length)
+    await user.keyboard("{Enter}")
+    await user.keyboard("{Backspace}")
+
+    expect(screen.getByRole("textbox", { name: "Editing Markdown block 2" })).toHaveValue("본문입니다.")
+  })
+
+  it("moves focus between adjacent rendered blocks at text boundaries", async () => {
+    const user = userEvent.setup()
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("heading", { level: 2, name: "변경 사항" }))
+    const heading = screen.getByRole("textbox", { name: "Editing Markdown block 1" }) as HTMLTextAreaElement
+    heading.setSelectionRange(heading.value.length, heading.value.length)
+    await user.keyboard("{ArrowDown}")
+
+    const paragraph = screen.getByRole("textbox", { name: "Editing Markdown block 2" }) as HTMLTextAreaElement
+    expect(paragraph).toHaveFocus()
+    paragraph.setSelectionRange(0, 0)
+    await user.keyboard("{ArrowUp}")
+    expect(screen.getByRole("textbox", { name: "Editing Markdown block 1" })).toHaveFocus()
+  })
+
+  it("keeps Enter inside multiline Markdown constructs", async () => {
+    const user = userEvent.setup()
+    const bodyMarkdown = "```ts\nconst answer = 42\n```"
+    render(<DocumentEditor revision={{ ...revision, bodyMarkdown }} />)
+
+    await user.click(screen.getByText((_, element) => (
+      element?.tagName === "CODE" && element.textContent?.includes("const answer = 42") === true
+    )))
+    const code = screen.getByRole("textbox", { name: "Editing Markdown block 1" }) as HTMLTextAreaElement
+    code.setSelectionRange("```ts\n".length, "```ts\n".length)
+    await user.keyboard("{Enter}")
+
+    expect(screen.getByRole("textbox", { name: "Editing Markdown block 1" })).toHaveValue(
+      "```ts\n\nconst answer = 42\n```",
+    )
   })
 
   it("keeps an exact full-source fallback for advanced Markdown", async () => {
