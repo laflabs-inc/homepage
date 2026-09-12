@@ -33,7 +33,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | Order | Milestone | Outcome | Size | Depends on |
 | --- | --- | --- | --- | --- |
 | 1 | Public document index polish | Notices, disclosures, and legal indexes align to the Navbar shell and use a compact document masthead without redundant cross-navigation | S | Existing document platform |
-| 2 | Document editor workspace | Explicit Edit, Split, and Preview modes with responsive behavior and a deferred live preview | M | Shared Markdown renderer |
+| 2 | Document editor workspace | Obsidian-style inline Markdown editing with an exact full-source fallback | M | Shared Markdown renderer |
 | 3 | Logo motion | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
 | 4 | Media platform foundation | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
 | 5 | Media authoring integration | Asset picker, Markdown insertion, reference tracking, safe archive, and deletion rules | M | Media platform foundation |
@@ -54,9 +54,10 @@ Evolve the LafLabs website from a company homepage with document publishing into
 ### 2. Document editor workspace
 
 - Reuse the current renderer and unsaved draft state.
-- Add Edit, Split, and Preview controls on every viewport.
-- Default to Split on desktop and Edit on mobile.
-- Persist the view preference locally without storing document content.
+- Present one rendered document surface instead of separate editor and preview panes.
+- Turn only the selected top-level Markdown block into source while it is being edited.
+- Keep an explicit full-source mode for advanced or cross-block edits.
+- Preserve Markdown source exactly; never store draft content outside the existing in-memory form state.
 - Keep publishing lifecycle controls unchanged.
 
 ### 3. Logo motion

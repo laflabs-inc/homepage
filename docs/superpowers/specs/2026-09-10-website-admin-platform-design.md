@@ -119,44 +119,38 @@ The discovery toolbar sits directly below the masthead. Its controls and the doc
 
 ## 2. Document editor workspace
 
-### View modes
+### Editing model
 
-Replace the mobile-only two-tab state with a view mode available at every viewport:
+Replace the separate source and preview panes with one Obsidian-style live document surface. Every top-level Markdown node is rendered through the production renderer. Selecting a block replaces only that block with its exact Markdown source; completing the edit renders it again in the same position.
 
-- Edit: source form uses the full workspace.
-- Split: source and preview share the workspace.
-- Preview: rendered document uses the full workspace.
-
-Desktop defaults to Split. Mobile defaults to Edit. The last selected mode is stored as a presentation preference in local storage. Document content is never stored there.
-
-The control is an accessible segmented button group. It uses `aria-pressed` and clear labels rather than pretending three mutually exclusive buttons are page-navigation tabs.
+An accessible two-option control switches between Live preview and Full source. Full source is an explicit escape hatch for advanced editing and syntax that spans blocks. The application stores neither the selected mode nor draft content outside the existing in-memory form state.
 
 ### Preview data flow
 
 ```text
 EditorValues in memory
-  -> React deferred value
-  -> DocumentPreview
-  -> shared MarkdownDocument renderer
+  -> source-preserving top-level block ranges
+  -> selected block source editor
+  -> shared Markdown body renderer for every other block
 ```
 
-The preview never requires saving a draft. `useDeferredValue` lets source input remain responsive while KaTeX, highlighted code, raw-safe HTML, and Mermaid content render at lower priority. The public document and Admin preview continue to share one renderer and sanitation policy.
+Editing never requires saving a draft. Block boundaries come from the Markdown syntax tree and retain the exact original source ranges, including whitespace. KaTeX, highlighted code, raw-safe HTML, and Mermaid content continue to use the same renderer and sanitation policy as public documents.
 
 ### Workspace layout
 
-- The view control and save state remain sticky within the Admin content region on desktop.
-- Split mode gives the Markdown body meaningful vertical space and lets each pane scroll independently.
+- The live document surface has meaningful vertical space on desktop and mobile.
+- Hover, focus, and explicit edit controls make editable blocks discoverable without covering rendered content.
 - Metadata fields remain above the body editor rather than being duplicated in the preview.
-- Preview mode shows the unsaved title and body.
-- Switching modes does not alter dirty state.
+- Switching between Live preview and Full source does not alter dirty state.
 - Published and archived immutable revisions keep the current read-only preview layout.
 
 ### Acceptance criteria
 
-- Switching modes never saves or discards content.
-- A newly typed formula, table, code block, HTML block, and Mermaid diagram appears using the production renderer.
-- Mobile shows only one pane at a time.
-- A refresh restores the view preference but not unsaved document content.
+- Selecting a block exposes only that block's exact Markdown source while adjacent blocks remain rendered.
+- Completing a formula, table, code block, HTML block, or Mermaid block renders it through the production renderer.
+- Full-source mode round-trips the exact Markdown document without normalization.
+- Mobile and desktop use the same single-surface editing model.
+- A refresh does not restore unsaved document content.
 - Existing save, summary, schedule, publish, archive, delete, and dirty-navigation tests remain valid.
 
 ## 3. Media asset platform
@@ -467,9 +461,9 @@ Operational logs use IDs and error codes. They do not log Markdown bodies, inqui
 
 ### Editor
 
-- Edit, Split, and Preview mode transitions
-- local preference restoration
-- no dirty-state changes from mode switches
+- inline block selection, editing, and completion
+- exact source reconstruction across GFM, KaTeX, code, HTML, and Mermaid blocks
+- no dirty-state changes from view-mode switches
 - exact renderer fixtures for GFM, HTML, code, KaTeX, and Mermaid
 - large-document typing responsiveness smoke test
 

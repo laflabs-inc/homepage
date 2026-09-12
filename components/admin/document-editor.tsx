@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import styles from "@/app/admin/admin.module.css"
 import { DocumentPreview } from "@/components/admin/document-preview"
+import { MarkdownLiveEditor } from "@/components/admin/markdown-live-editor"
 import { useDirtyNavigationGuard } from "@/components/admin/use-dirty-navigation-guard"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
@@ -29,14 +30,6 @@ type DocumentEditorProps = {
   seriesId?: string
   templateRevision?: DocumentRevision
   categories?: DocumentCategorySnapshot[]
-}
-
-type EditorViewMode = "edit" | "split" | "preview"
-
-const editorViewStorageKey = "laflabs.admin.documentEditor.viewMode"
-
-function isEditorViewMode(value: string | null): value is EditorViewMode {
-  return value === "edit" || value === "split" || value === "preview"
 }
 
 const blankValues: EditorValues = {
@@ -216,7 +209,6 @@ export function DocumentEditor({
   ))
   const valuesRef = useRef(values)
   const [dirty, setDirty] = useState(false)
-  const [viewMode, setViewMode] = useState<EditorViewMode>("split")
   const [scheduledAt, setScheduledAt] = useState("")
   const [pending, setPending] = useState(false)
   const [summaryPending, setSummaryPending] = useState(false)
@@ -233,43 +225,10 @@ export function DocumentEditor({
   )), [categories, values.category, values.kind])
   const editable = !revision || revision.status === "draft"
   const englishSeriesFieldsLocked = values.locale === "en"
-  const deferredTitle = useDeferredValue(values.title)
-  const deferredMarkdown = useDeferredValue(values.bodyMarkdown)
 
   useEffect(() => {
     if (error) errorRef.current?.focus()
   }, [error])
-
-  useEffect(() => {
-    let stored: string | null = null
-    try {
-      stored = window.localStorage.getItem(editorViewStorageKey)
-    } catch {
-      // Storage can be unavailable in hardened browser modes.
-    }
-    const initialMode = isEditorViewMode(stored)
-      ? stored
-      : window.matchMedia?.("(max-width: 640px)").matches
-        ? "edit"
-        : "split"
-
-    if (initialMode === "split") return
-
-    let cancelled = false
-    queueMicrotask(() => {
-      if (!cancelled) setViewMode(initialMode)
-    })
-    return () => { cancelled = true }
-  }, [])
-
-  function selectViewMode(nextMode: EditorViewMode) {
-    setViewMode(nextMode)
-    try {
-      window.localStorage.setItem(editorViewStorageKey, nextMode)
-    } catch {
-      // The selected mode still works for the current session.
-    }
-  }
 
   function update<K extends keyof EditorValues>(key: K, value: EditorValues[K]) {
     const next = { ...valuesRef.current, [key]: value }
@@ -532,39 +491,11 @@ export function DocumentEditor({
 
   return (
     <section className={styles.editor} aria-label={revision ? t.editDocument : t.createDocument}>
-      <div className={styles.editorToolbar}>
-        <div className={styles.editorViewModes} role="group" aria-label={t.workspace}>
-          <button
-            type="button"
-            aria-controls="source-panel"
-            aria-pressed={viewMode === "edit"}
-            onClick={() => selectViewMode("edit")}
-          >{t.edit}</button>
-          <button
-            type="button"
-            aria-controls="source-panel preview-panel"
-            aria-pressed={viewMode === "split"}
-            onClick={() => selectViewMode("split")}
-          >{t.split}</button>
-          <button
-            type="button"
-            aria-controls="preview-panel"
-            aria-pressed={viewMode === "preview"}
-            onClick={() => selectViewMode("preview")}
-          >{t.preview}</button>
-        </div>
-        <span className={styles.editorSaveState} data-dirty={dirty}>
-          {dirty ? t.unsavedChanges : t.noUnsavedChanges}
-        </span>
-      </div>
-      <div className={styles.editorGrid} data-view-mode={viewMode}>
-        <form
-          id="source-panel"
-          className={styles.editorSource}
-          aria-label={t.edit}
-          hidden={viewMode === "preview"}
-          onSubmit={(event) => { event.preventDefault(); void saveDraft() }}
-        >
+      <form
+        className={styles.editorSource}
+        aria-label={revision ? t.editDocument : t.createDocument}
+        onSubmit={(event) => { event.preventDefault(); void saveDraft() }}
+      >
           <div className={styles.editorFieldGrid}>
             <label>{t.kind}
               <select disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
@@ -637,7 +568,7 @@ export function DocumentEditor({
           </div>
           <div className={styles.markdownField}>
             <div className={styles.markdownFieldHeader}>
-              <label htmlFor="document-markdown-body">{t.markdownBody}</label>
+              <span>{t.markdownBody}</span>
               <Link
                 href="/admin/documents/markdown-guide"
                 target="_blank"
@@ -645,13 +576,9 @@ export function DocumentEditor({
                 aria-label={t.markdownGuide}
               >{t.writingGuide}</Link>
             </div>
-            <textarea
-              id="document-markdown-body"
-              required
-              maxLength={200_000}
-              rows={24}
+            <MarkdownLiveEditor
               value={values.bodyMarkdown}
-              onChange={(event) => update("bodyMarkdown", event.target.value)}
+              onChange={(nextValue) => update("bodyMarkdown", nextValue)}
             />
           </div>
           {error ? <p ref={errorRef} className={styles.formAlert} role="alert" tabIndex={-1}>{error}</p> : null}
@@ -690,16 +617,7 @@ export function DocumentEditor({
               </>
             ) : null}
           </div>
-        </form>
-        <section
-          id="preview-panel"
-          className={styles.editorPreview}
-          aria-label={t.preview}
-          hidden={viewMode === "edit"}
-        >
-          <DocumentPreview title={deferredTitle} source={deferredMarkdown} />
-        </section>
-      </div>
+      </form>
     </section>
   )
 }

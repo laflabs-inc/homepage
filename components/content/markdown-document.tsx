@@ -88,22 +88,19 @@ function codeLanguage(node: Element | undefined) {
   return classes.find((value) => value.startsWith("language-"))?.slice(9)
 }
 
-export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps) {
+export function MarkdownBody({ source }: { source: string }) {
   return (
-    <article className={styles.document}>
-      <h1 className={styles.title}>{title}</h1>
-      {intro}
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath, remarkLafCallouts]}
-        rehypePlugins={[
-          rehypeRaw,
-          [rehypeSanitize, documentSanitizeSchema],
-          rehypeKatex,
-          [rehypeHighlight, { plainText: ["mermaid"] }],
-          rehypeSlug,
-        ]}
-        urlTransform={transformDocumentUrl}
-        components={{
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, remarkMath, remarkLafCallouts]}
+      rehypePlugins={[
+        rehypeRaw,
+        [rehypeSanitize, documentSanitizeSchema],
+        rehypeKatex,
+        [rehypeHighlight, { plainText: ["mermaid"] }],
+        rehypeSlug,
+      ]}
+      urlTransform={transformDocumentUrl}
+      components={{
           h1: (props) => <h2 className={styles.headingOne} {...withoutNode(props)} />,
           h2: (props) => <h2 className={styles.headingTwo} {...withoutNode(props)} />,
           h3: (props) => <h3 className={styles.headingThree} {...withoutNode(props)} />,
@@ -169,10 +166,19 @@ export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps
             const { className, ...attributes } = withoutNode(props)
             return <ol {...attributes} className={classNames(styles.list, className)} />
           },
-        }}
-      >
-        {source}
-      </ReactMarkdown>
+      }}
+    >
+      {source}
+    </ReactMarkdown>
+  )
+}
+
+export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps) {
+  return (
+    <article className={styles.document}>
+      <h1 className={styles.title}>{title}</h1>
+      {intro}
+      <MarkdownBody source={source} />
     </article>
   )
 }
