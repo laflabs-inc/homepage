@@ -95,7 +95,7 @@ beforeEach(() => {
 })
 
 describe("public document pages", () => {
-  it("renders a localized document-section navigation with the current type marked", async () => {
+  it("renders the localized document masthead without a section switcher", async () => {
     render(await DocumentIndex({
       kind: "notice",
       locale: "ko",
@@ -103,14 +103,12 @@ describe("public document pages", () => {
       repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
     }))
 
-    const navigation = screen.getByRole("navigation", { name: "문서 종류" })
-    expect(within(navigation).getByRole("link", { name: "공지사항" })).toHaveAttribute("aria-current", "page")
-    expect(within(navigation).getByRole("link", { name: "공지사항" })).toHaveAttribute("href", "/notices?locale=ko")
-    expect(within(navigation).getByRole("link", { name: "공시" })).toHaveAttribute("href", "/disclosures?locale=ko")
-    expect(within(navigation).getByRole("link", { name: "법적 고지" })).toHaveAttribute("href", "/legal?locale=ko")
+    expect(screen.getByRole("heading", { level: 1, name: "공지사항" })).toBeInTheDocument()
+    expect(screen.getByText("LafLabs의 서비스와 운영 소식을 전합니다.")).toBeInTheDocument()
+    expect(screen.queryByRole("navigation", { name: "문서 종류" })).not.toBeInTheDocument()
   })
 
-  it("localizes the document-section navigation without carrying stale filters", async () => {
+  it("renders the English document masthead without cross-section links", async () => {
     render(await DocumentIndex({
       kind: "disclosure",
       locale: "en",
@@ -122,10 +120,10 @@ describe("public document pages", () => {
       repository: repository({ listPublished: vi.fn().mockResolvedValue([]) }),
     }))
 
-    const navigation = screen.getByRole("navigation", { name: "Document sections" })
-    expect(within(navigation).getByRole("link", { name: "Disclosures" })).toHaveAttribute("aria-current", "page")
-    expect(within(navigation).getByRole("link", { name: "Notices" })).toHaveAttribute("href", "/notices?locale=en")
-    expect(within(navigation).getByRole("link", { name: "Legal" })).toHaveAttribute("href", "/legal?locale=en")
+    expect(screen.getByRole("heading", { level: 1, name: "Disclosures" })).toBeInTheDocument()
+    expect(screen.queryByRole("navigation", { name: "Document sections" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Notices" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("link", { name: "Legal" })).not.toBeInTheDocument()
   })
 
   it("renders an honest Korean empty state when nothing is published", async () => {

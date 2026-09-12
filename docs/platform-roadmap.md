@@ -32,7 +32,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 
 | Order | Milestone | Outcome | Size | Depends on |
 | --- | --- | --- | --- | --- |
-| 1 | Public document index polish | Notices, disclosures, and legal indexes align to the Navbar shell and use a compact document masthead | S | Existing document platform |
+| 1 | Public document index polish | Notices, disclosures, and legal indexes align to the Navbar shell and use a compact document masthead without redundant cross-navigation | S | Existing document platform |
 | 2 | Document editor workspace | Explicit Edit, Split, and Preview modes with responsive behavior and a deferred live preview | M | Shared Markdown renderer |
 | 3 | Logo motion | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
 | 4 | Media platform foundation | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
@@ -48,7 +48,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 
 - Change only `/notices`, `/disclosures`, and `/legal` index composition.
 - Keep the current narrow document detail reading width.
-- Add a functional document-type switcher instead of a decorative banner.
+- Keep document-type access in the Footer and site search instead of repeating it in every index masthead.
 - Preserve query-string filtering, pagination, locale, and public cache behavior.
 
 ### 2. Document editor workspace
