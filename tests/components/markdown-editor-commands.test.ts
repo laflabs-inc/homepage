@@ -1,3 +1,4 @@
+import { history, undo } from "@codemirror/commands"
 import { insertNewlineContinueMarkup, markdown } from "@codemirror/lang-markdown"
 import {
   EditorState,
@@ -68,6 +69,23 @@ describe("Markdown editor commands", () => {
     expect(dispatched()?.state.doc.toString()).toBe("first\n\n")
     expect(dispatched()?.state.selection.main.head).toBe(7)
     expect(dispatched()?.scrollIntoView).toBe(true)
+  })
+
+  it("undoes paragraph Enter separately from preceding typing", () => {
+    let state = createState("", history())
+    const dispatch = (transaction: Transaction) => {
+      state = transaction.state
+    }
+    state = state.update({
+      changes: { from: 0, insert: "a" },
+      selection: { anchor: 1 },
+      userEvent: "input.type",
+    }).state
+
+    expect(runMarkdownEnter({ state, dispatch })).toBe(true)
+    expect(state.doc.toString()).toBe("a\n\n")
+    expect(undo({ state, dispatch })).toBe(true)
+    expect(state.doc.toString()).toBe("a")
   })
 
   it("starts a paragraph after a heading", () => {

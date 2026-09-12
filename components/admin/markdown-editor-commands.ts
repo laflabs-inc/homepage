@@ -24,6 +24,7 @@ function dispatchMarkdownEdit(
     changes: { from: edit.from, to: edit.to, insert: edit.insert },
     selection: { anchor: edit.anchor },
     scrollIntoView: true,
+    userEvent: "input",
   }))
   return true
 }
