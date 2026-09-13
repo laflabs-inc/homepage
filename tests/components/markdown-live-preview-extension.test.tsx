@@ -95,8 +95,43 @@ describe("Markdown live preview extension", () => {
 
     expect(previewWidgets(view)).toHaveLength(2)
     expect(sourceLines.some((line) => line.textContent === "")).toBe(true)
+    expect(view.contentDOM.querySelector(".cm-markdown-paragraph-separator")).toBeNull()
     expect(view.state.doc.toString()).toBe(source)
     expect(view.state.selection.main.head).toBe(6)
+  })
+
+  it("collapses the structural paragraph separator after Enter", () => {
+    const source = "first\n\n"
+    const view = createView(source, 7)
+    const sourceLines = Array.from(view.contentDOM.querySelectorAll<HTMLElement>(".cm-line"))
+
+    expect(sourceLines).toHaveLength(2)
+    expect(sourceLines[0]).toHaveAttribute("aria-hidden", "true")
+    expect(sourceLines[0]).toHaveClass("cm-markdown-paragraph-separator")
+    expect(sourceLines[1]).not.toHaveAttribute("aria-hidden")
+    expect(view.state.doc.toString()).toBe(source)
+    expect(view.state.selection.main.head).toBe(7)
+  })
+
+  it("keeps additional intentional blank lines visible", () => {
+    const source = "first\n\n\n"
+    const view = createView(source, 8)
+    const sourceLines = Array.from(view.contentDOM.querySelectorAll<HTMLElement>(".cm-line"))
+
+    expect(sourceLines).toHaveLength(3)
+    expect(sourceLines[0]).toHaveClass("cm-markdown-paragraph-separator")
+    expect(sourceLines[1]).not.toHaveClass("cm-markdown-paragraph-separator")
+    expect(sourceLines[2]).not.toHaveClass("cm-markdown-paragraph-separator")
+  })
+
+  it("shows structural separators in full source mode", () => {
+    const source = "first\n\n"
+    const view = createView(source, 7)
+
+    dispatch(view, { effects: setMarkdownLivePreview.of(false) })
+
+    expect(view.contentDOM.querySelector(".cm-markdown-paragraph-separator")).toBeNull()
+    expect(view.state.doc.toString()).toBe(source)
   })
 
   it("removes widgets through the mode effect without changing document or selection", () => {
