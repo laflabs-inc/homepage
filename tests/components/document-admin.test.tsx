@@ -249,12 +249,20 @@ describe("document admin", () => {
 
     expect(screen.getAllByRole("textbox", { name: "Markdown body" })).toHaveLength(1)
     const { textbox, view } = getMarkdownEditorView()
+    const editorHost = textbox.closest(".markdownCodeMirror")
+
+    expect(editorHost).toBeInTheDocument()
+    expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
+    expect(editorHost?.querySelector(".markdownActiveBlock")).not.toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "Full source" }))
 
     expect(screen.getAllByRole("textbox", { name: "Markdown body" })).toHaveLength(1)
     expect(screen.getByRole("textbox", { name: "Markdown body" })).toBe(textbox)
     expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(textbox.closest(".markdownCodeMirror")).toBe(editorHost)
+    expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
+    expect(editorHost?.querySelector(".markdownActiveBlock")).not.toBeInTheDocument()
   })
 
   it("keeps the writing fields ahead of compact document settings", () => {

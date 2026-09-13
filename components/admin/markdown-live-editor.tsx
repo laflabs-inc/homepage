@@ -74,7 +74,7 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
           keymap.of([...defaultKeymap, ...historyKeymap]),
           EditorView.lineWrapping,
           maxLengthConfiguration.of(markdownMaxLength(initial.maxLength)),
-          createMarkdownLivePreview({ className: styles.markdownBlock }),
+          createMarkdownLivePreview({ className: styles.markdownPreviewWidget }),
           contentAttributes.of(EditorView.contentAttributes.of({
             "aria-label": initial.markdownBodyLabel,
           })),
@@ -151,9 +151,7 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
 
       <div
         ref={editorHostRef}
-        className={sourceMode
-          ? styles.markdownSourceEditor
-          : `${contentStyles.document} ${styles.markdownLiveDocument}`}
+        className={`${contentStyles.document} ${styles.markdownCodeMirror}`}
       />
     </div>
   )
