@@ -31,8 +31,8 @@ describe("AdminLanguageToggle", () => {
       </LocaleProvider>,
     )
 
-    const korean = screen.getByRole("button", { name: "한국어" })
-    const english = screen.getByRole("button", { name: "English" })
+    const korean = screen.getByRole("button", { name: "KO" })
+    const english = screen.getByRole("button", { name: "EN" })
     expect(korean).toHaveAttribute("aria-pressed", "true")
     expect(english).toHaveAttribute("aria-pressed", "false")
 
@@ -44,15 +44,19 @@ describe("AdminLanguageToggle", () => {
     expect(english).toHaveAttribute("aria-pressed", "true")
   })
 
-  it("uses Admin-local thumb styling rather than the homepage language selector", () => {
+  it("moves the shared segmented thumb with the selected language", async () => {
+    const user = userEvent.setup()
     render(
       <LocaleProvider initialLocale="ko">
         <AdminLanguageToggle />
       </LocaleProvider>,
     )
 
-    const thumb = screen.getByTestId("admin-language-thumb")
-    expect(thumb).toHaveClass("adminLanguageThumb")
-    expect(thumb).not.toHaveClass("lang-thumb")
+    const toggle = screen.getByRole("group", { name: "언어" })
+    expect(toggle).toHaveAttribute("data-active-index", "0")
+
+    await user.click(screen.getByRole("button", { name: "EN" }))
+
+    expect(toggle).toHaveAttribute("data-active-index", "1")
   })
 })

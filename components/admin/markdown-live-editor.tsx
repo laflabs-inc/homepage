@@ -12,6 +12,7 @@ import { markdownEditorKeymap, markdownMaxLength } from "@/components/admin/mark
 import contentStyles from "@/components/content/content.module.css"
 import { MarkdownBody } from "@/components/content/markdown-document"
 import { useLocale } from "@/components/i18n/locale-provider"
+import { SegmentedToggle } from "@/components/ui/segmented-toggle"
 import { adminCopy } from "@/lib/admin/i18n"
 
 type MarkdownLiveEditorProps = {
@@ -134,26 +135,26 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
 
   return (
     <div className={styles.markdownLiveEditor}>
-      <div className={styles.markdownViewSwitch} role="group" aria-label={t.markdownView}>
-        <button
-          type="button"
-          aria-label={t.source}
-          title={t.source}
-          aria-pressed={!previewMode}
-          onClick={() => setPreviewMode(false)}
-        >
-          <PencilSimple aria-hidden="true" size={18} weight="bold" />
-        </button>
-        <button
-          type="button"
-          aria-label={t.preview}
-          title={t.preview}
-          aria-pressed={previewMode}
-          onClick={() => setPreviewMode(true)}
-        >
-          <Eye aria-hidden="true" size={18} weight="bold" />
-        </button>
-      </div>
+      <SegmentedToggle
+        className={styles.markdownViewSwitch}
+        label={t.markdownView}
+        value={previewMode ? "preview" : "source"}
+        options={[
+          {
+            value: "source",
+            label: t.source,
+            content: <PencilSimple aria-hidden="true" weight="bold" />,
+            buttonProps: { title: t.source },
+          },
+          {
+            value: "preview",
+            label: t.preview,
+            content: <Eye aria-hidden="true" weight="bold" />,
+            buttonProps: { title: t.preview },
+          },
+        ]}
+        onValueChange={(value) => setPreviewMode(value === "preview")}
+      />
 
       <div
         ref={editorHostRef}
