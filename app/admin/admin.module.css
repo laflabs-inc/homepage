@@ -428,8 +428,13 @@
 .markdownLiveEditor {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--ink);
   background: white;
+  border: 1px solid var(--ink);
+}
+
+.markdownLiveEditor:has(.markdownCodeMirror :global(.cm-content:focus-visible)) {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .markdownModeToolbar {
@@ -473,66 +478,71 @@
   font: 500 10px var(--font-geist-mono), monospace;
 }
 
-.markdownLiveDocument {
-  min-height: 540px;
-  padding: 42px 56px 64px;
-}
-
-.markdownBlock {
-  position: relative;
-  min-height: 28px;
-  padding: 1px 0;
-  cursor: text;
-}
-
-.markdownBlock:focus-visible {
-  outline: 0;
-  box-shadow: inset 2px 0 var(--blue);
-}
-
-.markdownBlock:first-child :is(h2, h3, h4, h5, h6) {
-  margin-top: 0;
-}
-
-.editorSource .markdownSourceEditor {
-  padding: 18px;
-  color: var(--ink);
-  background: white;
-  border: 0;
-  font: 13px/1.65 var(--font-geist-mono), monospace;
-  tab-size: 2;
-}
-
-.markdownActiveBlock {
+.markdownCodeMirror {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  min-height: 520px;
+  padding: 42px 56px 64px;
+  overflow-wrap: anywhere;
 }
 
-.editorSource .markdownActiveBlock textarea {
-  display: block;
-  min-height: calc(1.65em + 4px);
-  padding: 2px 0;
-  overflow: hidden;
+.markdownCodeMirror :global(.cm-editor),
+.markdownCodeMirror :global(.cm-scroller),
+.markdownCodeMirror :global(.cm-content) {
+  min-width: 0;
+  min-height: inherit;
+}
+
+.markdownCodeMirror :global(.cm-editor) {
   color: var(--ink);
   background: transparent;
-  border: 0;
-  outline: 0;
-  box-shadow: none;
-  caret-color: var(--blue);
   font: 14px/1.65 var(--font-geist-mono), monospace;
-  resize: none;
   tab-size: 2;
-  field-sizing: content;
 }
 
-.editorSource .markdownActiveBlock textarea:focus {
-  border: 0;
+.markdownCodeMirror :global(.cm-editor.cm-focused) {
   outline: 0;
-  box-shadow: none;
 }
 
-.editorSource .markdownSourceEditor {
-  min-height: 560px;
-  resize: vertical;
+.markdownCodeMirror :global(.cm-scroller) {
+  overflow-x: hidden;
+  font-family: inherit;
+}
+
+.markdownCodeMirror :global(.cm-content) {
+  padding: 0;
+  caret-color: var(--blue);
+  overflow-wrap: anywhere;
+}
+
+.markdownCodeMirror :global(.cm-line) {
+  padding: 0;
+  overflow-wrap: anywhere;
+}
+
+.markdownCodeMirror :global(.cm-content) ::selection {
+  color: white;
+  background: var(--blue);
+}
+
+.markdownCodeMirror :global(.cm-cursor),
+.markdownCodeMirror :global(.cm-dropCursor) {
+  border-left-color: var(--blue);
+}
+
+.markdownCodeMirror :global(.cm-selectionBackground) {
+  background: var(--blue) !important;
+}
+
+.markdownPreviewWidget {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background: transparent;
+  border: 0;
+  cursor: text;
+  font-family: "Pretendard", var(--font-geist-sans), sans-serif;
 }
 
 .markdownGuide {
@@ -1779,13 +1789,9 @@
     display: none;
   }
 
-  .markdownLiveDocument {
+  .markdownCodeMirror {
     min-height: 420px;
     padding: 32px 22px 48px;
-  }
-
-  .editorSource .markdownSourceEditor {
-    min-height: 440px;
   }
 
   .editorFieldGrid {

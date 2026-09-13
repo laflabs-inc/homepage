@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import { splitMarkdownBlocks } from "@/lib/markdown/blocks"
 
 describe("splitMarkdownBlocks", () => {
-  it("keeps advanced Markdown blocks intact and reconstructs the exact source", () => {
+  it("keeps advanced Markdown blocks intact", () => {
     const source = [
       "## Heading",
       "",
@@ -25,14 +25,20 @@ describe("splitMarkdownBlocks", () => {
 
     const blocks = splitMarkdownBlocks(source)
 
-    expect(blocks.map((block) => block.source.trim())).toEqual([
+    expect(blocks.map((block) => block.source)).toEqual([
       "## Heading",
       "Paragraph with **weight**.",
       "| A | B |\n| --- | --- |\n| 1 | 2 |",
       "$$\nE = mc^2\n$$",
       "```mermaid\ngraph LR\nA --> B\n```",
     ])
-    expect(blocks.map((block) => block.source).join("")).toBe(source)
+  })
+
+  it("excludes Markdown separator whitespace from block ranges", () => {
+    expect(splitMarkdownBlocks("first\n\nsecond")).toEqual([
+      { start: 0, end: 5, source: "first" },
+      { start: 7, end: 13, source: "second" },
+    ])
   })
 
   it("returns one editable empty block for a new document", () => {

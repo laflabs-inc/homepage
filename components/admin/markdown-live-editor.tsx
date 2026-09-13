@@ -1,17 +1,20 @@
 "use client"
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
+import { markdown } from "@codemirror/lang-markdown"
+import { Annotation, Compartment, EditorState, Prec, Transaction } from "@codemirror/state"
+import { EditorView, keymap } from "@codemirror/view"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
-import { MarkdownBody } from "@/components/content/markdown-document"
+import { markdownEditorKeymap, markdownMaxLength } from "@/components/admin/markdown-editor-commands"
+import {
+  createMarkdownLivePreview,
+  setMarkdownLivePreview,
+} from "@/components/admin/markdown-live-preview-extension"
 import contentStyles from "@/components/content/content.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy } from "@/lib/admin/i18n"
-import {
-  markdownBlockSupportsInternalNewlines,
-  splitMarkdownBlocks,
-  type MarkdownBlock,
-} from "@/lib/markdown/blocks"
 
 type MarkdownLiveEditorProps = {
   value: string
@@ -19,179 +22,125 @@ type MarkdownLiveEditorProps = {
   maxLength?: number
 }
 
-type ActiveRange = {
-  start: number
-  end: number
-  multiline: boolean
-  cursor?: number
+const externalValueSync = Annotation.define<boolean>()
+
+function normalizeMarkdownLineEndings(value: string) {
+  return value.replace(/\r\n?/g, "\n")
 }
 
-type DisplayBlock = MarkdownBlock & {
-  editing: boolean
-}
+function minimalExternalChange(currentValue: string, nextValue: string) {
+  let from = 0
+  const prefixLimit = Math.min(currentValue.length, nextValue.length)
+  while (from < prefixLimit && currentValue[from] === nextValue[from]) from += 1
 
-function offsetBlocks(source: string, offset: number): MarkdownBlock[] {
-  if (source.length === 0) return []
-  return splitMarkdownBlocks(source).map((block) => ({
-    start: block.start + offset,
-    end: block.end + offset,
-    source: block.source,
-  }))
-}
+  let to = currentValue.length
+  let nextTo = nextValue.length
+  while (to > from && nextTo > from && currentValue[to - 1] === nextValue[nextTo - 1]) {
+    to -= 1
+    nextTo -= 1
+  }
 
-function displayBlocks(value: string, active: ActiveRange | null): DisplayBlock[] {
-  if (!active) return splitMarkdownBlocks(value).map((block) => ({ ...block, editing: false }))
-
-  return [
-    ...offsetBlocks(value.slice(0, active.start), 0).map((block) => ({ ...block, editing: false })),
-    {
-      start: active.start,
-      end: active.end,
-      source: value.slice(active.start, active.end),
-      editing: true,
-    },
-    ...offsetBlocks(value.slice(active.end), active.end).map((block) => ({ ...block, editing: false })),
-  ]
-}
-
-function contentEnd(source: string) {
-  return source.replace(/\s+$/, "").length
+  return { from, to, insert: nextValue.slice(from, nextTo) }
 }
 
 export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: MarkdownLiveEditorProps) {
   const locale = useLocale()
   const t = adminCopy[locale].documents.editor
   const [sourceMode, setSourceMode] = useState(false)
-  const [active, setActive] = useState<ActiveRange | null>(() => (
-    value.length === 0 ? { start: 0, end: 0, multiline: false, cursor: 0 } : null
-  ))
-  const activeTextareaRef = useRef<HTMLTextAreaElement>(null)
-  const blocks = useMemo(() => displayBlocks(value, active), [active, value])
+  const [contentAttributes] = useState(() => new Compartment())
+  const [maxLengthConfiguration] = useState(() => new Compartment())
+  const editorHostRef = useRef<HTMLDivElement>(null)
+  const editorViewRef = useRef<EditorView>(null)
+  const onChangeRef = useRef(onChange)
+  const initialConfigurationRef = useRef({
+    value: normalizeMarkdownLineEndings(value),
+    maxLength,
+    markdownBodyLabel: t.markdownBody,
+  })
 
   useLayoutEffect(() => {
-    const textarea = activeTextareaRef.current
-    if (!textarea) return
-    textarea.focus()
-    if (active?.cursor !== undefined) textarea.setSelectionRange(active.cursor, active.cursor)
-  }, [active?.cursor, active?.start])
+    onChangeRef.current = onChange
+  }, [onChange])
+
+  useLayoutEffect(() => {
+    const parent = editorHostRef.current
+    if (!parent) return
+    const initial = initialConfigurationRef.current
+
+    const view = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: initial.value,
+        extensions: [
+          markdown(),
+          history(),
+          Prec.highest(keymap.of(markdownEditorKeymap)),
+          keymap.of([...defaultKeymap, ...historyKeymap]),
+          EditorView.lineWrapping,
+          maxLengthConfiguration.of(markdownMaxLength(initial.maxLength)),
+          createMarkdownLivePreview({
+            className: `${contentStyles.document} ${styles.markdownPreviewWidget}`,
+          }),
+          contentAttributes.of(EditorView.contentAttributes.of({
+            "aria-label": initial.markdownBodyLabel,
+          })),
+          EditorView.updateListener.of((update) => {
+            if (!update.docChanged) return
+            const externallySynchronized = update.transactions.some((transaction) => (
+              transaction.annotation(externalValueSync) === true
+            ))
+            if (!externallySynchronized) onChangeRef.current(update.state.doc.toString())
+          }),
+        ],
+      }),
+    })
+    editorViewRef.current = view
+
+    return () => {
+      editorViewRef.current = null
+      view.destroy()
+    }
+  }, [contentAttributes, maxLengthConfiguration])
+
+  useLayoutEffect(() => {
+    editorViewRef.current?.dispatch({
+      effects: contentAttributes.reconfigure(EditorView.contentAttributes.of({
+        "aria-label": t.markdownBody,
+      })),
+    })
+  }, [contentAttributes, t.markdownBody])
+
+  useLayoutEffect(() => {
+    editorViewRef.current?.dispatch({
+      effects: maxLengthConfiguration.reconfigure(markdownMaxLength(maxLength)),
+    })
+  }, [maxLength, maxLengthConfiguration])
 
   useEffect(() => {
-    if (!active) return
+    const view = editorViewRef.current
+    if (!view) return
+    const currentValue = view.state.doc.toString()
+    const nextValue = normalizeMarkdownLineEndings(value)
+    if (currentValue === nextValue) return
 
-    function finishFromOutsidePointer(event: PointerEvent) {
-      if (value.length === 0) return
-      if (activeTextareaRef.current?.contains(event.target as Node)) return
-      setActive(null)
-    }
-
-    document.addEventListener("pointerdown", finishFromOutsidePointer, true)
-    return () => document.removeEventListener("pointerdown", finishFromOutsidePointer, true)
-  }, [active, value.length])
+    view.dispatch({
+      changes: minimalExternalChange(currentValue, nextValue),
+      annotations: [
+        externalValueSync.of(true),
+        Transaction.addToHistory.of(false),
+      ],
+      filter: false,
+    })
+  }, [value])
 
   function selectLiveMode() {
     setSourceMode(false)
+    editorViewRef.current?.dispatch({ effects: setMarkdownLivePreview.of(true) })
   }
 
   function selectSourceMode() {
-    setActive(null)
     setSourceMode(true)
-  }
-
-  function beginEditing(block: MarkdownBlock, cursor = contentEnd(block.source)) {
-    setActive({
-      start: block.start,
-      end: block.end,
-      multiline: markdownBlockSupportsInternalNewlines(block.source),
-      cursor,
-    })
-  }
-
-  function updateActiveBlock(nextSource: string) {
-    if (!active) return
-    const nextEnd = active.start + nextSource.length
-    onChange(`${value.slice(0, active.start)}${nextSource}${value.slice(active.end)}`)
-    setActive({ start: active.start, end: nextEnd, multiline: active.multiline })
-  }
-
-  function finishEditing() {
-    setActive(null)
-  }
-
-  function moveToAdjacentBlock(direction: "previous" | "next") {
-    if (!active) return
-    const documentBlocks = splitMarkdownBlocks(value).filter((block) => block.source.trim().length > 0)
-    const target = direction === "previous"
-      ? documentBlocks.findLast((block) => block.end <= active.start)
-      : documentBlocks.find((block) => block.start >= active.end)
-    if (!target) return
-    beginEditing(target, direction === "previous" ? contentEnd(target.source) : 0)
-  }
-
-  function splitProseBlock(textarea: HTMLTextAreaElement) {
-    if (!active) return
-    const source = value.slice(active.start, active.end)
-    const left = source.slice(0, textarea.selectionStart).replace(/\n+$/, "")
-    const right = source.slice(textarea.selectionEnd).replace(/^\n+/, "")
-    const replacement = `${left}\n\n${right}`
-    const nextValue = `${value.slice(0, active.start)}${replacement}${value.slice(active.end)}`
-    if (nextValue.length > maxLength) return
-
-    const nextStart = active.start + left.length + 2
-    onChange(nextValue)
-    setActive({
-      start: nextStart,
-      end: nextStart + right.length,
-      multiline: false,
-      cursor: 0,
-    })
-  }
-
-  function returnFromEmptyBlock(textarea: HTMLTextAreaElement) {
-    if (!active || textarea.selectionStart !== 0 || textarea.selectionEnd !== 0) return false
-    if (value.slice(active.start, active.end).trim().length > 0 || active.start === 0) return false
-
-    const before = value.slice(0, active.start).replace(/\n+$/, "")
-    const previous = splitMarkdownBlocks(before).findLast((block) => block.source.trim().length > 0)
-    if (!previous) return false
-
-    const after = value.slice(active.end).replace(/^\n+/, "")
-    const nextValue = after.length > 0 ? `${before}\n\n${after}` : before
-    onChange(nextValue)
-    setActive({
-      start: previous.start,
-      end: before.length,
-      multiline: markdownBlockSupportsInternalNewlines(previous.source),
-      cursor: contentEnd(previous.source),
-    })
-    return true
-  }
-
-  function handleActiveKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === "Escape" || (event.key === "Enter" && (event.metaKey || event.ctrlKey))) {
-      event.preventDefault()
-      finishEditing()
-      return
-    }
-    if (!active) return
-
-    if (event.key === "Enter" && !event.shiftKey && !active.multiline) {
-      event.preventDefault()
-      splitProseBlock(event.currentTarget)
-      return
-    }
-    if (event.key === "Backspace" && returnFromEmptyBlock(event.currentTarget)) {
-      event.preventDefault()
-      return
-    }
-    if (event.key === "ArrowUp" && event.currentTarget.selectionStart === 0) {
-      event.preventDefault()
-      moveToAdjacentBlock("previous")
-      return
-    }
-    if (event.key === "ArrowDown" && event.currentTarget.selectionEnd >= contentEnd(event.currentTarget.value)) {
-      event.preventDefault()
-      moveToAdjacentBlock("next")
-    }
+    editorViewRef.current?.dispatch({ effects: setMarkdownLivePreview.of(false) })
   }
 
   return (
@@ -208,54 +157,10 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
         <span>{sourceMode ? t.sourceModeHint : t.livePreviewHint}</span>
       </div>
 
-      {sourceMode ? (
-        <textarea
-          id="document-markdown-body"
-          className={styles.markdownSourceEditor}
-          aria-label={t.markdownBody}
-          required
-          maxLength={maxLength}
-          rows={28}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      ) : (
-        <div className={`${contentStyles.document} ${styles.markdownLiveDocument}`}>
-          {blocks.map((block, index) => block.editing ? (
-            <div className={styles.markdownActiveBlock} key={`editing-${block.start}`}>
-              <textarea
-                ref={activeTextareaRef}
-                id="document-markdown-body"
-                aria-label={value.length === 0 ? t.markdownBody : t.editingBlock(index + 1)}
-                required
-                maxLength={maxLength}
-                rows={Math.max(1, block.source.replace(/\n$/, "").split("\n").length)}
-                value={block.source}
-                onChange={(event) => updateActiveBlock(event.target.value)}
-                onKeyDown={handleActiveKeyDown}
-              />
-            </div>
-          ) : (
-            <div
-              className={styles.markdownBlock}
-              key={`${block.start}-${block.end}`}
-              tabIndex={0}
-              aria-label={t.editBlock(index + 1)}
-              onClick={(event) => {
-                if ((event.target as HTMLElement).closest("a, button, input, textarea, select")) return
-                beginEditing(block)
-              }}
-              onKeyDown={(event) => {
-                if (event.key !== "Enter") return
-                event.preventDefault()
-                beginEditing(block)
-              }}
-            >
-              <MarkdownBody source={block.source} />
-            </div>
-          ))}
-        </div>
-      )}
+      <div
+        ref={editorHostRef}
+        className={`${contentStyles.document} ${styles.markdownCodeMirror}`}
+      />
     </div>
   )
 }
