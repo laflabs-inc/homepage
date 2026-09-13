@@ -426,6 +426,7 @@
 }
 
 .markdownLiveEditor {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   background: white;
@@ -437,45 +438,50 @@
   outline-offset: 3px;
 }
 
-.markdownModeToolbar {
-  min-height: 48px;
+.markdownViewSwitch {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
   display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  color: var(--muted);
+  width: 86px;
+  height: 42px;
   background: var(--paper);
-  border-bottom: 1px solid var(--ink);
+  border: 1px solid var(--ink);
 }
 
-.markdownModeToolbar > div {
-  display: flex;
-  align-items: stretch;
-}
-
-.markdownModeToolbar button {
-  min-width: 112px;
-  padding: 0 16px;
+.markdownViewSwitch button {
+  width: 42px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
   color: var(--muted);
   background: transparent;
   border: 0;
-  border-right: 1px solid var(--ink);
   border-radius: 0;
-  font: 650 10px var(--font-geist-mono), monospace;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   cursor: pointer;
 }
 
-.markdownModeToolbar button[aria-pressed="true"] {
-  color: white;
-  background: var(--blue);
+.markdownViewSwitch button + button {
+  border-left: 1px solid var(--ink);
 }
 
-.markdownModeToolbar > span {
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  font: 500 10px var(--font-geist-mono), monospace;
+.markdownViewSwitch button:hover:not([aria-pressed="true"]) {
+  color: var(--ink);
+  background: white;
+}
+
+.markdownViewSwitch button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid var(--blue);
+  outline-offset: -3px;
+}
+
+.markdownViewSwitch button[aria-pressed="true"] {
+  color: white;
+  background: var(--blue);
 }
 
 .markdownCodeMirror {
@@ -483,8 +489,25 @@
   max-width: 100%;
   min-width: 0;
   min-height: 520px;
-  padding: 42px 56px 64px;
+  padding: 72px 56px 64px;
   overflow-wrap: anywhere;
+}
+
+.markdownCodeMirror[hidden],
+.markdownDocumentPreview[hidden] {
+  display: none;
+}
+
+.markdownDocumentPreview {
+  width: 100%;
+  min-width: 0;
+  min-height: 520px;
+  padding: 72px 56px 64px;
+  overflow-wrap: anywhere;
+}
+
+.markdownDocumentPreview > :first-child {
+  margin-top: 0;
 }
 
 .markdownCodeMirror :global(.cm-editor),
@@ -521,13 +544,6 @@
   overflow-wrap: anywhere;
 }
 
-.markdownCodeMirror :global(.cm-markdown-paragraph-separator) {
-  height: 0;
-  min-height: 0;
-  line-height: 0;
-  overflow: hidden;
-}
-
 .markdownCodeMirror :global(.cm-content) ::selection {
   color: white;
   background: var(--blue);
@@ -540,16 +556,6 @@
 
 .markdownCodeMirror :global(.cm-selectionBackground) {
   background: var(--blue) !important;
-}
-
-.markdownPreviewWidget {
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  background: transparent;
-  border: 0;
-  cursor: text;
-  font-family: "Pretendard", var(--font-geist-sans), sans-serif;
 }
 
 .markdownGuide {
@@ -1774,31 +1780,22 @@
     padding: 22px 20px 0;
   }
 
-  .markdownModeToolbar {
-    flex-direction: column;
+  .markdownViewSwitch {
+    top: 10px;
+    right: 10px;
+    width: 90px;
+    height: 46px;
   }
 
-  .markdownModeToolbar > div {
-    width: 100%;
+  .markdownViewSwitch button {
+    width: 44px;
+    height: 44px;
   }
 
-  .markdownModeToolbar button {
-    min-width: 0;
-    min-height: 44px;
-    flex: 1;
-  }
-
-  .markdownModeToolbar button:last-child {
-    border-right: 0;
-  }
-
-  .markdownModeToolbar > span {
-    display: none;
-  }
-
-  .markdownCodeMirror {
+  .markdownCodeMirror,
+  .markdownDocumentPreview {
     min-height: 420px;
-    padding: 32px 22px 48px;
+    padding: 68px 22px 48px;
   }
 
   .editorFieldGrid {

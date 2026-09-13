@@ -4,15 +4,13 @@ import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
 import { Annotation, Compartment, EditorState, Prec, Transaction } from "@codemirror/state"
 import { EditorView, keymap } from "@codemirror/view"
+import { Eye, PencilSimple } from "@phosphor-icons/react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
 import { markdownEditorKeymap, markdownMaxLength } from "@/components/admin/markdown-editor-commands"
-import {
-  createMarkdownLivePreview,
-  setMarkdownLivePreview,
-} from "@/components/admin/markdown-live-preview-extension"
 import contentStyles from "@/components/content/content.module.css"
+import { MarkdownBody } from "@/components/content/markdown-document"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy } from "@/lib/admin/i18n"
 
@@ -46,7 +44,7 @@ function minimalExternalChange(currentValue: string, nextValue: string) {
 export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: MarkdownLiveEditorProps) {
   const locale = useLocale()
   const t = adminCopy[locale].documents.editor
-  const [sourceMode, setSourceMode] = useState(false)
+  const [previewMode, setPreviewMode] = useState(false)
   const [contentAttributes] = useState(() => new Compartment())
   const [maxLengthConfiguration] = useState(() => new Compartment())
   const editorHostRef = useRef<HTMLDivElement>(null)
@@ -78,9 +76,6 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
           keymap.of([...defaultKeymap, ...historyKeymap]),
           EditorView.lineWrapping,
           maxLengthConfiguration.of(markdownMaxLength(initial.maxLength)),
-          createMarkdownLivePreview({
-            className: `${contentStyles.document} ${styles.markdownPreviewWidget}`,
-          }),
           contentAttributes.of(EditorView.contentAttributes.of({
             "aria-label": initial.markdownBodyLabel,
           })),
@@ -133,34 +128,44 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
     })
   }, [value])
 
-  function selectLiveMode() {
-    setSourceMode(false)
-    editorViewRef.current?.dispatch({ effects: setMarkdownLivePreview.of(true) })
-  }
-
-  function selectSourceMode() {
-    setSourceMode(true)
-    editorViewRef.current?.dispatch({ effects: setMarkdownLivePreview.of(false) })
-  }
+  useLayoutEffect(() => {
+    if (!previewMode) editorViewRef.current?.requestMeasure()
+  }, [previewMode])
 
   return (
     <div className={styles.markdownLiveEditor}>
-      <div className={styles.markdownModeToolbar}>
-        <div role="group" aria-label={t.markdownView}>
-          <button type="button" aria-pressed={!sourceMode} onClick={selectLiveMode}>
-            {t.livePreview}
-          </button>
-          <button type="button" aria-pressed={sourceMode} onClick={selectSourceMode}>
-            {t.fullSource}
-          </button>
-        </div>
-        <span>{sourceMode ? t.sourceModeHint : t.livePreviewHint}</span>
+      <div className={styles.markdownViewSwitch} role="group" aria-label={t.markdownView}>
+        <button
+          type="button"
+          aria-label={t.source}
+          title={t.source}
+          aria-pressed={!previewMode}
+          onClick={() => setPreviewMode(false)}
+        >
+          <PencilSimple aria-hidden="true" size={18} weight="bold" />
+        </button>
+        <button
+          type="button"
+          aria-label={t.preview}
+          title={t.preview}
+          aria-pressed={previewMode}
+          onClick={() => setPreviewMode(true)}
+        >
+          <Eye aria-hidden="true" size={18} weight="bold" />
+        </button>
       </div>
 
       <div
         ref={editorHostRef}
-        className={`${contentStyles.document} ${styles.markdownCodeMirror}`}
+        className={styles.markdownCodeMirror}
+        hidden={previewMode}
       />
+      <div
+        className={`${contentStyles.document} ${styles.markdownDocumentPreview}`}
+        hidden={!previewMode}
+      >
+        <MarkdownBody source={normalizeMarkdownLineEndings(value) || t.previewEmpty} />
+      </div>
     </div>
   )
 }
