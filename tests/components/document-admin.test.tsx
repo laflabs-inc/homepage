@@ -1,6 +1,6 @@
 import { act, fireEvent, render as renderBase, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { undoDepth } from "@codemirror/commands"
+import { undo, undoDepth } from "@codemirror/commands"
 import { EditorView } from "@codemirror/view"
 import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -351,16 +351,30 @@ describe("document admin", () => {
     expect(onChange).toHaveBeenCalledWith("first!")
   })
 
-  it("does not echo an external value replacement through onChange", () => {
+  it("maps selection and preserves local undo across a minimal external edit", () => {
     const onChange = vi.fn()
-    const rendered = render(<MarkdownLiveEditor value="first" onChange={onChange} />)
+    const rendered = render(<MarkdownLiveEditor value="alpha middle omega" onChange={onChange} />)
     const { textbox, view } = getMarkdownEditorView()
 
-    rendered.rerender(<MarkdownLiveEditor value="replaced" onChange={onChange} />)
+    act(() => view.dispatch({
+      changes: { from: 18, insert: "!" },
+      selection: { anchor: 15 },
+      userEvent: "input.type",
+    }))
+    expect(undoDepth(view.state)).toBe(1)
+
+    rendered.rerender(<MarkdownLiveEditor value="alpha midXXdle omega!" onChange={onChange} />)
 
     expect(EditorView.findFromDOM(textbox)).toBe(view)
-    expect(view.state.doc.toString()).toBe("replaced")
-    expect(onChange).not.toHaveBeenCalled()
+    expect(view.state.doc.toString()).toBe("alpha midXXdle omega!")
+    expect(view.state.selection.main.anchor).toBe(17)
+    expect(view.state.selection.main.head).toBe(17)
+    expect(undoDepth(view.state)).toBe(1)
+    expect(onChange).toHaveBeenCalledOnce()
+
+    act(() => expect(undo(view)).toBe(true))
+    expect(view.state.doc.toString()).toBe("alpha midXXdle omega")
+    expect(undoDepth(view.state)).toBe(0)
   })
 
   it("does not echo a same-value rerender and uses the latest callback", () => {
@@ -378,6 +392,24 @@ describe("document admin", () => {
     act(() => view.dispatch({ changes: { from: 5, insert: "!" } }))
     expect(firstOnChange).not.toHaveBeenCalled()
     expect(latestOnChange).toHaveBeenCalledOnce()
+  })
+
+  it("reconfigures max length without recreating the editor", () => {
+    const onChange = vi.fn()
+    const rendered = render(<MarkdownLiveEditor value="123" onChange={onChange} maxLength={5} />)
+    const { textbox, view } = getMarkdownEditorView()
+
+    rendered.rerender(<MarkdownLiveEditor value="123" onChange={onChange} maxLength={3} />)
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    act(() => view.dispatch({ changes: { from: 3, insert: "4" } }))
+    expect(view.state.doc.toString()).toBe("123")
+    expect(onChange).not.toHaveBeenCalled()
+
+    rendered.rerender(<MarkdownLiveEditor value="123" onChange={onChange} maxLength={4} />)
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    act(() => view.dispatch({ changes: { from: 3, insert: "4" } }))
+    expect(view.state.doc.toString()).toBe("1234")
+    expect(onChange).toHaveBeenCalledOnce()
   })
 
   it("updates the localized textbox name without recreating the editor", async () => {

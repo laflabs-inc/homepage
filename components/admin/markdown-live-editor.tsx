@@ -2,7 +2,7 @@
 
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
-import { Annotation, Compartment, EditorState, Prec } from "@codemirror/state"
+import { Annotation, Compartment, EditorState, Prec, Transaction } from "@codemirror/state"
 import { EditorView, keymap } from "@codemirror/view"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
@@ -24,11 +24,27 @@ type MarkdownLiveEditorProps = {
 
 const externalValueSync = Annotation.define<boolean>()
 
+function minimalExternalChange(currentValue: string, nextValue: string) {
+  let from = 0
+  const prefixLimit = Math.min(currentValue.length, nextValue.length)
+  while (from < prefixLimit && currentValue[from] === nextValue[from]) from += 1
+
+  let to = currentValue.length
+  let nextTo = nextValue.length
+  while (to > from && nextTo > from && currentValue[to - 1] === nextValue[nextTo - 1]) {
+    to -= 1
+    nextTo -= 1
+  }
+
+  return { from, to, insert: nextValue.slice(from, nextTo) }
+}
+
 export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: MarkdownLiveEditorProps) {
   const locale = useLocale()
   const t = adminCopy[locale].documents.editor
   const [sourceMode, setSourceMode] = useState(false)
   const [contentAttributes] = useState(() => new Compartment())
+  const [maxLengthConfiguration] = useState(() => new Compartment())
   const editorHostRef = useRef<HTMLDivElement>(null)
   const editorViewRef = useRef<EditorView>(null)
   const onChangeRef = useRef(onChange)
@@ -57,7 +73,7 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
           Prec.highest(keymap.of(markdownEditorKeymap)),
           keymap.of([...defaultKeymap, ...historyKeymap]),
           EditorView.lineWrapping,
-          markdownMaxLength(initial.maxLength),
+          maxLengthConfiguration.of(markdownMaxLength(initial.maxLength)),
           createMarkdownLivePreview({ className: styles.markdownBlock }),
           contentAttributes.of(EditorView.contentAttributes.of({
             "aria-label": initial.markdownBodyLabel,
@@ -78,7 +94,7 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
       editorViewRef.current = null
       view.destroy()
     }
-  }, [contentAttributes])
+  }, [contentAttributes, maxLengthConfiguration])
 
   useLayoutEffect(() => {
     editorViewRef.current?.dispatch({
@@ -88,13 +104,24 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
     })
   }, [contentAttributes, t.markdownBody])
 
+  useLayoutEffect(() => {
+    editorViewRef.current?.dispatch({
+      effects: maxLengthConfiguration.reconfigure(markdownMaxLength(maxLength)),
+    })
+  }, [maxLength, maxLengthConfiguration])
+
   useEffect(() => {
     const view = editorViewRef.current
-    if (!view || view.state.doc.toString() === value) return
+    if (!view) return
+    const currentValue = view.state.doc.toString()
+    if (currentValue === value) return
 
     view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: value },
-      annotations: externalValueSync.of(true),
+      changes: minimalExternalChange(currentValue, value),
+      annotations: [
+        externalValueSync.of(true),
+        Transaction.addToHistory.of(false),
+      ],
     })
   }, [value])
 
