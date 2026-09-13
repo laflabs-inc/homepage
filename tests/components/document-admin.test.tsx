@@ -254,6 +254,7 @@ describe("document admin", () => {
     expect(editorHost).toBeInTheDocument()
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
     expect(editorHost?.querySelector(".markdownActiveBlock")).not.toBeInTheDocument()
+    expect(editorHost?.querySelector(".markdownPreviewWidget")).toHaveClass("document")
 
     await user.click(screen.getByRole("button", { name: "Full source" }))
 

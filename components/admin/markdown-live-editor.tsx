@@ -74,7 +74,9 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
           keymap.of([...defaultKeymap, ...historyKeymap]),
           EditorView.lineWrapping,
           maxLengthConfiguration.of(markdownMaxLength(initial.maxLength)),
-          createMarkdownLivePreview({ className: styles.markdownPreviewWidget }),
+          createMarkdownLivePreview({
+            className: `${contentStyles.document} ${styles.markdownPreviewWidget}`,
+          }),
           contentAttributes.of(EditorView.contentAttributes.of({
             "aria-label": initial.markdownBodyLabel,
           })),
