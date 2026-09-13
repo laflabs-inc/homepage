@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs"
-import path from "node:path"
 import { act, fireEvent, render as renderBase, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { undo, undoDepth } from "@codemirror/commands"
@@ -8,11 +6,6 @@ import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const navigationMocks = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }))
-const adminStylesheet = readFileSync(
-  path.resolve(process.cwd(), "app/admin/admin.module.css"),
-  "utf8",
-)
-
 vi.mock("next/navigation", () => ({
   useRouter: () => navigationMocks,
 }))
@@ -249,9 +242,9 @@ describe("document admin", () => {
     expect(screen.getAllByText("Published")).toHaveLength(2)
   })
 
-  it("uses one continuous editor in both modes", async () => {
+  it("switches between one source editor and a rendered document preview", async () => {
     const user = userEvent.setup()
-    render(<ControlledMarkdownEditor initialValue={"first\n\nsecond"} />)
+    render(<ControlledMarkdownEditor initialValue={"## First\n\n**second**"} />)
 
     expect(screen.getAllByRole("textbox", { name: "Markdown body" })).toHaveLength(1)
     const { textbox, view } = getMarkdownEditorView()
@@ -259,20 +252,22 @@ describe("document admin", () => {
 
     expect(editorHost).toBeInTheDocument()
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
-    expect(editorHost?.querySelector(".markdownActiveBlock")).not.toBeInTheDocument()
-    expect(editorHost?.querySelector(".markdownPreviewWidget")).toHaveClass("document")
-    expect(adminStylesheet).toMatch(
-      /\.markdownPreviewWidget\s*\{[^}]*font-family:\s*"Pretendard", var\(--font-geist-sans\), sans-serif;/s,
-    )
+    expect(screen.getByRole("button", { name: "Source" })).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "false")
 
-    await user.click(screen.getByRole("button", { name: "Full source" }))
+    await user.click(screen.getByRole("button", { name: "Preview" }))
 
-    expect(screen.getAllByRole("textbox", { name: "Markdown body" })).toHaveLength(1)
+    expect(screen.queryByRole("textbox", { name: "Markdown body" })).not.toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "First" })).toBeInTheDocument()
+    expect(screen.getByText("second").tagName).toBe("STRONG")
+    expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "true")
+    expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
+
+    await user.click(screen.getByRole("button", { name: "Source" }))
+
     expect(screen.getByRole("textbox", { name: "Markdown body" })).toBe(textbox)
     expect(EditorView.findFromDOM(textbox)).toBe(view)
     expect(textbox.closest(".markdownCodeMirror")).toBe(editorHost)
-    expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
-    expect(editorHost?.querySelector(".markdownActiveBlock")).not.toBeInTheDocument()
   })
 
   it("keeps the writing fields ahead of compact document settings", () => {
@@ -348,8 +343,8 @@ describe("document admin", () => {
     }))
     expect(undoDepth(view.state)).toBe(1)
 
-    await user.click(screen.getByRole("button", { name: "Full source" }))
-    await user.click(screen.getByRole("button", { name: "Live preview" }))
+    await user.click(screen.getByRole("button", { name: "Preview" }))
+    await user.click(screen.getByRole("button", { name: "Source" }))
 
     expect(EditorView.findFromDOM(textbox)).toBe(view)
     expect(view.state.doc.toString()).toBe("first!\n\nsecond")
@@ -462,7 +457,7 @@ describe("document admin", () => {
     expect(onChange).toHaveBeenCalledOnce()
   })
 
-  it("switches source mode while the controlled value is over the limit", async () => {
+  it("switches preview mode while the controlled value is over the limit", async () => {
     const user = userEvent.setup()
     render(
       <MarkdownLiveEditor
@@ -472,20 +467,19 @@ describe("document admin", () => {
       />,
     )
     const { textbox, view } = getMarkdownEditorView()
-    const editorHost = textbox.closest(".markdownCodeMirror")
 
     expect(view.state.doc.toString()).toBe("first\n\nsecond")
-    expect(editorHost?.querySelectorAll(".markdownPreviewWidget")).toHaveLength(1)
 
-    await user.click(screen.getByRole("button", { name: "Full source" }))
-
-    expect(EditorView.findFromDOM(textbox)).toBe(view)
-    expect(editorHost?.querySelectorAll(".markdownPreviewWidget")).toHaveLength(0)
-
-    await user.click(screen.getByRole("button", { name: "Live preview" }))
+    await user.click(screen.getByRole("button", { name: "Preview" }))
 
     expect(EditorView.findFromDOM(textbox)).toBe(view)
-    expect(editorHost?.querySelectorAll(".markdownPreviewWidget")).toHaveLength(1)
+    expect(screen.queryByRole("textbox", { name: "Markdown body" })).not.toBeInTheDocument()
+    expect(screen.getAllByText("first").some((node) => node.tagName === "P")).toBe(true)
+
+    await user.click(screen.getByRole("button", { name: "Source" }))
+
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(screen.getByRole("textbox", { name: "Markdown body" })).toBe(textbox)
   })
 
   it("accepts oversized controlled values but rejects further local insertion", () => {
