@@ -61,7 +61,10 @@ export const markdownEditorKeymap: readonly KeyBinding[] = [
 ]
 
 export function markdownMaxLength(maxLength: number): Extension {
-  return EditorState.transactionFilter.of((transaction) => (
-    transaction.newDoc.length > maxLength ? [] : transaction
-  ))
+  return EditorState.transactionFilter.of((transaction) => {
+    if (!transaction.docChanged) return transaction
+    if (transaction.newDoc.length <= maxLength) return transaction
+    if (transaction.newDoc.length <= transaction.startState.doc.length) return transaction
+    return []
+  })
 }

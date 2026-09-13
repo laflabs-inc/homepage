@@ -199,4 +199,30 @@ describe("Markdown maximum length", () => {
 
     expect(shortened.doc.toString()).toBe("123")
   })
+
+  it("allows selection changes while the document is over the limit", () => {
+    const state = createState("12345", markdownMaxLength(3), 1)
+
+    const selected = state.update({ selection: { anchor: 4 } }).state
+
+    expect(selected.doc.toString()).toBe("12345")
+    expect(selected.selection.main.anchor).toBe(4)
+    expect(selected.selection.main.head).toBe(4)
+  })
+
+  it("allows incremental deletion while the document remains over the limit", () => {
+    let state = createState("12345", markdownMaxLength(3))
+
+    state = state.update({ changes: { from: 4, to: 5 } }).state
+    expect(state.doc.toString()).toBe("1234")
+
+    state = state.update({ changes: { from: 3, to: 4 } }).state
+    expect(state.doc.toString()).toBe("123")
+  })
+
+  it("rejects further insertion while the document is over the limit", () => {
+    const state = createState("12345", markdownMaxLength(3))
+
+    expect(applyInsert(state, 5, "6").doc.toString()).toBe("12345")
+  })
 })

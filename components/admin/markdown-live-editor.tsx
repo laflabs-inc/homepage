@@ -24,6 +24,10 @@ type MarkdownLiveEditorProps = {
 
 const externalValueSync = Annotation.define<boolean>()
 
+function normalizeMarkdownLineEndings(value: string) {
+  return value.replace(/\r\n?/g, "\n")
+}
+
 function minimalExternalChange(currentValue: string, nextValue: string) {
   let from = 0
   const prefixLimit = Math.min(currentValue.length, nextValue.length)
@@ -49,7 +53,7 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
   const editorViewRef = useRef<EditorView>(null)
   const onChangeRef = useRef(onChange)
   const initialConfigurationRef = useRef({
-    value,
+    value: normalizeMarkdownLineEndings(value),
     maxLength,
     markdownBodyLabel: t.markdownBody,
   })
@@ -116,14 +120,16 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
     const view = editorViewRef.current
     if (!view) return
     const currentValue = view.state.doc.toString()
-    if (currentValue === value) return
+    const nextValue = normalizeMarkdownLineEndings(value)
+    if (currentValue === nextValue) return
 
     view.dispatch({
-      changes: minimalExternalChange(currentValue, value),
+      changes: minimalExternalChange(currentValue, nextValue),
       annotations: [
         externalValueSync.of(true),
         Transaction.addToHistory.of(false),
       ],
+      filter: false,
     })
   }, [value])
 

@@ -369,6 +369,38 @@ describe("document admin", () => {
     expect(onChange).toHaveBeenCalledWith("first!")
   })
 
+  it("normalizes initial CRLF before the next local edit", () => {
+    const onChange = vi.fn()
+    render(<MarkdownLiveEditor value={"first\r\nsecond"} onChange={onChange} />)
+    const { view } = getMarkdownEditorView()
+
+    expect(view.state.doc.toString()).toBe("first\nsecond")
+    expect(onChange).not.toHaveBeenCalled()
+
+    act(() => view.dispatch({ changes: { from: view.state.doc.length, insert: "!" } }))
+
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith("first\nsecond!")
+  })
+
+  it("normalizes a subsequent CRLF prop before the next local edit", () => {
+    const onChange = vi.fn()
+    const rendered = render(<MarkdownLiveEditor value={"first\nsecond"} onChange={onChange} />)
+    const { view } = getMarkdownEditorView()
+
+    rendered.rerender(
+      <MarkdownLiveEditor value={"first\r\nsecond"} onChange={onChange} />,
+    )
+
+    expect(view.state.doc.toString()).toBe("first\nsecond")
+    expect(onChange).not.toHaveBeenCalled()
+
+    act(() => view.dispatch({ changes: { from: view.state.doc.length, insert: "!" } }))
+
+    expect(onChange).toHaveBeenCalledOnce()
+    expect(onChange).toHaveBeenCalledWith("first\nsecond!")
+  })
+
   it("maps selection and preserves local undo across a minimal external edit", () => {
     const onChange = vi.fn()
     const rendered = render(<MarkdownLiveEditor value="alpha middle omega" onChange={onChange} />)
@@ -428,6 +460,54 @@ describe("document admin", () => {
     act(() => view.dispatch({ changes: { from: 3, insert: "4" } }))
     expect(view.state.doc.toString()).toBe("1234")
     expect(onChange).toHaveBeenCalledOnce()
+  })
+
+  it("switches source mode while the controlled value is over the limit", async () => {
+    const user = userEvent.setup()
+    render(
+      <MarkdownLiveEditor
+        value={"first\n\nsecond"}
+        onChange={() => undefined}
+        maxLength={5}
+      />,
+    )
+    const { textbox, view } = getMarkdownEditorView()
+    const editorHost = textbox.closest(".markdownCodeMirror")
+
+    expect(view.state.doc.toString()).toBe("first\n\nsecond")
+    expect(editorHost?.querySelectorAll(".markdownPreviewWidget")).toHaveLength(1)
+
+    await user.click(screen.getByRole("button", { name: "Full source" }))
+
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(editorHost?.querySelectorAll(".markdownPreviewWidget")).toHaveLength(0)
+
+    await user.click(screen.getByRole("button", { name: "Live preview" }))
+
+    expect(EditorView.findFromDOM(textbox)).toBe(view)
+    expect(editorHost?.querySelectorAll(".markdownPreviewWidget")).toHaveLength(1)
+  })
+
+  it("accepts oversized controlled values but rejects further local insertion", () => {
+    const onChange = vi.fn()
+    const rendered = render(
+      <MarkdownLiveEditor value="12345" onChange={onChange} maxLength={3} />,
+    )
+    const { view } = getMarkdownEditorView()
+
+    expect(view.state.doc.toString()).toBe("12345")
+
+    rendered.rerender(
+      <MarkdownLiveEditor value="123456" onChange={onChange} maxLength={3} />,
+    )
+
+    expect(view.state.doc.toString()).toBe("123456")
+    expect(onChange).not.toHaveBeenCalled()
+
+    act(() => view.dispatch({ changes: { from: 6, insert: "7" } }))
+
+    expect(view.state.doc.toString()).toBe("123456")
+    expect(onChange).not.toHaveBeenCalled()
   })
 
   it("updates the localized textbox name without recreating the editor", async () => {
