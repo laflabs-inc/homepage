@@ -254,6 +254,7 @@ describe("document admin", () => {
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
     expect(screen.getByRole("button", { name: "Source" })).toHaveAttribute("aria-pressed", "true")
     expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "false")
+    expect(screen.getByRole("group", { name: "Markdown view" })).toHaveAttribute("data-active-index", "0")
 
     await user.click(screen.getByRole("button", { name: "Preview" }))
 
@@ -261,6 +262,7 @@ describe("document admin", () => {
     expect(screen.getByRole("heading", { name: "First" })).toBeInTheDocument()
     expect(screen.getByText("second").tagName).toBe("STRONG")
     expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByRole("group", { name: "Markdown view" })).toHaveAttribute("data-active-index", "1")
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
 
     await user.click(screen.getByRole("button", { name: "Source" }))

@@ -31,55 +31,6 @@
   gap: 14px;
 }
 
-.adminLanguageToggle {
-  position: relative;
-  display: flex;
-  isolation: isolate;
-  border: 1px solid var(--ink);
-}
-
-.adminLanguageToggle button {
-  width: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  position: relative;
-  z-index: 1;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  font: 700 10px var(--font-geist-mono), monospace;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: color 160ms ease;
-}
-
-.adminLanguageToggle button[data-active="true"] {
-  color: white;
-}
-
-.adminLanguageToggle button:focus-visible {
-  z-index: 2;
-  outline: 2px solid var(--blue);
-  outline-offset: -2px;
-}
-
-.adminLanguageThumb {
-  width: 44px;
-  height: 44px;
-  position: absolute;
-  z-index: 0;
-  top: 0;
-  left: 0;
-  background: var(--ink);
-  pointer-events: none;
-  transition: transform 180ms ease;
-}
-
-.adminLanguageThumb[data-locale="en"] {
-  transform: translateX(44px);
-}
-
 .content {
   width: var(--shell);
   margin: 0 auto;
@@ -443,45 +394,6 @@
   z-index: 2;
   top: 14px;
   right: 14px;
-  display: flex;
-  width: 86px;
-  height: 42px;
-  background: var(--paper);
-  border: 1px solid var(--ink);
-}
-
-.markdownViewSwitch button {
-  width: 42px;
-  height: 40px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  cursor: pointer;
-}
-
-.markdownViewSwitch button + button {
-  border-left: 1px solid var(--ink);
-}
-
-.markdownViewSwitch button:hover:not([aria-pressed="true"]) {
-  color: var(--ink);
-  background: white;
-}
-
-.markdownViewSwitch button:focus-visible {
-  position: relative;
-  z-index: 1;
-  outline: 2px solid var(--blue);
-  outline-offset: -3px;
-}
-
-.markdownViewSwitch button[aria-pressed="true"] {
-  color: white;
-  background: var(--blue);
 }
 
 .markdownCodeMirror {
@@ -1783,13 +1695,6 @@
   .markdownViewSwitch {
     top: 10px;
     right: 10px;
-    width: 90px;
-    height: 46px;
-  }
-
-  .markdownViewSwitch button {
-    width: 44px;
-    height: 44px;
   }
 
   .markdownCodeMirror,
@@ -1846,8 +1751,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .adminLanguageToggle button,
-  .adminLanguageThumb,
   .signInButton,
   .rangeNav a,
   .errorState button {

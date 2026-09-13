@@ -1,0 +1,61 @@
+.root {
+  position: relative;
+  height: 34px;
+  padding: 2px;
+  display: flex;
+  isolation: isolate;
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+.button {
+  position: relative;
+  z-index: 1;
+  width: 34px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font: 700 9px var(--font-geist-mono), monospace;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.button:hover:not([data-active="true"]) {
+  color: var(--ink);
+}
+
+.button[data-active="true"] {
+  color: white;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.thumb {
+  position: absolute;
+  z-index: 0;
+  top: 2px;
+  left: 2px;
+  width: 34px;
+  height: 28px;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

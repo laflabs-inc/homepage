@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { motion, useReducedMotion } from "motion/react"
 import { usePathname, useRouter } from "next/navigation"
 
 import { useConsent } from "@/components/analytics/consent-provider"
@@ -9,53 +8,50 @@ import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { SITE_SEARCH_OVERLAY_ID, SiteSearchOverlay } from "@/components/search/site-search-overlay"
 import searchStyles from "@/components/search/site-search-overlay.module.css"
 import { Logo } from "@/components/ui/logo"
+import { SegmentedToggle } from "@/components/ui/segmented-toggle"
 import { contactEmail, copy, githubOrg } from "@/lib/content"
-import { locales } from "@/lib/i18n"
 
 function LanguageToggle({ navigateDocumentLocale = false }: { navigateDocumentLocale?: boolean }) {
   const locale = useLocale()
   const setLocale = useSetLocale()
-  const reduced = useReducedMotion()
   const pathname = usePathname()
   const router = useRouter()
 
   return (
-    <div className="lang-toggle" role="group" aria-label="Language">
-      <motion.span
-        className="lang-thumb"
-        aria-hidden="true"
-        initial={false}
-        animate={{ x: locale === "ko" ? 0 : 34 }}
-        transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 38 }}
-      />
-      {locales.map((value) => {
-        const active = value === locale
-        return (
-          <button
-            key={value}
-            type="button"
-            data-analytics-event={active ? undefined : "locale_change"}
-            data-analytics-target={active ? undefined : value}
-            data-active={active}
-            aria-pressed={active}
-            onClick={() => {
-              if (!active) {
-                setLocale(value)
-                if (navigateDocumentLocale) {
-                  const params = new URLSearchParams(window.location.search)
-                  params.set("locale", value)
-                  params.delete("cursor")
-                  const query = params.toString()
-                  router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false })
-                }
-              }
-            }}
-          >
-            <span>{value.toUpperCase()}</span>
-          </button>
-        )
-      })}
-    </div>
+    <SegmentedToggle
+      label="Language"
+      value={locale}
+      options={[
+        {
+          value: "ko",
+          label: "KO",
+          content: "KO",
+          buttonProps: {
+            "data-analytics-event": locale === "ko" ? undefined : "locale_change",
+            "data-analytics-target": locale === "ko" ? undefined : "ko",
+          },
+        },
+        {
+          value: "en",
+          label: "EN",
+          content: "EN",
+          buttonProps: {
+            "data-analytics-event": locale === "en" ? undefined : "locale_change",
+            "data-analytics-target": locale === "en" ? undefined : "en",
+          },
+        },
+      ]}
+      onValueChange={(value) => {
+        setLocale(value)
+        if (navigateDocumentLocale) {
+          const params = new URLSearchParams(window.location.search)
+          params.set("locale", value)
+          params.delete("cursor")
+          const query = params.toString()
+          router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false })
+        }
+      }}
+    />
   )
 }
 

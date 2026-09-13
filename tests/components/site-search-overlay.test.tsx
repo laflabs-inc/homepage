@@ -259,11 +259,14 @@ describe("SiteHeader search overlay", () => {
     const user = userEvent.setup()
     renderHeader()
     const { searchbox } = await openSearch(user)
+    const languageToggle = screen.getByRole("group", { name: "Language" })
+    expect(languageToggle).toHaveAttribute("data-active-index", "0")
     await user.type(searchbox, "Laf ID")
     await user.click(screen.getByRole("button", { name: "검색 실행" }))
     expect(await screen.findByRole("link", { name: /Laf ID/ })).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: "EN" }))
+    expect(languageToggle).toHaveAttribute("data-active-index", "1")
     expect(screen.queryByRole("link", { name: /Laf ID/ })).not.toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "KO" }))
 
