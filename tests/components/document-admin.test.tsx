@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { act, fireEvent, render as renderBase, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { undo, undoDepth } from "@codemirror/commands"
@@ -6,6 +8,10 @@ import { useEffect, useState } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const navigationMocks = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }))
+const adminStylesheet = readFileSync(
+  path.resolve(process.cwd(), "app/admin/admin.module.css"),
+  "utf8",
+)
 
 vi.mock("next/navigation", () => ({
   useRouter: () => navigationMocks,
@@ -255,6 +261,9 @@ describe("document admin", () => {
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
     expect(editorHost?.querySelector(".markdownActiveBlock")).not.toBeInTheDocument()
     expect(editorHost?.querySelector(".markdownPreviewWidget")).toHaveClass("document")
+    expect(adminStylesheet).toMatch(
+      /\.markdownPreviewWidget\s*\{[^}]*font-family:\s*"Pretendard", var\(--font-geist-sans\), sans-serif;/s,
+    )
 
     await user.click(screen.getByRole("button", { name: "Full source" }))
 
