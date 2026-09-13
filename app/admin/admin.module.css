@@ -521,6 +521,13 @@
   overflow-wrap: anywhere;
 }
 
+.markdownCodeMirror :global(.cm-markdown-paragraph-separator) {
+  height: 0;
+  min-height: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+
 .markdownCodeMirror :global(.cm-content) ::selection {
   color: white;
   background: var(--blue);

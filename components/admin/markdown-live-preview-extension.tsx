@@ -86,12 +86,28 @@ class MarkdownPreviewWidget extends WidgetType {
 function buildPreviewDecorations(state: EditorState, className: string): DecorationSet {
   const source = state.doc.toString()
   const selections = state.selection.ranges.map(({ from, to }) => ({ from, to }))
-  const ranges = getPreviewableMarkdownBlocks(source, selections).map((block) => (
-    Decoration.replace({
+  const ranges = getPreviewableMarkdownBlocks(source, selections).flatMap((block) => {
+    const blockRange = Decoration.replace({
       block: true,
       widget: new MarkdownPreviewWidget(block.source, block.start, className),
     }).range(block.start, block.end)
-  ))
+    const separatorPosition = block.end + 1
+    const hasParagraphSeparator = source.slice(block.end, block.end + 2) === "\n\n"
+    const separatorSelected = selections.some(({ from, to }) => (
+      from <= separatorPosition && to >= separatorPosition
+    ))
+
+    if (!hasParagraphSeparator || separatorSelected) return [blockRange]
+
+    const separatorRange = Decoration.line({
+      attributes: {
+        "aria-hidden": "true",
+        class: "cm-markdown-paragraph-separator",
+      },
+    }).range(separatorPosition)
+
+    return [blockRange, separatorRange]
+  })
 
   return Decoration.set(ranges)
 }
