@@ -1,6 +1,6 @@
 # LafLabs Living Design System
 
-Status: Draft for user review  
+Status: Approved
 Date: 2026-09-14  
 Primary surface mode: Read  
 Supporting surface mode: Operate
