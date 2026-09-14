@@ -389,6 +389,15 @@ export const designTokens = [
     },
   },
   {
+    id: "typography.mono-label",
+    group: "typography",
+    value: "10–11px",
+    purpose: {
+      ko: "인덱스, 메타데이터, 상태, 짧은 내비게이션 label에 씁니다.",
+      en: "Indices, metadata, states, and compact navigation labels.",
+    },
+  },
+  {
     id: "typography.body-default",
     group: "typography",
     value: "16px",

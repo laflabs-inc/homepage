@@ -255,6 +255,18 @@ describe("production design catalog", () => {
     })
   })
 
+  it("publishes the Mono label scale for compact system metadata", () => {
+    expect(designCatalog.tokens.find(({ id }) => id === "typography.mono-label")).toMatchObject({
+      id: "typography.mono-label",
+      group: "typography",
+      value: "10–11px",
+      purpose: {
+        ko: "인덱스, 메타데이터, 상태, 짧은 내비게이션 label에 씁니다.",
+        en: "Indices, metadata, states, and compact navigation labels.",
+      },
+    })
+  })
+
   it("documents stable imports and keeps extraction candidates explicit", () => {
     expect(designCatalog.components.map(({ id, maturity }) => [id, maturity])).toEqual([
       ["logo", "stable"],
