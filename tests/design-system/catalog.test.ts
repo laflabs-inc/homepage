@@ -85,6 +85,15 @@ describe("design catalog schema", () => {
     })
   })
 
+  it("rejects catalog metadata that differs from the fixed contract", () => {
+    const catalog = {
+      ...validCatalog,
+      meta: { ...designSystemMeta, version: "2026.9.1" },
+    } satisfies DesignCatalog
+
+    expect(() => assertDesignCatalog(catalog)).toThrow("metadata version: invalid metadata value")
+  })
+
   it("rejects duplicate component slugs", () => {
     const duplicate = {
       ...validCatalog,

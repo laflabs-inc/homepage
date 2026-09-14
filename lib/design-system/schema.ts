@@ -1,3 +1,5 @@
+import { designSystemMeta } from "./meta"
+
 export type LocaleText = Readonly<{ ko: string; en: string }>
 
 export type TokenGroup = "color" | "typography" | "spacing" | "layout" | "shape" | "motion"
@@ -144,7 +146,25 @@ function isSafeSourcePath(path: unknown): path is string {
     && !path.split("/").some((segment) => segment === "." || segment === ".." || segment === "")
 }
 
+function assertMetadata(meta: DesignSystemMeta): void {
+  if (meta.name !== designSystemMeta.name) fail("metadata", "name", "invalid metadata value")
+  if (meta.skillName !== designSystemMeta.skillName) fail("metadata", "skillName", "invalid metadata value")
+  if (meta.version !== designSystemMeta.version) fail("metadata", "version", "invalid metadata value")
+  if (meta.updatedAt !== designSystemMeta.updatedAt) fail("metadata", "updatedAt", "invalid metadata value")
+  if (meta.canonicalPath !== designSystemMeta.canonicalPath) {
+    fail("metadata", "canonicalPath", "invalid metadata value")
+  }
+  if (
+    !Array.isArray(meta.locales)
+    || meta.locales.length !== designSystemMeta.locales.length
+    || meta.locales.some((locale, index) => locale !== designSystemMeta.locales[index])
+  ) {
+    fail("metadata", "locales", "invalid metadata value")
+  }
+}
+
 export function assertDesignCatalog(catalog: DesignCatalog): void {
+  assertMetadata(catalog.meta)
   assertUniqueIds(catalog.tokens, "tokens")
   assertUniqueIds(catalog.foundations, "foundations")
   assertUniqueIds(catalog.components, "components")
