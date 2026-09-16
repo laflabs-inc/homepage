@@ -2,7 +2,10 @@ import type { ComponentEntry } from "./schema"
 
 const imports = {
   logo: 'import { Logo } from "@/components/ui/logo"',
+  action: 'import { Action } from "@/components/ui/action"',
   segmentedToggle: 'import { SegmentedToggle } from "@/components/ui/segmented-toggle"',
+  iconControl: 'import { IconControl } from "@/components/ui/icon-control"',
+  textLink: 'import { TextLink } from "@/components/ui/text-link"',
   codeBlock: 'import { CodeBlock } from "@/components/content/code-block"',
 } as const
 
@@ -49,10 +52,10 @@ export const components = [
     id: "action",
     name: "Action",
     category: "action",
-    maturity: "candidate",
+    maturity: "stable",
     summary: {
-      ko: "주요 동작을 링크나 버튼으로 표시하며 아직 API가 바뀔 수 있습니다.",
-      en: "A candidate component for primary actions rendered as links or buttons.",
+      ko: "주요 동작을 링크나 버튼으로 표시합니다.",
+      en: "A reusable primary action rendered as a link or button.",
     },
     whenToUse: {
       ko: "명확한 이동이나 실행 동작에 primary, secondary, inverse 변형이 필요할 때 씁니다.",
@@ -68,6 +71,7 @@ export const components = [
     },
     sourcePath: "components/ui/action.tsx",
     demoKey: "action",
+    importExample: imports.action,
     usageExample: '<Action href="/design" variant="primary">Open guide</Action>',
     states: ["primary", "secondary", "inverse", "hover", "focus-visible", "disabled"],
     props: [
@@ -186,10 +190,10 @@ export const components = [
     id: "icon-control",
     name: "Icon Control",
     category: "action",
-    maturity: "candidate",
+    maturity: "stable",
     summary: {
-      ko: "한 가지 동작을 아이콘으로 표시하며 아직 API가 바뀔 수 있습니다.",
-      en: "A candidate button that represents one action with an icon.",
+      ko: "한 가지 동작을 아이콘으로 표시합니다.",
+      en: "A reusable button that represents one action with an icon.",
     },
     whenToUse: {
       ko: "검색 열기처럼 익숙하고 단순한 동작을 좁은 공간에 둘 때 씁니다.",
@@ -205,6 +209,7 @@ export const components = [
     },
     sourcePath: "components/ui/icon-control.tsx",
     demoKey: "icon-control",
+    importExample: imports.iconControl,
     usageExample: '<IconControl label="Search"><MagnifyingGlass aria-hidden /></IconControl>',
     states: ["default", "hover", "focus-visible", "disabled"],
     props: [
@@ -232,10 +237,10 @@ export const components = [
     id: "text-link",
     name: "Text Link",
     category: "navigation",
-    maturity: "candidate",
+    maturity: "stable",
     summary: {
-      ko: "텍스트와 화살표로 다음 목적지를 알리며 아직 API가 바뀔 수 있습니다.",
-      en: "A candidate link that pairs text with an arrow toward the next destination.",
+      ko: "텍스트와 화살표로 다음 목적지를 알립니다.",
+      en: "A reusable link that pairs text with an arrow toward the next destination.",
     },
     whenToUse: {
       ko: "구간 끝이나 목록 행에서 다음 페이지를 가볍게 안내할 때 씁니다.",
@@ -251,6 +256,7 @@ export const components = [
     },
     sourcePath: "components/ui/text-link.tsx",
     demoKey: "text-link",
+    importExample: imports.textLink,
     usageExample: '<TextLink href="/design/components">Components</TextLink>',
     states: ["default", "hover", "focus-visible", "visited"],
     props: [

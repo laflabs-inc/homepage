@@ -267,13 +267,13 @@ describe("production design catalog", () => {
     })
   })
 
-  it("documents stable imports and keeps extraction candidates explicit", () => {
+  it("documents stable imports for extracted primitives", () => {
     expect(designCatalog.components.map(({ id, maturity }) => [id, maturity])).toEqual([
       ["logo", "stable"],
-      ["action", "candidate"],
+      ["action", "stable"],
       ["segmented-toggle", "stable"],
-      ["icon-control", "candidate"],
-      ["text-link", "candidate"],
+      ["icon-control", "stable"],
+      ["text-link", "stable"],
       ["code-block", "stable"],
     ])
     expect(getComponentEntry("logo")?.importExample).toBe(
@@ -281,6 +281,15 @@ describe("production design catalog", () => {
     )
     expect(getComponentEntry("segmented-toggle")?.importExample).toBe(
       'import { SegmentedToggle } from "@/components/ui/segmented-toggle"',
+    )
+    expect(getComponentEntry("action")?.importExample).toBe(
+      'import { Action } from "@/components/ui/action"',
+    )
+    expect(getComponentEntry("icon-control")?.importExample).toBe(
+      'import { IconControl } from "@/components/ui/icon-control"',
+    )
+    expect(getComponentEntry("text-link")?.importExample).toBe(
+      'import { TextLink } from "@/components/ui/text-link"',
     )
     expect(getComponentEntry("code-block")?.importExample).toBe(
       'import { CodeBlock } from "@/components/content/code-block"',

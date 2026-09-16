@@ -160,9 +160,9 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 
 ### Action (`action`)
 
-Maturity: **candidate** · Category: **action**
+Maturity: **stable** · Category: **action**
 
-A candidate component for primary actions rendered as links or buttons.
+A reusable primary action rendered as a link or button.
 
 - Use: Use it for a clear navigation or execution action in primary, secondary, or inverse form.
 - Avoid: Do not use it for inline navigation or icon-only actions.
@@ -182,9 +182,9 @@ A readable code region with a language label and copy action.
 
 ### Icon Control (`icon-control`)
 
-Maturity: **candidate** · Category: **action**
+Maturity: **stable** · Category: **action**
 
-A candidate button that represents one action with an icon.
+A reusable button that represents one action with an icon.
 
 - Use: Use it for a familiar, simple action such as opening search in a compact area.
 - Avoid: Do not use it when the icon is ambiguous or navigation is the primary purpose.
@@ -215,9 +215,9 @@ Switches between two mutually exclusive values in place.
 
 ### Text Link (`text-link`)
 
-Maturity: **candidate** · Category: **navigation**
+Maturity: **stable** · Category: **navigation**
 
-A candidate link that pairs text with an arrow toward the next destination.
+A reusable link that pairs text with an arrow toward the next destination.
 
 - Use: Use it at the end of a section or row for lightweight onward navigation.
 - Avoid: Do not use it for primary submission actions or icon-only controls.
