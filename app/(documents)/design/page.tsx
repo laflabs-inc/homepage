@@ -1,16 +1,21 @@
 import type { Metadata } from "next"
 
-import { DesignGuide } from "@/components/content/design-guide"
+import { DesignOverview } from "@/components/design-system/design-overview"
+import { DesignShell } from "@/components/design-system/design-shell"
 import { resolveDocumentPageLocale } from "../locale"
 
 export const metadata: Metadata = {
-  title: "Design guide",
-  description: "LafLabs의 로고, 컬러, 타이포그래피, 인터페이스 원칙과 공식 에셋을 확인합니다.",
+  title: "LafLabs Design System",
+  description: "LafLabs 제품과 문서를 설계하고 구현하기 위한 공식 디자인 시스템입니다.",
   alternates: { canonical: "/design" },
 }
 
 export default async function DesignPage({ searchParams }: { searchParams: Promise<{ locale?: string }> }) {
   const query = await searchParams
   const locale = await resolveDocumentPageLocale(Promise.resolve(query))
-  return <DesignGuide locale={locale} />
+  return (
+    <DesignShell locale={locale} currentPath="/design">
+      <DesignOverview locale={locale} />
+    </DesignShell>
+  )
 }
