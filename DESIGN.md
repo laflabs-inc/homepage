@@ -1,370 +1,311 @@
----
-name: LafLabs Homepage
-description: A square editorial system for LafLabs company, work, and product surfaces.
-colors:
-  primary-blue: "#2563eb"
-  primary-blue-deep: "#1e40af"
-  paper: "#f8fafc"
-  ink: "#0f172a"
-  line: "#cbd5e1"
-  muted: "#64748b"
-  slate-soft: "#94a3b8"
-  slate-detail: "#475569"
-  blue-pale: "#dbeafe"
-  blue-light: "#60a5fa"
-  route-blue: "#165dff"
-  route-blue-deep: "#0f4bd8"
-  route-blue-soft: "#112b5d"
-  page-navy: "#0b1328"
-  raised-navy: "#101c35"
-  subtle-navy: "#0e1931"
-  inverse-navy: "#071022"
-  off-white: "#f4f7fb"
-  blue-grey: "#8ba7d9"
-  border-blue: "#263d68"
-  border-blue-strong: "#385a91"
-  route-line: "#8fb6ff"
-  route-endpoint: "#5e8fe8"
-  pure-white: "#fff"
-  button-ink: "#0a0e18"
-  mask-black: "#000"
-typography:
-  homepage-hero:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(64px, 6.2vw, 80px)"
-    fontWeight: 780
-    lineHeight: 0.98
-    letterSpacing: "-0.04em"
-  company-statement:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(52px, 5.6vw, 72px)"
-    fontWeight: 700
-    lineHeight: 1.04
-    letterSpacing: "-0.04em"
-  section-heading:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(44px, 4.5vw, 60px)"
-    fontWeight: 720
-    lineHeight: 1.06
-    letterSpacing: "-0.04em"
-  method-mark:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(88px, 10.5vw, 154px)"
-    fontWeight: 850
-    lineHeight: 0.75
-    letterSpacing: "-0.04em"
-  hero-field-mark:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(116px, 14vw, 210px)"
-    fontWeight: 850
-    lineHeight: 0.75
-    letterSpacing: "-0.04em"
-  panel-title:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(27px, 2.5vw, 36px)"
-    fontWeight: 710
-    lineHeight: 1.08
-  work-title:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(32px, 3.4vw, 44px)"
-    fontWeight: 720
-    lineHeight: 1
-  search-input:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(42px, 4.5vw, 64px)"
-    fontWeight: 760
-    lineHeight: 1
-  search-result:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(20px, 1.8vw, 26px)"
-    fontWeight: 720
-    lineHeight: 1.12
-  compact-title:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "22px"
-    fontWeight: 700
-  body-default:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "16px"
-  mobile-company:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(36px, 10.8vw, 44px)"
-  mobile-section:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(32px, 9.6vw, 40px)"
-  mobile-method-mark:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(94px, 33vw, 136px)"
-  mobile-search-input:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(30px, 9vw, 38px)"
-  mobile-search-result:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(18px, 5.6vw, 22px)"
-  display:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(44px, 6.6vw, 96px)"
-    fontWeight: 780
-    lineHeight: 1.02
-    letterSpacing: "-0.055em"
-  body:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(15px, 1.15vw, 17px)"
-    lineHeight: 1.75
-  small-display:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(34px, 4.6vw, 66px)"
-    fontWeight: 780
-    lineHeight: 1.06
-    letterSpacing: "-0.05em"
-  hero:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(48px, 5.2vw, 78px)"
-    fontWeight: 780
-    lineHeight: 1.08
-    letterSpacing: "-0.04em"
-  mobile-hero:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(42px, 13vw, 62px)"
-  statement:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(30px, 5.4vw, 78px)"
-    fontWeight: 720
-    lineHeight: 1.16
-    letterSpacing: "-0.045em"
-  name-display:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(40px, 8vw, 122px)"
-    fontWeight: 780
-    lineHeight: 1
-    letterSpacing: "-0.06em"
-  product-title:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(28px, 3.4vw, 46px)"
-    fontWeight: 760
-    lineHeight: 1.06
-    letterSpacing: "-0.05em"
-  principle-title:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(24px, 2.9vw, 40px)"
-    fontWeight: 760
-    lineHeight: 1.08
-    letterSpacing: "-0.045em"
-  repository-title:
-    fontFamily: "Geist Mono, monospace"
-    fontSize: "clamp(17px, 1.9vw, 24px)"
-    fontWeight: 620
-    letterSpacing: "-0.03em"
-  marquee:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "clamp(18px, 2.2vw, 30px)"
-    fontWeight: 640
-    letterSpacing: "-0.035em"
-  body-compact:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "14.5px"
-    lineHeight: 1.75
-  body-small:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "13.5px"
-  nav:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "13px"
-  note:
-    fontFamily: "Geist Sans, Pretendard, sans-serif"
-    fontSize: "14px"
-  mono-small:
-    fontFamily: "Geist Mono, monospace"
-    fontSize: "12px"
-  mono-route:
-    fontFamily: "Geist Mono, monospace"
-    fontSize: "clamp(10px, 0.85vw, 13px)"
-    letterSpacing: "0.06em"
-  mono-detail:
-    fontFamily: "Geist Mono, monospace"
-    fontSize: "10.5px"
-  mono-index:
-    fontFamily: "Geist Mono, monospace"
-    fontSize: "11px"
-  label:
-    fontFamily: "Geist Mono, monospace"
-    fontSize: "10px"
-    fontWeight: 600
-    letterSpacing: "0.2em"
-rounded:
-  square: "0rem"
-components:
-  button-primary:
-    backgroundColor: "{colors.route-blue}"
-    textColor: "{colors.pure-white}"
-    rounded: "{rounded.square}"
-    padding: "0 24px"
-  button-outline:
-    backgroundColor: "transparent"
-    textColor: "{colors.off-white}"
-    rounded: "{rounded.square}"
-    padding: "0 24px"
-  button-light:
-    backgroundColor: "{colors.off-white}"
-    textColor: "{colors.button-ink}"
-    rounded: "{rounded.square}"
-    padding: "0 24px"
-  icon-control:
-    backgroundColor: "transparent"
-    textColor: "{colors.off-white}"
-    rounded: "{rounded.square}"
-    height: "38px"
-    width: "38px"
----
+<!-- This file is generated by npm run design:generate. Edit the design catalog and regenerate it instead of editing this file. -->
 
-# Design System: LafLabs Homepage
+# LafLabs Web Design
 
-## Overview
+System version: 2026.9.0 · Updated: 2026-09-14
 
-**Creative North Star: "Editorial Systems in Motion"**
+Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
-LafLabs uses an off-white editorial ground, ink rules, one structural blue family, and square geometry. Dark company bands provide deliberate contrast. The system should feel like a development company making its process legible rather than a collection of marketing cards.
+The active system uses Paper and Ink surfaces, Primary Blue as its sole accent, square geometry, restrained motion, and equivalent Korean and English content. Preserve factual product content and official assets; never invent claims or substitute fake product imagery.
 
-Company identity and working method come first. Selected work and open source provide evidence downstream through image-led editorial modules and direct rows separated by spacing and rules.
+## Core principles
 
-**Key Characteristics:**
+### Accessibility
 
-- Light editorial surfaces, deliberate dark contrast bands, and one blue accent.
-- Square endpoints, controls, markers, and corners.
-- Bounded Geist Sans headlines paired with restrained Geist Mono labels.
-- Flat section bands and dividers instead of cards or decorative depth.
-- Bilingual Korean and English copy with line breaks and measures that survive both locales.
+Verify keyboard access, contrast, names, and states together.
 
-## Colors
+- Every action must work by keyboard and show a visible focus indicator.
+- Give icon controls and groups names that explain their purpose.
+- Keep a 44px target area on small screens.
+- Communicate loading, empty, and error states in text.
 
-The active website palette uses Primary Blue as the only accent, with Paper and Ink as its default surface pair. The legacy Route palette remains documented for older dark technical surfaces.
+### Factual claims
 
-### Primary
+Publish only claims that can be verified.
 
-- **Primary Blue (`#2563eb`):** Current company accent, image-section ground, and primary controls.
-- **Primary Blue Deep (`#1e40af`):** Hover and pressed state.
-- **Paper (`#f8fafc`):** Default page and control ground.
-- **Ink (`#0f172a`):** Default text, rule, and company-band ground.
-- **Line (`#cbd5e1`):** Quiet separators and inactive outlines.
-- **Muted (`#64748b`):** Secondary explanatory copy.
-- **Slate Soft (`#94a3b8`), Slate Detail (`#475569`):** Dark-band metadata and compact editorial details.
-- **Blue Pale (`#dbeafe`), Blue Light (`#60a5fa`):** Large passive marks and dark-band highlights.
-- **Route Blue (`#165dff`):** Filled primary actions and large structural accents. Off-white text on Route Blue is `4.83:1`.
-- **Deep Route Blue (`#0f4bd8`):** Primary-button hover state.
-- **Soft Route Blue (`#112b5d`):** Quiet active and hover backgrounds.
-- **Route Line / Readable Blue (`#8fb6ff`):** Routes, small blue metadata, live status, and focus outlines. It is `9.05:1` on Page Navy and `6.75:1` on Soft Route Blue.
-- **Route Endpoint Blue (`#5e8fe8`):** 1.5px endpoint strokes on Raised Navy; the pair is `5.30:1`.
+- Mention customers, metrics, product status, or hiring only when a source verifies it.
+- Mark unverified material unavailable or omit it.
+- Never fill an empty surface with invented numbers or examples.
 
-### Neutral
+### Color
 
-- **Page Navy (`#0b1328`):** Default page ground and browser theme color.
-- **Raised Navy (`#101c35`):** Route endpoint fill and raised dark details.
-- **Subtle Navy (`#0e1931`):** Alternating section band.
-- **Inverse Navy (`#071022`):** Contact section ground.
-- **Off-white (`#f4f7fb`):** Primary text and light controls.
-- **Blue-grey (`#8ba7d9`):** Secondary text and unavailable labels.
-- **Border Blue (`#263d68`):** Default one-pixel rules.
-- **Strong Border Blue (`#385a91`):** Emphasized rules and outline-button borders.
-- **Pure White (`#fff`):** Primary-button text, active language text, and high-contrast hover text.
-- **Button Ink (`#0a0e18`):** Text on the off-white contact button.
-- **Mask Black (`#000`):** Opaque center stops in the technology-strip edge mask; it is not a visible surface color.
+Use Paper and Ink by default, with Primary Blue as the sole accent.
 
-**The One Route Rule.** Route Blue is the only accent; do not add competing semantic colors without a product requirement.
+- Reserve blue for key actions, selected states, and direction.
+- Route-era colors are legacy references, not defaults for new surfaces.
+- Never communicate state or meaning with color alone.
 
-## Typography
+### Iconography
 
-**Display Font:** Geist Sans with Pretendard and sans-serif fallbacks
+Use the Phosphor family consistently for new interface icons.
 
-**Body Font:** Geist Sans with Pretendard and sans-serif fallbacks
+- Choose a meaningful Phosphor icon instead of drawing decorative SVGs.
+- Give icon-only controls an accessible name.
+- Use the current 15px icon size inside a 34px compact control.
 
-**Label/Mono Font:** Geist Mono with monospace fallback
+### Brand identity
 
-Geist Sans keeps company copy direct and dense. Geist Mono is reserved for route metadata, statuses, repository languages, and compact navigation labels.
+Keep the official logo shape and proportions intact.
 
-### Homepage hierarchy
-
-- **Hero** (780, `64–80px`; mobile `40–48px`): Primary company proposition, never a full-viewport word wall.
-- **Company statement** (700, `52–72px`; mobile `36–44px`): Dark-band manifesto.
-- **Section heading** (720, `44–60px`; mobile `32–40px`): Work method, selected work, open source, and contact.
-- **Method mark** (850, `88–154px`; mobile `94–136px`): Cropped `ASK / BUILD / RUN` only; it is graphic typography rather than reading copy.
-- **Panel title** (710, `27–36px`) and **work title** (720, `32–44px`): Local titles inside bounded modules.
-- **Search input** (760, `42–64px`; mobile `30–38px`): Large enough to establish the overlay without displacing results below the fold.
-- **Search result** (720, `20–26px`; mobile `18–22px`): Compact, scannable result headings.
-- **Body** (`14–17px`, usually 1.68–1.75): Explanations, normally limited to 42–48 characters.
-- **Mono label** (`10–11px`): Indices, metadata, state, and compact navigation labels. Do not use 9px for new UI.
-
-### Legacy hierarchy
-
-- **Display** (780, `clamp(44px, 6.6vw, 96px)`, 1.02): Primary section statements.
-- **Small display** (780, `clamp(34px, 4.6vw, 66px)`, 1.06): Supporting section headlines.
-- **Hero** (780, `clamp(48px, 5.2vw, 78px)`, 1.08): Two-line company proposition with a 10-character measure.
-- **Body** (`clamp(15px, 1.15vw, 17px)`, 1.75): Explanations, normally limited to 58 characters; hero copy uses 43 characters.
-- **Route metadata** (`clamp(10px, 0.85vw, 13px)`, 0.06em tracking): Product names and infrastructure layers in the hero routing plane.
-- **Editorial label** (600, `10px`, 0.2em tracking, uppercase): The single statement-section label; it is not a required preface for every section.
-
-**The Two Voices Rule.** Sans carries meaning; mono carries compact system metadata.
-
-## Layout
-
-The desktop shell is `min(1280px, calc(100% - 56px))`. Sections use responsive vertical padding from 80px to 150px and one-pixel dividers to establish rhythm. The hero fills at least the viewport below the 72px header and uses a `45fr / 55fr` copy-to-routing grid.
-
-- At widths above 1080px, the hero is a 45/55 message and routing split. Product rows use three columns for identity, description, and status/action. The footer uses four columns.
-- At 1080px and below, the hero and section headings stack. Product rows become two columns, and the footer becomes two columns.
-- At 720px and below, the shell becomes `calc(100% - 36px)`, desktop navigation hides, routing becomes three stacked product rows, product rows become one column, actions become full-width, and the footer becomes one column.
-- The sticky header is 72px tall. Desktop navigation must stay on one line.
-
-**The Routing Grammar.** One square origin splits into three paths and ends at three square endpoints. Product name, availability, and infrastructure layer align to those routes; unavailable products remain visible but are not links.
-
-## Elevation & Depth
-
-The system is flat by default. Depth comes from tonal surface changes, one-pixel rules, and the routing plane. The sticky header may use a translucent Page Navy surface and 20px backdrop blur only after scrolling; content sections do not use card shadows.
-
-**The Flat Infrastructure Rule.** Use borders and surface bands before shadows or floating containers.
-
-## Shapes
-
-All geometry is square (`0rem` radius). Buttons, language controls, icon controls, route endpoints, status markers, and repository language markers use hard corners. Dividers are one pixel; routes use square line caps and miter joins.
-
-**The Square Signal Rule.** Do not introduce pills or circular decorative dots. A circle is allowed only when its shape carries real meaning supplied by the product.
-
-## Components
-
-### Buttons
-
-- **Shape:** Square, with a minimum 50px height, 24px inline padding, 13.5px type, and a transparent one-pixel border reserved in every variant.
-- **Primary:** Route Blue ground with Pure White text; Deep Route Blue on hover.
-- **Outline:** Transparent ground and Strong Border Blue at rest; off-white border with Soft Route Blue ground on hover.
-- **Inverse:** The contact section uses an off-white button with Button Ink and a transparent ghost button with a 24% off-white border.
-- **Focus:** A two-pixel solid Route Line (`#8fb6ff`) outline with a three-pixel offset.
-
-### Navigation
-
-The header uses the official LafLabs logo component, one-line 13px desktop links, square 38px controls, and direct anchors for products, open source, and principles. Contact always resolves to `mailto:contact@laflabs.co`. At 720px and below, section links hide while language and GitHub controls remain. The site is intentionally dark-only; no theme control or initializer is shipped, and browser color scheme/theme metadata use Page Navy.
-
-### Routing Field
-
-The hero's signature component is one bordered `720 / 520` plane with a 32px grid. Three two-pixel SVG paths leave an 18px square origin and terminate at 18px square endpoints. On screens at 720px and below, the SVG and desktop guides disappear and the same three product routes become bordered rows; no miniature desktop diagram is retained.
-
-### Product Rows
-
-Rows are separated by rules, never card containers. Each row preserves infrastructure layer, product name, tagline, description, capability points, status, and either an external link or inactive domain. All three shipped product rows currently use the inactive treatment. The implemented live variant uses Route Line on Soft Route Blue; unavailable status remains Blue-grey on the page ground. Do not add list numbering or oversized ghost wordmarks.
+- Use the official PNG asset; do not crop or redraw it.
+- Give the logo clear space and strong contrast against its surface.
+- Do not add shadows, outlines, or color effects to the logo.
 
 ### Motion
 
-Motion clarifies entry, routing, and state only. The hero fades copy and draws the three routes once; shared section reveals run once in view; the technology strip is the only marquee. Avoid layout-moving hover effects. Under `prefers-reduced-motion: reduce`, every Motion component starts at its complete final state, transitions use zero duration, the marquee is stationary, and smooth scrolling and CSS animation are disabled.
+Motion explains entry, progress, and state changes only.
 
-## Do's and Don'ts
+- The Segmented Toggle uses the shared spring at stiffness 520 and damping 38.
+- Do not move layout position or padding on hover.
+- Under prefers-reduced-motion, show the final state immediately.
 
-### Do:
+### Shape
 
-- **Do** use Route Blue for filled actions and Readable Blue for small signal text, routes, focus, and live status.
-- **Do** keep Korean and English readable with `word-break: keep-all` where prose needs stable phrases.
-- **Do** continue sections with generous spacing and one-pixel dividers.
-- **Do** preserve existing anchors and working external links.
+Use zero-radius corners and one-pixel rules to reveal structure.
 
-### Don't:
+- Keep controls, surfaces, and indicators square.
+- Prefer surface contrast and rules to card shadows.
+- Use circles only when the product meaning requires one.
 
-- **Don't** add rounded cards, pills, decorative circles, or ornamental shadows.
-- **Don't** repeat eyebrow labels or section numbers when the heading already establishes context.
-- **Don't** add a second marquee or a hero scroll cue.
-- **Don't** animate padding or layout position on row hover.
+### Spacing and layout
+
+A 1280px shell and responsive gutter establish horizontal rhythm.
+
+- The current shell is min(1280px, calc(100% - 64px)).
+- Use --gutter for full-width sections instead of adding ad hoc inline space.
+- Stack complex layouts at 1080px and move to a one-column flow at 720px.
+- Keep generous vertical section space between 80px and 150px.
+
+### Typography
+
+Sans carries meaning; Mono carries compact system information.
+
+- Pair Geist Sans with Pretendard to balance Korean and Latin text.
+- Keep large headings short and body measures easy to scan.
+- Do not introduce 9px text in new UI.
+- Check Korean line breaks so phrases remain intact.
+
+### Voice
+
+Write briefly and concretely while preserving technical terms.
+
+- Do not expand an explanation when one sentence is enough.
+- Keep technical terms such as API and token, and preserve English identifiers.
+- Keep Korean and English equivalent without forcing identical word order.
+
+## Design tokens
+
+The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked legacy as reference values, not defaults for new surfaces.
+
+| Token | Group | Value | Status | Purpose |
+| --- | --- | --- | --- | --- |
+| `color.blue-grey` | color | `#8ba7d9` | Legacy reference | Legacy supporting copy and unavailable-state color. |
+| `color.blue-light` | color | `#60a5fa` | Current | Short highlights inside dark contrast bands. |
+| `color.blue-pale` | color | `#dbeafe` | Current | Large passive marks and supporting text on blue surfaces. |
+| `color.border-blue` | color | `#263d68` | Legacy reference | Legacy one-pixel rule color from the route-era interface. |
+| `color.border-blue-strong` | color | `#385a91` | Legacy reference | Legacy emphasized rule and outline-action border color. |
+| `color.button-ink` | color | `#0a0e18` | Legacy reference | Legacy text color for the light contact action. |
+| `color.ink` | color | `#0f172a` | Current | The default text, rule, and dark contrast-band color. |
+| `color.inverse-navy` | color | `#071022` | Legacy reference | Legacy contact-section surface from the route-era interface. |
+| `color.line` | color | `#cbd5e1` | Current | Quiet dividers and inactive outlines. |
+| `color.mask-black` | color | `#000` | Legacy reference | Legacy opaque mask stop, not a visible surface color. |
+| `color.muted` | color | `#64748b` | Current | Supporting copy and lower-priority metadata. |
+| `color.off-white` | color | `#f4f7fb` | Legacy reference | Legacy text and light-control color from the route-era interface. |
+| `color.page-navy` | color | `#0b1328` | Legacy reference | Legacy default page surface from the route-era interface. |
+| `color.paper` | color | `#f8fafc` | Current | The default page and control surface. |
+| `color.primary` | color | `#2563eb` | Current | The primary accent for key actions, selected states, and structure. |
+| `color.primary-deep` | color | `#1e40af` | Current | The hover and pressed color for Primary Blue actions. |
+| `color.pure-white` | color | `#fff` | Current | Foreground color on Ink and Primary Blue surfaces. |
+| `color.raised-navy` | color | `#101c35` | Legacy reference | Legacy raised dark detail from the route-era interface. |
+| `color.route-blue` | color | `#165dff` | Legacy reference | Legacy fill and structural accent from the route-era interface. |
+| `color.route-blue-deep` | color | `#0f4bd8` | Legacy reference | Legacy primary-button hover color from the route-era interface. |
+| `color.route-blue-soft` | color | `#112b5d` | Legacy reference | Legacy quiet active surface from the route-era interface. |
+| `color.route-endpoint` | color | `#5e8fe8` | Legacy reference | Legacy route-endpoint stroke color. |
+| `color.route-line` | color | `#8fb6ff` | Legacy reference | Legacy route, metadata, and focus color. |
+| `color.slate-detail` | color | `#475569` | Current | Compact editorial detail on light surfaces. |
+| `color.slate-soft` | color | `#94a3b8` | Current | Metadata on dark contrast bands. |
+| `color.subtle-navy` | color | `#0e1931` | Legacy reference | Legacy alternating section surface from the route-era interface. |
+| `layout.breakpoint-mobile` | layout | `720px` | Current | The small-screen breakpoint for collapsed navigation and one-column layout. |
+| `layout.breakpoint-stack` | layout | `1080px` | Current | The breakpoint where complex desktop arrangements begin to stack. |
+| `layout.compact-control` | layout | `34px` | Current | The desktop visual size for language and icon controls. |
+| `layout.gutter` | layout | `max(32px, calc((100vw - 1280px) / 2))` | Current | Responsive inline space for full-width sections. |
+| `layout.shell` | layout | `min(1280px, calc(100% - 64px))` | Current | The current public-shell maximum width and inline space. |
+| `motion.reduced` | motion | `0ms` | Current | State transitions complete immediately when reduced motion is requested. |
+| `motion.segmented-toggle` | motion | `spring(stiffness: 520, damping: 38)` | Current | The shared spring for the Segmented Toggle selection thumb. |
+| `shape.radius` | shape | `0px` | Current | The default corner radius for controls, surfaces, and indicators. |
+| `shape.rule` | shape | `1px` | Current | The default rule width for sections, rows, and controls. |
+| `spacing.section-vertical` | spacing | `80px–150px` | Current | Responsive vertical section space, adjusted to content and viewport width. |
+| `typography.body-default` | typography | `16px` | Current | Default body size, with contextual sizes ranging from 14px to 17px. |
+| `typography.compact-title` | typography | `22px` | Current | Compact list and repository titles at weight 700. |
+| `typography.company-statement` | typography | `clamp(52px, 5.6vw, 72px)` | Current | Dark-band company statement at weight 700, line-height 1.04, and -0.04em tracking. |
+| `typography.family-mono` | typography | `Geist Mono, monospace` | Current | Reserved for status, indices, and technical metadata. |
+| `typography.family-sans` | typography | `Geist Sans, Pretendard, sans-serif` | Current | The default family stack for headings and body copy. |
+| `typography.hero-field-mark` | typography | `clamp(116px, 14vw, 210px)` | Current | The large homepage hero field mark only, at weight 850 and line-height 0.75. |
+| `typography.homepage-hero` | typography | `clamp(64px, 6.2vw, 80px)` | Current | Homepage proposition at weight 780, line-height 0.98, and -0.04em tracking. |
+| `typography.method-mark` | typography | `clamp(88px, 10.5vw, 154px)` | Current | Graphic ASK, BUILD, and RUN marks only, at weight 850 and line-height 0.75. |
+| `typography.mobile-company` | typography | `clamp(36px, 10.8vw, 44px)` | Current | Company statements on small screens. |
+| `typography.mobile-homepage-hero` | typography | `clamp(40px, 11.6vw, 48px)` | Current | The homepage proposition on small screens. |
+| `typography.mobile-method-mark` | typography | `clamp(94px, 33vw, 136px)` | Current | ASK, BUILD, and RUN marks on small screens. |
+| `typography.mobile-search-input` | typography | `clamp(30px, 9vw, 38px)` | Current | Search input on small screens. |
+| `typography.mobile-search-result` | typography | `clamp(18px, 5.6vw, 22px)` | Current | Search-result headings on small screens. |
+| `typography.mobile-section` | typography | `clamp(32px, 9.6vw, 40px)` | Current | Major section headings on small screens. |
+| `typography.mono-label` | typography | `10–11px` | Current | Indices, metadata, states, and compact navigation labels. |
+| `typography.panel-title` | typography | `clamp(27px, 2.5vw, 36px)` | Current | Titles inside bounded modules at weight 710 and line-height 1.08. |
+| `typography.search-input` | typography | `clamp(42px, 4.5vw, 64px)` | Current | Search-overlay input at weight 760 and line-height 1. |
+| `typography.search-result` | typography | `clamp(20px, 1.8vw, 26px)` | Current | Search-result headings at weight 720 and line-height 1.12. |
+| `typography.section-heading` | typography | `clamp(44px, 4.5vw, 60px)` | Current | Major section headings at weight 720, line-height 1.06, and -0.04em tracking. |
+| `typography.work-title` | typography | `clamp(32px, 3.4vw, 44px)` | Current | Selected-work titles at weight 720 and line-height 1. |
+
+## Components
+
+### Action (`action`)
+
+Maturity: **candidate** · Category: **action**
+
+A candidate component for primary actions rendered as links or buttons.
+
+- Use: Use it for a clear navigation or execution action in primary, secondary, or inverse form.
+- Avoid: Do not use it for inline navigation or icon-only actions.
+- Accessibility: Use a link for navigation and a button for in-place actions, with visible focus in both cases.
+- States: `primary`, `secondary`, `inverse`, `hover`, `focus-visible`, `disabled`
+
+### Code Block (`code-block`)
+
+Maturity: **stable** · Category: **content**
+
+A readable code region with a language label and copy action.
+
+- Use: Use it to present multiline code or commands verbatim in documentation.
+- Avoid: Do not use it for short inline identifiers or as an executable editor.
+- Accessibility: The copy button names the language, and the source remains selectable after a copy failure.
+- States: `idle`, `copied`, `error`
+
+### Icon Control (`icon-control`)
+
+Maturity: **candidate** · Category: **action**
+
+A candidate button that represents one action with an icon.
+
+- Use: Use it for a familiar, simple action such as opening search in a compact area.
+- Avoid: Do not use it when the icon is ambiguous or navigation is the primary purpose.
+- Accessibility: Always provide a label and keep a 44px target area on small screens.
+- States: `default`, `hover`, `focus-visible`, `disabled`
+
+### Logo (`logo`)
+
+Maturity: **stable** · Category: **brand**
+
+Displays the official symbol with the LafLabs wordmark.
+
+- Use: Use it where the LafLabs identity must be explicit, such as the site header and footer.
+- Avoid: Do not use it as a decorative background or repeating motif.
+- Accessibility: The component exposes the LafLabs name; check that an enclosing link does not create a redundant label.
+- States: `default`, `compact`
+
+### Segmented Toggle (`segmented-toggle`)
+
+Maturity: **stable** · Category: **action**
+
+Switches between two mutually exclusive values in place.
+
+- Use: Use it when two short options, such as languages, have equal weight.
+- Avoid: Do not use it for more than two choices or options that need long descriptions.
+- Accessibility: Name the group and each button; expose selection with aria-pressed.
+- States: `default`, `hover`, `focus-visible`, `selected`, `reduced-motion`
+
+### Text Link (`text-link`)
+
+Maturity: **candidate** · Category: **navigation**
+
+A candidate link that pairs text with an arrow toward the next destination.
+
+- Use: Use it at the end of a section or row for lightweight onward navigation.
+- Avoid: Do not use it for primary submission actions or icon-only controls.
+- Accessibility: The link text must identify its destination; treat the arrow as decorative.
+- States: `default`, `hover`, `focus-visible`, `visited`
+
+## Composition and responsive patterns
+
+### Collection row (`collection-row`)
+
+A full-width row separated by space and one-pixel rules.
+
+- Keep rules and spacing between items instead of wrapping each item in a card.
+- Align name, description, and status or action to shared columns.
+- Do not animate padding on hover.
+- Related components: `action`, `text-link`
+
+### Contrast band (`contrast-band`)
+
+A restrained Ink surface divides the flow of the light public theme.
+
+- Use a dark band only for a clear content shift, such as the company statement.
+- Use white for primary text and Blue Light for short highlights.
+- Do not restore legacy Page Navy as the default surface for new public pages.
+- Related components: `logo`, `action`, `text-link`
+
+### Document surface (`document-surface`)
+
+A shared shell and reading rhythm connect document indices and detail pages.
+
+- Keep body measure, heading levels, dates, and metadata placement consistent.
+- Use Code Block for multiline code and distinguish it from inline identifiers.
+- Use direct links between document indices and reading surfaces.
+- Related components: `code-block`, `text-link`
+
+### Editorial heading (`editorial-heading`)
+
+A short heading and only the necessary copy establish a section's purpose.
+
+- Do not stack an eyebrow, number, and subtitle by default.
+- Constrain heading and description measures separately to clarify hierarchy.
+- Add a Text Link only when the section needs an onward destination.
+- Related components: `text-link`
+
+### Responsive collapse (`responsive-collapse`)
+
+Desktop relationships become a one-column reading order on small screens.
+
+- Stack complex grids at 1080px and simplify navigation and actions at 720px.
+- Reorder the same content for reading instead of shrinking a desktop diagram.
+- Keep a 44px target area on small screens.
+- Related components: `action`, `segmented-toggle`, `icon-control`
+
+### Selected work (`selected-work`)
+
+An editorial module pairing a real image with verified project copy.
+
+- Use real images from public and never fabricate a product screen.
+- Show product status and destinations only when current data provides them.
+- Provide previous and next actions as named, keyboard-operable buttons.
+- Related components: `segmented-toggle`, `icon-control`, `text-link`
+
+### Site chrome (`site-chrome`)
+
+The existing Site Header and Footer frame every public surface.
+
+- Do not add a second fixed navbar inside a page.
+- Keep logo, locale, search, and document navigation in their established chrome positions.
+- Place page-local navigation inside the content shell.
+- Related components: `logo`, `segmented-toggle`, `icon-control`, `text-link`
+
+### System states (`system-states`)
+
+Loading, empty, and error states share one visual and verbal grammar.
+
+- Name the state and the next available action in short copy.
+- Provide a retry action for errors when recovery is available.
+- Do not fill empty states with invented example data.
+- Related components: `action`, `text-link`
+
+## Public machine resources
+
+- Provider-neutral guide: https://laflabs.co/design/guide.md
+- Versioned tokens: https://laflabs.co/design/tokens.json
+- Skill entry point: https://laflabs.co/design/skill/SKILL.md
+- Skill foundations: https://laflabs.co/design/skill/references/foundations.md
+- Skill components: https://laflabs.co/design/skill/references/components.md
+- Skill patterns: https://laflabs.co/design/skill/references/patterns.md
+- Skill tokens: https://laflabs.co/design/skill/references/tokens.json
+- Skill archive: https://laflabs.co/design/skill.zip
+- Source repository: https://github.com/laflabs-inc/homepage

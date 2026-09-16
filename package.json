@@ -17,7 +17,9 @@
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "test": "npm run typecheck && npm run lint && npm run test:unit && npm run build"
+    "design:generate": "tsx scripts/generate-design-system.ts",
+    "design:check": "tsx scripts/generate-design-system.ts --check",
+    "test": "npm run design:check && npm run typecheck && npm run lint && npm run test:unit && npm run build"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.46",
