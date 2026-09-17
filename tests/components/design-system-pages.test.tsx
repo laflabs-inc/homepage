@@ -111,7 +111,7 @@ describe("Design system foundations page", () => {
     expect(methodMarkSample).not.toBeNull()
     expect(methodMarkSample?.getAttribute("style")).toContain("font-weight: 850")
     expect(methodMarkSample?.getAttribute("style")).toContain("line-height: 0.75")
-    expect(methodMarkSample?.getAttribute("style")).toContain("letter-spacing: -0.08em")
+    expect(methodMarkSample?.getAttribute("style")).toContain("letter-spacing: -0.04em")
     expect(methodMarkSample).toHaveAttribute(
       "style",
       expect.stringContaining("font-size: clamp(88px, 10.5vw, 154px)"),
@@ -125,6 +125,12 @@ describe("Design system foundations page", () => {
     expect(monoLabelSample).toHaveAttribute(
       "style",
       expect.stringContaining("font-size: clamp(10px, 0.8vw, 11px)"),
+    )
+
+    const heroFieldMark = screen.getByText("typography.hero-field-mark").closest("figure")
+    expect(heroFieldMark).not.toBeNull()
+    expect(heroFieldMark?.querySelector("figcaption + p")?.getAttribute("style")).toContain(
+      "letter-spacing: -0.04em",
     )
   })
 

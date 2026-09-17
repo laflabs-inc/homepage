@@ -99,7 +99,10 @@ describe("design-system serializers", () => {
       fontSize: "clamp(88px, 10.5vw, 154px)",
       fontWeight: 850,
       lineHeight: 0.75,
-      letterSpacing: "-0.08em",
+      letterSpacing: "-0.04em",
+    })
+    expect(document.tokens.find(({ id }) => id === "typography.hero-field-mark")?.specimen).toMatchObject({
+      letterSpacing: "-0.04em",
     })
     expectOneFinalNewline(source)
     expect(source).toBe(serializeTokens())
