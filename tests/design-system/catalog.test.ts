@@ -267,6 +267,44 @@ describe("production design catalog", () => {
     })
   })
 
+  it("publishes explicit typography specimen metrics without deriving them from copy", () => {
+    expect(designCatalog.tokens.find(({ id }) => id === "typography.method-mark")).toMatchObject({
+      specimen: {
+        fontFamily: "sans",
+        fontSize: "clamp(88px, 10.5vw, 154px)",
+        fontWeight: 850,
+        lineHeight: 0.75,
+        letterSpacing: "-0.08em",
+      },
+    })
+    expect(designCatalog.tokens.find(({ id }) => id === "typography.mono-label")).toMatchObject({
+      specimen: {
+        fontFamily: "mono",
+        fontSize: "clamp(10px, 0.8vw, 11px)",
+        fontWeight: 600,
+        lineHeight: 1.45,
+        letterSpacing: "0em",
+      },
+    })
+  })
+
+  it("rejects typography tokens that omit machine-readable specimen metrics", () => {
+    const token = {
+      id: "typography.example",
+      group: "typography" as const,
+      value: "16px",
+      purpose: copy,
+    }
+    const catalog = {
+      ...validCatalog,
+      tokens: [token],
+    } as unknown as DesignCatalog
+
+    expect(() => assertDesignCatalog(catalog)).toThrow(
+      "tokens typography.example: missing typography specimen metrics",
+    )
+  })
+
   it("documents stable imports for extracted primitives", () => {
     expect(designCatalog.components.map(({ id, maturity }) => [id, maturity])).toEqual([
       ["logo", "stable"],

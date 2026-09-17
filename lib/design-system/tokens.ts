@@ -1,4 +1,27 @@
-import type { DesignToken } from "./schema"
+import type { DesignToken, TypographySpecimen } from "./schema"
+
+const typographySpecimens = {
+  familySans: { fontFamily: "sans", fontSize: "16px", fontWeight: 400, lineHeight: 1.5, letterSpacing: "0em" },
+  familyMono: { fontFamily: "mono", fontSize: "11px", fontWeight: 600, lineHeight: 1.45, letterSpacing: "0em" },
+  homepageHero: { fontFamily: "sans", fontSize: "clamp(64px, 6.2vw, 80px)", fontWeight: 780, lineHeight: 0.98, letterSpacing: "-0.04em" },
+  companyStatement: { fontFamily: "sans", fontSize: "clamp(52px, 5.6vw, 72px)", fontWeight: 700, lineHeight: 1.04, letterSpacing: "-0.04em" },
+  sectionHeading: { fontFamily: "sans", fontSize: "clamp(44px, 4.5vw, 60px)", fontWeight: 720, lineHeight: 1.06, letterSpacing: "-0.04em" },
+  methodMark: { fontFamily: "sans", fontSize: "clamp(88px, 10.5vw, 154px)", fontWeight: 850, lineHeight: 0.75, letterSpacing: "-0.08em" },
+  heroFieldMark: { fontFamily: "sans", fontSize: "clamp(116px, 14vw, 210px)", fontWeight: 850, lineHeight: 0.75, letterSpacing: "-0.08em" },
+  panelTitle: { fontFamily: "sans", fontSize: "clamp(27px, 2.5vw, 36px)", fontWeight: 710, lineHeight: 1.08, letterSpacing: "-0.04em" },
+  workTitle: { fontFamily: "sans", fontSize: "clamp(32px, 3.4vw, 44px)", fontWeight: 720, lineHeight: 1, letterSpacing: "-0.04em" },
+  searchInput: { fontFamily: "sans", fontSize: "clamp(42px, 4.5vw, 64px)", fontWeight: 760, lineHeight: 1, letterSpacing: "-0.04em" },
+  searchResult: { fontFamily: "sans", fontSize: "clamp(20px, 1.8vw, 26px)", fontWeight: 720, lineHeight: 1.12, letterSpacing: "-0.04em" },
+  compactTitle: { fontFamily: "sans", fontSize: "22px", fontWeight: 700, lineHeight: 1.2, letterSpacing: "-0.04em" },
+  monoLabel: { fontFamily: "mono", fontSize: "clamp(10px, 0.8vw, 11px)", fontWeight: 600, lineHeight: 1.45, letterSpacing: "0em" },
+  bodyDefault: { fontFamily: "sans", fontSize: "16px", fontWeight: 400, lineHeight: 1.7, letterSpacing: "0em" },
+  mobileHomepageHero: { fontFamily: "sans", fontSize: "clamp(40px, 11.6vw, 48px)", fontWeight: 780, lineHeight: 0.98, letterSpacing: "-0.04em" },
+  mobileCompany: { fontFamily: "sans", fontSize: "clamp(36px, 10.8vw, 44px)", fontWeight: 700, lineHeight: 1.04, letterSpacing: "-0.04em" },
+  mobileSection: { fontFamily: "sans", fontSize: "clamp(32px, 9.6vw, 40px)", fontWeight: 720, lineHeight: 1.06, letterSpacing: "-0.04em" },
+  mobileMethodMark: { fontFamily: "sans", fontSize: "clamp(94px, 33vw, 136px)", fontWeight: 850, lineHeight: 0.75, letterSpacing: "-0.08em" },
+  mobileSearchInput: { fontFamily: "sans", fontSize: "clamp(30px, 9vw, 38px)", fontWeight: 760, lineHeight: 1, letterSpacing: "-0.04em" },
+  mobileSearchResult: { fontFamily: "sans", fontSize: "clamp(18px, 5.6vw, 22px)", fontWeight: 720, lineHeight: 1.12, letterSpacing: "-0.04em" },
+} as const satisfies Record<string, TypographySpecimen>
 
 export const designTokens = [
   {
@@ -284,6 +307,7 @@ export const designTokens = [
     id: "typography.family-sans",
     group: "typography",
     value: "Geist Sans, Pretendard, sans-serif",
+    specimen: typographySpecimens.familySans,
     purpose: {
       ko: "제목과 본문에 쓰는 기본 글꼴 묶음입니다.",
       en: "The default family stack for headings and body copy.",
@@ -293,6 +317,7 @@ export const designTokens = [
     id: "typography.family-mono",
     group: "typography",
     value: "Geist Mono, monospace",
+    specimen: typographySpecimens.familyMono,
     purpose: {
       ko: "상태, 인덱스, 기술 메타데이터에만 씁니다.",
       en: "Reserved for status, indices, and technical metadata.",
@@ -302,6 +327,7 @@ export const designTokens = [
     id: "typography.homepage-hero",
     group: "typography",
     value: "clamp(64px, 6.2vw, 80px)",
+    specimen: typographySpecimens.homepageHero,
     purpose: {
       ko: "홈페이지 핵심 문장에 씁니다. weight 780, line-height 0.98, tracking -0.04em입니다.",
       en: "Homepage proposition at weight 780, line-height 0.98, and -0.04em tracking.",
@@ -311,6 +337,7 @@ export const designTokens = [
     id: "typography.company-statement",
     group: "typography",
     value: "clamp(52px, 5.6vw, 72px)",
+    specimen: typographySpecimens.companyStatement,
     purpose: {
       ko: "어두운 회사 소개 구간에 씁니다. weight 700, line-height 1.04, tracking -0.04em입니다.",
       en: "Dark-band company statement at weight 700, line-height 1.04, and -0.04em tracking.",
@@ -320,6 +347,7 @@ export const designTokens = [
     id: "typography.section-heading",
     group: "typography",
     value: "clamp(44px, 4.5vw, 60px)",
+    specimen: typographySpecimens.sectionHeading,
     purpose: {
       ko: "주요 구간 제목에 씁니다. weight 720, line-height 1.06, tracking -0.04em입니다.",
       en: "Major section headings at weight 720, line-height 1.06, and -0.04em tracking.",
@@ -329,6 +357,7 @@ export const designTokens = [
     id: "typography.method-mark",
     group: "typography",
     value: "clamp(88px, 10.5vw, 154px)",
+    specimen: typographySpecimens.methodMark,
     purpose: {
       ko: "ASK, BUILD, RUN 그래픽 문자에만 씁니다. weight 850, line-height 0.75입니다.",
       en: "Graphic ASK, BUILD, and RUN marks only, at weight 850 and line-height 0.75.",
@@ -338,6 +367,7 @@ export const designTokens = [
     id: "typography.hero-field-mark",
     group: "typography",
     value: "clamp(116px, 14vw, 210px)",
+    specimen: typographySpecimens.heroFieldMark,
     purpose: {
       ko: "홈페이지 hero 영역의 큰 필드 마크에만 씁니다. weight 850, line-height 0.75입니다.",
       en: "The large homepage hero field mark only, at weight 850 and line-height 0.75.",
@@ -347,6 +377,7 @@ export const designTokens = [
     id: "typography.panel-title",
     group: "typography",
     value: "clamp(27px, 2.5vw, 36px)",
+    specimen: typographySpecimens.panelTitle,
     purpose: {
       ko: "경계가 있는 모듈의 제목에 씁니다. weight 710, line-height 1.08입니다.",
       en: "Titles inside bounded modules at weight 710 and line-height 1.08.",
@@ -356,6 +387,7 @@ export const designTokens = [
     id: "typography.work-title",
     group: "typography",
     value: "clamp(32px, 3.4vw, 44px)",
+    specimen: typographySpecimens.workTitle,
     purpose: {
       ko: "선택한 작업의 제목에 씁니다. weight 720, line-height 1입니다.",
       en: "Selected-work titles at weight 720 and line-height 1.",
@@ -365,6 +397,7 @@ export const designTokens = [
     id: "typography.search-input",
     group: "typography",
     value: "clamp(42px, 4.5vw, 64px)",
+    specimen: typographySpecimens.searchInput,
     purpose: {
       ko: "검색 overlay 입력에 씁니다. weight 760, line-height 1입니다.",
       en: "Search-overlay input at weight 760 and line-height 1.",
@@ -374,6 +407,7 @@ export const designTokens = [
     id: "typography.search-result",
     group: "typography",
     value: "clamp(20px, 1.8vw, 26px)",
+    specimen: typographySpecimens.searchResult,
     purpose: {
       ko: "검색 결과 제목에 씁니다. weight 720, line-height 1.12입니다.",
       en: "Search-result headings at weight 720 and line-height 1.12.",
@@ -383,6 +417,7 @@ export const designTokens = [
     id: "typography.compact-title",
     group: "typography",
     value: "22px",
+    specimen: typographySpecimens.compactTitle,
     purpose: {
       ko: "작은 목록과 저장소 제목에 씁니다. weight 700입니다.",
       en: "Compact list and repository titles at weight 700.",
@@ -392,6 +427,7 @@ export const designTokens = [
     id: "typography.mono-label",
     group: "typography",
     value: "10–11px",
+    specimen: typographySpecimens.monoLabel,
     purpose: {
       ko: "인덱스, 메타데이터, 상태, 짧은 내비게이션 label에 씁니다.",
       en: "Indices, metadata, states, and compact navigation labels.",
@@ -401,6 +437,7 @@ export const designTokens = [
     id: "typography.body-default",
     group: "typography",
     value: "16px",
+    specimen: typographySpecimens.bodyDefault,
     purpose: {
       ko: "기본 본문 크기입니다. 문맥에 따라 14px에서 17px 사이를 사용합니다.",
       en: "Default body size, with contextual sizes ranging from 14px to 17px.",
@@ -410,6 +447,7 @@ export const designTokens = [
     id: "typography.mobile-homepage-hero",
     group: "typography",
     value: "clamp(40px, 11.6vw, 48px)",
+    specimen: typographySpecimens.mobileHomepageHero,
     purpose: {
       ko: "작은 화면의 홈페이지 핵심 문장에 씁니다.",
       en: "The homepage proposition on small screens.",
@@ -419,6 +457,7 @@ export const designTokens = [
     id: "typography.mobile-company",
     group: "typography",
     value: "clamp(36px, 10.8vw, 44px)",
+    specimen: typographySpecimens.mobileCompany,
     purpose: {
       ko: "작은 화면의 회사 소개 문장에 씁니다.",
       en: "Company statements on small screens.",
@@ -428,6 +467,7 @@ export const designTokens = [
     id: "typography.mobile-section",
     group: "typography",
     value: "clamp(32px, 9.6vw, 40px)",
+    specimen: typographySpecimens.mobileSection,
     purpose: {
       ko: "작은 화면의 주요 구간 제목에 씁니다.",
       en: "Major section headings on small screens.",
@@ -437,6 +477,7 @@ export const designTokens = [
     id: "typography.mobile-method-mark",
     group: "typography",
     value: "clamp(94px, 33vw, 136px)",
+    specimen: typographySpecimens.mobileMethodMark,
     purpose: {
       ko: "작은 화면의 ASK, BUILD, RUN 마크에 씁니다.",
       en: "ASK, BUILD, and RUN marks on small screens.",
@@ -446,6 +487,7 @@ export const designTokens = [
     id: "typography.mobile-search-input",
     group: "typography",
     value: "clamp(30px, 9vw, 38px)",
+    specimen: typographySpecimens.mobileSearchInput,
     purpose: {
       ko: "작은 화면의 검색 입력에 씁니다.",
       en: "Search input on small screens.",
@@ -455,6 +497,7 @@ export const designTokens = [
     id: "typography.mobile-search-result",
     group: "typography",
     value: "clamp(18px, 5.6vw, 22px)",
+    specimen: typographySpecimens.mobileSearchResult,
     purpose: {
       ko: "작은 화면의 검색 결과 제목에 씁니다.",
       en: "Search-result headings on small screens.",

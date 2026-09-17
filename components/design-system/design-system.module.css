@@ -430,9 +430,6 @@
 
 .typeSample {
   margin: 28px 0 0;
-  font-weight: 720;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
   white-space: nowrap;
 }
 
@@ -444,7 +441,7 @@
   align-items: center;
   overflow: hidden;
   border-block: 1px solid var(--line);
-  background: #eff6ff;
+  background: var(--paper);
 }
 
 .layoutShell {
@@ -465,7 +462,7 @@
   margin-top: 32px;
   border-style: solid;
   border-color: var(--ink);
-  background: #eff6ff;
+  background: var(--paper);
 }
 
 .iconSpecimen {
@@ -512,7 +509,7 @@
   display: grid;
   place-items: center;
   border-right: 1px solid var(--line);
-  background: #eff6ff;
+  background: var(--paper);
 }
 
 .assetPreview img,

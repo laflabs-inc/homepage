@@ -73,7 +73,17 @@ describe("design-system serializers", () => {
     const document = JSON.parse(source) as {
       name: string
       version: string
-      tokens: Array<{ id: string; value: string }>
+      tokens: Array<{
+        id: string
+        value: string
+        specimen: {
+          fontFamily: string
+          fontSize: string
+          fontWeight: number
+          lineHeight: number
+          letterSpacing: string
+        } | null
+      }>
     }
 
     expect(document.name).toBe("LafLabs Web Design")
@@ -84,6 +94,13 @@ describe("design-system serializers", () => {
     expect(document.tokens.find(({ id }) => id === "layout.shell")?.value).toBe(
       "min(1280px, calc(100% - 64px))",
     )
+    expect(document.tokens.find(({ id }) => id === "typography.method-mark")?.specimen).toEqual({
+      fontFamily: "sans",
+      fontSize: "clamp(88px, 10.5vw, 154px)",
+      fontWeight: 850,
+      lineHeight: 0.75,
+      letterSpacing: "-0.08em",
+    })
     expectOneFinalNewline(source)
     expect(source).toBe(serializeTokens())
   })

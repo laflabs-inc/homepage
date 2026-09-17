@@ -110,6 +110,15 @@ export function serializeTokens(): string {
       ? { ko: token.contrast.ko, en: token.contrast.en }
       : null,
     legacy: token.legacy ?? false,
+    specimen: token.specimen
+      ? {
+        fontFamily: token.specimen.fontFamily,
+        fontSize: token.specimen.fontSize,
+        fontWeight: token.specimen.fontWeight,
+        lineHeight: token.specimen.lineHeight,
+        letterSpacing: token.specimen.letterSpacing,
+      }
+      : null,
   }))
   const document = {
     name: designCatalog.meta.name,

@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
@@ -98,6 +100,45 @@ describe("Design system foundations page", () => {
 
     expect(sample).toHaveAttribute("data-active-index", "1")
     expect(within(sample).getByRole("button", { name: "B" })).toHaveAttribute("aria-pressed", "true")
+  })
+
+  it("applies catalog typography specimen metrics", async () => {
+    render(await FoundationsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
+
+    const methodMark = screen.getByText("typography.method-mark").closest("figure")
+    expect(methodMark).not.toBeNull()
+    const methodMarkSample = methodMark?.querySelector("figcaption + p")
+    expect(methodMarkSample).not.toBeNull()
+    expect(methodMarkSample?.getAttribute("style")).toContain("font-weight: 850")
+    expect(methodMarkSample?.getAttribute("style")).toContain("line-height: 0.75")
+    expect(methodMarkSample?.getAttribute("style")).toContain("letter-spacing: -0.08em")
+    expect(methodMarkSample).toHaveAttribute(
+      "style",
+      expect.stringContaining("font-size: clamp(88px, 10.5vw, 154px)"),
+    )
+
+    const monoLabel = screen.getByText("typography.mono-label").closest("figure")
+    expect(monoLabel).not.toBeNull()
+    const monoLabelSample = monoLabel?.querySelector("figcaption + p")
+    expect(monoLabelSample).not.toBeNull()
+    expect(monoLabelSample?.getAttribute("style")).toContain("font-family: var(--font-geist-mono), monospace")
+    expect(monoLabelSample).toHaveAttribute(
+      "style",
+      expect.stringContaining("font-size: clamp(10px, 0.8vw, 11px)"),
+    )
+  })
+
+  it("uses the approved Paper surface for new layout, shape, and asset specimens", () => {
+    const stylesheet = readFileSync(
+      join(process.cwd(), "components/design-system/design-system.module.css"),
+      "utf8",
+    )
+
+    for (const selector of ["layoutStage", "shapeSpecimen", "assetPreview"]) {
+      expect(stylesheet).toMatch(
+        new RegExp(`\\.${selector}\\s*\\{[^}]*background:\\s*var\\(--paper\\);`, "s"),
+      )
+    }
   })
 })
 

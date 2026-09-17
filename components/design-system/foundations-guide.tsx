@@ -117,14 +117,17 @@ function ColorSpecimen({ locale }: { locale: Locale }) {
 }
 
 function typographyStyle(token: DesignToken): CSSProperties | undefined {
-  if (token.id === "typography.family-sans") {
-    return { fontFamily: 'var(--font-geist-sans), "Pretendard", sans-serif' }
+  if (!token.specimen) return undefined
+
+  return {
+    fontFamily: token.specimen.fontFamily === "mono"
+      ? "var(--font-geist-mono), monospace"
+      : 'var(--font-geist-sans), "Pretendard", sans-serif',
+    fontSize: token.specimen.fontSize,
+    fontWeight: token.specimen.fontWeight,
+    lineHeight: token.specimen.lineHeight,
+    letterSpacing: token.specimen.letterSpacing,
   }
-  if (token.id === "typography.family-mono") {
-    return { fontFamily: "var(--font-geist-mono), monospace" }
-  }
-  if (/^(?:clamp\(|\d+px$)/.test(token.value)) return { fontSize: token.value }
-  return undefined
 }
 
 function TypographySpecimen({ foundation, locale }: { foundation: FoundationEntry; locale: Locale }) {

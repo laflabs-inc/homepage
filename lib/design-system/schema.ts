@@ -6,6 +6,14 @@ export type TokenGroup = "color" | "typography" | "spacing" | "layout" | "shape"
 export type ComponentMaturity = "stable" | "candidate"
 export type DemoKey = "logo" | "action" | "segmented-toggle" | "icon-control" | "text-link" | "code-block"
 
+export type TypographySpecimen = Readonly<{
+  fontFamily: "sans" | "mono"
+  fontSize: string
+  fontWeight: number
+  lineHeight: number
+  letterSpacing: string
+}>
+
 export type DesignSystemMeta = Readonly<{
   name: string
   skillName: string
@@ -23,6 +31,7 @@ export type DesignToken = Readonly<{
   purpose: LocaleText
   contrast?: LocaleText
   legacy?: boolean
+  specimen?: TypographySpecimen
 }>
 
 export type FoundationEntry = Readonly<{
@@ -128,6 +137,23 @@ function assertLocaleText(value: LocaleText | undefined, collection: string, id:
   }
 }
 
+function assertTypographySpecimen(
+  value: TypographySpecimen | undefined,
+  collection: string,
+  id: string,
+): void {
+  if (!value) fail(collection, id, "missing typography specimen metrics")
+  if (value.fontFamily !== "sans" && value.fontFamily !== "mono") {
+    fail(collection, id, "invalid typography specimen family")
+  }
+  if (!value.fontSize.trim() || !value.letterSpacing.trim()) {
+    fail(collection, id, "invalid typography specimen metrics")
+  }
+  if (!Number.isFinite(value.fontWeight) || !Number.isFinite(value.lineHeight)) {
+    fail(collection, id, "invalid typography specimen metrics")
+  }
+}
+
 function isSafePublicAssetPath(path: unknown): path is string {
   return typeof path === "string"
     && path.startsWith("/")
@@ -175,6 +201,9 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
     if (!tokenGroups.has(token.group)) fail("tokens", token.id, "invalid token group")
     assertLocaleText(token.purpose, "tokens", token.id)
     if (token.contrast) assertLocaleText(token.contrast, "tokens", token.id)
+    if (token.group === "typography") {
+      assertTypographySpecimen(token.specimen, "tokens", token.id)
+    }
   }
 
   for (const foundation of catalog.foundations) {
