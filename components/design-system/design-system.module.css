@@ -254,6 +254,348 @@
   color: var(--blue);
 }
 
+.foundationHeading {
+  padding-top: 24px;
+  border-top: 1px solid var(--ink);
+}
+
+.foundationHeading h2 {
+  margin-bottom: 14px;
+}
+
+.foundationHeading > p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.guidanceList {
+  margin: 32px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.guidanceList li {
+  max-width: 72ch;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.identitySpecimen {
+  margin: 32px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.clearSpaceField,
+.contrastField {
+  min-height: 280px;
+  padding: 48px;
+  display: grid;
+  place-items: center;
+}
+
+.clearSpaceField {
+  border-right: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.contrastField {
+  background: var(--ink);
+}
+
+.clearSpaceField img,
+.contrastField img {
+  width: 152px;
+  height: 152px;
+}
+
+.identitySpecimen figcaption {
+  grid-column: 1 / -1;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.identitySpecimen code,
+.tokenRow code,
+.colorRow code,
+.typeRow code,
+.layoutStage code {
+  font: 600 11px / 1.45 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.identitySpecimen figcaption p {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.colorList,
+.tokenList {
+  margin: 32px 0 0;
+  border-top: 1px solid var(--ink);
+}
+
+.colorRow,
+.tokenRow {
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: minmax(184px, 0.72fr) minmax(152px, 0.56fr) minmax(0, 1.72fr);
+  gap: 24px;
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+}
+
+.colorRow dt,
+.colorRow dd,
+.tokenRow dt,
+.tokenRow dd {
+  min-width: 0;
+  margin: 0;
+  padding: 20px 0;
+}
+
+.colorRow dt {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.colorSwatch {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+}
+
+.tokenValue {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow-wrap: anywhere;
+}
+
+.tokenValue code:last-child:not(:first-child) {
+  color: var(--muted);
+}
+
+.tokenPurpose p {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.tokenPurpose p + p {
+  margin-top: 6px;
+  color: var(--ink);
+}
+
+.typeList {
+  margin-top: 32px;
+  border-top: 1px solid var(--ink);
+}
+
+.typeRow {
+  margin: 0;
+  padding: 24px 0 28px;
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.typeRow figcaption {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.72fr) minmax(172px, 0.7fr) minmax(0, 1.58fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.typeRow figcaption p {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.typeSample {
+  margin: 28px 0 0;
+  font-weight: 720;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+  white-space: nowrap;
+}
+
+.layoutStage {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-block: 1px solid var(--line);
+  background: #eff6ff;
+}
+
+.layoutShell {
+  max-width: 100%;
+  min-height: 88px;
+  margin-inline: auto;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--blue);
+  background: var(--paper);
+  color: var(--blue);
+}
+
+.shapeSpecimen {
+  width: min(100%, 420px);
+  height: 136px;
+  margin-top: 32px;
+  border-style: solid;
+  border-color: var(--ink);
+  background: #eff6ff;
+}
+
+.iconSpecimen {
+  min-height: 136px;
+  margin-top: 32px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  border-block: 1px solid var(--line);
+}
+
+.iconSpecimen svg {
+  width: 15px;
+  height: 15px;
+}
+
+.motionSpecimen {
+  min-height: 136px;
+  margin-top: 32px;
+  padding: 32px 0;
+  border-top: 1px solid var(--ink);
+}
+
+.motionSpecimen .tokenList {
+  margin-top: 32px;
+}
+
+.assetList {
+  margin-top: 96px;
+  border-top: 1px solid var(--ink);
+}
+
+.assetRow {
+  min-height: 380px;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(0, 1.08fr);
+  border-bottom: 1px solid var(--line);
+}
+
+.assetPreview {
+  min-width: 0;
+  padding: 40px;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  background: #eff6ff;
+}
+
+.assetPreview img,
+.assetPreview video {
+  width: min(100%, 300px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.assetDetails {
+  padding: 40px;
+  align-self: center;
+}
+
+.assetDetails h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.assetDetails > p {
+  max-width: 65ch;
+  margin: 28px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.assetMetadata {
+  margin: 26px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.assetMetadata > div {
+  display: grid;
+  gap: 5px;
+}
+
+.assetMetadata dt,
+.assetMetadata dd {
+  margin: 0;
+  font-family: var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.assetMetadata dt {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.assetMetadata dd {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.downloadLink {
+  min-height: 46px;
+  margin-top: 30px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  border: 1px solid var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.downloadLink:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.downloadLink:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: 160px minmax(0, 1fr);
@@ -394,12 +736,102 @@
   .startRow dd {
     margin-top: 8px;
   }
+
+  .foundationHeading {
+    padding-top: 20px;
+  }
+
+  .identitySpecimen,
+  .colorRow,
+  .tokenRow,
+  .typeRow figcaption,
+  .assetRow {
+    grid-template-columns: 1fr;
+  }
+
+  .clearSpaceField,
+  .contrastField {
+    min-height: 220px;
+    padding: 34px;
+  }
+
+  .clearSpaceField {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .clearSpaceField img,
+  .contrastField img {
+    width: min(42vw, 152px);
+    height: auto;
+  }
+
+  .colorRow,
+  .tokenRow {
+    gap: 0;
+    padding: 20px 0;
+  }
+
+  .colorRow dt,
+  .colorRow dd,
+  .tokenRow dt,
+  .tokenRow dd {
+    padding: 0;
+  }
+
+  .colorRow .tokenValue,
+  .tokenRow .tokenValue {
+    margin-top: 14px;
+  }
+
+  .colorRow .tokenPurpose,
+  .tokenRow .tokenPurpose {
+    margin-top: 16px;
+  }
+
+  .typeRow figcaption {
+    gap: 7px;
+  }
+
+  .typeRow figcaption p {
+    margin-top: 8px;
+  }
+
+  .typeSample {
+    max-width: none;
+    overflow: hidden;
+  }
+
+  .layoutStage {
+    min-height: 150px;
+  }
+
+  .assetList {
+    margin-top: 76px;
+  }
+
+  .assetPreview {
+    min-height: 280px;
+    padding: 28px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .assetPreview img,
+  .assetPreview video {
+    width: min(100%, 260px);
+  }
+
+  .assetDetails {
+    padding: 28px 0 32px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .localNav a,
   .destinationRow,
-  .startRow a {
+  .startRow a,
+  .downloadLink {
     transition: none;
   }
 }
