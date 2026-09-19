@@ -660,6 +660,283 @@
   border-bottom: 1px solid var(--line);
 }
 
+.componentList {
+  margin-top: 96px;
+  border-top: 1px solid var(--ink);
+}
+
+.componentRow {
+  min-width: 0;
+  min-height: 224px;
+  padding: 32px 0;
+  display: grid;
+  grid-template-columns: minmax(128px, 0.58fr) minmax(190px, 0.92fr) minmax(260px, 1.5fr);
+  gap: 28px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.componentIdentity,
+.componentSummary {
+  min-width: 0;
+  align-self: start;
+}
+
+.componentIdentity h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 730;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+.componentIdentity > span {
+  margin-top: 10px;
+  display: block;
+  color: var(--blue);
+  font: 650 10px / 1.45 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.componentSummary p {
+  max-width: 48ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.componentDetailLink {
+  width: fit-content;
+  min-height: 32px;
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid currentColor;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  transition: color 160ms ease;
+}
+
+.componentDetailLink:hover {
+  color: var(--blue);
+}
+
+.componentDetailLink:focus-visible,
+.componentMetadata a:focus-visible,
+.apiTableRegion:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.componentPreview {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 156px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-block: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.demoCluster {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.inverseDemo {
+  padding: 10px;
+  display: inline-flex;
+  background: var(--ink);
+}
+
+.demoCodeBlock {
+  width: 100%;
+  min-width: 0;
+}
+
+.demoCodeBlock > div {
+  max-width: 100%;
+  margin: 0;
+}
+
+.componentMasthead h1 {
+  max-width: 16ch;
+}
+
+.componentMetadata {
+  margin: 42px 0 0;
+  display: grid;
+  grid-template-columns: minmax(104px, 0.45fr) minmax(220px, 1.25fr) minmax(92px, 0.5fr);
+  border-top: 1px solid var(--line);
+}
+
+.componentMetadata > div {
+  min-width: 0;
+  padding: 15px 18px 0 0;
+}
+
+.componentMetadata dt {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font: 600 10px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.componentMetadata dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.componentMetadata code,
+.componentImport code,
+.stateList code,
+.apiTableRegion code {
+  font-family: var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.componentMetadata a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.usageGuidance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.usageGuidance > div {
+  min-width: 0;
+  padding: 24px 28px 26px 0;
+}
+
+.usageGuidance > div + div {
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+}
+
+.usageGuidance h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
+.usageGuidance p,
+.componentProse {
+  max-width: 65ch;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.componentProse {
+  margin-top: 0;
+  padding: 24px 0;
+  border-block: 1px solid var(--line);
+}
+
+.stateList {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  list-style: none;
+}
+
+.stateList li {
+  min-width: 0;
+  padding: 15px 14px 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.apiTableRegion {
+  max-width: 100%;
+  overflow-x: auto;
+  border-top: 1px solid var(--ink);
+}
+
+.apiTableRegion table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.apiTableRegion th,
+.apiTableRegion td {
+  padding: 14px 16px 14px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.apiTableRegion thead th {
+  color: var(--muted);
+  font: 650 10px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.apiTableRegion tbody th {
+  font-weight: 650;
+}
+
+.apiTableRegion td:last-child {
+  min-width: 240px;
+  color: var(--muted);
+}
+
+.componentImport {
+  max-width: 100%;
+  margin: 0;
+  padding: 14px 0;
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  border-block: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.componentImport span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.componentImport code {
+  font-size: 12px;
+}
+
+.componentCode {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.componentCode pre {
+  max-width: 100%;
+}
+
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: 160px minmax(0, 1fr);
@@ -673,6 +950,11 @@
   .logoField img {
     width: 150px;
     height: 150px;
+  }
+
+  .componentRow {
+    grid-template-columns: minmax(120px, 0.55fr) minmax(180px, 0.85fr) minmax(230px, 1.3fr);
+    gap: 22px;
   }
 }
 
@@ -898,13 +1180,72 @@
   .assetDetails {
     padding: 28px 0 32px;
   }
+
+  .componentList {
+    margin-top: 76px;
+  }
+
+  .componentRow {
+    min-height: 0;
+    padding: 28px 0 36px;
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .componentSummary p {
+    max-width: 65ch;
+  }
+
+  .componentPreview {
+    min-height: 148px;
+    padding: 24px 18px;
+  }
+
+  .componentMetadata {
+    grid-template-columns: 1fr;
+  }
+
+  .componentMetadata > div {
+    padding: 13px 0;
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .componentMetadata dt {
+    margin: 0;
+  }
+
+  .usageGuidance {
+    grid-template-columns: 1fr;
+  }
+
+  .usageGuidance > div {
+    padding: 22px 0;
+  }
+
+  .usageGuidance > div + div {
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .stateList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .componentImport {
+    flex-direction: column;
+    gap: 7px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .localNav a,
   .destinationRow,
   .startRow a,
-  .downloadLink {
+  .downloadLink,
+  .componentDetailLink {
     transition: none;
   }
 }

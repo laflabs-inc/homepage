@@ -4,14 +4,36 @@ import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+const { notFoundMock } = vi.hoisted(() => ({
+  notFoundMock: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND")
+  }),
+}))
+
 vi.mock("@/app/(documents)/locale", () => ({
   resolveDocumentPageLocale: async (searchParams: Promise<{ locale?: string }>) =>
     (await searchParams).locale === "en" ? "en" : "ko",
 }))
 
+vi.mock("@/components/analytics/consent-provider", () => ({
+  useAnalytics: () => ({ track: vi.fn() }),
+}))
+
+vi.mock("next/navigation", () => ({
+  notFound: notFoundMock,
+}))
+
 import AssetsPage from "@/app/(documents)/design/assets/page"
 import AiPage from "@/app/(documents)/design/ai/page"
+import ComponentsPage, {
+  generateMetadata as generateComponentsMetadata,
+} from "@/app/(documents)/design/components/page"
+import ComponentDetailPage, {
+  generateMetadata as generateComponentMetadata,
+  generateStaticParams,
+} from "@/app/(documents)/design/components/[slug]/page"
 import FoundationsPage from "@/app/(documents)/design/foundations/page"
+import { designCatalog } from "@/lib/design-system/catalog"
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -47,6 +69,94 @@ const trustedAssetPaths = [
   "/laf-system-loop.webm",
   "/laf-system-loop.mp4",
 ]
+
+describe("Design system component pages", () => {
+  it("renders every catalog component once as a Korean editorial row with a detail link", async () => {
+    render(await ComponentsPage({ searchParams: Promise.resolve({}) }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "컴포넌트" })).toBeInTheDocument()
+
+    for (const component of designCatalog.components) {
+      expect(screen.getAllByRole("heading", { level: 2, name: component.name })).toHaveLength(1)
+      expect(
+        screen.getByRole("link", { name: `${component.name} 자세히 보기` }),
+      ).toHaveAttribute("href", `/design/components/${component.id}`)
+    }
+    expect(screen.getByRole("button", { name: "검색 미리보기" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /컴포넌트 보기/ })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "TypeScript 코드 복사" })).toBeInTheDocument()
+  })
+
+  it("renders the equivalent English component index and preserves locale links", async () => {
+    render(await ComponentsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "Components" })).toBeInTheDocument()
+    expect(screen.getByText(designCatalog.components[0].summary.en)).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Logo details" })).toHaveAttribute(
+      "href",
+      "/design/components/logo?locale=en",
+    )
+  })
+
+  it("renders the real segmented toggle with complete English guidance", async () => {
+    render(await ComponentDetailPage({
+      params: Promise.resolve({ slug: "segmented-toggle" }),
+      searchParams: Promise.resolve({ locale: "en" }),
+    }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "Segmented Toggle" })).toBeInTheDocument()
+    expect(screen.getByRole("group", { name: "Language preview" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Source" })).toHaveAttribute(
+      "href",
+      "https://github.com/laflabs-inc/homepage/blob/main/components/ui/segmented-toggle.tsx",
+    )
+    expect(screen.getByRole("heading", { level: 2, name: "When to use" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Accessibility" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "API" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Usage" })).toBeInTheDocument()
+  })
+
+  it("renders localized Korean detail guidance", async () => {
+    render(await ComponentDetailPage({
+      params: Promise.resolve({ slug: "segmented-toggle" }),
+      searchParams: Promise.resolve({}),
+    }))
+
+    expect(screen.getByRole("group", { name: "언어 미리보기" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "사용할 때" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "접근성" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "사용 예시" })).toBeInTheDocument()
+    expect(screen.getByText(designCatalog.components[2].whenNotToUse.ko)).toBeInTheDocument()
+  })
+
+  it("generates catalog params and localized route metadata", async () => {
+    expect(generateStaticParams()).toEqual(
+      designCatalog.components.map(({ id }) => ({ slug: id })),
+    )
+    await expect(generateComponentsMetadata({
+      searchParams: Promise.resolve({ locale: "en" }),
+    })).resolves.toMatchObject({
+      title: `Components | ${designCatalog.meta.name}`,
+      description: "Supported UI states, APIs, and usage guidance.",
+    })
+    await expect(generateComponentMetadata({
+      params: Promise.resolve({ slug: "action" }),
+      searchParams: Promise.resolve({}),
+    })).resolves.toMatchObject({
+      title: `Action | ${designCatalog.meta.name}`,
+      description: designCatalog.components[1].summary.ko,
+    })
+  })
+
+  it("uses the not-found surface for an unknown component slug", async () => {
+    await expect(ComponentDetailPage({
+      params: Promise.resolve({ slug: "missing-component" }),
+      searchParams: Promise.resolve({}),
+    })).rejects.toThrow("NEXT_NOT_FOUND")
+
+    expect(notFoundMock).toHaveBeenCalledOnce()
+  })
+})
 
 describe("Design system foundations page", () => {
   it("renders every Korean foundation and current semantic token values", async () => {

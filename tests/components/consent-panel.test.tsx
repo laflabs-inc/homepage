@@ -97,6 +97,16 @@ function AnalyticsProbe() {
   )
 }
 
+function DesignAnalyticsProbe() {
+  const { track } = useAnalytics()
+
+  return (
+    <button type="button" onClick={() => track("design_code_copy", "action")}>
+      Track design copy
+    </button>
+  )
+}
+
 afterEach(() => {
   vi.clearAllMocks()
   vi.unstubAllGlobals()
@@ -153,6 +163,7 @@ describe("ConsentPanel", () => {
       "Contact clicks",
       "Language changes",
       "Analytics consent",
+      "Design system usage-code copies (component slug only)",
     ]) {
       expect(screen.getByText(eventName)).toBeVisible()
     }
@@ -160,12 +171,13 @@ describe("ConsentPanel", () => {
   })
 
   it.each([
-    ["ko", "수집 항목 보기", "검색 열기·제출·결과 선택(검색어 원문 제외, 검색어 길이·결과 수·결과 유형만)"],
-    ["en", "See what is collected", "Search opens, submissions, and result selections (no raw query; query length, result count, and result type only)"],
-  ] as const)("discloses aggregate-only %s search analytics fields", async (
+    ["ko", "수집 항목 보기", "검색 열기·제출·결과 선택(검색어 원문 제외, 검색어 길이·결과 수·결과 유형만)", "디자인 시스템 사용 코드 복사(컴포넌트 식별자만)"],
+    ["en", "See what is collected", "Search opens, submissions, and result selections (no raw query; query length, result count, and result type only)", "Design system usage-code copies (component slug only)"],
+  ] as const)("discloses minimized %s search and design-copy analytics fields", async (
     locale,
     detailsLabel,
     searchDisclosure,
+    designCopyDisclosure,
   ) => {
     const user = userEvent.setup()
     render(
@@ -180,6 +192,7 @@ describe("ConsentPanel", () => {
     await user.click(screen.getByText(detailsLabel))
 
     expect(screen.getByText(searchDisclosure)).toBeVisible()
+    expect(screen.getByText(designCopyDisclosure)).toBeVisible()
   })
 
 
@@ -274,6 +287,28 @@ describe("ConsentProvider", () => {
     await user.click(screen.getByRole("button", { name: "Track contact" }))
 
     expect(analyticsClientMocks.track).toHaveBeenCalledWith("contact_click", "email")
+  })
+
+  it("lets component documentation track a copied component slug after consent", async () => {
+    const user = userEvent.setup()
+    window.history.replaceState({}, "", "/design/components/action?locale=en")
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <DesignAnalyticsProbe />
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledWith({
+      locale: "en",
+      pathname: "/design/components/action",
+    }))
+    analyticsClientMocks.track.mockClear()
+    await user.click(screen.getByRole("button", { name: "Track design copy" }))
+
+    expect(analyticsClientMocks.track).toHaveBeenCalledWith("design_code_copy", "action")
   })
 
   it("keeps mandatory consent and site search mutually exclusive while preserving inert restoration", async () => {

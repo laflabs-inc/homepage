@@ -30,6 +30,10 @@ const errors = {
   en: "We couldn't save your preference. Please try again.",
 } as const
 
+function supportsPublicAnalytics(pathname: string): boolean {
+  return pathname === "/" || pathname.startsWith("/design/components/")
+}
+
 export function ConsentProvider({
   children,
   initialState,
@@ -58,7 +62,7 @@ export function ConsentProvider({
     const previousState = previousStateRef.current
     previousStateRef.current = state
 
-    if (dnt || state !== "analytics" || pathname !== "/") {
+    if (dnt || state !== "analytics" || !supportsPublicAnalytics(pathname)) {
       clientRef.current?.stop()
       clientRef.current = null
       return

@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 import { products, repositories } from "@/lib/content"
+import { components as designComponents } from "@/lib/design-system/components"
 
 export const eventTypes = [
   "page_view",
@@ -13,6 +14,7 @@ export const eventTypes = [
   "search_submit",
   "search_result_click",
   "work_navigate",
+  "design_code_copy",
 ] as const
 
 export type AnalyticsEventType = (typeof eventTypes)[number]
@@ -31,6 +33,7 @@ const searchResultGroups = new Set([
 ])
 const searchSubmitTarget = /^q(?:[2-9]|[1-9]\d|100):r(?:0|[1-9]\d{0,2})$/
 const workNavigateTarget = /^(?:next|previous):(laf-id|lafetch|lafwall)$/
+const designComponentIds = new Set<string>(designComponents.map(({ id }) => id))
 
 const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): boolean => {
   switch (type) {
@@ -54,6 +57,8 @@ const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): bool
       return targetId !== null && searchResultGroups.has(targetId)
     case "work_navigate":
       return targetId !== null && workNavigateTarget.test(targetId)
+    case "design_code_copy":
+      return targetId !== null && designComponentIds.has(targetId)
   }
 }
 
