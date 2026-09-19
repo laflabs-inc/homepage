@@ -33,6 +33,7 @@ import ComponentDetailPage, {
   generateStaticParams,
 } from "@/app/(documents)/design/components/[slug]/page"
 import FoundationsPage from "@/app/(documents)/design/foundations/page"
+import PatternsPage from "@/app/(documents)/design/patterns/page"
 import { ComponentDetail } from "@/components/design-system/component-detail"
 import { designCatalog } from "@/lib/design-system/catalog"
 
@@ -330,6 +331,69 @@ describe("Design system assets page", () => {
       "href",
       "/design?locale=en",
     )
+  })
+})
+
+describe("Design system patterns page", () => {
+  it("renders every Korean catalog pattern with links to its real related components", async () => {
+    render(await PatternsPage({ searchParams: Promise.resolve({}) }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "패턴" })).toBeInTheDocument()
+
+    for (const pattern of designCatalog.patterns) {
+      const heading = screen.getByRole("heading", { level: 2, name: pattern.title.ko })
+      const section = heading.closest("section")
+      expect(section).not.toBeNull()
+
+      for (const componentId of pattern.relatedComponents) {
+        const component = designCatalog.components.find(({ id }) => id === componentId)
+        expect(component).toBeDefined()
+        expect(within(section as HTMLElement).getByRole("link", { name: component?.name })).toHaveAttribute(
+          "href",
+          `/design/components/${componentId}`,
+        )
+      }
+    }
+  })
+
+  it("preserves English navigation and renders the required restrained pattern structures", async () => {
+    render(await PatternsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
+
+    for (const pattern of designCatalog.patterns) {
+      expect(screen.getByRole("heading", { level: 2, name: pattern.title.en })).toBeInTheDocument()
+    }
+
+    expect(screen.getByRole("figure", { name: "Annotated page shell" })).toBeInTheDocument()
+    expect(screen.getByRole("list", { name: "Structural patterns" })).toBeInTheDocument()
+    expect(screen.getByRole("article", { name: "Document surface excerpt" })).toBeInTheDocument()
+
+    const navigation = screen.getByRole("navigation", { name: "Design system" })
+    expect(within(navigation).getByRole("link", { name: /Patterns/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    )
+    expect(within(navigation).getByRole("link", { name: /Components/ })).toHaveAttribute(
+      "href",
+      "/design/components?locale=en",
+    )
+    expect(screen.getByRole("link", { name: "Code Block" })).toHaveAttribute(
+      "href",
+      "/design/components/code-block?locale=en",
+    )
+  })
+
+  it("publishes responsive collapse guidance without component-demo controls or fake imagery", async () => {
+    render(await PatternsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
+
+    expect(
+      screen.getByText("Stack complex grids at 1080px and simplify navigation and actions at 720px."),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("Reorder the same content for reading instead of shrinking a desktop diagram."),
+    ).toBeInTheDocument()
+    expect(screen.getByText("Keep a 44px target area on small screens.")).toBeInTheDocument()
+    expect(screen.queryAllByRole("button")).toHaveLength(0)
+    expect(screen.queryAllByRole("img")).toHaveLength(0)
   })
 })
 
