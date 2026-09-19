@@ -1041,8 +1041,12 @@
   line-height: 1.6;
 }
 
+.patternRelated li {
+  padding-block: 4px;
+}
+
 .patternRelated a {
-  min-height: 28px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   color: var(--blue);

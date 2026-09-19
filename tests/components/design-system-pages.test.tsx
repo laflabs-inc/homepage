@@ -395,6 +395,15 @@ describe("Design system patterns page", () => {
     expect(screen.queryAllByRole("button")).toHaveLength(0)
     expect(screen.queryAllByRole("img")).toHaveLength(0)
   })
+
+  it("keeps related-component links at the documented 44px target size", () => {
+    const stylesheet = readFileSync(
+      join(process.cwd(), "components/design-system/design-system.module.css"),
+      "utf8",
+    )
+
+    expect(stylesheet).toMatch(/\.patternRelated a\s*{[^}]*min-height:\s*44px;/s)
+  })
 })
 
 describe("Design system AI page", () => {
