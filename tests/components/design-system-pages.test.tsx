@@ -10,6 +10,7 @@ vi.mock("@/app/(documents)/locale", () => ({
 }))
 
 import AssetsPage from "@/app/(documents)/design/assets/page"
+import AiPage from "@/app/(documents)/design/ai/page"
 import FoundationsPage from "@/app/(documents)/design/foundations/page"
 
 const koreanFoundationHeadings = [
@@ -181,6 +182,72 @@ describe("Design system assets page", () => {
 
     const navigation = screen.getByRole("navigation", { name: "Design system" })
     expect(within(navigation).getByRole("link", { name: /Assets/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    )
+    expect(within(navigation).getByRole("link", { name: /Overview/ })).toHaveAttribute(
+      "href",
+      "/design?locale=en",
+    )
+  })
+})
+
+describe("Design system AI page", () => {
+  const installCommand = `mkdir -p "$CODEX_HOME/skills"
+curl -fsSL https://laflabs.co/design/skill.zip -o /tmp/laflabs-web-design.zip
+unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
+  const resourceUrls = [
+    "https://laflabs.co/design/guide.md",
+    "https://laflabs.co/design/tokens.json",
+    "https://laflabs.co/design/skill/SKILL.md",
+    "https://laflabs.co/design/skill.zip",
+  ]
+
+  it("renders Korean provider-neutral resources and a copyable Skill installation command", async () => {
+    render(await AiPage({ searchParams: Promise.resolve({}) }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "AI에서 사용하기" })).toBeInTheDocument()
+    expect(
+      screen.getByText((_, element) =>
+        element?.tagName === "CODE" && element.textContent === installCommand,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Copy Bash code" })).toBeInTheDocument()
+    resourceUrls.forEach((url) => {
+      expect(screen.getByRole("link", { name: url })).toHaveAttribute("href", url)
+    })
+    expect(screen.getByRole("link", { name: "Skill 다운로드" })).toHaveAttribute(
+      "href",
+      "/design/skill.zip",
+    )
+
+    const navigation = screen.getByRole("navigation", { name: "디자인 시스템" })
+    expect(within(navigation).getByRole("link", { name: /AI에서 사용하기/ })).toHaveAttribute(
+      "aria-current",
+      "page",
+    )
+  })
+
+  it("renders equivalent English resources and preserves the locale in design navigation", async () => {
+    render(await AiPage({ searchParams: Promise.resolve({ locale: "en" }) }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "Use with AI" })).toBeInTheDocument()
+    expect(
+      screen.getByText((_, element) =>
+        element?.tagName === "CODE" && element.textContent === installCommand,
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "https://laflabs.co/design/guide.md" })).toHaveAttribute(
+      "href",
+      "https://laflabs.co/design/guide.md",
+    )
+    expect(screen.getByRole("link", { name: "Download Skill" })).toHaveAttribute(
+      "href",
+      "/design/skill.zip",
+    )
+
+    const navigation = screen.getByRole("navigation", { name: "Design system" })
+    expect(within(navigation).getByRole("link", { name: /Use with AI/ })).toHaveAttribute(
       "aria-current",
       "page",
     )
