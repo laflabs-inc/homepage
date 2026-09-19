@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/app/(documents)/locale", () => ({
   resolveDocumentPageLocale: async (searchParams: Promise<{ locale?: string }>) =>
@@ -12,6 +12,8 @@ vi.mock("@/app/(documents)/locale", () => ({
 import AssetsPage from "@/app/(documents)/design/assets/page"
 import AiPage from "@/app/(documents)/design/ai/page"
 import FoundationsPage from "@/app/(documents)/design/foundations/page"
+
+afterEach(() => vi.restoreAllMocks())
 
 const koreanFoundationHeadings = [
   "브랜드 아이덴티티",
@@ -200,8 +202,20 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
     "https://laflabs.co/design/guide.md",
     "https://laflabs.co/design/tokens.json",
     "https://laflabs.co/design/skill/SKILL.md",
+    "https://laflabs.co/design/skill/references/foundations.md",
+    "https://laflabs.co/design/skill/references/components.md",
+    "https://laflabs.co/design/skill/references/patterns.md",
+    "https://laflabs.co/design/skill/references/tokens.json",
     "https://laflabs.co/design/skill.zip",
   ]
+  const koreanProviderInstruction = "LafLabs 공개 웹 작업에는 https://laflabs.co/design/guide.md와 https://laflabs.co/design/tokens.json을 기준으로 사용하세요. 관련된 경우에만 연결된 Skill 참고 문서를 읽고, 제품 주장·에셋·컴포넌트를 임의로 만들지 마세요."
+  const englishProviderInstruction = "Use https://laflabs.co/design/guide.md and https://laflabs.co/design/tokens.json as the source of truth for LafLabs public web work. Read linked Skill references only when relevant, and do not invent product claims, assets, or components."
+
+  function expectPoliteClipboardStatus(message: string): void {
+    const status = screen.getByText(message).closest('[role="status"]')
+    expect(status).toHaveAttribute("aria-live", "polite")
+    expect(status).toHaveAttribute("aria-atomic", "true")
+  }
 
   it("renders Korean provider-neutral resources and a copyable Skill installation command", async () => {
     render(await AiPage({ searchParams: Promise.resolve({}) }))
@@ -212,7 +226,8 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
         element?.tagName === "CODE" && element.textContent === installCommand,
       ),
     ).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Copy Bash code" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Bash 설치 명령 복사" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "AI 작업 안내문 복사" })).toBeInTheDocument()
     resourceUrls.forEach((url) => {
       expect(screen.getByRole("link", { name: url })).toHaveAttribute("href", url)
     })
@@ -220,6 +235,11 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
       "href",
       "/design/skill.zip",
     )
+    expect(
+      screen.getByText((_, element) =>
+        element?.tagName === "CODE" && element.textContent === koreanProviderInstruction,
+      ),
+    ).toBeInTheDocument()
 
     const navigation = screen.getByRole("navigation", { name: "디자인 시스템" })
     expect(within(navigation).getByRole("link", { name: /AI에서 사용하기/ })).toHaveAttribute(
@@ -237,10 +257,11 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
         element?.tagName === "CODE" && element.textContent === installCommand,
       ),
     ).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "https://laflabs.co/design/guide.md" })).toHaveAttribute(
-      "href",
-      "https://laflabs.co/design/guide.md",
-    )
+    resourceUrls.forEach((url) => {
+      expect(screen.getByRole("link", { name: url })).toHaveAttribute("href", url)
+    })
+    expect(screen.getByRole("button", { name: "Copy Bash installation command" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Copy AI work instruction" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Download Skill" })).toHaveAttribute(
       "href",
       "/design/skill.zip",
@@ -255,5 +276,53 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
       "href",
       "/design?locale=en",
     )
+    expect(
+      screen.getByText((_, element) =>
+        element?.tagName === "CODE" && element.textContent === englishProviderInstruction,
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it.each([
+    [
+      "Korean",
+      {},
+      "Bash 설치 명령 복사",
+      "복사됨",
+      "다시 시도",
+      "Bash 설치 명령을 클립보드에 복사했습니다.",
+      "Bash 설치 명령을 복사하지 못했습니다. 다시 시도해 주세요.",
+    ],
+    [
+      "English",
+      { locale: "en" },
+      "Copy Bash installation command",
+      "COPIED",
+      "RETRY",
+      "Bash installation command copied to clipboard.",
+      "Could not copy the Bash installation command. Try again.",
+    ],
+  ])("announces localized %s clipboard success and failure", async (
+    _localeName,
+    searchParams,
+    buttonName,
+    copiedLabel,
+    retryLabel,
+    copiedStatus,
+    retryStatus,
+  ) => {
+    const user = userEvent.setup()
+    const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined)
+    render(await AiPage({ searchParams: Promise.resolve(searchParams) }))
+    const copy = screen.getByRole("button", { name: buttonName })
+
+    await user.click(copy)
+    expect(copy).toHaveTextContent(copiedLabel)
+    expectPoliteClipboardStatus(copiedStatus)
+
+    writeText.mockRejectedValueOnce(new Error("clipboard access denied"))
+    await user.click(copy)
+    expect(copy).toHaveTextContent(retryLabel)
+    expectPoliteClipboardStatus(retryStatus)
   })
 })
