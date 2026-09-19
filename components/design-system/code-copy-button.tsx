@@ -38,6 +38,7 @@ export function CodeCopyButton({
 }) {
   const { track } = useAnalytics()
   const [status, setStatus] = useState<CopyStatus>("idle")
+  const mountedRef = useRef(true)
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const text = labels[locale]
   const statusMessage = status === "copied"
@@ -46,8 +47,12 @@ export function CodeCopyButton({
       ? text.errorStatus
       : ""
 
-  useEffect(() => () => {
-    if (resetTimer.current) clearTimeout(resetTimer.current)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      if (resetTimer.current) clearTimeout(resetTimer.current)
+    }
   }, [])
 
   function scheduleReset() {
@@ -58,9 +63,11 @@ export function CodeCopyButton({
   async function copySource() {
     try {
       await navigator.clipboard.writeText(source)
+      if (!mountedRef.current) return
       setStatus("copied")
       track("design_code_copy", componentSlug)
     } catch {
+      if (!mountedRef.current) return
       setStatus("error")
     }
     scheduleReset()

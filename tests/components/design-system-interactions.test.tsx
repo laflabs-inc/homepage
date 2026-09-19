@@ -88,4 +88,26 @@ describe("Design system component code", () => {
     view.unmount()
     expect(vi.getTimerCount()).toBe(0)
   })
+
+  it("ignores a pending clipboard result after unmount", async () => {
+    userEvent.setup()
+    vi.useFakeTimers()
+    let resolveCopy!: () => void
+    const pendingCopy = new Promise<void>((resolve) => {
+      resolveCopy = resolve
+    })
+    vi.spyOn(navigator.clipboard, "writeText").mockReturnValue(pendingCopy)
+
+    const view = render(<ComponentCode component={actionEntry} locale="en" />)
+    fireEvent.click(screen.getByRole("button", { name: "Copy usage code" }))
+    view.unmount()
+
+    await act(async () => {
+      resolveCopy()
+      await pendingCopy
+    })
+
+    expect(track).not.toHaveBeenCalled()
+    expect(vi.getTimerCount()).toBe(0)
+  })
 })

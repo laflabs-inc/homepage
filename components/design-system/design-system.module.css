@@ -937,6 +937,18 @@
   max-width: 100%;
 }
 
+@media (max-width: 1020px) {
+  .componentRow {
+    grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.92fr);
+    gap: 22px 28px;
+    align-items: start;
+  }
+
+  .componentPreview {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: 160px minmax(0, 1fr);
@@ -952,10 +964,6 @@
     height: 150px;
   }
 
-  .componentRow {
-    grid-template-columns: minmax(120px, 0.55fr) minmax(180px, 0.85fr) minmax(230px, 1.3fr);
-    gap: 22px;
-  }
 }
 
 @media (max-width: 720px) {

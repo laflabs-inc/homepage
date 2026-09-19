@@ -13,6 +13,7 @@ import {
   type DesignToken,
 } from "@/lib/design-system/schema"
 import { designSystemMeta } from "@/lib/design-system/meta"
+import { designComponentSlugs } from "@/lib/design-system/component-slugs"
 
 const copy = { ko: "한국어 안내", en: "English guidance" } as const
 
@@ -180,6 +181,10 @@ describe("design catalog schema", () => {
 })
 
 describe("production design catalog", () => {
+  it("keeps the lightweight analytics slug allowlist aligned with the catalog", () => {
+    expect(designComponentSlugs).toEqual(designCatalog.components.map(({ id }) => id))
+  })
+
   it("publishes the complete foundation, component, and pattern inventories", () => {
     expect(designCatalog.foundations.map(({ id }) => id)).toEqual([
       "identity",

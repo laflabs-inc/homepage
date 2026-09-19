@@ -311,6 +311,23 @@ describe("ConsentProvider", () => {
     expect(analyticsClientMocks.track).toHaveBeenCalledWith("design_code_copy", "action")
   })
 
+  it.each([
+    "/design/components/missing-component",
+    "/design/components/action/implementation-notes",
+  ])("does not initialize analytics for unsupported component paths such as %s", async (pathname) => {
+    window.history.replaceState({}, "", pathname)
+
+    render(
+      <LocaleProvider initialLocale="en">
+        <ConsentProvider initialState="analytics" dnt={false}>
+          <p>Unsupported component path</p>
+        </ConsentProvider>
+      </LocaleProvider>,
+    )
+
+    await waitFor(() => expect(analyticsClientMocks.create).not.toHaveBeenCalled())
+  })
+
   it("keeps mandatory consent and site search mutually exclusive while preserving inert restoration", async () => {
     const user = userEvent.setup()
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({

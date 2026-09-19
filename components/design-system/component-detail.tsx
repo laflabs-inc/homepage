@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { ComponentEntry } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
 import { ComponentCode } from "./component-code"
+import { getComponentMaturityLabel } from "./component-maturity"
 import { ComponentPreview } from "./component-preview"
 import { getDesignPageHref } from "./design-shell"
 import styles from "./design-system.module.css"
@@ -12,7 +13,6 @@ const githubSourceRoot = "https://github.com/laflabs-inc/homepage/blob/main/"
 const copy = {
   ko: {
     maturity: "성숙도",
-    stable: "안정",
     sourcePath: "소스 경로",
     source: "소스",
     preview: "실제 미리보기",
@@ -36,7 +36,6 @@ const copy = {
   },
   en: {
     maturity: "Maturity",
-    stable: "Stable",
     sourcePath: "Source path",
     source: "Source",
     preview: "Live preview",
@@ -71,7 +70,7 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
         <dl className={styles.componentMetadata}>
           <div>
             <dt>{text.maturity}</dt>
-            <dd>{text.stable}</dd>
+            <dd>{getComponentMaturityLabel(component.maturity, locale)}</dd>
           </div>
           <div>
             <dt>{text.sourcePath}</dt>

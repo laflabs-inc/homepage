@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 import { products, repositories } from "@/lib/content"
-import { components as designComponents } from "@/lib/design-system/components"
+import { designComponentSlugs } from "@/lib/design-system/component-slugs"
 
 export const eventTypes = [
   "page_view",
@@ -33,7 +33,7 @@ const searchResultGroups = new Set([
 ])
 const searchSubmitTarget = /^q(?:[2-9]|[1-9]\d|100):r(?:0|[1-9]\d{0,2})$/
 const workNavigateTarget = /^(?:next|previous):(laf-id|lafetch|lafwall)$/
-const designComponentIds = new Set<string>(designComponents.map(({ id }) => id))
+const designComponentIds = new Set<string>(designComponentSlugs)
 
 const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): boolean => {
   switch (type) {

@@ -2,6 +2,7 @@ import Link from "next/link"
 
 import { designCatalog, designPageEntries } from "@/lib/design-system/catalog"
 import type { Locale } from "@/lib/i18n"
+import { getComponentMaturityLabel } from "./component-maturity"
 import { ComponentPreview } from "./component-preview"
 import { getDesignPageHref } from "./design-shell"
 import styles from "./design-system.module.css"
@@ -10,13 +11,11 @@ const pageEntry = designPageEntries.find((entry) => entry.id === "components")
 
 const copy = {
   ko: {
-    maturity: "안정",
     preview: "미리보기",
     details: (name: string) => `${name} 자세히 보기`,
     detailsVisible: "자세히 보기",
   },
   en: {
-    maturity: "Stable",
     preview: "preview",
     details: (name: string) => `${name} details`,
     detailsVisible: "View details",
@@ -43,7 +42,7 @@ export function ComponentIndex({ locale }: { locale: Locale }) {
           >
             <div className={styles.componentIdentity}>
               <h2 id={`component-${component.id}`}>{component.name}</h2>
-              <span>{text.maturity}</span>
+              <span>{getComponentMaturityLabel(component.maturity, locale)}</span>
             </div>
             <div className={styles.componentSummary}>
               <p>{component.summary[locale]}</p>

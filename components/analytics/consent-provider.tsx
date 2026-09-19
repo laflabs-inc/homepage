@@ -11,6 +11,7 @@ import type { AnalyticsEventType } from "@/lib/analytics/normalize"
 import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
 import { CONSENT_POLICY_VERSION } from "@/lib/analytics/consent"
 import { reloadForConsentPolicyUpdate } from "@/lib/analytics/reload"
+import { designComponentSlugs } from "@/lib/design-system/component-slugs"
 import { ConsentPanel } from "./consent-panel"
 
 type ConsentContextValue = {
@@ -30,9 +31,12 @@ const errors = {
   en: "We couldn't save your preference. Please try again.",
 } as const
 
-function supportsPublicAnalytics(pathname: string): boolean {
-  return pathname === "/" || pathname.startsWith("/design/components/")
-}
+const publicAnalyticsPaths = new Set<string>([
+  "/",
+  ...designComponentSlugs.map((slug) => `/design/components/${slug}`),
+])
+
+const supportsPublicAnalytics = (pathname: string): boolean => publicAnalyticsPaths.has(pathname)
 
 export function ConsentProvider({
   children,

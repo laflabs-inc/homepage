@@ -33,6 +33,7 @@ import ComponentDetailPage, {
   generateStaticParams,
 } from "@/app/(documents)/design/components/[slug]/page"
 import FoundationsPage from "@/app/(documents)/design/foundations/page"
+import { ComponentDetail } from "@/components/design-system/component-detail"
 import { designCatalog } from "@/lib/design-system/catalog"
 
 afterEach(() => vi.restoreAllMocks())
@@ -98,6 +99,20 @@ describe("Design system component pages", () => {
     )
   })
 
+  it("uses a shrink-safe intermediate component-row layout beside the shell navigation", () => {
+    const stylesheet = readFileSync(
+      join(process.cwd(), "components/design-system/design-system.module.css"),
+      "utf8",
+    )
+
+    expect(stylesheet).toMatch(
+      /@media \(max-width: 1020px\)\s*{\s*\.componentRow\s*{[^}]*grid-template-columns:\s*minmax\(0,\s*0\.58fr\) minmax\(0,\s*0\.92fr\);/s,
+    )
+    expect(stylesheet).toMatch(
+      /@media \(max-width: 1020px\)[\s\S]*?\.componentPreview\s*{[^}]*grid-column:\s*1 \/ -1;/,
+    )
+  })
+
   it("renders the real segmented toggle with complete English guidance", async () => {
     render(await ComponentDetailPage({
       params: Promise.resolve({ slug: "segmented-toggle" }),
@@ -127,6 +142,20 @@ describe("Design system component pages", () => {
     expect(screen.getByRole("heading", { level: 2, name: "접근성" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "사용 예시" })).toBeInTheDocument()
     expect(screen.getByText(designCatalog.components[2].whenNotToUse.ko)).toBeInTheDocument()
+  })
+
+  it.each([
+    ["en", "Candidate"],
+    ["ko", "후보"],
+  ] as const)("derives the %s maturity label from candidate catalog data", (locale, label) => {
+    render(
+      <ComponentDetail
+        component={{ ...designCatalog.components[1], maturity: "candidate" }}
+        locale={locale}
+      />,
+    )
+
+    expect(screen.getByText(label)).toBeInTheDocument()
   })
 
   it("generates catalog params and localized route metadata", async () => {
