@@ -117,7 +117,7 @@ export const designPageEntries = [
   },
 ] as const satisfies readonly DesignPageEntry[]
 
-export const designDiscoveryEntries = [
+export const designDiscoveryEntries: readonly DesignDiscoveryEntry[] = [
   ...designPageEntries,
   ...designCatalog.components.map((component) => ({
     id: `component-${component.id}`,
@@ -129,4 +129,4 @@ export const designDiscoveryEntries = [
       en: [component.id, component.name, component.category, ...component.states],
     },
   })),
-] satisfies readonly DesignDiscoveryEntry[]
+]

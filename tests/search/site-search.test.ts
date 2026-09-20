@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
 import { searchSite } from "@/lib/search/site-search"
+import { designDiscoveryEntries } from "@/lib/design-system/catalog"
 import type { PublishedDocumentReader } from "@/lib/documents/cache"
 import type { PublishedDocument } from "@/lib/documents/types"
 
@@ -67,6 +68,22 @@ describe("searchSite", () => {
       description: "Switches between two mutually exclusive values in place.",
       href: "/design/components/segmented-toggle",
     })
+  })
+
+  it("makes every human design URL discoverable exactly once", async () => {
+    const repository = createRepository(vi.fn().mockResolvedValue([]))
+
+    for (const entry of designDiscoveryEntries) {
+      const result = await searchSite(entry.title.ko, "ko", repository)
+      const matches = result.results.filter((item) => item.id === `design-${entry.id}`)
+
+      expect(matches).toEqual([
+        expect.objectContaining({
+          group: "page",
+          href: entry.href,
+        }),
+      ])
+    }
   })
 
   it("points machine-resource searches at the human AI guide only", async () => {
