@@ -23,6 +23,28 @@ describe("analytics normalization", () => {
     expect(normalizePath("/?email=a@example.com#x")).toBe("/")
   })
 
+  it.each([
+    "/design/components/logo",
+    "/design/components/action",
+    "/design/components/segmented-toggle",
+    "/design/components/icon-control",
+    "/design/components/text-link",
+    "/design/components/code-block",
+  ])("keeps the exact public component-detail path %s", (pathname) => {
+    expect(normalizePath(`${pathname}?locale=en#private`)).toBe(pathname)
+  })
+
+  it.each([
+    "/design/components",
+    "/design/components/action/implementation-notes",
+    "/design/components/missing-component",
+    "/design/components/action%2Fimplementation-notes",
+    "https://example.com/private",
+    "http://[",
+  ])("coerces unsupported or malformed path %s to the homepage", (pathname) => {
+    expect(normalizePath(pathname)).toBe("/")
+  })
+
   it("keeps only the hostname from a referrer", () => {
     expect(normalizeReferrer("https://github.com/laflabs-inc/lafetch?q=x")).toBe("github.com")
     expect(normalizeReferrer("not a URL")).toBeNull()
@@ -69,6 +91,7 @@ describe("analytics event schema", () => {
     ["search_submit", "q6:r6"],
     ["search_result_click", "product"],
     ["work_navigate", "next:lafetch"],
+    ["design_code_copy", "action"],
   ])("accepts the allowlisted %s target %s", (type, targetId) => {
     expect(AnalyticsEventInputSchema.safeParse({ ...baseEvent, type, targetId }).success).toBe(true)
   })
@@ -106,6 +129,11 @@ describe("analytics event schema", () => {
       ...baseEvent,
       type: "work_navigate",
       targetId: "next:private-project",
+    }).success).toBe(false)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "design_code_copy",
+      targetId: "private-component",
     }).success).toBe(false)
   })
 

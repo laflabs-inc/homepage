@@ -1,0 +1,40 @@
+.link {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid currentColor;
+  color: var(--ink);
+  font: 700 13px / 1.3 var(--font-geist-sans), "Pretendard", sans-serif;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.link:visited {
+  color: var(--deep);
+}
+
+.link:hover {
+  color: var(--blue);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.link > svg {
+  flex: 0 0 auto;
+  transition: transform 180ms ease;
+}
+
+.link:hover > svg {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .link > svg {
+    transition: none;
+  }
+}

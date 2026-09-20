@@ -1,0 +1,65 @@
+.action {
+  min-height: 50px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font: 700 13px / 1.2 var(--font-geist-sans), "Pretendard", sans-serif;
+  letter-spacing: -0.01em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.primary {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--paper);
+}
+
+.primary:hover:not(:disabled) {
+  border-color: var(--deep);
+  background: var(--deep);
+}
+
+.secondary {
+  border-color: var(--line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--blue);
+  background: #eff6ff;
+  color: var(--blue);
+}
+
+.inverse {
+  border-color: var(--paper);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.inverse:hover:not(:disabled) {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action {
+    transition: none;
+  }
+}

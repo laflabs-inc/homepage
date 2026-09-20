@@ -1,6 +1,8 @@
 import { z } from "zod"
 
 import { products, repositories } from "@/lib/content"
+import { designComponentSlugs } from "@/lib/design-system/component-slugs"
+import { supportsPublicAnalytics } from "@/lib/analytics/public-paths"
 
 export const eventTypes = [
   "page_view",
@@ -13,6 +15,7 @@ export const eventTypes = [
   "search_submit",
   "search_result_click",
   "work_navigate",
+  "design_code_copy",
 ] as const
 
 export type AnalyticsEventType = (typeof eventTypes)[number]
@@ -24,13 +27,12 @@ const githubTargets = new Set<string>([
   "laflabs-inc",
   ...repositories.map(({ name }) => name),
 ])
-const publicPaths = new Set(["/"])
-
 const searchResultGroups = new Set([
   "page", "product", "open-source", "notice", "legal", "disclosure",
 ])
 const searchSubmitTarget = /^q(?:[2-9]|[1-9]\d|100):r(?:0|[1-9]\d{0,2})$/
 const workNavigateTarget = /^(?:next|previous):(laf-id|lafetch|lafwall)$/
+const designComponentIds = new Set<string>(designComponentSlugs)
 
 const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): boolean => {
   switch (type) {
@@ -54,6 +56,8 @@ const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): bool
       return targetId !== null && searchResultGroups.has(targetId)
     case "work_navigate":
       return targetId !== null && workNavigateTarget.test(targetId)
+    case "design_code_copy":
+      return targetId !== null && designComponentIds.has(targetId)
   }
 }
 
@@ -104,7 +108,7 @@ export type AnalyticsEventInput = z.infer<typeof AnalyticsEventInputSchema>
 export function normalizePath(value: string): string {
   try {
     const pathname = new URL(value, "https://analytics.invalid").pathname
-    return publicPaths.has(pathname) ? pathname : "/"
+    return supportsPublicAnalytics(pathname) ? pathname : "/"
   } catch {
     return "/"
   }

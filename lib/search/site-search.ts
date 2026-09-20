@@ -9,13 +9,14 @@ import { documentStore } from "@/lib/documents/store"
 import { documentKinds } from "@/lib/documents/types"
 import type { Locale } from "@/lib/i18n"
 import { homepageCopy, openSourceRows, workItems } from "@/lib/homepage"
+import { designDiscoveryEntries } from "@/lib/design-system/catalog"
 
 import type {
   SiteSearchResponse,
   SiteSearchResult,
 } from "./types"
 
-type SearchableResult = SiteSearchResult & { keywords?: string[] }
+type SearchableResult = SiteSearchResult & { keywords?: readonly string[] }
 
 function normalize(value: string, locale: Locale) {
   return value.normalize("NFKC").toLocaleLowerCase(locale)
@@ -112,14 +113,14 @@ function staticResults(locale: Locale): SearchableResult[] {
       href: "/#contact",
       keywords: ["contact", "문의"],
     },
-    {
-      id: "design",
-      group: "page",
-      title: t.footer.links.design,
-      description: locale === "ko" ? "LafLabs의 디자인 가이드입니다." : "The LafLabs design guide.",
-      href: "/design",
-      keywords: ["design", "guide", "디자인", "가이드"],
-    },
+    ...designDiscoveryEntries.map((entry) => ({
+      id: `design-${entry.id}`,
+      group: "page" as const,
+      title: entry.title[locale],
+      description: entry.description[locale],
+      href: entry.href,
+      keywords: entry.keywords[locale],
+    })),
     ...documentKinds.map((kind) => ({
       id: `${kind}-index`,
       group: kind,

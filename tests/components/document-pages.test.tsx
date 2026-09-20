@@ -81,6 +81,21 @@ const managedCategories: DocumentCategorySnapshot[] = [
   },
 ]
 
+const designSitemapUrls = [
+  `${siteUrl}/design`,
+  `${siteUrl}/design/foundations`,
+  `${siteUrl}/design/components`,
+  `${siteUrl}/design/patterns`,
+  `${siteUrl}/design/assets`,
+  `${siteUrl}/design/ai`,
+  `${siteUrl}/design/components/logo`,
+  `${siteUrl}/design/components/action`,
+  `${siteUrl}/design/components/segmented-toggle`,
+  `${siteUrl}/design/components/icon-control`,
+  `${siteUrl}/design/components/text-link`,
+  `${siteUrl}/design/components/code-block`,
+]
+
 function repository(overrides: Partial<Pick<DocumentRepository, "listPublished" | "getPublished">> = {}) {
   return {
     listPublished: vi.fn().mockResolvedValue([published]),
@@ -524,18 +539,29 @@ describe("public document pages", () => {
     expect(screen.getByRole("heading", { name: "문서를 찾을 수 없습니다." }).closest("section")).toHaveAttribute("lang", "ko")
   })
 
-  it("keeps the homepage in the sitemap when document storage is unavailable", async () => {
+  it("keeps every human design page in the sitemap when document storage is unavailable", async () => {
     const store = repository({ listPublished: vi.fn().mockRejectedValue(new Error("database unavailable")) })
 
-    await expect(buildSitemap(store)).resolves.toEqual([{
-      url: siteUrl,
+    const entries = await buildSitemap(store)
+
+    expect(entries.map((entry) => entry.url)).toEqual([siteUrl, ...designSitemapUrls])
+    expect(entries.slice(1)).toEqual(designSitemapUrls.map((url) => ({
+      url,
       changeFrequency: "monthly",
-      priority: 1,
-    }, {
-      url: `${siteUrl}/design`,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    }])
+      priority: url === `${siteUrl}/design` ? 0.6 : 0.5,
+    })))
+  })
+
+  it("publishes each concrete human design URL once without machine or template routes", async () => {
+    const entries = await buildSitemap(repository({ listPublished: vi.fn().mockResolvedValue([]) }))
+    const designUrls = entries
+      .map((entry) => entry.url)
+      .filter((url) => url.startsWith(`${siteUrl}/design`))
+
+    expect(designUrls).toEqual(designSitemapUrls)
+    expect(new Set(designUrls).size).toBe(designSitemapUrls.length)
+    expect(designUrls).not.toContain(expect.stringMatching(/\.(?:md|json|zip)$/))
+    expect(designUrls).not.toContain(expect.stringContaining("[slug]"))
   })
 
   it("adds published Korean document series to the sitemap", async () => {
@@ -547,7 +573,11 @@ describe("public document pages", () => {
 
     expect(entries).toEqual([
       { url: siteUrl, changeFrequency: "monthly", priority: 1 },
-      { url: `${siteUrl}/design`, changeFrequency: "monthly", priority: 0.6 },
+      ...designSitemapUrls.map((url) => ({
+        url,
+        changeFrequency: "monthly" as const,
+        priority: url === `${siteUrl}/design` ? 0.6 : 0.5,
+      })),
       {
         url: `${siteUrl}/notices/service-update`,
         lastModified: published.publishedAt,
@@ -573,7 +603,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(53)
+    expect(entries).toHaveLength(64)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

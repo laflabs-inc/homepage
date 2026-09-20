@@ -10,6 +10,7 @@ import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/cli
 import type { AnalyticsEventType } from "@/lib/analytics/normalize"
 import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
 import { CONSENT_POLICY_VERSION } from "@/lib/analytics/consent"
+import { supportsPublicAnalytics } from "@/lib/analytics/public-paths"
 import { reloadForConsentPolicyUpdate } from "@/lib/analytics/reload"
 import { ConsentPanel } from "./consent-panel"
 
@@ -58,7 +59,7 @@ export function ConsentProvider({
     const previousState = previousStateRef.current
     previousStateRef.current = state
 
-    if (dnt || state !== "analytics" || pathname !== "/") {
+    if (dnt || state !== "analytics" || !supportsPublicAnalytics(pathname)) {
       clientRef.current?.stop()
       clientRef.current = null
       return

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import { documentSections, siteUrl } from "@/lib/content"
+import { designCatalog, designDiscoveryEntries } from "@/lib/design-system/catalog"
 import { listPublishedSitemapDocuments, type PublishedDocumentReader } from "@/lib/documents/cache"
 import { documentStore } from "@/lib/documents/store"
 
@@ -10,17 +11,19 @@ const homepage: MetadataRoute.Sitemap[number] = {
   priority: 1,
 }
 
-const designGuide: MetadataRoute.Sitemap[number] = {
-  url: `${siteUrl}/design`,
+const designPages: MetadataRoute.Sitemap = designDiscoveryEntries.map((entry) => ({
+  url: `${siteUrl}${entry.href}`,
   changeFrequency: "monthly",
-  priority: 0.6,
-}
+  priority: entry.href === designCatalog.meta.canonicalPath ? 0.6 : 0.5,
+}))
+
+const staticEntries: MetadataRoute.Sitemap = [homepage, ...designPages]
 
 export async function buildSitemap(
   repository: PublishedDocumentReader = documentStore,
 ): Promise<MetadataRoute.Sitemap> {
   try {
-    const entries: MetadataRoute.Sitemap = [homepage, designGuide]
+    const entries: MetadataRoute.Sitemap = [...staticEntries]
 
     const documents = await listPublishedSitemapDocuments(repository)
     for (const document of documents) {
@@ -34,7 +37,7 @@ export async function buildSitemap(
 
     return entries
   } catch {
-    return [homepage, designGuide]
+    return [...staticEntries]
   }
 }
 

@@ -1,0 +1,68 @@
+.control {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.control:hover:not(:disabled) {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--paper);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.control:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.control > svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 720px) {
+  .control {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: transparent;
+  }
+
+  .control::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  .control:hover:not(:disabled)::before {
+    border-color: var(--blue);
+    background: var(--blue);
+  }
+
+  .control > svg {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .control {
+    transition: none;
+  }
+}

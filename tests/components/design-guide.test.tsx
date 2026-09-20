@@ -2,34 +2,54 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 vi.mock("@/app/(documents)/locale", () => ({
-  resolveDocumentPageLocale: async () => "ko",
-}))
-vi.mock("@/lib/documents/cache", () => ({
-  listPublishedDocuments: async () => [],
-}))
-vi.mock("@/components/content/content.module.css", () => ({
-  default: new Proxy({}, { get: (_target, property) => String(property) }),
-}))
-vi.mock("@/components/content/design-guide.module.css", () => ({
-  default: new Proxy({}, { get: (_target, property) => String(property) }),
+  resolveDocumentPageLocale: async (searchParams: Promise<{ locale?: string }>) =>
+    (await searchParams).locale === "en" ? "en" : "ko",
 }))
 
 import DesignPage from "@/app/(documents)/design/page"
 
-describe("Design guide", () => {
-  it("presents the brand system and downloadable official asset without document data", async () => {
+describe("Design system overview", () => {
+  it("introduces the Korean reference manual and its primary destinations", async () => {
     render(await DesignPage({ searchParams: Promise.resolve({}) }))
 
-    expect(screen.getByRole("heading", { level: 1, name: "디자인 가이드" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "로고" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "컬러" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "타이포그래피" })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { name: "인터페이스 원칙" })).toBeInTheDocument()
-    expect(screen.getByText("#2563EB")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "PNG 다운로드" })).toHaveAttribute(
+    expect(
+      screen.getByRole("heading", { level: 1, name: "LafLabs 디자인 시스템" }),
+    ).toBeInTheDocument()
+    expect(screen.getByText("2026.9.0")).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "기초 원칙" })).toHaveAttribute(
       "href",
-      "/laflabs-logo.png",
+      "/design/foundations",
     )
-    expect(screen.getByRole("link", { name: "PNG 다운로드" })).toHaveAttribute("download")
+    expect(screen.getByRole("link", { name: "컴포넌트" })).toHaveAttribute(
+      "href",
+      "/design/components",
+    )
+    expect(screen.getByRole("link", { name: "AI에서 사용하기" })).toHaveAttribute(
+      "href",
+      "/design/ai",
+    )
+    expect(screen.getByRole("navigation", { name: "디자인 시스템" })).toBeInTheDocument()
+  })
+
+  it("keeps the English overview on the same destination structure", async () => {
+    render(await DesignPage({ searchParams: Promise.resolve({ locale: "en" }) }))
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "LafLabs Design System" }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "Documentation" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Foundations" })).toHaveAttribute(
+      "href",
+      "/design/foundations?locale=en",
+    )
+    expect(screen.getByRole("link", { name: "Components" })).toHaveAttribute(
+      "href",
+      "/design/components?locale=en",
+    )
+    expect(screen.getByRole("link", { name: "Use with AI" })).toHaveAttribute(
+      "href",
+      "/design/ai?locale=en",
+    )
+    expect(screen.getByRole("navigation", { name: "Design system" })).toBeInTheDocument()
   })
 })
