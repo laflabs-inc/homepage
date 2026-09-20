@@ -33,6 +33,59 @@ function createRepository(
 }
 
 describe("searchSite", () => {
+  it.each([
+    ["타이포그래피", "design-foundations", "기초 원칙", "/design/foundations"],
+    ["컴포넌트", "design-components", "컴포넌트", "/design/components"],
+    ["AI 디자인", "design-ai", "AI에서 사용하기", "/design/ai"],
+  ] as const)("surfaces the specific Korean design page for %s", async (
+    query,
+    id,
+    title,
+    href,
+  ) => {
+    const repository = createRepository(vi.fn().mockResolvedValue([]))
+
+    const result = await searchSite(query, "ko", repository)
+
+    expect(result.results[0]).toMatchObject({
+      id,
+      group: "page",
+      title,
+      href,
+    })
+  })
+
+  it("surfaces a concrete component detail page by component name", async () => {
+    const repository = createRepository(vi.fn().mockResolvedValue([]))
+
+    const result = await searchSite("Segmented Toggle", "en", repository)
+
+    expect(result.results[0]).toMatchObject({
+      id: "design-component-segmented-toggle",
+      group: "page",
+      title: "Segmented Toggle",
+      description: "Switches between two mutually exclusive values in place.",
+      href: "/design/components/segmented-toggle",
+    })
+  })
+
+  it("points machine-resource searches at the human AI guide only", async () => {
+    const repository = createRepository(vi.fn().mockResolvedValue([]))
+
+    const results = await Promise.all([
+      searchSite("Markdown", "en", repository),
+      searchSite("token", "en", repository),
+      searchSite("Skill", "en", repository),
+    ])
+    const designHrefs = results.flatMap((result) => result.results)
+      .filter((result) => result.href.startsWith("/design"))
+      .map((result) => result.href)
+
+    expect(designHrefs).toEqual(["/design/ai", "/design/ai", "/design/ai"])
+    expect(designHrefs).not.toContain(expect.stringMatching(/\.(?:md|json|zip)$/))
+    expect(designHrefs).not.toContain(expect.stringContaining("[slug]"))
+  })
+
   it("ranks an exact product title before a product-description match", async () => {
     const repository = createRepository(vi.fn().mockResolvedValue([]))
 

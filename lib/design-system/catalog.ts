@@ -34,6 +34,8 @@ export type DesignPageEntry = Readonly<{
   keywords: Readonly<{ ko: readonly string[]; en: readonly string[] }>
 }>
 
+type DesignDiscoveryEntry = Omit<DesignPageEntry, "id"> & Readonly<{ id: string }>
+
 export const designPageEntries = [
   {
     id: "overview",
@@ -114,3 +116,17 @@ export const designPageEntries = [
     },
   },
 ] as const satisfies readonly DesignPageEntry[]
+
+export const designDiscoveryEntries = [
+  ...designPageEntries,
+  ...designCatalog.components.map((component) => ({
+    id: `component-${component.id}`,
+    title: { ko: component.name, en: component.name },
+    description: component.summary,
+    href: `/design/components/${component.id}`,
+    keywords: {
+      ko: [component.id, component.name, component.category, ...component.states],
+      en: [component.id, component.name, component.category, ...component.states],
+    },
+  })),
+] satisfies readonly DesignDiscoveryEntry[]
