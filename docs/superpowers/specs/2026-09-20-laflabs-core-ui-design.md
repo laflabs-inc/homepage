@@ -6,7 +6,7 @@ LafLabs Web Design is now published for people and AI at `/design`, `/design/gui
 
 The current component catalog is too small to act as a practical starting point for another LafLabs website. It documents six components: Logo, Action, Segmented Toggle, Icon Control, Text Link, and Code Block. Meanwhile, the application contains many separate implementations of buttons, inputs, selects, disclosures, and overlays. Future sites would still need to invent most interface fundamentals.
 
-The repository also contains two conflicting descriptions of the brand. The public guide describes the current Paper, Ink, Primary Blue, square system, while the root `DESIGN.md` and its Impeccable sidecar still describe the retired dark route-era interface. An AI that starts from repository files instead of the public guide can therefore follow the wrong visual system.
+The generated root `DESIGN.md` already matches the public Paper, Ink, Primary Blue, square system. Its Impeccable sidecar predates that generated guide, so tool-specific extracted values can still disagree until the sidecar is refreshed.
 
 ## Goals
 
@@ -17,7 +17,7 @@ The repository also contains two conflicting descriptions of the brand. The publ
 - Use an accessibility primitive only where focus management, keyboard interaction, or portal behavior is genuinely complex.
 - Document real states, APIs, accessibility requirements, and usage boundaries for every component.
 - Keep the public guide, Skill references, search entries, sitemap, and machine resources generated from one catalog.
-- Align the repository-level design source of truth with the published design system.
+- Keep the generated repository guide, public resources, and Impeccable sidecar aligned as the system expands.
 
 ## Non-goals
 
@@ -159,7 +159,7 @@ No custom shadcn registry is published in this phase. The component contracts ne
 
 ## Repository source of truth
 
-`DESIGN.md` is updated to describe the current Paper, Ink, Primary Blue system and the Core UI rules. Retired route-era values remain documented only as legacy tokens in the public token catalog.
+`DESIGN.md` remains generated from the catalog and gains the new Core UI rules when the catalog changes. Retired route-era values remain documented only as legacy tokens in the public token catalog.
 
 The Impeccable design sidecar is regenerated after `DESIGN.md` is aligned. Generated public resources continue to derive from `lib/design-system/*`; `DESIGN.md` is project guidance, not a second runtime catalog.
 
@@ -231,7 +231,7 @@ The final browser review covers the component index and representative detail pa
 
 ## Delivery sequence
 
-1. Align `DESIGN.md`, semantic tokens, schema, and AI instruction.
+1. Extend semantic tokens and schema, update the AI instruction, regenerate `DESIGN.md`, and refresh the Impeccable sidecar.
 2. Implement and document Delivery A components.
 3. Migrate the selected low-risk consumers.
 4. Verify and publish Delivery A.
