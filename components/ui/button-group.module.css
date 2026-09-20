@@ -1,0 +1,27 @@
+.group {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: stretch;
+}
+
+.group[data-orientation="horizontal"] > * + * {
+  margin-inline-start: -1px;
+}
+
+.group[data-orientation="vertical"] {
+  flex-direction: column;
+}
+
+.group[data-orientation="vertical"] > * + * {
+  margin-block-start: -1px;
+}
+
+@media (max-width: 720px) {
+  .group[data-orientation="horizontal"] {
+    flex-wrap: wrap;
+  }
+
+  .group[data-orientation="horizontal"] > * {
+    min-height: 44px;
+  }
+}
