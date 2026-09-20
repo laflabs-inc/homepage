@@ -30,7 +30,7 @@ function Guidance({ foundation, locale }: { foundation: FoundationEntry; locale:
   return (
     <ul className={styles.guidanceList}>
       {foundation.guidance.map((guidance) => (
-        <li key={guidance.en}>{guidance[locale]}</li>
+        <li key={guidance.en}><span>{guidance[locale]}</span></li>
       ))}
     </ul>
   )

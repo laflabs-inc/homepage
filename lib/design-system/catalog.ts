@@ -125,8 +125,8 @@ export const designDiscoveryEntries: readonly DesignDiscoveryEntry[] = [
     description: component.summary,
     href: `/design/components/${component.id}`,
     keywords: {
-      ko: [component.id, component.name, component.category, ...component.states],
-      en: [component.id, component.name, component.category, ...component.states],
+      ko: [component.id, component.name, component.category, ...component.states.map(({ id }) => id)],
+      en: [component.id, component.name, component.category, ...component.states.map(({ id }) => id)],
     },
   })),
 ]

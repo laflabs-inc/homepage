@@ -49,7 +49,12 @@ const validCatalog = {
       demoKey: "logo",
       importExample: 'import { Logo } from "@/components/ui/logo"',
       usageExample: "<Logo />",
-      states: ["default"],
+      states: [
+        {
+          id: "default",
+          guidance: copy,
+        },
+      ],
       props: [
         {
           name: "label",
@@ -178,6 +183,28 @@ describe("design catalog schema", () => {
       "components logo: missing component demoKey",
     )
   })
+
+  it("rejects a component state without complete localized inspection guidance", () => {
+    const component = {
+      ...validCatalog.components[0],
+      states: [{ id: "default", guidance: { ko: "상태 확인", en: "" } }],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
+      "components logo state default: missing localized copy",
+    )
+  })
+
+  it("rejects patterns that reference an unknown component", () => {
+    const pattern = {
+      ...validCatalog.patterns[0],
+      relatedComponents: ["missing-component"],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, patterns: [pattern] })).toThrow(
+      "patterns site-chrome: unknown related component missing-component",
+    )
+  })
 })
 
 describe("production design catalog", () => {
@@ -216,6 +243,17 @@ describe("production design catalog", () => {
       "responsive-collapse",
       "contrast-band",
     ])
+  })
+
+  it("provides localized inspection guidance for every documented component state", () => {
+    for (const component of designCatalog.components) {
+      expect(component.states.length).toBeGreaterThan(0)
+      for (const state of component.states) {
+        expect(state.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+        expect(state.guidance.ko.trim()).not.toBe("")
+        expect(state.guidance.en.trim()).not.toBe("")
+      }
+    }
   })
 
   it("keeps active color defaults separate from legacy route-era colors", () => {

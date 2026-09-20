@@ -11,11 +11,39 @@ import type { Locale } from "@/lib/i18n"
 import { SegmentedToggleDemo } from "./component-demo-segmented-toggle"
 import styles from "./design-system.module.css"
 
-function LogoDemo() {
-  return <Logo />
+function LogoDemo({ state }: ComponentDemoProps) {
+  return <Logo size={state === "compact" ? 16 : 24} />
 }
 
-function ActionDemo() {
+function ActionDemo({ locale, state }: ComponentDemoProps) {
+  if (state) {
+    const labels = locale === "ko"
+      ? {
+        primary: "주요 동작",
+        secondary: "보조 동작",
+        inverse: "반전 동작",
+        hover: "hover 동작",
+        "focus-visible": "focus-visible 동작",
+        disabled: "비활성 동작",
+      }
+      : {
+        primary: "Primary action",
+        secondary: "Secondary action",
+        inverse: "Inverse action",
+        hover: "Hover action",
+        "focus-visible": "Focus-visible action",
+        disabled: "Disabled action",
+      }
+    const variant = state === "secondary" ? "secondary" : state === "inverse" ? "inverse" : "primary"
+    const action = (
+      <Action type="button" variant={variant} disabled={state === "disabled"}>
+        {labels[state as keyof typeof labels] ?? state}
+      </Action>
+    )
+
+    return state === "inverse" ? <span className={styles.inverseDemo}>{action}</span> : action
+  }
+
   return (
     <div className={styles.demoCluster}>
       <Action type="button" variant="primary">Primary</Action>
@@ -27,18 +55,28 @@ function ActionDemo() {
   )
 }
 
-function IconControlDemo({ locale }: ComponentDemoProps) {
+function IconControlDemo({ locale, state }: ComponentDemoProps) {
+  const label = state === "disabled"
+    ? locale === "ko" ? "비활성 아이콘 컨트롤" : "Disabled icon control"
+    : state
+      ? locale === "ko" ? `${state} 아이콘 컨트롤` : `${state} icon control`
+      : locale === "ko" ? "검색 미리보기" : "Search preview"
+
   return (
-    <IconControl label={locale === "ko" ? "검색 미리보기" : "Search preview"}>
+    <IconControl label={label} disabled={state === "disabled"}>
       <MagnifyingGlass aria-hidden weight="bold" />
     </IconControl>
   )
 }
 
-function TextLinkDemo({ locale }: ComponentDemoProps) {
+function TextLinkDemo({ locale, state }: ComponentDemoProps) {
+  const label = state
+    ? locale === "ko" ? `${state} 링크 살펴보기` : `Inspect ${state} link`
+    : locale === "ko" ? "컴포넌트 보기" : "View components"
+
   return (
-    <TextLink href="#text-link-preview">
-      {locale === "ko" ? "컴포넌트 보기" : "View components"}
+    <TextLink href={state ? "/design/components" : "#text-link-preview"}>
+      {label}
     </TextLink>
   )
 }
@@ -74,7 +112,7 @@ function CodeBlockDemo({ locale }: ComponentDemoProps) {
   )
 }
 
-export type ComponentDemoProps = Readonly<{ locale: Locale }>
+export type ComponentDemoProps = Readonly<{ locale: Locale; state?: string }>
 
 export const componentDemos = {
   logo: LogoDemo,

@@ -35,7 +35,22 @@ export const components = [
     demoKey: "logo",
     importExample: imports.logo,
     usageExample: "<Logo size={24} />",
-    states: ["default", "compact"],
+    states: [
+      {
+        id: "default",
+        guidance: {
+          ko: "24px 심볼과 전체 워드마크가 기준선에서 함께 정렬되는지 확인합니다.",
+          en: "Inspect the 24px symbol and full wordmark together on one baseline.",
+        },
+      },
+      {
+        id: "compact",
+        guidance: {
+          ko: "16px 심볼에서도 원본 비율과 워드마크 간격이 유지되는지 확인합니다.",
+          en: "Inspect the 16px symbol for preserved proportions and wordmark spacing.",
+        },
+      },
+    ],
     props: [
       {
         name: "size",
@@ -73,7 +88,50 @@ export const components = [
     demoKey: "action",
     importExample: imports.action,
     usageExample: '<Action href="/design" variant="primary">Open guide</Action>',
-    states: ["primary", "secondary", "inverse", "hover", "focus-visible", "disabled"],
+    states: [
+      {
+        id: "primary",
+        guidance: {
+          ko: "파란 배경의 실제 primary 버튼이 가장 높은 동작 우선순위를 나타내는지 확인합니다.",
+          en: "Inspect the real blue primary button as the highest-priority action.",
+        },
+      },
+      {
+        id: "secondary",
+        guidance: {
+          ko: "Paper 배경과 선을 쓰는 실제 secondary 버튼이 보조 동작으로 읽히는지 확인합니다.",
+          en: "Inspect the real outlined secondary button as a lower-priority action.",
+        },
+      },
+      {
+        id: "inverse",
+        guidance: {
+          ko: "Ink 면 위에서 실제 inverse 버튼의 경계와 글자가 선명한지 확인합니다.",
+          en: "Inspect the real inverse button for a clear boundary and label on Ink.",
+        },
+      },
+      {
+        id: "hover",
+        guidance: {
+          ko: "실제 버튼에 포인터를 올려 배경과 경계 색 변화가 배치를 움직이지 않는지 확인합니다.",
+          en: "Hover the real button and confirm its color change does not move the layout.",
+        },
+      },
+      {
+        id: "focus-visible",
+        guidance: {
+          ko: "Tab으로 실제 버튼에 초점을 옮겨 파란 2px outline을 확인합니다.",
+          en: "Tab to the real button and inspect its two-pixel blue focus outline.",
+        },
+      },
+      {
+        id: "disabled",
+        guidance: {
+          ko: "실제 비활성 버튼이 이름은 유지하지만 실행되지 않고 낮은 불투명도로 표시되는지 확인합니다.",
+          en: "Inspect the real disabled button: it stays named, cannot activate, and uses reduced opacity.",
+        },
+      },
+    ],
     props: [
       {
         name: "href",
@@ -137,7 +195,43 @@ export const components = [
   ]}
   onValueChange={setLocale}
 />`,
-    states: ["default", "hover", "focus-visible", "selected", "reduced-motion"],
+    states: [
+      {
+        id: "default",
+        guidance: {
+          ko: "실제 두 option과 현재 값이 한 group으로 읽히는지 확인합니다.",
+          en: "Inspect the real two-option control and its current value as one named group.",
+        },
+      },
+      {
+        id: "hover",
+        guidance: {
+          ko: "선택되지 않은 실제 option에 포인터를 올려 텍스트 강조를 확인합니다.",
+          en: "Hover the real inactive option and inspect its text emphasis.",
+        },
+      },
+      {
+        id: "focus-visible",
+        guidance: {
+          ko: "Tab으로 실제 option에 초점을 옮겨 내부 focus outline을 확인합니다.",
+          en: "Tab to a real option and inspect the inset focus outline.",
+        },
+      },
+      {
+        id: "selected",
+        guidance: {
+          ko: "다른 option을 선택해 thumb 이동과 aria-pressed 값이 함께 바뀌는지 확인합니다.",
+          en: "Select the other option and confirm the thumb and aria-pressed value change together.",
+        },
+      },
+      {
+        id: "reduced-motion",
+        guidance: {
+          ko: "동작 줄이기 설정에서 실제 선택 표시는 남고 thumb 전환 시간만 0이 되는지 확인합니다.",
+          en: "With reduced motion enabled, confirm selection remains clear while the thumb transition becomes instant.",
+        },
+      },
+    ],
     props: [
       {
         name: "label",
@@ -211,7 +305,36 @@ export const components = [
     demoKey: "icon-control",
     importExample: imports.iconControl,
     usageExample: '<IconControl label="Search"><MagnifyingGlass aria-hidden /></IconControl>',
-    states: ["default", "hover", "focus-visible", "disabled"],
+    states: [
+      {
+        id: "default",
+        guidance: {
+          ko: "실제 34px 컨트롤 안의 아이콘과 접근성 이름을 확인합니다.",
+          en: "Inspect the real 34px control, its icon, and its accessible name.",
+        },
+      },
+      {
+        id: "hover",
+        guidance: {
+          ko: "실제 컨트롤에 포인터를 올려 Blue 배경과 Paper 아이콘 전환을 확인합니다.",
+          en: "Hover the real control and inspect its Blue surface and Paper icon.",
+        },
+      },
+      {
+        id: "focus-visible",
+        guidance: {
+          ko: "Tab으로 실제 컨트롤에 초점을 옮겨 외부 focus outline을 확인합니다.",
+          en: "Tab to the real control and inspect its outside focus outline.",
+        },
+      },
+      {
+        id: "disabled",
+        guidance: {
+          ko: "실제 비활성 컨트롤이 이름을 유지하고 실행되지 않는지 확인합니다.",
+          en: "Inspect the real disabled control and confirm it stays named but cannot activate.",
+        },
+      },
+    ],
     props: [
       {
         name: "label",
@@ -258,7 +381,36 @@ export const components = [
     demoKey: "text-link",
     importExample: imports.textLink,
     usageExample: '<TextLink href="/design/components">Components</TextLink>',
-    states: ["default", "hover", "focus-visible", "visited"],
+    states: [
+      {
+        id: "default",
+        guidance: {
+          ko: "실제 링크의 목적지 텍스트, 밑줄, 장식 화살표를 함께 확인합니다.",
+          en: "Inspect the real link's destination text, underline, and decorative arrow.",
+        },
+      },
+      {
+        id: "hover",
+        guidance: {
+          ko: "실제 링크에 포인터를 올려 Blue 전환과 화살표 이동을 확인합니다.",
+          en: "Hover the real link and inspect its Blue transition and arrow movement.",
+        },
+      },
+      {
+        id: "focus-visible",
+        guidance: {
+          ko: "Tab으로 실제 링크에 초점을 옮겨 외부 focus outline을 확인합니다.",
+          en: "Tab to the real link and inspect its outside focus outline.",
+        },
+      },
+      {
+        id: "visited",
+        guidance: {
+          ko: "실제 링크를 연 뒤 돌아와 deep blue 방문 상태가 목적지 의미를 유지하는지 확인합니다.",
+          en: "Open the real link and return to inspect the deep-blue visited state without losing its destination meaning.",
+        },
+      },
+    ],
     props: [
       {
         name: "href",
@@ -307,7 +459,29 @@ export const components = [
     usageExample: `<CodeBlock language="ts" source={source}>
   {highlightedCode}
 </CodeBlock>`,
-    states: ["idle", "copied", "error"],
+    states: [
+      {
+        id: "idle",
+        guidance: {
+          ko: "실제 코드 원문, 언어 이름, 복사 버튼을 초기 상태에서 확인합니다.",
+          en: "Inspect the real source, language name, and copy action in the idle state.",
+        },
+      },
+      {
+        id: "copied",
+        guidance: {
+          ko: "실제 복사 버튼을 눌러 COPIED label과 polite 상태 안내를 확인합니다.",
+          en: "Use the real copy action and inspect its COPIED label and polite status message.",
+        },
+      },
+      {
+        id: "error",
+        guidance: {
+          ko: "클립보드 권한을 거부한 뒤 실제 복사 버튼의 RETRY label과 선택 가능한 원문을 확인합니다.",
+          en: "Deny clipboard access, then inspect the real RETRY label while the source remains selectable.",
+        },
+      },
+    ],
     props: [
       {
         name: "children",

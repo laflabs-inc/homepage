@@ -145,6 +145,87 @@ describe("Design system component pages", () => {
     expect(screen.getByText(designCatalog.components[2].whenNotToUse.ko)).toBeInTheDocument()
   })
 
+  it("renders every Action variant and state as an inspectable real production control", () => {
+    const action = designCatalog.components.find(({ id }) => id === "action")
+    if (!action) throw new Error("Action catalog fixture is missing")
+
+    render(<ComponentDetail component={action} locale="en" />)
+
+    const inspections = screen.getByRole("list", { name: "Action state inspections" })
+    expect(within(inspections).getAllByRole("listitem")).toHaveLength(6)
+    const expectedStates = [
+      ["primary", "Inspect the real blue primary button as the highest-priority action."],
+      ["secondary", "Inspect the real outlined secondary button as a lower-priority action."],
+      ["inverse", "Inspect the real inverse button for a clear boundary and label on Ink."],
+      ["hover", "Hover the real button and confirm its color change does not move the layout."],
+      ["focus-visible", "Tab to the real button and inspect its two-pixel blue focus outline."],
+      ["disabled", "Inspect the real disabled button: it stays named, cannot activate, and uses reduced opacity."],
+    ] as const
+    for (const [state, guidance] of expectedStates) {
+      const preview = within(inspections).getByRole("region", {
+        name: `Action ${state} state preview`,
+      })
+      expect(preview).toBeInTheDocument()
+      expect(within(inspections).getByText(guidance)).toBeInTheDocument()
+    }
+    expect(within(inspections).getByRole("button", { name: "Disabled action" })).toBeDisabled()
+  })
+
+  it("derives locale-preserving related component and pattern links from the catalog", () => {
+    const action = designCatalog.components.find(({ id }) => id === "action")
+    if (!action) throw new Error("Action catalog fixture is missing")
+
+    render(<ComponentDetail component={action} locale="en" />)
+
+    const related = screen.getByRole("region", { name: "Related documentation" })
+    expect(within(related).getByRole("link", { name: "Logo" })).toHaveAttribute(
+      "href",
+      "/design/components/logo?locale=en",
+    )
+    expect(within(related).getByRole("link", { name: "Text Link" })).toHaveAttribute(
+      "href",
+      "/design/components/text-link?locale=en",
+    )
+    expect(within(related).getByRole("link", { name: "Collection row" })).toHaveAttribute(
+      "href",
+      "/design/patterns?locale=en#pattern-collection-row",
+    )
+    expect(within(related).getByRole("link", { name: "Responsive collapse" })).toHaveAttribute(
+      "href",
+      "/design/patterns?locale=en#pattern-responsive-collapse",
+    )
+    expect(within(related).queryByRole("link", { name: "Action" })).not.toBeInTheDocument()
+  })
+
+  it("shows Korean state inspection guidance and related links without changing locale", () => {
+    const iconControl = designCatalog.components.find(({ id }) => id === "icon-control")
+    if (!iconControl) throw new Error("Icon Control catalog fixture is missing")
+
+    render(<ComponentDetail component={iconControl} locale="ko" />)
+
+    const inspections = screen.getByRole("list", { name: "Icon Control 상태 살펴보기" })
+    const expectedGuidance = [
+      "실제 34px 컨트롤 안의 아이콘과 접근성 이름을 확인합니다.",
+      "실제 컨트롤에 포인터를 올려 Blue 배경과 Paper 아이콘 전환을 확인합니다.",
+      "Tab으로 실제 컨트롤에 초점을 옮겨 외부 focus outline을 확인합니다.",
+      "실제 비활성 컨트롤이 이름을 유지하고 실행되지 않는지 확인합니다.",
+    ]
+    for (const guidance of expectedGuidance) {
+      expect(within(inspections).getByText(guidance)).toBeInTheDocument()
+    }
+    expect(within(inspections).getByRole("button", { name: "비활성 아이콘 컨트롤" })).toBeDisabled()
+
+    const related = screen.getByRole("region", { name: "관련 문서" })
+    expect(within(related).getByRole("link", { name: "Segmented Toggle" })).toHaveAttribute(
+      "href",
+      "/design/components/segmented-toggle",
+    )
+    expect(within(related).getByRole("link", { name: "반응형 쌓기" })).toHaveAttribute(
+      "href",
+      "/design/patterns#pattern-responsive-collapse",
+    )
+  })
+
   it.each([
     ["en", "Candidate"],
     ["ko", "후보"],
@@ -288,6 +369,20 @@ describe("Design system foundations page", () => {
         new RegExp(`\\.${selector}\\s*\\{[^}]*background:\\s*var\\(--paper\\);`, "s"),
       )
     }
+  })
+
+  it("keeps foundation guidance rules full width while constraining only their text", () => {
+    const stylesheet = readFileSync(
+      join(process.cwd(), "components/design-system/design-system.module.css"),
+      "utf8",
+    )
+
+    expect(stylesheet).toMatch(
+      /\.guidanceList li\s*\{(?=[^}]*border-bottom:\s*1px solid var\(--line\))(?=[^}]*padding:\s*15px 0)(?![^}]*max-width)[^}]*\}/s,
+    )
+    expect(stylesheet).toMatch(
+      /\.guidanceList li > span\s*\{(?=[^}]*display:\s*block)(?=[^}]*max-width:\s*72ch)[^}]*\}/s,
+    )
   })
 })
 

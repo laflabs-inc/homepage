@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { products, repositories } from "@/lib/content"
 import { designComponentSlugs } from "@/lib/design-system/component-slugs"
+import { supportsPublicAnalytics } from "@/lib/analytics/public-paths"
 
 export const eventTypes = [
   "page_view",
@@ -26,8 +27,6 @@ const githubTargets = new Set<string>([
   "laflabs-inc",
   ...repositories.map(({ name }) => name),
 ])
-const publicPaths = new Set(["/"])
-
 const searchResultGroups = new Set([
   "page", "product", "open-source", "notice", "legal", "disclosure",
 ])
@@ -109,7 +108,7 @@ export type AnalyticsEventInput = z.infer<typeof AnalyticsEventInputSchema>
 export function normalizePath(value: string): string {
   try {
     const pathname = new URL(value, "https://analytics.invalid").pathname
-    return publicPaths.has(pathname) ? pathname : "/"
+    return supportsPublicAnalytics(pathname) ? pathname : "/"
   } catch {
     return "/"
   }

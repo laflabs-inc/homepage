@@ -279,11 +279,15 @@
 }
 
 .guidanceList li {
-  max-width: 72ch;
   padding: 15px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
   line-height: 1.65;
+}
+
+.guidanceList li > span {
+  max-width: 72ch;
+  display: block;
 }
 
 .identitySpecimen {
@@ -856,18 +860,77 @@
 .stateList {
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--ink);
   list-style: none;
 }
 
 .stateList li {
   min-width: 0;
-  padding: 15px 14px 15px 0;
+  padding: 24px 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 0.68fr) minmax(0, 1.32fr);
+  gap: 32px;
+  align-items: center;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
   overflow-wrap: anywhere;
+}
+
+.stateGuidance code {
+  font-size: 12px;
+}
+
+.stateGuidance p {
+  max-width: 48ch;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.stateList .componentPreview {
+  min-height: 124px;
+  padding: 22px;
+}
+
+.relatedDocumentation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+}
+
+.relatedDocumentation h3 {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font: 650 10px / 1.45 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.relatedDocumentation ul {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.relatedDocumentation li {
+  min-height: 44px;
+  border-bottom: 1px solid var(--line);
+}
+
+.relatedDocumentation a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.relatedDocumentation a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .apiTableRegion {
@@ -1489,8 +1552,13 @@
     border-left: 0;
   }
 
-  .stateList {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .stateList li,
+  .relatedDocumentation {
+    grid-template-columns: 1fr;
+  }
+
+  .stateList li {
+    gap: 20px;
   }
 
   .componentImport {

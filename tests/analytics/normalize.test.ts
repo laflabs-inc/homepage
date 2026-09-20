@@ -23,6 +23,28 @@ describe("analytics normalization", () => {
     expect(normalizePath("/?email=a@example.com#x")).toBe("/")
   })
 
+  it.each([
+    "/design/components/logo",
+    "/design/components/action",
+    "/design/components/segmented-toggle",
+    "/design/components/icon-control",
+    "/design/components/text-link",
+    "/design/components/code-block",
+  ])("keeps the exact public component-detail path %s", (pathname) => {
+    expect(normalizePath(`${pathname}?locale=en#private`)).toBe(pathname)
+  })
+
+  it.each([
+    "/design/components",
+    "/design/components/action/implementation-notes",
+    "/design/components/missing-component",
+    "/design/components/action%2Fimplementation-notes",
+    "https://example.com/private",
+    "http://[",
+  ])("coerces unsupported or malformed path %s to the homepage", (pathname) => {
+    expect(normalizePath(pathname)).toBe("/")
+  })
+
   it("keeps only the hostname from a referrer", () => {
     expect(normalizeReferrer("https://github.com/laflabs-inc/lafetch?q=x")).toBe("github.com")
     expect(normalizeReferrer("not a URL")).toBeNull()

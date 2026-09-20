@@ -7,16 +7,18 @@ export function ComponentPreview({
   demoKey,
   label,
   locale,
+  state,
 }: {
   demoKey: DemoKey
   label: string
   locale: Locale
+  state?: string
 }) {
   const Demo = componentDemos[demoKey]
 
   return (
     <div className={styles.componentPreview} role="region" aria-label={label}>
-      <Demo locale={locale} />
+      <Demo locale={locale} state={state} />
     </div>
   )
 }

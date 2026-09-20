@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { designCatalog } from "@/lib/design-system/catalog"
 import type { ComponentEntry } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
 import { ComponentCode } from "./component-code"
@@ -21,6 +22,7 @@ const copy = {
     use: "사용 기준",
     avoid: "사용하지 않을 때",
     states: "변형과 상태",
+    stateInspections: "상태 살펴보기",
     accessibility: "접근성",
     api: "API",
     prop: "속성",
@@ -32,6 +34,8 @@ const copy = {
     usage: "사용 예시",
     import: "지원 import",
     related: "관련 문서",
+    relatedComponents: "관련 컴포넌트",
+    relatedPatterns: "관련 패턴",
     back: "모든 컴포넌트 보기",
   },
   en: {
@@ -44,6 +48,7 @@ const copy = {
     use: "Use it for",
     avoid: "Avoid when",
     states: "Variants and states",
+    stateInspections: "state inspections",
     accessibility: "Accessibility",
     api: "API",
     prop: "Prop",
@@ -55,12 +60,23 @@ const copy = {
     usage: "Usage",
     import: "Supported import",
     related: "Related documentation",
+    relatedComponents: "Related components",
+    relatedPatterns: "Related patterns",
     back: "View all components",
   },
 } as const
 
 export function ComponentDetail({ component, locale }: { component: ComponentEntry; locale: Locale }) {
   const text = copy[locale]
+  const relatedPatterns = designCatalog.patterns.filter((pattern) =>
+    pattern.relatedComponents.some((relatedId) => relatedId === component.id),
+  )
+  const relatedComponentIds = new Set<string>(
+    relatedPatterns.flatMap((pattern) => pattern.relatedComponents),
+  )
+  relatedComponentIds.delete(component.id)
+  const relatedComponents = designCatalog.components.filter(({ id }) => relatedComponentIds.has(id))
+  const patternsHref = getDesignPageHref("/design/patterns", locale)
 
   return (
     <article>
@@ -116,8 +132,24 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
 
       <section className={styles.section} aria-labelledby="component-states-title">
         <h2 id="component-states-title">{text.states}</h2>
-        <ul className={styles.stateList}>
-          {component.states.map((state) => <li key={state}><code>{state}</code></li>)}
+        <ul
+          className={styles.stateList}
+          aria-label={`${component.name} ${text.stateInspections}`}
+        >
+          {component.states.map((state) => (
+            <li key={state.id}>
+              <div className={styles.stateGuidance}>
+                <code>{state.id}</code>
+                <p>{state.guidance[locale]}</p>
+              </div>
+              <ComponentPreview
+                demoKey={component.demoKey}
+                label={`${component.name} ${state.id} ${locale === "ko" ? "상태 미리보기" : "state preview"}`}
+                locale={locale}
+                state={state.id}
+              />
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -170,6 +202,32 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
 
       <section className={styles.section} aria-labelledby="component-related-title">
         <h2 id="component-related-title">{text.related}</h2>
+        <div className={styles.relatedDocumentation}>
+          <div>
+            <h3>{text.relatedComponents}</h3>
+            <ul>
+              {relatedComponents.map((relatedComponent) => (
+                <li key={relatedComponent.id}>
+                  <Link href={getDesignPageHref(`/design/components/${relatedComponent.id}`, locale)}>
+                    {relatedComponent.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3>{text.relatedPatterns}</h3>
+            <ul>
+              {relatedPatterns.map((pattern) => (
+                <li key={pattern.id}>
+                  <Link href={`${patternsHref}#pattern-${pattern.id}`}>
+                    {pattern.title[locale]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
         <Link
           className={styles.componentDetailLink}
           href={getDesignPageHref("/design/components", locale)}

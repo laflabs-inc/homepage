@@ -54,7 +54,10 @@ export type ComponentEntry = Readonly<{
   demoKey: DemoKey
   importExample?: string
   usageExample: string
-  states: readonly string[]
+  states: readonly Readonly<{
+    id: string
+    guidance: LocaleText
+  }>[]
   props: readonly {
     name: string
     type: string
@@ -229,13 +232,31 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
     assertLocaleText(component.whenToUse, "components", component.id)
     assertLocaleText(component.whenNotToUse, "components", component.id)
     assertLocaleText(component.accessibility, "components", component.id)
+    if (component.states.length === 0) fail("components", component.id, "requires at least one state")
+    const stateIds = new Set<string>()
+    for (const state of component.states) {
+      if (!componentIdPattern.test(state.id)) {
+        fail("components", `${component.id} state ${displayId(state.id)}`, "invalid state id")
+      }
+      if (stateIds.has(state.id)) {
+        fail("components", `${component.id} state ${state.id}`, "duplicate state id")
+      }
+      stateIds.add(state.id)
+      assertLocaleText(state.guidance, "components", `${component.id} state ${state.id}`)
+    }
     component.props.forEach((prop) => assertLocaleText(prop.description, "components", component.id))
   }
 
+  const componentIds = new Set(catalog.components.map(({ id }) => id))
   for (const pattern of catalog.patterns) {
     assertLocaleText(pattern.title, "patterns", pattern.id)
     assertLocaleText(pattern.summary, "patterns", pattern.id)
     pattern.guidance.forEach((guidance) => assertLocaleText(guidance, "patterns", pattern.id))
+    for (const componentId of pattern.relatedComponents) {
+      if (!componentIds.has(componentId)) {
+        fail("patterns", pattern.id, `unknown related component ${componentId}`)
+      }
+    }
   }
 
   for (const asset of catalog.assets) {

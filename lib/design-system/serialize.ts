@@ -65,7 +65,7 @@ function serializeComponentSummary(): string[] {
     `- Use: ${component.whenToUse.en}`,
     `- Avoid: ${component.whenNotToUse.en}`,
     `- Accessibility: ${component.accessibility.en}`,
-    `- States: ${component.states.map((state) => `\`${state}\``).join(", ")}`,
+    `- States: ${component.states.map(({ id }) => `\`${id}\``).join(", ")}`,
     "",
   ])
 }
@@ -245,7 +245,8 @@ function serializeComponentsReference(): string {
       `- Use: ${component.whenToUse.en} / ${component.whenToUse.ko}`,
       `- Avoid: ${component.whenNotToUse.en} / ${component.whenNotToUse.ko}`,
       `- Accessibility: ${component.accessibility.en} / ${component.accessibility.ko}`,
-      `- States: ${component.states.map((state) => `\`${state}\``).join(", ")}`,
+      "- States and inspection:",
+      ...component.states.map(({ id, guidance }) => `  - \`${id}\`: ${guidance.en} / ${guidance.ko}`),
       "",
       "### Props",
       "",

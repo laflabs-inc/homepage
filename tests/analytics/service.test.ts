@@ -180,6 +180,28 @@ describe("collectAnalyticsBatch", () => {
     expect(fakeStore.events[0]).not.toHaveProperty("referrer")
   })
 
+  it("stores an allowlisted design event against its concrete component-detail path", async () => {
+    const fakeStore = new FakeStore()
+
+    const result = await collectAnalyticsBatch({
+      events: [{
+        ...validEvent,
+        type: "design_code_copy",
+        pathname: "/design/components/action?locale=en#usage",
+        targetId: "action",
+        referrerHost: undefined,
+      }],
+    }, requestContext, fakeStore)
+
+    expect(result).toEqual({ status: "accepted", accepted: 1 })
+    expect(fakeStore.events[0]).toMatchObject({
+      eventType: "design_code_copy",
+      pathname: "/design/components/action",
+      targetId: "action",
+      referrerHost: null,
+    })
+  })
+
   it("rejects unknown events, invalid targets, and batches above twenty", async () => {
     const fakeStore = new FakeStore()
     const invalidInputs = [

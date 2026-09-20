@@ -10,8 +10,8 @@ import { createAnalyticsClient, type AnalyticsClient } from "@/lib/analytics/cli
 import type { AnalyticsEventType } from "@/lib/analytics/normalize"
 import type { ConsentChoice, ConsentState } from "@/lib/analytics/types"
 import { CONSENT_POLICY_VERSION } from "@/lib/analytics/consent"
+import { supportsPublicAnalytics } from "@/lib/analytics/public-paths"
 import { reloadForConsentPolicyUpdate } from "@/lib/analytics/reload"
-import { designComponentSlugs } from "@/lib/design-system/component-slugs"
 import { ConsentPanel } from "./consent-panel"
 
 type ConsentContextValue = {
@@ -30,13 +30,6 @@ const errors = {
   ko: "설정을 저장하지 못했습니다. 다시 시도해 주세요.",
   en: "We couldn't save your preference. Please try again.",
 } as const
-
-const publicAnalyticsPaths = new Set<string>([
-  "/",
-  ...designComponentSlugs.map((slug) => `/design/components/${slug}`),
-])
-
-const supportsPublicAnalytics = (pathname: string): boolean => publicAnalyticsPaths.has(pathname)
 
 export function ConsentProvider({
   children,
