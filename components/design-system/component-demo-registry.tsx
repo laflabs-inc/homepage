@@ -121,4 +121,4 @@ export const componentDemos = {
   "icon-control": IconControlDemo,
   "text-link": TextLinkDemo,
   "code-block": CodeBlockDemo,
-} satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>
+} satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>

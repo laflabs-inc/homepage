@@ -49,6 +49,8 @@ const validCatalog = {
       demoKey: "logo",
       importExample: 'import { Logo } from "@/components/ui/logo"',
       usageExample: "<Logo />",
+      relatedComponents: [],
+      dependencies: [],
       states: [
         {
           id: "default",
@@ -95,9 +97,10 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.9.0",
-      updatedAt: "2026-09-14",
+      version: "2026.9.1",
+      updatedAt: "2026-09-20",
       canonicalPath: "/design",
+      publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
     })
   })
@@ -105,7 +108,7 @@ describe("design catalog schema", () => {
   it("rejects catalog metadata that differs from the fixed contract", () => {
     const catalog = {
       ...validCatalog,
-      meta: { ...designSystemMeta, version: "2026.9.1" },
+      meta: { ...designSystemMeta, version: "2026.9.2" },
     } satisfies DesignCatalog
 
     expect(() => assertDesignCatalog(catalog)).toThrow("metadata version: invalid metadata value")
@@ -254,6 +257,26 @@ describe("production design catalog", () => {
         expect(state.guidance.en.trim()).not.toBe("")
       }
     }
+  })
+
+  it("publishes component relationships and install dependencies as explicit arrays", () => {
+    for (const component of designCatalog.components) {
+      expect(component.relatedComponents).toEqual(expect.any(Array))
+      expect(component.dependencies).toEqual(expect.any(Array))
+    }
+  })
+
+  it("publishes semantic status colors for reusable feedback components", () => {
+    expect(
+      designCatalog.tokens
+        .filter(({ id }) => id.startsWith("color."))
+        .map(({ id }) => id),
+    ).toEqual(expect.arrayContaining([
+      "color.info",
+      "color.success",
+      "color.warning",
+      "color.error",
+    ]))
   })
 
   it("keeps active color defaults separate from legacy route-era colors", () => {

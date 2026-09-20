@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.0 · Updated: 2026-09-14
+System version: 2026.9.1 · Updated: 2026-09-20
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -105,6 +105,8 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `color.border-blue` | color | `#263d68` | Legacy reference | Legacy one-pixel rule color from the route-era interface. |
 | `color.border-blue-strong` | color | `#385a91` | Legacy reference | Legacy emphasized rule and outline-action border color. |
 | `color.button-ink` | color | `#0a0e18` | Legacy reference | Legacy text color for the light contact action. |
+| `color.error` | color | `#ef4444` | Current | Reserved for error and danger status. |
+| `color.info` | color | `#0ea5e9` | Current | Reserved for informational status. |
 | `color.ink` | color | `#0f172a` | Current | The default text, rule, and dark contrast-band color. |
 | `color.inverse-navy` | color | `#071022` | Legacy reference | Legacy contact-section surface from the route-era interface. |
 | `color.line` | color | `#cbd5e1` | Current | Quiet dividers and inactive outlines. |
@@ -125,6 +127,8 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `color.slate-detail` | color | `#475569` | Current | Compact editorial detail on light surfaces. |
 | `color.slate-soft` | color | `#94a3b8` | Current | Metadata on dark contrast bands. |
 | `color.subtle-navy` | color | `#0e1931` | Legacy reference | Legacy alternating section surface from the route-era interface. |
+| `color.success` | color | `#10b981` | Current | Reserved for successful status. |
+| `color.warning` | color | `#f59e0b` | Current | Reserved for warning status. |
 | `layout.breakpoint-mobile` | layout | `720px` | Current | The small-screen breakpoint for collapsed navigation and one-column layout. |
 | `layout.breakpoint-stack` | layout | `1080px` | Current | The breakpoint where complex desktop arrangements begin to stack. |
 | `layout.compact-control` | layout | `34px` | Current | The desktop visual size for language and icon controls. |
@@ -300,12 +304,12 @@ Loading, empty, and error states share one visual and verbal grammar.
 
 ## Public machine resources
 
-- Provider-neutral guide: https://laflabs.co/design/guide.md
-- Versioned tokens: https://laflabs.co/design/tokens.json
-- Skill entry point: https://laflabs.co/design/skill/SKILL.md
-- Skill foundations: https://laflabs.co/design/skill/references/foundations.md
-- Skill components: https://laflabs.co/design/skill/references/components.md
-- Skill patterns: https://laflabs.co/design/skill/references/patterns.md
-- Skill tokens: https://laflabs.co/design/skill/references/tokens.json
-- Skill archive: https://laflabs.co/design/skill.zip
+- Provider-neutral guide: https://www.laflabs.co/design/guide.md
+- Versioned tokens: https://www.laflabs.co/design/tokens.json
+- Skill entry point: https://www.laflabs.co/design/skill/SKILL.md
+- Skill foundations: https://www.laflabs.co/design/skill/references/foundations.md
+- Skill components: https://www.laflabs.co/design/skill/references/components.md
+- Skill patterns: https://www.laflabs.co/design/skill/references/patterns.md
+- Skill tokens: https://www.laflabs.co/design/skill/references/tokens.json
+- Skill archive: https://www.laflabs.co/design/skill.zip
 - Source repository: https://github.com/laflabs-inc/homepage

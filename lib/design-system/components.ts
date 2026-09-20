@@ -35,6 +35,8 @@ export const components = [
     demoKey: "logo",
     importExample: imports.logo,
     usageExample: "<Logo size={24} />",
+    relatedComponents: [],
+    dependencies: [],
     states: [
       {
         id: "default",
@@ -88,6 +90,8 @@ export const components = [
     demoKey: "action",
     importExample: imports.action,
     usageExample: '<Action href="/design" variant="primary">Open guide</Action>',
+    relatedComponents: ["text-link", "icon-control"],
+    dependencies: [],
     states: [
       {
         id: "primary",
@@ -195,6 +199,8 @@ export const components = [
   ]}
   onValueChange={setLocale}
 />`,
+    relatedComponents: ["icon-control"],
+    dependencies: [],
     states: [
       {
         id: "default",
@@ -305,6 +311,8 @@ export const components = [
     demoKey: "icon-control",
     importExample: imports.iconControl,
     usageExample: '<IconControl label="Search"><MagnifyingGlass aria-hidden /></IconControl>',
+    relatedComponents: ["action"],
+    dependencies: ["@phosphor-icons/react"],
     states: [
       {
         id: "default",
@@ -381,6 +389,8 @@ export const components = [
     demoKey: "text-link",
     importExample: imports.textLink,
     usageExample: '<TextLink href="/design/components">Components</TextLink>',
+    relatedComponents: ["action"],
+    dependencies: [],
     states: [
       {
         id: "default",
@@ -459,6 +469,8 @@ export const components = [
     usageExample: `<CodeBlock language="ts" source={source}>
   {highlightedCode}
 </CodeBlock>`,
+    relatedComponents: ["icon-control"],
+    dependencies: [],
     states: [
       {
         id: "idle",

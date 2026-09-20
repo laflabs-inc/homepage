@@ -15,7 +15,7 @@ describe("Design system overview", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "LafLabs 디자인 시스템" }),
     ).toBeInTheDocument()
-    expect(screen.getByText("2026.9.0")).toBeInTheDocument()
+    expect(screen.getByText("2026.9.1")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "기초 원칙" })).toHaveAttribute(
       "href",
       "/design/foundations",

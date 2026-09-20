@@ -1,10 +1,17 @@
 import { designSystemMeta } from "./meta"
+import {
+  componentCategories,
+  componentDemoKeys,
+  type ComponentCategory,
+  type DemoKey,
+} from "./component-options"
+
+export type { ComponentCategory, DemoKey } from "./component-options"
 
 export type LocaleText = Readonly<{ ko: string; en: string }>
 
 export type TokenGroup = "color" | "typography" | "spacing" | "layout" | "shape" | "motion"
 export type ComponentMaturity = "stable" | "candidate"
-export type DemoKey = "logo" | "action" | "segmented-toggle" | "icon-control" | "text-link" | "code-block"
 
 export type TypographySpecimen = Readonly<{
   fontFamily: "sans" | "mono"
@@ -20,6 +27,7 @@ export type DesignSystemMeta = Readonly<{
   version: string
   updatedAt: string
   canonicalPath: string
+  publicOrigin: string
   locales: readonly ["ko", "en"]
 }>
 
@@ -44,7 +52,7 @@ export type FoundationEntry = Readonly<{
 export type ComponentEntry = Readonly<{
   id: string
   name: string
-  category: "brand" | "action" | "navigation" | "content"
+  category: ComponentCategory
   maturity: ComponentMaturity
   summary: LocaleText
   whenToUse: LocaleText
@@ -54,6 +62,8 @@ export type ComponentEntry = Readonly<{
   demoKey: DemoKey
   importExample?: string
   usageExample: string
+  relatedComponents: readonly string[]
+  dependencies: readonly string[]
   states: readonly Readonly<{
     id: string
     guidance: LocaleText
@@ -94,17 +104,11 @@ export type DesignCatalog = Readonly<{
 }>
 
 const componentIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const dependencyNamePattern = /^(?:@[a-z0-9-]+\/)?[a-z0-9-]+$/
 const tokenGroups = new Set<TokenGroup>(["color", "typography", "spacing", "layout", "shape", "motion"])
-const componentCategories = new Set<ComponentEntry["category"]>(["brand", "action", "navigation", "content"])
+const supportedComponentCategories = new Set<ComponentCategory>(componentCategories)
 const componentMaturities = new Set<ComponentMaturity>(["stable", "candidate"])
-const demoKeys = new Set<DemoKey>([
-  "logo",
-  "action",
-  "segmented-toggle",
-  "icon-control",
-  "text-link",
-  "code-block",
-])
+const demoKeys = new Set<DemoKey>(componentDemoKeys)
 
 function fail(collection: string, id: string, reason: string): never {
   throw new Error(`${collection} ${id}: ${reason}`)
@@ -183,6 +187,9 @@ function assertMetadata(meta: DesignSystemMeta): void {
   if (meta.canonicalPath !== designSystemMeta.canonicalPath) {
     fail("metadata", "canonicalPath", "invalid metadata value")
   }
+  if (meta.publicOrigin !== designSystemMeta.publicOrigin) {
+    fail("metadata", "publicOrigin", "invalid metadata value")
+  }
   if (
     !Array.isArray(meta.locales)
     || meta.locales.length !== designSystemMeta.locales.length
@@ -218,7 +225,7 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
   const registeredDemoKeys = new Set<DemoKey>()
   for (const component of catalog.components) {
     if (!componentIdPattern.test(component.id)) fail("components", component.id, "invalid component id")
-    if (!componentCategories.has(component.category)) fail("components", component.id, "invalid component category")
+    if (!supportedComponentCategories.has(component.category)) fail("components", component.id, "invalid component category")
     if (!componentMaturities.has(component.maturity)) fail("components", component.id, "invalid component maturity")
     if (!demoKeys.has(component.demoKey)) fail("components", component.id, "missing component demoKey")
     if (registeredDemoKeys.has(component.demoKey)) fail("components", component.id, "duplicate component demoKey")
@@ -245,9 +252,21 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
       assertLocaleText(state.guidance, "components", `${component.id} state ${state.id}`)
     }
     component.props.forEach((prop) => assertLocaleText(prop.description, "components", component.id))
+    for (const dependency of component.dependencies) {
+      if (!dependencyNamePattern.test(dependency)) {
+        fail("components", component.id, `invalid dependency ${dependency}`)
+      }
+    }
   }
 
   const componentIds = new Set(catalog.components.map(({ id }) => id))
+  for (const component of catalog.components) {
+    for (const componentId of component.relatedComponents) {
+      if (!componentIds.has(componentId)) {
+        fail("components", component.id, `unknown related component ${componentId}`)
+      }
+    }
+  }
   for (const pattern of catalog.patterns) {
     assertLocaleText(pattern.title, "patterns", pattern.id)
     assertLocaleText(pattern.summary, "patterns", pattern.id)

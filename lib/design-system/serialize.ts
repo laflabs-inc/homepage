@@ -3,7 +3,7 @@ import { strToU8, zipSync } from "fflate"
 import { designCatalog } from "./catalog"
 import type { DesignToken } from "./schema"
 
-const publicOrigin = "https://laflabs.co"
+const publicOrigin = designCatalog.meta.publicOrigin
 const sourceRepository = "https://github.com/laflabs-inc/homepage"
 
 function compareIds(left: Readonly<{ id: string }>, right: Readonly<{ id: string }>): number {
