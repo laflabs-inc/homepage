@@ -1,3 +1,5 @@
+import type { ComponentType } from "react"
+
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
 import { componentDemos } from "./component-demo-registry"
@@ -14,7 +16,11 @@ export function ComponentPreview({
   locale: Locale
   state?: string
 }) {
-  const Demo = componentDemos[demoKey]
+  const Demo = componentDemos[demoKey as keyof typeof componentDemos] as
+    | ComponentType<{ locale: Locale; state?: string }>
+    | undefined
+
+  if (!Demo) throw new Error(`Missing component demo: ${demoKey}`)
 
   return (
     <div className={styles.componentPreview} role="region" aria-label={label}>

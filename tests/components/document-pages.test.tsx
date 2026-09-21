@@ -90,9 +90,23 @@ const designSitemapUrls = [
   `${siteUrl}/design/ai`,
   `${siteUrl}/design/components/logo`,
   `${siteUrl}/design/components/action`,
+  `${siteUrl}/design/components/button`,
+  `${siteUrl}/design/components/button-group`,
+  `${siteUrl}/design/components/field`,
+  `${siteUrl}/design/components/label`,
+  `${siteUrl}/design/components/input`,
+  `${siteUrl}/design/components/textarea`,
+  `${siteUrl}/design/components/native-select`,
+  `${siteUrl}/design/components/checkbox`,
+  `${siteUrl}/design/components/radio-group`,
+  `${siteUrl}/design/components/switch`,
   `${siteUrl}/design/components/segmented-toggle`,
   `${siteUrl}/design/components/icon-control`,
   `${siteUrl}/design/components/text-link`,
+  `${siteUrl}/design/components/alert`,
+  `${siteUrl}/design/components/skeleton`,
+  `${siteUrl}/design/components/empty-state`,
+  `${siteUrl}/design/components/separator`,
   `${siteUrl}/design/components/code-block`,
 ]
 
@@ -222,10 +236,12 @@ describe("public document pages", () => {
     }))
 
     const category = screen.getByRole("combobox", { name: "Category" })
+    expect(category).toHaveAttribute("name", "category")
     expect(within(category).getByRole("option", { name: "Engineering" })).toBeInTheDocument()
     expect(within(category).queryByRole("option", { name: "Retired" })).not.toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveAttribute("name", "sort")
     expect(screen.getByRole("combobox", { name: "Sort" })).toHaveValue("latest")
-    expect(screen.getByRole("searchbox", { name: "Search notices" })).toBeInTheDocument()
+    expect(screen.getByRole("searchbox", { name: "Search notices" })).toHaveAttribute("name", "q")
   })
 
   it("visibly groups legal documents by category", async () => {
@@ -322,6 +338,7 @@ describe("public document pages", () => {
     const category = screen.getByRole("combobox", { name: "카테고리" })
     expect(category).toHaveValue("retired")
     expect(within(category).getByRole("option", { name: "종료됨" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "초기화" })).toHaveAttribute("type", "button")
   })
 
   it("preserves a newly managed category in document detail back links", async () => {
@@ -394,6 +411,7 @@ describe("public document pages", () => {
       "/notices?locale=en&q=routing",
       { scroll: false },
     )
+
   })
 
   it("preserves the selected locale in cursor pagination links", async () => {
@@ -521,7 +539,7 @@ describe("public document pages", () => {
     )
 
     expect(screen.getByRole("heading", { name: "We could not load this document." }).closest("section")).toHaveAttribute("lang", "en")
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Try again" })).toHaveAttribute("type", "button")
     expect(screen.getByRole("heading", { name: "Document not found." }).closest("section")).toHaveAttribute("lang", "en")
     expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/")
   })
@@ -603,7 +621,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(64)
+    expect(entries).toHaveLength(78)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

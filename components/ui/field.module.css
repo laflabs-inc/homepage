@@ -1,0 +1,32 @@
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.label {
+  width: fit-content;
+  color: var(--ink);
+  font: 700 13px / 1.35 var(--font-geist-sans), "Pretendard", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.label[data-required="true"]::after {
+  margin-inline-start: 0.25em;
+  color: var(--error);
+  content: "*";
+}
+
+.description,
+.error {
+  margin: 0;
+  font: 400 13px / 1.55 var(--font-geist-sans), "Pretendard", sans-serif;
+}
+
+.description {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--error);
+}

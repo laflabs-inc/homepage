@@ -3,8 +3,9 @@ import { designCatalog } from "@/lib/design-system/catalog"
 import type { Locale } from "@/lib/i18n"
 import styles from "./design-system.module.css"
 
+const publicOrigin = designCatalog.meta.publicOrigin
 const installCommand = `mkdir -p "$CODEX_HOME/skills"
-curl -fsSL https://laflabs.co/design/skill.zip -o /tmp/laflabs-web-design.zip
+curl -fsSL ${publicOrigin}/design/skill.zip -o /tmp/laflabs-web-design.zip
 unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
 
 const copy = {
@@ -46,7 +47,7 @@ const copy = {
     download: "Skill 다운로드",
     neutralTitle: "어떤 AI 도구에서든 사용하기",
     neutralDescription: "도구에 가이드 Markdown과 versioned token JSON을 제공한 뒤, 요청한 작업에 관련된 Skill 참고 문서만 읽도록 안내하세요.",
-    providerInstruction: "LafLabs 공개 웹 작업에는 https://laflabs.co/design/guide.md와 https://laflabs.co/design/tokens.json을 기준으로 사용하세요. 관련된 경우에만 연결된 Skill 참고 문서를 읽고, 제품 주장·에셋·컴포넌트를 임의로 만들지 마세요.",
+    providerInstruction: "LafLabs 공개 웹 작업을 시작하기 전에 https://www.laflabs.co/design/guide.md와 https://www.laflabs.co/design/tokens.json을 불러와 기준으로 사용하세요. 컴포넌트나 패턴을 구현할 때는 https://www.laflabs.co/design/skill/SKILL.md를 확인하고, 연결된 참고 문서 중 작업과 관련된 항목만 읽으세요. 해당 리소스를 불러올 수 없다면 임의로 보완하지 말고 사용자에게 확인하세요. 제품 주장, 공식 에셋, 지원하지 않는 컴포넌트는 만들지 마세요.",
     providerInstructionCopy: {
       buttonLabel: "AI 작업 안내문 복사",
       copyText: "복사",
@@ -96,7 +97,7 @@ const copy = {
     download: "Download Skill",
     neutralTitle: "Use with any AI provider",
     neutralDescription: "Give your tool the guide Markdown and versioned token JSON, then direct it to read only the Skill references relevant to the requested work.",
-    providerInstruction: "Use https://laflabs.co/design/guide.md and https://laflabs.co/design/tokens.json as the source of truth for LafLabs public web work. Read linked Skill references only when relevant, and do not invent product claims, assets, or components.",
+    providerInstruction: "LafLabs public web work must begin by loading https://www.laflabs.co/design/guide.md and https://www.laflabs.co/design/tokens.json as the source of truth. When implementing components or patterns, load https://www.laflabs.co/design/skill/SKILL.md and only the references relevant to the task. If these resources cannot be loaded, do not improvise; ask the user. Do not invent product claims, official assets, or unsupported components.",
     providerInstructionCopy: {
       buttonLabel: "Copy AI work instruction",
       copyText: "COPY",
@@ -120,8 +121,6 @@ const resourcePaths = [
   "/design/skill/references/tokens.json",
   "/design/skill.zip",
 ] as const
-
-const publicOrigin = "https://laflabs.co"
 
 export function AiGuide({ locale }: { locale: Locale }) {
   const text = copy[locale]

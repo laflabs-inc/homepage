@@ -16,6 +16,7 @@ const copy = {
     maturity: "성숙도",
     sourcePath: "소스 경로",
     source: "소스",
+    dependencies: "외부 의존성",
     preview: "실제 미리보기",
     previewLabel: "미리보기",
     when: "사용할 때",
@@ -42,6 +43,7 @@ const copy = {
     maturity: "Maturity",
     sourcePath: "Source path",
     source: "Source",
+    dependencies: "Dependencies",
     preview: "Live preview",
     previewLabel: "preview",
     when: "When to use",
@@ -72,7 +74,10 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
     pattern.relatedComponents.some((relatedId) => relatedId === component.id),
   )
   const relatedComponentIds = new Set<string>(
-    relatedPatterns.flatMap((pattern) => pattern.relatedComponents),
+    [
+      ...component.relatedComponents,
+      ...relatedPatterns.flatMap((pattern) => pattern.relatedComponents),
+    ],
   )
   relatedComponentIds.delete(component.id)
   const relatedComponents = designCatalog.components.filter(({ id }) => relatedComponentIds.has(id))
@@ -104,6 +109,12 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
               </a>
             </dd>
           </div>
+          {component.dependencies.length > 0 ? (
+            <div>
+              <dt>{text.dependencies}</dt>
+              <dd>{component.dependencies.map((dependency) => <code key={dependency}>{dependency}</code>)}</dd>
+            </div>
+          ) : null}
         </dl>
       </header>
 

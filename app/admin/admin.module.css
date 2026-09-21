@@ -1170,23 +1170,9 @@
   line-height: 1.65;
 }
 
-.errorState button {
+.errorState > button {
   width: max-content;
-  min-height: 46px;
   margin-top: 32px;
-  padding: 0 18px;
-  color: white;
-  background: var(--blue);
-  border: 1px solid var(--ink);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 650;
-  cursor: pointer;
-  transition: background 160ms ease;
-}
-
-.errorState button:hover {
-  background: var(--deep);
 }
 
 .agentPage,
@@ -1753,10 +1739,6 @@
 @media (prefers-reduced-motion: reduce) {
   .signInButton,
   .rangeNav a,
-  .errorState button {
-    transition: none;
-  }
-
   .adminNav a,
   .documentList a,
   .primaryLink,

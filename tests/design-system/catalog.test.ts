@@ -49,6 +49,8 @@ const validCatalog = {
       demoKey: "logo",
       importExample: 'import { Logo } from "@/components/ui/logo"',
       usageExample: "<Logo />",
+      relatedComponents: [],
+      dependencies: [],
       states: [
         {
           id: "default",
@@ -95,9 +97,10 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.9.0",
-      updatedAt: "2026-09-14",
+      version: "2026.9.1",
+      updatedAt: "2026-09-20",
       canonicalPath: "/design",
+      publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
     })
   })
@@ -105,7 +108,7 @@ describe("design catalog schema", () => {
   it("rejects catalog metadata that differs from the fixed contract", () => {
     const catalog = {
       ...validCatalog,
-      meta: { ...designSystemMeta, version: "2026.9.1" },
+      meta: { ...designSystemMeta, version: "2026.9.2" },
     } satisfies DesignCatalog
 
     expect(() => assertDesignCatalog(catalog)).toThrow("metadata version: invalid metadata value")
@@ -205,6 +208,52 @@ describe("design catalog schema", () => {
       "patterns site-chrome: unknown related component missing-component",
     )
   })
+
+  it("rejects components that reference an unknown related component", () => {
+    const component = {
+      ...validCatalog.components[0],
+      relatedComponents: ["missing-component"],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
+      "components logo: unknown related component missing-component",
+    )
+  })
+
+  it("rejects unsafe package dependency names", () => {
+    const component = {
+      ...validCatalog.components[0],
+      dependencies: ["https://example.com/package"],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
+      "components logo: invalid dependency https://example.com/package",
+    )
+  })
+
+  it("rejects duplicate component demo keys", () => {
+    const component = {
+      ...validCatalog.components[0],
+      id: "wordmark",
+      relatedComponents: ["logo"],
+    }
+
+    expect(() => assertDesignCatalog({
+      ...validCatalog,
+      components: [validCatalog.components[0], component],
+    })).toThrow("components wordmark: duplicate component demoKey")
+  })
+
+  it("rejects empty localized component usage guidance", () => {
+    const component = {
+      ...validCatalog.components[0],
+      whenToUse: { ko: "사용 안내", en: "" },
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
+      "components logo: missing localized copy",
+    )
+  })
 })
 
 describe("production design catalog", () => {
@@ -228,9 +277,23 @@ describe("production design catalog", () => {
     expect(designCatalog.components.map(({ id }) => id)).toEqual([
       "logo",
       "action",
+      "button",
+      "button-group",
+      "field",
+      "label",
+      "input",
+      "textarea",
+      "native-select",
+      "checkbox",
+      "radio-group",
+      "switch",
       "segmented-toggle",
       "icon-control",
       "text-link",
+      "alert",
+      "skeleton",
+      "empty-state",
+      "separator",
       "code-block",
     ])
     expect(designCatalog.patterns.map(({ id }) => id)).toEqual([
@@ -254,6 +317,26 @@ describe("production design catalog", () => {
         expect(state.guidance.en.trim()).not.toBe("")
       }
     }
+  })
+
+  it("publishes component relationships and install dependencies as explicit arrays", () => {
+    for (const component of designCatalog.components) {
+      expect(component.relatedComponents).toEqual(expect.any(Array))
+      expect(component.dependencies).toEqual(expect.any(Array))
+    }
+  })
+
+  it("publishes semantic status colors for reusable feedback components", () => {
+    expect(
+      designCatalog.tokens
+        .filter(({ id }) => id.startsWith("color."))
+        .map(({ id }) => id),
+    ).toEqual(expect.arrayContaining([
+      "color.info",
+      "color.success",
+      "color.warning",
+      "color.error",
+    ]))
   })
 
   it("keeps active color defaults separate from legacy route-era colors", () => {
@@ -358,7 +441,11 @@ describe("production design catalog", () => {
   })
 
   it("documents stable imports for extracted primitives", () => {
-    expect(designCatalog.components.map(({ id, maturity }) => [id, maturity])).toEqual([
+    expect(
+      designCatalog.components
+        .filter(({ maturity }) => maturity === "stable")
+        .map(({ id, maturity }) => [id, maturity]),
+    ).toEqual([
       ["logo", "stable"],
       ["action", "stable"],
       ["segmented-toggle", "stable"],
@@ -385,6 +472,27 @@ describe("production design catalog", () => {
       'import { CodeBlock } from "@/components/content/code-block"',
     )
     expect(getComponentEntry("missing")).toBeUndefined()
+  })
+
+  it("keeps every component demo key aligned with a real source file", () => {
+    for (const component of designCatalog.components) {
+      expect(existsSync(join(process.cwd(), component.sourcePath))).toBe(true)
+      expect(component.demoKey).toBe(component.id)
+    }
+  })
+
+  it("declares the external packages imported by component source files", () => {
+    expect(Object.fromEntries(
+      designCatalog.components
+        .filter(({ dependencies }) => dependencies.length > 0)
+        .map(({ id, dependencies }) => [id, dependencies]),
+    )).toEqual({
+      logo: ["next"],
+      "segmented-toggle": ["motion"],
+      "text-link": ["@phosphor-icons/react"],
+      "native-select": ["@phosphor-icons/react"],
+      alert: ["@phosphor-icons/react"],
+    })
   })
 
   it("lists only trusted assets that exist under public", () => {
