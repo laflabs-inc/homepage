@@ -8,6 +8,10 @@ import { Logo } from "@/components/ui/logo"
 import { TextLink } from "@/components/ui/text-link"
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
+import { actionDemos } from "./component-demo-actions"
+import { feedbackDemos } from "./component-demo-feedback"
+import { formDemos } from "./component-demo-forms"
+import { selectionDemos } from "./component-demo-selection"
 import { SegmentedToggleDemo } from "./component-demo-segmented-toggle"
 import styles from "./design-system.module.css"
 
@@ -114,7 +118,7 @@ function CodeBlockDemo({ locale }: ComponentDemoProps) {
 
 export type ComponentDemoProps = Readonly<{ locale: Locale; state?: string }>
 
-export const componentDemos = {
+const existingDemos = {
   logo: LogoDemo,
   action: ActionDemo,
   "segmented-toggle": SegmentedToggleDemo,
@@ -122,3 +126,11 @@ export const componentDemos = {
   "text-link": TextLinkDemo,
   "code-block": CodeBlockDemo,
 } satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>
+
+export const componentDemos = {
+  ...existingDemos,
+  ...actionDemos,
+  ...formDemos,
+  ...selectionDemos,
+  ...feedbackDemos,
+} satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>

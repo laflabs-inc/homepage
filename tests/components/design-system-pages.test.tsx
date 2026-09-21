@@ -77,9 +77,12 @@ describe("Design system component pages", () => {
     render(await ComponentsPage({ searchParams: Promise.resolve({}) }))
 
     expect(screen.getByRole("heading", { level: 1, name: "컴포넌트" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "폼" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "선택" })).toBeInTheDocument()
+    expect(screen.queryByRole("heading", { level: 2, name: "오버레이" })).not.toBeInTheDocument()
 
     for (const component of designCatalog.components) {
-      expect(screen.getAllByRole("heading", { level: 2, name: component.name })).toHaveLength(1)
+      expect(screen.getAllByRole("heading", { level: 3, name: component.name })).toHaveLength(1)
       expect(
         screen.getByRole("link", { name: `${component.name} 자세히 보기` }),
       ).toHaveAttribute("href", `/design/components/${component.id}`)
@@ -142,7 +145,9 @@ describe("Design system component pages", () => {
     expect(screen.getByRole("heading", { level: 2, name: "사용할 때" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "접근성" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "사용 예시" })).toBeInTheDocument()
-    expect(screen.getByText(designCatalog.components[2].whenNotToUse.ko)).toBeInTheDocument()
+    const segmentedToggle = designCatalog.components.find(({ id }) => id === "segmented-toggle")
+    if (!segmentedToggle) throw new Error("Segmented Toggle catalog fixture is missing")
+    expect(screen.getByText(segmentedToggle.whenNotToUse.ko)).toBeInTheDocument()
   })
 
   it("renders every Action variant and state as an inspectable real production control", () => {
@@ -186,13 +191,13 @@ describe("Design system component pages", () => {
       "href",
       "/design/components/text-link?locale=en",
     )
-    expect(within(related).getByRole("link", { name: "Collection row" })).toHaveAttribute(
+    expect(within(related).getByRole("link", { name: "Icon Control" })).toHaveAttribute(
       "href",
-      "/design/patterns?locale=en#pattern-collection-row",
+      "/design/components/icon-control?locale=en",
     )
-    expect(within(related).getByRole("link", { name: "Responsive collapse" })).toHaveAttribute(
+    expect(within(related).getByRole("link", { name: "Contrast band" })).toHaveAttribute(
       "href",
-      "/design/patterns?locale=en#pattern-responsive-collapse",
+      "/design/patterns?locale=en#pattern-contrast-band",
     )
     expect(within(related).queryByRole("link", { name: "Action" })).not.toBeInTheDocument()
   })

@@ -90,9 +90,23 @@ const designSitemapUrls = [
   `${siteUrl}/design/ai`,
   `${siteUrl}/design/components/logo`,
   `${siteUrl}/design/components/action`,
+  `${siteUrl}/design/components/button`,
+  `${siteUrl}/design/components/button-group`,
+  `${siteUrl}/design/components/field`,
+  `${siteUrl}/design/components/label`,
+  `${siteUrl}/design/components/input`,
+  `${siteUrl}/design/components/textarea`,
+  `${siteUrl}/design/components/native-select`,
+  `${siteUrl}/design/components/checkbox`,
+  `${siteUrl}/design/components/radio-group`,
+  `${siteUrl}/design/components/switch`,
   `${siteUrl}/design/components/segmented-toggle`,
   `${siteUrl}/design/components/icon-control`,
   `${siteUrl}/design/components/text-link`,
+  `${siteUrl}/design/components/alert`,
+  `${siteUrl}/design/components/skeleton`,
+  `${siteUrl}/design/components/empty-state`,
+  `${siteUrl}/design/components/separator`,
   `${siteUrl}/design/components/code-block`,
 ]
 
@@ -603,7 +617,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(64)
+    expect(entries).toHaveLength(78)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

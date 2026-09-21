@@ -2,11 +2,24 @@ import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr"
 import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
+import { componentDemos } from "@/components/design-system/component-demo-registry"
 import { Action } from "@/components/ui/action"
 import { IconControl } from "@/components/ui/icon-control"
 import { TextLink } from "@/components/ui/text-link"
+import { designCatalog } from "@/lib/design-system/catalog"
 
 describe("public design-system primitives", () => {
+  it("renders a real Korean demo for every catalog component", () => {
+    for (const component of designCatalog.components) {
+      const Demo = componentDemos[component.demoKey]
+      expect(Demo, `${component.id} demo`).toBeDefined()
+      if (!Demo) continue
+      const { unmount } = render(<Demo locale="ko" />)
+      expect(document.body).not.toBeEmptyDOMElement()
+      unmount()
+    }
+  })
+
   it("renders navigation Actions as links with their selected variant", () => {
     render(<Action href="/design" variant="primary">Open guide</Action>)
 

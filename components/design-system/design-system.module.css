@@ -666,7 +666,37 @@
 
 .componentList {
   margin-top: 96px;
-  border-top: 1px solid var(--ink);
+}
+
+.componentGroup + .componentGroup {
+  margin-top: 88px;
+}
+
+.componentGroupHeader {
+  padding: 0 0 22px;
+  display: grid;
+  grid-template-columns: minmax(128px, 0.58fr) minmax(0, 2.42fr);
+  gap: 28px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.componentGroupHeader h2,
+.componentGroupHeader p {
+  margin: 0;
+}
+
+.componentGroupHeader h2 {
+  font-size: 25px;
+  font-weight: 740;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.componentGroupHeader p {
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
 }
 
 .componentRow {
@@ -686,7 +716,7 @@
   align-self: start;
 }
 
-.componentIdentity h2 {
+.componentIdentity h3 {
   margin: 0;
   font-size: 19px;
   font-weight: 730;
@@ -758,6 +788,57 @@
   gap: 10px;
 }
 
+.demoWrappedGroup {
+  width: min(100%, 220px);
+  flex-wrap: wrap;
+}
+
+.demoField {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 8px;
+}
+
+.demoSkeleton {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 12px;
+}
+
+.demoSkeleton > :first-child {
+  width: 46%;
+  height: 22px;
+}
+
+.demoSkeleton > :nth-child(2) {
+  width: 100%;
+  height: 16px;
+}
+
+.demoSkeleton > :last-child {
+  width: 72%;
+  height: 16px;
+}
+
+.demoSeparator,
+.demoVerticalSeparator {
+  width: min(100%, 440px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font: 650 12px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
+}
+
+.demoSeparator {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.demoVerticalSeparator {
+  min-height: 64px;
+  justify-content: center;
+}
+
 .inverseDemo {
   padding: 10px;
   display: inline-flex;
@@ -781,7 +862,7 @@
 .componentMetadata {
   margin: 42px 0 0;
   display: grid;
-  grid-template-columns: minmax(104px, 0.45fr) minmax(220px, 1.25fr) minmax(92px, 0.5fr);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   border-top: 1px solid var(--line);
 }
 
@@ -1505,6 +1586,15 @@
 
   .componentList {
     margin-top: 76px;
+  }
+
+  .componentGroup + .componentGroup {
+    margin-top: 68px;
+  }
+
+  .componentGroupHeader {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .componentRow {

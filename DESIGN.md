@@ -172,6 +172,56 @@ A reusable primary action rendered as a link or button.
 - Avoid: Do not use it for inline navigation or icon-only actions.
 - Accessibility: Use a link for navigation and a button for in-place actions, with visible focus in both cases.
 - States: `primary`, `secondary`, `inverse`, `hover`, `focus-visible`, `disabled`
+- Related components: `text-link`, `icon-control`
+
+### Alert (`alert`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Communicates an important state and the next action.
+
+- Use: Use it for inline information, success, warning, or error feedback.
+- Avoid: Do not announce every note live or use it as decorative emphasis.
+- Accessibility: Pair icon and visible title, and announce only new urgent feedback live.
+- States: `info`, `success`, `warning`, `error`, `live`
+- Related components: `button`, `empty-state`
+- Dependencies: `@phosphor-icons/react`
+
+### Button (`button`)
+
+Maturity: **candidate** · Category: **action**
+
+Runs an action in the current interface.
+
+- Use: Use it for immediate actions such as save, submit, and confirm.
+- Avoid: Use Action or Text Link for navigation.
+- Accessibility: Keep an action-specific name and expose busy and disabled states.
+- States: `default`, `hover`, `focus-visible`, `disabled`, `loading`, `danger`
+- Related components: `action`, `button-group`, `icon-control`
+
+### Button Group (`button-group`)
+
+Maturity: **candidate** · Category: **action**
+
+Groups related buttons under one accessible name.
+
+- Use: Use it for actions that share context, such as save and publish.
+- Avoid: Do not force unrelated actions or long explanations into one row.
+- Accessibility: Name the group while preserving an action-specific name on each button.
+- States: `horizontal`, `vertical`, `wrapped`
+- Related components: `button`
+
+### Checkbox (`checkbox`)
+
+Maturity: **candidate** · Category: **selection**
+
+Turns an independent selection on or off.
+
+- Use: Use it for independent consent, list, or multi-select values.
+- Avoid: Use Switch for a single setting that changes immediately.
+- Accessibility: Preserve the native checkbox and expose mixed state through aria-checked.
+- States: `unchecked`, `checked`, `indeterminate`, `disabled`
+- Related components: `radio-group`, `switch`
 
 ### Code Block (`code-block`)
 
@@ -183,6 +233,31 @@ A readable code region with a language label and copy action.
 - Avoid: Do not use it for short inline identifiers or as an executable editor.
 - Accessibility: The copy button names the language, and the source remains selectable after a copy failure.
 - States: `idle`, `copied`, `error`
+- Related components: `icon-control`
+
+### Empty State (`empty-state`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Explains why no content is present and what can happen next.
+
+- Use: Use it for a genuinely empty result, document, or collection.
+- Avoid: Do not invent example data or use it as a promotional card.
+- Accessibility: Make the state understandable from title and description, with recovery when available.
+- States: `default`, `action`
+- Related components: `button`, `text-link`, `skeleton`
+
+### Field (`field`)
+
+Maturity: **candidate** · Category: **form**
+
+Connects a label, control, description, and error as one field.
+
+- Use: Use it for a form item where a person enters or selects a value.
+- Avoid: Do not use it for read-only content or unrelated controls under one label.
+- Accessibility: Links direct description and error children to the nested control.
+- States: `default`, `required`, `invalid`
+- Related components: `label`, `input`, `textarea`, `native-select`
 
 ### Icon Control (`icon-control`)
 
@@ -194,6 +269,31 @@ A reusable button that represents one action with an icon.
 - Avoid: Do not use it when the icon is ambiguous or navigation is the primary purpose.
 - Accessibility: Always provide a label and keep a 44px target area on small screens.
 - States: `default`, `hover`, `focus-visible`, `disabled`
+- Related components: `action`
+
+### Input (`input`)
+
+Maturity: **candidate** · Category: **form**
+
+A native input for single-line values.
+
+- Use: Use it for single-line values such as email, title, or search.
+- Avoid: Use Textarea for multiline copy and Native Select for fixed choices.
+- Accessibility: Provide a name through Field or Label and choose the correct native type.
+- States: `default`, `focus-visible`, `invalid`, `disabled`
+- Related components: `field`, `label`, `textarea`, `native-select`
+
+### Label (`label`)
+
+Maturity: **candidate** · Category: **form**
+
+Provides a concise name for a form control.
+
+- Use: Use it to explicitly name a native control outside Field.
+- Avoid: Do not use a label element for help text or decoration.
+- Accessibility: Keep htmlFor equal to the target control ID.
+- States: `default`, `required`
+- Related components: `field`, `input`, `textarea`, `native-select`
 
 ### Logo (`logo`)
 
@@ -205,6 +305,32 @@ Displays the official symbol with the LafLabs wordmark.
 - Avoid: Do not use it as a decorative background or repeating motif.
 - Accessibility: The component exposes the LafLabs name; check that an enclosing link does not create a redundant label.
 - States: `default`, `compact`
+- Dependencies: `next`
+
+### Native Select (`native-select`)
+
+Maturity: **candidate** · Category: **form**
+
+A select that preserves native browser selection behavior.
+
+- Use: Use it to choose one value from a short, fixed list.
+- Avoid: Do not use it for long searchable lists or multi-selection.
+- Accessibility: Keep the native select as the only interactive element and hide its decorative icon.
+- States: `default`, `focus-visible`, `disabled`
+- Related components: `field`, `label`, `input`
+- Dependencies: `@phosphor-icons/react`
+
+### Radio Group (`radio-group`)
+
+Maturity: **candidate** · Category: **selection**
+
+Selects exactly one value from a named group.
+
+- Use: Use it when a short list of options should stay visible for comparison.
+- Avoid: Use Native Select when space is tight or the list is long.
+- Accessibility: Name the native radio set with a fieldset and visible legend.
+- States: `default`, `selected`, `controlled`, `disabled`
+- Related components: `checkbox`, `native-select`
 
 ### Segmented Toggle (`segmented-toggle`)
 
@@ -216,6 +342,44 @@ Switches between two mutually exclusive values in place.
 - Avoid: Do not use it for more than two choices or options that need long descriptions.
 - Accessibility: Name the group and each button; expose selection with aria-pressed.
 - States: `default`, `hover`, `focus-visible`, `selected`, `reduced-motion`
+- Related components: `icon-control`
+- Dependencies: `motion`
+
+### Separator (`separator`)
+
+Maturity: **candidate** · Category: **structure**
+
+Creates a visual or semantic boundary between content.
+
+- Use: Use it when spacing alone cannot distinguish rows or sections.
+- Avoid: Do not box every element or repeat rules as decoration.
+- Accessibility: Hide it by default and expose a separator only when the boundary carries meaning.
+- States: `decorative`, `horizontal`, `vertical`
+- Related components: `empty-state`
+
+### Skeleton (`skeleton`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Reserves content structure while data is loading.
+
+- Use: Use it for brief loading when the final layout shape is known.
+- Avoid: Do not replace progress feedback or an empty state with a skeleton.
+- Accessibility: Always hide it from assistive technology and announce loading separately.
+- States: `loading`, `reduced-motion`
+- Related components: `empty-state`
+
+### Switch (`switch`)
+
+Maturity: **candidate** · Category: **selection**
+
+Turns one immediately applied setting on or off.
+
+- Use: Use it for a binary setting that takes effect immediately.
+- Avoid: Use Checkbox when consent is only committed on form submission.
+- Accessibility: Preserve native checkbox behavior with role switch and a stable label.
+- States: `off`, `on`, `focus-visible`, `disabled`
+- Related components: `checkbox`, `segmented-toggle`
 
 ### Text Link (`text-link`)
 
@@ -227,6 +391,20 @@ A reusable link that pairs text with an arrow toward the next destination.
 - Avoid: Do not use it for primary submission actions or icon-only controls.
 - Accessibility: The link text must identify its destination; treat the arrow as decorative.
 - States: `default`, `hover`, `focus-visible`, `visited`
+- Related components: `action`
+- Dependencies: `@phosphor-icons/react`
+
+### Textarea (`textarea`)
+
+Maturity: **candidate** · Category: **form**
+
+Accepts longer multiline text.
+
+- Use: Use it for values that need line breaks, such as inquiries or summaries.
+- Avoid: Do not use it as a code editor or for single-line values.
+- Accessibility: Associate a visible label and expose length guidance as a description when needed.
+- States: `default`, `focus-visible`, `invalid`
+- Related components: `field`, `label`, `input`
 
 ## Composition and responsive patterns
 
@@ -237,7 +415,7 @@ A full-width row separated by space and one-pixel rules.
 - Keep rules and spacing between items instead of wrapping each item in a card.
 - Align name, description, and status or action to shared columns.
 - Do not animate padding on hover.
-- Related components: `action`, `text-link`
+- Related components: `button`, `separator`, `text-link`
 
 ### Contrast band (`contrast-band`)
 
@@ -255,7 +433,7 @@ A shared shell and reading rhythm connect document indices and detail pages.
 - Keep body measure, heading levels, dates, and metadata placement consistent.
 - Use Code Block for multiline code and distinguish it from inline identifiers.
 - Use direct links between document indices and reading surfaces.
-- Related components: `code-block`, `text-link`
+- Related components: `field`, `code-block`, `separator`, `text-link`
 
 ### Editorial heading (`editorial-heading`)
 
@@ -273,7 +451,7 @@ Desktop relationships become a one-column reading order on small screens.
 - Stack complex grids at 1080px and simplify navigation and actions at 720px.
 - Reorder the same content for reading instead of shrinking a desktop diagram.
 - Keep a 44px target area on small screens.
-- Related components: `action`, `segmented-toggle`, `icon-control`
+- Related components: `button`, `button-group`, `field`, `segmented-toggle`, `icon-control`
 
 ### Selected work (`selected-work`)
 
@@ -282,7 +460,7 @@ An editorial module pairing a real image with verified project copy.
 - Use real images from public and never fabricate a product screen.
 - Show product status and destinations only when current data provides them.
 - Provide previous and next actions as named, keyboard-operable buttons.
-- Related components: `segmented-toggle`, `icon-control`, `text-link`
+- Related components: `button`, `segmented-toggle`, `icon-control`, `text-link`
 
 ### Site chrome (`site-chrome`)
 
@@ -300,7 +478,7 @@ Loading, empty, and error states share one visual and verbal grammar.
 - Name the state and the next available action in short copy.
 - Provide a retry action for errors when recovery is available.
 - Do not fill empty states with invented example data.
-- Related components: `action`, `text-link`
+- Related components: `alert`, `button`, `empty-state`, `skeleton`, `text-link`
 
 ## Public machine resources
 

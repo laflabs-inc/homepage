@@ -66,6 +66,12 @@ function serializeComponentSummary(): string[] {
     `- Avoid: ${component.whenNotToUse.en}`,
     `- Accessibility: ${component.accessibility.en}`,
     `- States: ${component.states.map(({ id }) => `\`${id}\``).join(", ")}`,
+    ...(component.relatedComponents.length > 0
+      ? [`- Related components: ${component.relatedComponents.map((id) => `\`${id}\``).join(", ")}`]
+      : []),
+    ...(component.dependencies.length > 0
+      ? [`- Dependencies: ${component.dependencies.map((dependency) => `\`${dependency}\``).join(", ")}`]
+      : []),
     "",
   ])
 }
@@ -245,6 +251,12 @@ function serializeComponentsReference(): string {
       `- Use: ${component.whenToUse.en} / ${component.whenToUse.ko}`,
       `- Avoid: ${component.whenNotToUse.en} / ${component.whenNotToUse.ko}`,
       `- Accessibility: ${component.accessibility.en} / ${component.accessibility.ko}`,
+      ...(component.relatedComponents.length > 0
+        ? [`- Related components: ${component.relatedComponents.map((id) => `\`${id}\``).join(", ")}`]
+        : []),
+      ...(component.dependencies.length > 0
+        ? [`- Dependencies: ${component.dependencies.map((dependency) => `\`${dependency}\``).join(", ")}`]
+        : []),
       "- States and inspection:",
       ...component.states.map(({ id, guidance }) => `  - \`${id}\`: ${guidance.en} / ${guidance.ko}`),
       "",
