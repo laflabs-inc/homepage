@@ -5,7 +5,7 @@
   gap: 12px;
   padding: 16px;
   border: 1px solid var(--line);
-  border-inline-start: 4px solid var(--alert-color);
+  border-block-start-color: var(--alert-color);
   background: var(--paper);
   color: var(--ink);
 }
