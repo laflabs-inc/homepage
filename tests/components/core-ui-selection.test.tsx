@@ -1,6 +1,4 @@
 import { createRef } from "react"
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
@@ -10,17 +8,13 @@ import { RadioGroup } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
 
 describe("Checkbox", () => {
-  it("forwards its ref and keeps checked and mixed indicators visually distinct", () => {
+  it("renders dedicated checked and mixed glyphs instead of drawing them on the input background", () => {
     const ref = createRef<HTMLInputElement>()
-    render(<Checkbox label="선택" ref={ref} />)
+    const { container } = render(<Checkbox label="선택" ref={ref} />)
     expect(ref.current).toBe(screen.getByRole("checkbox", { name: "선택" }))
-
-    const stylesheet = readFileSync(
-      join(process.cwd(), "components/ui/selection-control.module.css"),
-      "utf8",
-    )
-    expect(stylesheet).toMatch(/\.choiceInput:checked:not\(\[aria-checked="mixed"\]\)/)
-    expect(stylesheet).toMatch(/\.choiceInput\[aria-checked="mixed"\]/)
+    expect(container.querySelector("[data-checkbox-indicator]")).toBeInTheDocument()
+    expect(container.querySelector('[data-checkbox-glyph="checked"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-checkbox-glyph="mixed"]')).toBeInTheDocument()
   })
 
   it("updates its native indeterminate and checked states", () => {
