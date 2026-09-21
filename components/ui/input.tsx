@@ -1,11 +1,11 @@
 "use client"
 
-import type { InputHTMLAttributes } from "react"
+import type { ComponentPropsWithRef } from "react"
 
 import { useFieldControlProps } from "./field"
 import styles from "./form-control.module.css"
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+export function Input(props: ComponentPropsWithRef<"input">) {
   const fieldProps = useFieldControlProps(props)
   return (
     <input

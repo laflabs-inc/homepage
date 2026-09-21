@@ -55,6 +55,31 @@ function hasPart(
   )
 }
 
+function getPartId(
+  children: ReactNode,
+  part: typeof FieldDescription | typeof FieldError,
+): string | undefined {
+  for (const child of Children.toArray(children)) {
+    if (!isValidElement<{ id?: string }>(child) || child.type !== part) continue
+    if (child.props.id?.trim()) return child.props.id
+  }
+  return undefined
+}
+
+function getControlId(children: ReactNode): string | undefined {
+  for (const child of Children.toArray(children)) {
+    if (!isValidElement<{ id?: string }>(child)) continue
+    if (
+      child.type === FieldLabel
+      || child.type === FieldDescription
+      || child.type === FieldError
+      || child.type === Label
+    ) continue
+    if (child.props.id?.trim()) return child.props.id
+  }
+  return undefined
+}
+
 export function useFieldControlProps<T extends FieldControlAttributes>(props: T): T {
   const field = useContext(FieldContext)
   if (!field) return props
@@ -86,9 +111,9 @@ export function Field({
 }: FieldProps) {
   const prefix = useId()
   const value: FieldContextValue = {
-    controlId: `${prefix}-control`,
-    descriptionId: `${prefix}-description`,
-    errorId: `${prefix}-error`,
+    controlId: getControlId(children) ?? `${prefix}-control`,
+    descriptionId: getPartId(children, FieldDescription) ?? `${prefix}-description`,
+    errorId: getPartId(children, FieldError) ?? `${prefix}-error`,
     hasDescription: hasPart(children, FieldDescription),
     hasError: hasPart(children, FieldError),
     invalid,

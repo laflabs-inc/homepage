@@ -1,3 +1,6 @@
+import { createRef } from "react"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
@@ -6,6 +9,12 @@ import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 
 describe("Button", () => {
+  it("forwards a typed ref to the native button", () => {
+    const ref = createRef<HTMLButtonElement>()
+    render(<Button ref={ref}>Continue</Button>)
+    expect(ref.current).toBe(screen.getByRole("button", { name: "Continue" }))
+  })
+
   it("uses a safe default type and forwards native button props", () => {
     render(<Button form="document-form" name="intent" value="save">Save changes</Button>)
 
@@ -46,6 +55,11 @@ describe("Button", () => {
     expect(button).not.toHaveAttribute("aria-busy")
     await user.click(button)
     expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it("uses an accessible foreground for the Error danger surface", () => {
+    const stylesheet = readFileSync(join(process.cwd(), "components/ui/button.module.css"), "utf8")
+    expect(stylesheet).toMatch(/\.danger\s*\{[^}]*color:\s*var\(--ink\);/s)
   })
 })
 

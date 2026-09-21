@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, type ReactNode } from "react"
+import { useId, type ReactNode, type Ref } from "react"
 
 import styles from "./selection-control.module.css"
 
@@ -20,6 +20,7 @@ export type RadioGroupProps = Readonly<{
   onValueChange?: (value: string) => void
   disabled?: boolean
   className?: string
+  ref?: Ref<HTMLFieldSetElement>
 }>
 
 export function RadioGroup({
@@ -31,11 +32,13 @@ export function RadioGroup({
   onValueChange,
   disabled = false,
   className,
+  ref,
 }: RadioGroupProps) {
   const prefix = useId()
 
   return (
     <fieldset
+      ref={ref}
       className={[styles.group, className].filter(Boolean).join(" ")}
       disabled={disabled}
     >

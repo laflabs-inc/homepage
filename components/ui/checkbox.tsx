@@ -1,31 +1,48 @@
 "use client"
 
 import {
+  useCallback,
   useEffect,
   useId,
   useRef,
-  type InputHTMLAttributes,
+  type ComponentPropsWithRef,
   type ReactNode,
+  type Ref,
 } from "react"
 
 import styles from "./selection-control.module.css"
 
-export type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+export type CheckboxProps = Omit<ComponentPropsWithRef<"input">, "type"> & {
   label: ReactNode
   description?: ReactNode
   indeterminate?: boolean
+}
+
+function mergeIds(...values: Array<string | undefined>): string | undefined {
+  const ids = [...new Set(values.flatMap((value) => value?.split(/\s+/).filter(Boolean) ?? []))]
+  return ids.length > 0 ? ids.join(" ") : undefined
+}
+
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
+  if (typeof ref === "function") ref(value)
+  else if (ref) ref.current = value
 }
 
 export function Checkbox({
   label,
   description,
   indeterminate = false,
+  ref,
   ...props
 }: CheckboxProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const prefix = useId()
   const labelId = `${prefix}-label`
   const descriptionId = `${prefix}-description`
+  const setInputRef = useCallback((input: HTMLInputElement | null) => {
+    inputRef.current = input
+    assignRef(ref, input)
+  }, [ref])
 
   useEffect(() => {
     const input = inputRef.current
@@ -40,9 +57,12 @@ export function Checkbox({
     <label className={styles.choice}>
       <input
         {...props}
-        ref={inputRef}
+        ref={setInputRef}
         aria-checked={indeterminate ? "mixed" : props.checked}
-        aria-describedby={description ? descriptionId : props["aria-describedby"]}
+        aria-describedby={mergeIds(
+          props["aria-describedby"],
+          description ? descriptionId : undefined,
+        )}
         aria-labelledby={labelId}
         className={styles.choiceInput}
         type="checkbox"

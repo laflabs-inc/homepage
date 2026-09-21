@@ -24,7 +24,7 @@
 
 .alertIcon {
   margin-block-start: 1px;
-  color: var(--alert-color);
+  color: var(--ink);
 }
 
 .alertContent {

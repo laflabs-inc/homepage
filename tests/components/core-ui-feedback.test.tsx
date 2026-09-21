@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
@@ -8,6 +10,11 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 
 describe("Alert", () => {
+  it("uses an Ink icon foreground while semantic color remains structural", () => {
+    const stylesheet = readFileSync(join(process.cwd(), "components/ui/feedback.module.css"), "utf8")
+    expect(stylesheet).toMatch(/\.alertIcon\s*\{[^}]*color:\s*var\(--ink\);/s)
+  })
+
   it("announces live errors and exposes their semantic variant", () => {
     render(<Alert title="저장 실패" variant="error" live>다시 시도해 주세요.</Alert>)
     const alert = screen.getByRole("alert")

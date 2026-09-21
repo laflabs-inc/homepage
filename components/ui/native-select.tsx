@@ -1,12 +1,12 @@
 "use client"
 
 import { CaretDown } from "@phosphor-icons/react/dist/ssr"
-import type { SelectHTMLAttributes } from "react"
+import type { ComponentPropsWithRef } from "react"
 
 import { useFieldControlProps } from "./field"
 import styles from "./form-control.module.css"
 
-export function NativeSelect(props: SelectHTMLAttributes<HTMLSelectElement>) {
+export function NativeSelect(props: ComponentPropsWithRef<"select">) {
   const fieldProps = useFieldControlProps(props)
 
   return (

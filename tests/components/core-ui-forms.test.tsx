@@ -1,3 +1,4 @@
+import { createRef } from "react"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
@@ -65,6 +66,21 @@ describe("Field", () => {
     ])
   })
 
+  it("uses caller IDs consistently across every Field relationship", () => {
+    render(
+      <Field invalid>
+        <FieldLabel>Account</FieldLabel>
+        <Input id="account-control" />
+        <FieldDescription id="account-help">Use the public identifier.</FieldDescription>
+        <FieldError id="account-error">Check the identifier.</FieldError>
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: "Account" })
+    expect(screen.getByText("Account")).toHaveAttribute("for", "account-control")
+    expect(input).toHaveAttribute("aria-describedby", "account-help account-error")
+  })
+
   it("does not reference compound parts that render no content", () => {
     render(
       <Field>
@@ -98,6 +114,22 @@ describe("Field", () => {
 })
 
 describe("native form controls", () => {
+  it("forwards refs to each native form control", () => {
+    const inputRef = createRef<HTMLInputElement>()
+    const textareaRef = createRef<HTMLTextAreaElement>()
+    const selectRef = createRef<HTMLSelectElement>()
+    render(
+      <>
+        <Input aria-label="Input ref" ref={inputRef} />
+        <Textarea aria-label="Textarea ref" ref={textareaRef} />
+        <NativeSelect aria-label="Select ref" ref={selectRef}><option>One</option></NativeSelect>
+      </>,
+    )
+    expect(inputRef.current).toBe(screen.getByRole("textbox", { name: "Input ref" }))
+    expect(textareaRef.current).toBe(screen.getByRole("textbox", { name: "Textarea ref" }))
+    expect(selectRef.current).toBe(screen.getByRole("combobox", { name: "Select ref" }))
+  })
+
   it("forwards textarea rows, name, and disabled state", () => {
     render(<Textarea aria-label="Details" disabled name="details" rows={7} />)
     const textarea = screen.getByRole("textbox", { name: "Details" })

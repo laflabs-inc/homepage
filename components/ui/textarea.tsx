@@ -1,11 +1,11 @@
 "use client"
 
-import type { TextareaHTMLAttributes } from "react"
+import type { ComponentPropsWithRef } from "react"
 
 import { useFieldControlProps } from "./field"
 import styles from "./form-control.module.css"
 
-export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea(props: ComponentPropsWithRef<"textarea">) {
   const fieldProps = useFieldControlProps(props)
   return (
     <textarea

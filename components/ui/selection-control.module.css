@@ -20,11 +20,19 @@
   cursor: pointer;
 }
 
-.choiceInput:checked,
+.choiceInput:checked:not([aria-checked="mixed"]) {
+  border-color: var(--blue);
+  background:
+    linear-gradient(45deg, transparent 46%, var(--paper) 46% 58%, transparent 58%) 3px 7px / 7px 7px no-repeat,
+    linear-gradient(-45deg, transparent 44%, var(--paper) 44% 57%, transparent 57%) 7px 3px / 10px 10px no-repeat,
+    var(--blue);
+}
+
 .choiceInput[aria-checked="mixed"] {
   border-color: var(--blue);
-  background: var(--blue);
-  box-shadow: inset 0 0 0 4px var(--paper);
+  background:
+    linear-gradient(var(--paper), var(--paper)) center / 10px 2px no-repeat,
+    var(--blue);
 }
 
 .choiceInput:focus-visible,
@@ -42,6 +50,11 @@
 
 .radioInput {
   border-radius: 50%;
+}
+
+.radioInput:checked:not([aria-checked="mixed"]) {
+  background: var(--blue);
+  box-shadow: inset 0 0 0 4px var(--paper);
 }
 
 .choiceCopy {

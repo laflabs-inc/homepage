@@ -1,3 +1,6 @@
+import { createRef } from "react"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
@@ -7,6 +10,19 @@ import { RadioGroup } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
 
 describe("Checkbox", () => {
+  it("forwards its ref and keeps checked and mixed indicators visually distinct", () => {
+    const ref = createRef<HTMLInputElement>()
+    render(<Checkbox label="선택" ref={ref} />)
+    expect(ref.current).toBe(screen.getByRole("checkbox", { name: "선택" }))
+
+    const stylesheet = readFileSync(
+      join(process.cwd(), "components/ui/selection-control.module.css"),
+      "utf8",
+    )
+    expect(stylesheet).toMatch(/\.choiceInput:checked:not\(\[aria-checked="mixed"\]\)/)
+    expect(stylesheet).toMatch(/\.choiceInput\[aria-checked="mixed"\]/)
+  })
+
   it("updates its native indeterminate and checked states", () => {
     const { rerender } = render(<Checkbox label="모두 선택" indeterminate />)
     const checkbox = screen.getByRole("checkbox", { name: "모두 선택" })
@@ -22,11 +38,14 @@ describe("Checkbox", () => {
   })
 
   it("associates visible description text and preserves disabled state", () => {
-    render(<Checkbox label="보관" description="목록에서 숨깁니다." disabled />)
+    render(<Checkbox aria-describedby="external-help" label="보관" description="목록에서 숨깁니다." disabled />)
     const checkbox = screen.getByRole("checkbox", { name: "보관" })
     const description = screen.getByText("목록에서 숨깁니다.")
     expect(checkbox).toBeDisabled()
-    expect(checkbox).toHaveAttribute("aria-describedby", description.id)
+    expect(checkbox.getAttribute("aria-describedby")?.split(" ")).toEqual([
+      "external-help",
+      description.id,
+    ])
   })
 })
 
@@ -46,6 +65,12 @@ describe("RadioGroup", () => {
     await user.click(screen.getByRole("radio", { name: "English" }))
     expect(screen.getByRole("radio", { name: "English" })).toBeChecked()
     expect(screen.getByRole("radio", { name: "日本語" })).toBeDisabled()
+  })
+
+  it("forwards its ref to the native fieldset", () => {
+    const ref = createRef<HTMLFieldSetElement>()
+    render(<RadioGroup ref={ref} legend="언어" name="locale" options={options} />)
+    expect(ref.current).toBe(screen.getByRole("group", { name: "언어" }))
   })
 
   it("associates option descriptions and reports controlled changes", async () => {
@@ -82,10 +107,15 @@ describe("Switch", () => {
   })
 
   it("associates its description and preserves disabled state", () => {
-    render(<Switch label="AI 기능" description="분석 동의 후 사용할 수 있습니다." disabled />)
+    const ref = createRef<HTMLInputElement>()
+    render(<Switch aria-describedby="external-help" ref={ref} label="AI 기능" description="분석 동의 후 사용할 수 있습니다." disabled />)
     const control = screen.getByRole("switch", { name: "AI 기능" })
     const description = screen.getByText("분석 동의 후 사용할 수 있습니다.")
     expect(control).toBeDisabled()
-    expect(control).toHaveAttribute("aria-describedby", description.id)
+    expect(ref.current).toBe(control)
+    expect(control.getAttribute("aria-describedby")?.split(" ")).toEqual([
+      "external-help",
+      description.id,
+    ])
   })
 })
