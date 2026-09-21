@@ -17,4 +17,10 @@ describe("document index layout contract", () => {
   it("does not retain styling for the removed document switcher", () => {
     expect(stylesheet).not.toContain(".documentKindNav")
   })
+
+  it("keeps the discovery controls in select, search, then clear order on mobile", () => {
+    expect(stylesheet).toMatch(
+      /@media \(max-width: 700px\)[\s\S]*?\.discoverySelects,[\s\S]*?\.discoverySearch,[\s\S]*?\.discoveryClear\s*\{[^}]*grid-column:\s*1 \/ -1;/,
+    )
+  })
 })

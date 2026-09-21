@@ -1,6 +1,7 @@
 "use client"
 
 import styles from "@/components/content/content.module.css"
+import { Button } from "@/components/ui/button"
 import { documentRouteStateCopy } from "@/lib/content"
 import { useDocumentRouteLocale } from "./client-locale"
 
@@ -13,7 +14,7 @@ export default function DocumentError({ reset }: { error: Error & { digest?: str
         <span aria-hidden="true">□</span>
         <h1>{copy.errorTitle}</h1>
         <p>{copy.errorBody}</p>
-        <button type="button" onClick={reset}>{copy.retry}</button>
+        <Button type="button" onClick={reset}>{copy.retry}</Button>
       </div>
     </section>
   )

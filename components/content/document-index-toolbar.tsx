@@ -3,6 +3,10 @@
 import { useState, useTransition, type FormEvent } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
+import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
 import { documentCategoryCopy } from "@/lib/content"
 import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import type { DocumentKind, Locale } from "@/lib/documents/types"
@@ -61,9 +65,10 @@ export function DocumentIndexToolbar({
   return (
     <div className={styles.discoveryToolbar} role="group" aria-label={copy.toolbarLabel} aria-busy={isPending}>
       <div className={styles.discoverySelects}>
-        <label className={styles.discoveryControl}>
-          <span>{copy.categoryLabel}</span>
-          <select
+        <Field className={styles.discoveryControl}>
+          <FieldLabel>{copy.categoryLabel}</FieldLabel>
+          <NativeSelect
+            name="category"
             value={category ?? ""}
             onChange={(event) => navigate((params) => {
               if (event.target.value) params.set("category", event.target.value)
@@ -81,12 +86,13 @@ export function DocumentIndexToolbar({
                 {locale === "ko" ? selectedInactive.labelKo : selectedInactive.labelEn}
               </option>
             ) : null}
-          </select>
-        </label>
+          </NativeSelect>
+        </Field>
 
-        <label className={styles.discoveryControl}>
-          <span>{copy.sortLabel}</span>
-          <select
+        <Field className={styles.discoveryControl}>
+          <FieldLabel>{copy.sortLabel}</FieldLabel>
+          <NativeSelect
+            name="sort"
             value={sort}
             onChange={(event) => navigate((params) => {
               if (event.target.value === "oldest") params.set("sort", "oldest")
@@ -95,26 +101,28 @@ export function DocumentIndexToolbar({
           >
             <option value="latest">{copy.latest}</option>
             <option value="oldest">{copy.oldest}</option>
-          </select>
-        </label>
+          </NativeSelect>
+        </Field>
       </div>
 
       <form className={styles.discoverySearch} role="search" onSubmit={submitSearch}>
-        <label className={styles.discoveryControl}>
-          <span>{copy.searchLabel[kind]}</span>
-          <input
+        <Field className={styles.discoveryControl}>
+          <FieldLabel>{copy.searchLabel[kind]}</FieldLabel>
+          <Input
+            name="q"
             type="search"
             value={search}
             placeholder={copy.searchPlaceholder}
             onChange={(event) => setSearch(boundedSearch(event.target.value))}
           />
-        </label>
-        <button type="submit">{copy.searchAction}</button>
+        </Field>
+        <Button type="submit">{copy.searchAction}</Button>
       </form>
 
       {hasFilters ? (
-        <button
+        <Button
           type="button"
+          variant="secondary"
           className={styles.discoveryClear}
           onClick={() => {
             setSearch("")
@@ -126,7 +134,7 @@ export function DocumentIndexToolbar({
           }}
         >
           {copy.clear}
-        </button>
+        </Button>
       ) : null}
     </div>
   )

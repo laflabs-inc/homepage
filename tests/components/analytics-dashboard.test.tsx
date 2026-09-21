@@ -233,7 +233,9 @@ describe("analytics route boundaries", () => {
     })).toBeInTheDocument()
     expect(screen.queryByText(/postgres|database_url|secret/i)).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole("button", { name: "Retry" }))
+    const retry = screen.getByRole("button", { name: "Retry" })
+    expect(retry).toHaveAttribute("type", "button")
+    await user.click(retry)
     expect(reset).toHaveBeenCalledTimes(1)
   })
 })

@@ -236,10 +236,12 @@ describe("public document pages", () => {
     }))
 
     const category = screen.getByRole("combobox", { name: "Category" })
+    expect(category).toHaveAttribute("name", "category")
     expect(within(category).getByRole("option", { name: "Engineering" })).toBeInTheDocument()
     expect(within(category).queryByRole("option", { name: "Retired" })).not.toBeInTheDocument()
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveAttribute("name", "sort")
     expect(screen.getByRole("combobox", { name: "Sort" })).toHaveValue("latest")
-    expect(screen.getByRole("searchbox", { name: "Search notices" })).toBeInTheDocument()
+    expect(screen.getByRole("searchbox", { name: "Search notices" })).toHaveAttribute("name", "q")
   })
 
   it("visibly groups legal documents by category", async () => {
@@ -336,6 +338,7 @@ describe("public document pages", () => {
     const category = screen.getByRole("combobox", { name: "카테고리" })
     expect(category).toHaveValue("retired")
     expect(within(category).getByRole("option", { name: "종료됨" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "초기화" })).toHaveAttribute("type", "button")
   })
 
   it("preserves a newly managed category in document detail back links", async () => {
@@ -408,6 +411,7 @@ describe("public document pages", () => {
       "/notices?locale=en&q=routing",
       { scroll: false },
     )
+
   })
 
   it("preserves the selected locale in cursor pagination links", async () => {
@@ -535,7 +539,7 @@ describe("public document pages", () => {
     )
 
     expect(screen.getByRole("heading", { name: "We could not load this document." }).closest("section")).toHaveAttribute("lang", "en")
-    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Try again" })).toHaveAttribute("type", "button")
     expect(screen.getByRole("heading", { name: "Document not found." }).closest("section")).toHaveAttribute("lang", "en")
     expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/")
   })
