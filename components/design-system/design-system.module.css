@@ -779,6 +779,14 @@
   background: var(--paper);
 }
 
+.demoCompositeControl {
+  width: min(100%, 360px);
+}
+
+.demoCompositeWide {
+  width: min(100%, 620px);
+}
+
 .demoCluster {
   width: 100%;
   display: flex;

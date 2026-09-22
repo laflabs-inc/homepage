@@ -79,7 +79,9 @@ describe("Design system component pages", () => {
     expect(screen.getByRole("heading", { level: 1, name: "컴포넌트" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "폼" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "선택" })).toBeInTheDocument()
-    expect(screen.queryByRole("heading", { level: 2, name: "오버레이" })).not.toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "탐색" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "공개와 접기" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 2, name: "오버레이" })).toBeInTheDocument()
 
     for (const component of designCatalog.components) {
       expect(screen.getAllByRole("heading", { level: 3, name: component.name })).toHaveLength(1)

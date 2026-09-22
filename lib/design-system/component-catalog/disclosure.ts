@@ -1,0 +1,56 @@
+import type { ComponentEntry } from "../schema"
+
+export const disclosureComponents = [
+  {
+    id: "tabs",
+    name: "Tabs",
+    category: "disclosure",
+    maturity: "candidate",
+    summary: { ko: "같은 맥락의 패널을 한 번에 하나씩 전환합니다.", en: "Switches between peer panels within one context." },
+    whenToUse: { ko: "사용자가 같은 수준의 두세 보기를 빠르게 오갈 때 씁니다.", en: "Use it for quickly switching between a few peer views." },
+    whenNotToUse: { ko: "순서가 있는 단계나 서로 독립된 페이지 이동에는 쓰지 않습니다.", en: "Do not use it for sequential steps or independent page navigation." },
+    accessibility: { ko: "tablist, tab, tabpanel 관계와 방향키 로빙 초점을 유지합니다.", en: "Preserves tablist, tab, tabpanel relationships and arrow-key roving focus." },
+    sourcePath: "components/ui/tabs.tsx",
+    demoKey: "tabs",
+    importExample: 'import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"',
+    usageExample: '<Tabs defaultValue="overview"><TabsList aria-label="Views"><TabsTrigger value="overview">Overview</TabsTrigger></TabsList><TabsContent value="overview">Content</TabsContent></Tabs>',
+    relatedComponents: ["segmented-toggle", "accordion"],
+    dependencies: ["radix-ui"],
+    states: [
+      { id: "default", guidance: { ko: "첫 패널과 활성 탭이 연결되는지 확인합니다.", en: "Confirm the initial panel is associated with the active tab." } },
+      { id: "selected", guidance: { ko: "파란 상태선과 aria-selected가 함께 바뀌는지 확인합니다.", en: "Confirm the blue state rule and aria-selected change together." } },
+      { id: "disabled", guidance: { ko: "비활성 탭을 방향키가 건너뛰는지 확인합니다.", en: "Confirm arrow navigation skips disabled tabs." } },
+    ],
+    props: [
+      { name: "value", type: "string", required: false, description: { ko: "제어되는 활성 탭 값입니다.", en: "The controlled active tab value." } },
+      { name: "defaultValue", type: "string", required: false, description: { ko: "비제어 초기 탭 값입니다.", en: "The uncontrolled initial tab value." } },
+      { name: "orientation", type: '"horizontal" | "vertical"', required: false, description: { ko: "탭의 탐색 방향입니다.", en: "The navigation orientation." } },
+    ],
+  },
+  {
+    id: "accordion",
+    name: "Accordion",
+    category: "disclosure",
+    maturity: "candidate",
+    summary: { ko: "긴 설명을 제목 단위로 펼치고 접습니다.", en: "Expands and collapses longer content by heading." },
+    whenToUse: { ko: "모든 내용을 동시에 볼 필요가 없는 FAQ나 보조 설명에 씁니다.", en: "Use it for FAQs or supporting detail that need not be visible at once." },
+    whenNotToUse: { ko: "핵심 정보나 짧은 본문을 기본으로 숨기지 않습니다.", en: "Do not hide essential information or short primary copy by default." },
+    accessibility: { ko: "실제 heading과 button, aria-expanded 관계 및 방향키 이동을 유지합니다.", en: "Preserves real headings, buttons, aria-expanded, and arrow-key movement." },
+    sourcePath: "components/ui/accordion.tsx",
+    demoKey: "accordion",
+    importExample: 'import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"',
+    usageExample: '<Accordion type="single" collapsible><AccordionItem value="one"><AccordionTrigger>Question</AccordionTrigger><AccordionContent>Answer</AccordionContent></AccordionItem></Accordion>',
+    relatedComponents: ["tabs", "separator"],
+    dependencies: ["@phosphor-icons/react", "radix-ui"],
+    states: [
+      { id: "closed", guidance: { ko: "제목만으로 숨은 내용을 예측할 수 있는지 확인합니다.", en: "Confirm the heading predicts the hidden content." } },
+      { id: "open", guidance: { ko: "확장 상태와 캐럿 방향이 함께 바뀌는지 확인합니다.", en: "Confirm expanded state and caret direction change together." } },
+      { id: "disabled", guidance: { ko: "비활성 항목이 초점 순서에서 제외되는지 확인합니다.", en: "Confirm disabled items are removed from the focus sequence." } },
+    ],
+    props: [
+      { name: "type", type: '"single" | "multiple"', required: true, description: { ko: "동시에 열 수 있는 항목 수를 정합니다.", en: "Controls whether one or many items may be open." } },
+      { name: "collapsible", type: "boolean", required: false, description: { ko: "single 모드에서 모두 닫을 수 있게 합니다.", en: "Allows all items to close in single mode." } },
+      { name: "value", type: "string | string[]", required: false, description: { ko: "제어되는 열린 항목 값입니다.", en: "The controlled open item value." } },
+    ],
+  },
+] as const satisfies readonly ComponentEntry[]

@@ -23,6 +23,7 @@ export const componentDemoKeys = [
   "input",
   "textarea",
   "native-select",
+  "select",
   "checkbox",
   "radio-group",
   "switch",
@@ -33,6 +34,11 @@ export const componentDemoKeys = [
   "segmented-toggle",
   "icon-control",
   "text-link",
+  "dropdown-menu",
+  "tabs",
+  "accordion",
+  "dialog",
+  "tooltip",
   "code-block",
 ] as const
 

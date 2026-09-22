@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.1 · Updated: 2026-09-20
+System version: 2026.9.2 · Updated: 2026-09-22
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -162,6 +162,19 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 
 ## Components
 
+### Accordion (`accordion`)
+
+Maturity: **candidate** · Category: **disclosure**
+
+Expands and collapses longer content by heading.
+
+- Use: Use it for FAQs or supporting detail that need not be visible at once.
+- Avoid: Do not hide essential information or short primary copy by default.
+- Accessibility: Preserves real headings, buttons, aria-expanded, and arrow-key movement.
+- States: `closed`, `open`, `disabled`
+- Related components: `tabs`, `separator`
+- Dependencies: `@phosphor-icons/react`, `radix-ui`
+
 ### Action (`action`)
 
 Maturity: **stable** · Category: **action**
@@ -234,6 +247,32 @@ A readable code region with a language label and copy action.
 - Accessibility: The copy button names the language, and the source remains selectable after a copy failure.
 - States: `idle`, `copied`, `error`
 - Related components: `icon-control`
+
+### Dialog (`dialog`)
+
+Maturity: **candidate** · Category: **overlay**
+
+Opens a focused task above the current flow.
+
+- Use: Use it for a short confirmation, setting, or form without leaving context.
+- Avoid: Do not confine long documents or complex multi-step work to a modal.
+- Accessibility: Provide title and description and preserve focus trap, Escape dismissal, and focus restoration.
+- States: `closed`, `open`
+- Related components: `button`, `dropdown-menu`, `field`
+- Dependencies: `@phosphor-icons/react`, `radix-ui`
+
+### Dropdown Menu (`dropdown-menu`)
+
+Maturity: **candidate** · Category: **navigation**
+
+Opens related commands and settings from one trigger.
+
+- Use: Use it to group related, secondary commands in one place.
+- Avoid: Do not hide primary actions or replace straightforward page navigation.
+- Accessibility: Preserves arrow keys, typeahead, Escape, submenus, and trigger focus restoration.
+- States: `default`, `open`, `disabled`
+- Related components: `button`, `select`, `dialog`
+- Dependencies: `@phosphor-icons/react`, `radix-ui`
 
 ### Empty State (`empty-state`)
 
@@ -345,6 +384,19 @@ Switches between two mutually exclusive values in place.
 - Related components: `icon-control`
 - Dependencies: `motion`
 
+### Select (`select`)
+
+Maturity: **candidate** · Category: **form**
+
+Navigates a longer option list by keyboard or pointer.
+
+- Use: Use it when options need richer states and controlled popup placement.
+- Avoid: Use Native Select for short lists or when the platform picker is preferable.
+- Accessibility: Provide a label and preserve arrow selection, disabled options, Escape dismissal, and focus return.
+- States: `default`, `open`, `disabled`
+- Related components: `field`, `native-select`, `dropdown-menu`
+- Dependencies: `@phosphor-icons/react`, `radix-ui`
+
 ### Separator (`separator`)
 
 Maturity: **candidate** · Category: **structure**
@@ -381,6 +433,19 @@ Turns one immediately applied setting on or off.
 - States: `off`, `on`, `focus-visible`, `disabled`
 - Related components: `checkbox`, `segmented-toggle`
 
+### Tabs (`tabs`)
+
+Maturity: **candidate** · Category: **disclosure**
+
+Switches between peer panels within one context.
+
+- Use: Use it for quickly switching between a few peer views.
+- Avoid: Do not use it for sequential steps or independent page navigation.
+- Accessibility: Preserves tablist, tab, tabpanel relationships and arrow-key roving focus.
+- States: `default`, `selected`, `disabled`
+- Related components: `segmented-toggle`, `accordion`
+- Dependencies: `radix-ui`
+
 ### Text Link (`text-link`)
 
 Maturity: **stable** · Category: **navigation**
@@ -405,6 +470,19 @@ Accepts longer multiline text.
 - Accessibility: Associate a visible label and expose length guidance as a description when needed.
 - States: `default`, `focus-visible`, `invalid`
 - Related components: `field`, `label`, `input`
+
+### Tooltip (`tooltip`)
+
+Maturity: **candidate** · Category: **overlay**
+
+Provides a short supporting description on hover and focus.
+
+- Use: Use it to clarify controls whose visible name, such as an icon, is insufficient.
+- Avoid: Do not rely on it for essential information, long copy, or touch-only actions.
+- Accessibility: Opens on keyboard focus as well as hover and is associated as the trigger description.
+- States: `closed`, `open`
+- Related components: `icon-control`
+- Dependencies: `radix-ui`
 
 ## Composition and responsive patterns
 
