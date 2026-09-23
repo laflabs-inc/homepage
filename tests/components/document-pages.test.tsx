@@ -113,6 +113,8 @@ const designSitemapUrls = [
   `${siteUrl}/design/components/skeleton`,
   `${siteUrl}/design/components/empty-state`,
   `${siteUrl}/design/components/separator`,
+  `${siteUrl}/design/components/panel`,
+  `${siteUrl}/design/components/status-label`,
   `${siteUrl}/design/components/code-block`,
 ]
 
@@ -627,7 +629,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(84)
+    expect(entries).toHaveLength(86)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

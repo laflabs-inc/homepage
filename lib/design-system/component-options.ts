@@ -31,6 +31,8 @@ export const componentDemoKeys = [
   "skeleton",
   "empty-state",
   "separator",
+  "panel",
+  "status-label",
   "segmented-toggle",
   "icon-control",
   "text-link",

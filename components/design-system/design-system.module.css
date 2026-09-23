@@ -847,6 +847,19 @@
   justify-content: center;
 }
 
+.demoPanel {
+  width: min(100%, 620px);
+}
+
+.demoStatusLabels {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .inverseDemo {
   padding: 10px;
   display: inline-flex;

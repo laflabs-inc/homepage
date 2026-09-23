@@ -68,7 +68,7 @@ export const patterns = [
         en: "Do not animate padding on hover.",
       },
     ],
-    relatedComponents: ["button", "separator", "text-link"],
+    relatedComponents: ["button", "separator", "status-label", "text-link"],
   },
   {
     id: "selected-work",
@@ -114,7 +114,7 @@ export const patterns = [
         en: "Use direct links between document indices and reading surfaces.",
       },
     ],
-    relatedComponents: ["field", "code-block", "separator", "text-link"],
+    relatedComponents: ["field", "code-block", "panel", "separator", "text-link"],
   },
   {
     id: "system-states",
@@ -137,7 +137,7 @@ export const patterns = [
         en: "Do not fill empty states with invented example data.",
       },
     ],
-    relatedComponents: ["alert", "button", "empty-state", "skeleton", "text-link"],
+    relatedComponents: ["alert", "button", "empty-state", "panel", "skeleton", "status-label", "text-link"],
   },
   {
     id: "responsive-collapse",

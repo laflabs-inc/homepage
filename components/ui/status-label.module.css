@@ -1,0 +1,40 @@
+.label {
+  --status-color: var(--muted);
+  width: max-content;
+  max-width: 100%;
+  min-height: 26px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 650 10px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
+  overflow-wrap: anywhere;
+}
+
+.label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  background: var(--status-color);
+}
+
+.label[data-variant="info"] {
+  --status-color: var(--info);
+}
+
+.label[data-variant="success"] {
+  --status-color: var(--success);
+}
+
+.label[data-variant="warning"] {
+  --status-color: var(--warning);
+}
+
+.label[data-variant="error"] {
+  --status-color: var(--error);
+}

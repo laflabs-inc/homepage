@@ -14,6 +14,7 @@ import { feedbackDemos } from "./component-demo-feedback"
 import { formDemos } from "./component-demo-forms"
 import { selectionDemos } from "./component-demo-selection"
 import { SegmentedToggleDemo } from "./component-demo-segmented-toggle"
+import { structureDemos } from "./component-demo-structure"
 import styles from "./design-system.module.css"
 
 function LogoDemo({ state }: ComponentDemoProps) {
@@ -135,4 +136,5 @@ export const componentDemos = {
   ...selectionDemos,
   ...compositeDemos,
   ...feedbackDemos,
+  ...structureDemos,
 } satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>

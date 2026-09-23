@@ -97,8 +97,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.9.2",
-      updatedAt: "2026-09-22",
+      version: "2026.9.3",
+      updatedAt: "2026-09-23",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
@@ -108,7 +108,7 @@ describe("design catalog schema", () => {
   it("rejects catalog metadata that differs from the fixed contract", () => {
     const catalog = {
       ...validCatalog,
-      meta: { ...designSystemMeta, version: "2026.9.3" },
+      meta: { ...designSystemMeta, version: "2026.9.4" },
     } satisfies DesignCatalog
 
     expect(() => assertDesignCatalog(catalog)).toThrow("metadata version: invalid metadata value")
@@ -309,6 +309,8 @@ describe("production design catalog", () => {
       "skeleton",
       "empty-state",
       "separator",
+      "panel",
+      "status-label",
       "code-block",
     ])
     expect(designCatalog.patterns.map(({ id }) => id)).toEqual([
@@ -485,6 +487,12 @@ describe("production design catalog", () => {
     )
     expect(getComponentEntry("code-block")?.importExample).toBe(
       'import { CodeBlock } from "@/components/content/code-block"',
+    )
+    expect(getComponentEntry("panel")?.importExample).toBe(
+      'import { Panel, PanelContent, PanelDescription, PanelHeader, PanelTitle } from "@/components/ui/panel"',
+    )
+    expect(getComponentEntry("status-label")?.importExample).toBe(
+      'import { StatusLabel } from "@/components/ui/status-label"',
     )
     expect(getComponentEntry("missing")).toBeUndefined()
   })

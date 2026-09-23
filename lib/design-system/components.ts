@@ -6,6 +6,7 @@ import { disclosureComponents } from "./component-catalog/disclosure"
 import { navigationComponents } from "./component-catalog/navigation"
 import { overlayComponents } from "./component-catalog/overlays"
 import { selectionComponents } from "./component-catalog/selection"
+import { structureComponents } from "./component-catalog/structure"
 import type { ComponentEntry } from "./schema"
 
 function existing(id: string): ComponentEntry {
@@ -27,5 +28,6 @@ export const components = [
   ...disclosureComponents,
   ...overlayComponents,
   ...feedbackComponents,
+  ...structureComponents,
   existing("code-block"),
 ] as const satisfies readonly ComponentEntry[]
