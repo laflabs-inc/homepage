@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
@@ -257,6 +257,15 @@ describe("design catalog schema", () => {
 })
 
 describe("production design catalog", () => {
+  it("keeps the composite demo collection server-readable for Next component pages", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/design-system/component-demo-composites.tsx"),
+      "utf8",
+    )
+
+    expect(source).not.toMatch(/^\s*["']use client["']/)
+  })
+
   it("keeps the lightweight analytics slug allowlist aligned with the catalog", () => {
     expect(designComponentSlugs).toEqual(designCatalog.components.map(({ id }) => id))
   })

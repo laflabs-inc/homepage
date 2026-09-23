@@ -104,7 +104,7 @@ describe("public design machine routes", () => {
     expect(response.status).toBe(200)
     expect(response.headers.get("content-type")).toBe("application/zip")
     expect(response.headers.get("content-disposition")).toBe(
-      'attachment; filename="laflabs-web-design-2026.9.1.zip"',
+      'attachment; filename="laflabs-web-design-2026.9.2.zip"',
     )
     expect(response.headers.get("cache-control")).toBe(cacheControl)
     expect(response.headers.get("x-content-type-options")).toBe("nosniff")

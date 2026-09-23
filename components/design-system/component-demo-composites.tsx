@@ -1,6 +1,4 @@
-"use client"
-
-import { DotsThree, Info } from "@phosphor-icons/react"
+import { DotsThree, Info } from "@phosphor-icons/react/dist/ssr"
 import type { ComponentType } from "react"
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"

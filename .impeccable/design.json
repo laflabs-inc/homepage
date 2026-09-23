@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-20T00:00:00Z",
+  "generatedAt": "2026-09-22T00:00:00Z",
   "title": "LafLabs Web Design",
   "extensions": {
     "colorMeta": {
@@ -95,6 +95,38 @@
         "description": "Two mutually exclusive short choices inside one square control.",
         "html": "<div class=\"ds-segmented\" role=\"group\" aria-label=\"Language\"><button type=\"button\" aria-pressed=\"true\">KO</button><button type=\"button\" aria-pressed=\"false\">EN</button></div>",
         "css": ".ds-segmented { min-height: 44px; padding: 3px; display: inline-flex; border: 1px solid var(--line); background: var(--paper); } .ds-segmented button { min-width: 40px; border: 0; border-radius: 0; background: transparent; color: var(--muted); font: 700 11px/1 var(--font-geist-mono), monospace; } .ds-segmented button[aria-pressed=\"true\"] { background: var(--ink); color: var(--paper); } .ds-segmented button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }"
+      },
+      {
+        "name": "Select",
+        "kind": "select",
+        "refersTo": "select",
+        "description": "A composite single-value picker for richer option states and keyboard navigation.",
+        "html": "<button class=\"ds-select-trigger\" type=\"button\" role=\"combobox\" aria-expanded=\"false\"><span>Korean</span><span aria-hidden=\"true\">⌄</span></button>",
+        "css": ".ds-select-trigger { width: 100%; min-height: 48px; padding: 11px 14px; display: inline-flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid var(--line); border-radius: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 var(--font-geist-sans), Pretendard, sans-serif; } .ds-select-trigger:hover { border-color: var(--ink); } .ds-select-trigger:focus-visible { border-color: var(--blue); outline: 2px solid var(--blue); outline-offset: 2px; }"
+      },
+      {
+        "name": "Dialog",
+        "kind": "dialog",
+        "refersTo": "dialog",
+        "description": "A focused, labelled task surface with visible dismissal and bounded internal scroll.",
+        "html": "<section class=\"ds-dialog\" role=\"dialog\" aria-labelledby=\"ds-dialog-title\" aria-describedby=\"ds-dialog-copy\"><button class=\"ds-dialog-close\" type=\"button\" aria-label=\"Close\">×</button><h2 id=\"ds-dialog-title\">Project inquiry</h2><p id=\"ds-dialog-copy\">Leave the project context and a way to reach you.</p></section>",
+        "css": ".ds-dialog { position: relative; width: min(620px, calc(100vw - 32px)); max-height: calc(100vh - 32px); padding: 48px; overflow: auto; border: 1px solid var(--ink); border-radius: 0; background: var(--paper); color: var(--ink); } .ds-dialog h2 { margin: 0; font: 720 42px/1.08 var(--font-geist-sans), Pretendard, sans-serif; letter-spacing: -0.04em; } .ds-dialog p { color: var(--muted); font: 400 15px/1.65 var(--font-geist-sans), Pretendard, sans-serif; } .ds-dialog-close { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 0; background: var(--paper); color: var(--ink); } .ds-dialog-close:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }"
+      },
+      {
+        "name": "Tabs",
+        "kind": "tabs",
+        "refersTo": "tabs",
+        "description": "Peer views with roving keyboard focus and a measured blue active rule.",
+        "html": "<div class=\"ds-tabs\"><div class=\"ds-tab-list\" role=\"tablist\" aria-label=\"Document view\"><button role=\"tab\" aria-selected=\"true\">Overview</button><button role=\"tab\" aria-selected=\"false\">API</button></div><section role=\"tabpanel\">Overview content</section></div>",
+        "css": ".ds-tab-list { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); } .ds-tab-list button { position: relative; min-height: 46px; padding: 11px 16px 13px; border: 0; border-radius: 0; background: transparent; color: var(--muted); font: 700 13px/1.4 var(--font-geist-sans), Pretendard, sans-serif; } .ds-tab-list button[aria-selected=\"true\"] { color: var(--ink); border-bottom: 3px solid var(--blue); } .ds-tab-list button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; } .ds-tabs [role=\"tabpanel\"] { padding-block: 24px; }"
+      },
+      {
+        "name": "Accordion",
+        "kind": "accordion",
+        "refersTo": "accordion",
+        "description": "Rule-separated progressive disclosure for supporting information.",
+        "html": "<section class=\"ds-accordion\"><h3><button type=\"button\" aria-expanded=\"true\" aria-controls=\"ds-answer\">How do we build?<span aria-hidden=\"true\">⌃</span></button></h3><div id=\"ds-answer\">We turn product lessons into shared foundations.</div></section>",
+        "css": ".ds-accordion { border-block: 1px solid var(--line); color: var(--ink); } .ds-accordion h3 { margin: 0; } .ds-accordion button { width: 100%; min-height: 58px; padding: 14px 2px; display: flex; align-items: center; justify-content: space-between; border: 0; border-radius: 0; background: transparent; color: var(--ink); font: 700 15px/1.45 var(--font-geist-sans), Pretendard, sans-serif; text-align: left; } .ds-accordion button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; } .ds-accordion > div { padding: 2px 40px 22px 2px; color: var(--muted); font: 400 14px/1.65 var(--font-geist-sans), Pretendard, sans-serif; }"
       }
     ],
     "narrative": {
