@@ -560,6 +560,7 @@ Loading, empty, and error states share one visual and verbal grammar.
 
 ## Public machine resources
 
+- AI context bundle: https://www.laflabs.co/design/context.json
 - Provider-neutral guide: https://www.laflabs.co/design/guide.md
 - Versioned tokens: https://www.laflabs.co/design/tokens.json
 - Skill entry point: https://www.laflabs.co/design/skill/SKILL.md

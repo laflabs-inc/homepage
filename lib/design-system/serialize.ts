@@ -92,6 +92,7 @@ function serializeMachineResources(): string[] {
   const path = designCatalog.meta.canonicalPath
 
   return [
+    `- AI context bundle: ${publicOrigin}${path}/context.json`,
     `- Provider-neutral guide: ${publicOrigin}${path}/guide.md`,
     `- Versioned tokens: ${publicOrigin}${path}/tokens.json`,
     `- Skill entry point: ${publicOrigin}${path}/skill/SKILL.md`,
@@ -312,6 +313,48 @@ export function serializeSkillFiles(): ReadonlyMap<string, string> {
     [`${skillName}/references/patterns.md`, serializePatternsReference()],
     [`${skillName}/references/tokens.json`, serializeTokens()],
   ])
+}
+
+export function serializeAiContext(): string {
+  const skillName = designCatalog.meta.skillName
+  const files = serializeSkillFiles()
+  const requiredFile = (path: string): string => {
+    const source = files.get(path)
+    if (source === undefined) throw new Error(`Missing generated Skill file: ${path}`)
+    return source
+  }
+  const tokens = JSON.parse(serializeTokens()) as unknown
+  const canonicalUrl = `${publicOrigin}${designCatalog.meta.canonicalPath}/context.json`
+  const document = {
+    name: designCatalog.meta.name,
+    version: designCatalog.meta.version,
+    updatedAt: designCatalog.meta.updatedAt,
+    canonicalUrl,
+    instructions: [
+      "Treat this bundle as the source of truth for LafLabs public web design work.",
+      "Use only the guide, tokens, Skill, and references relevant to the requested work.",
+      "Do not invent product claims, official assets, or unsupported components.",
+    ],
+    sourceUrls: {
+      guide: `${publicOrigin}${designCatalog.meta.canonicalPath}/guide.md`,
+      tokens: `${publicOrigin}${designCatalog.meta.canonicalPath}/tokens.json`,
+      skill: `${publicOrigin}${designCatalog.meta.canonicalPath}/skill/SKILL.md`,
+      archive: `${publicOrigin}${designCatalog.meta.canonicalPath}/skill.zip`,
+    },
+    guide: serializeDesignGuide(),
+    tokens,
+    skill: {
+      entry: requiredFile(`${skillName}/SKILL.md`),
+      references: {
+        foundations: requiredFile(`${skillName}/references/foundations.md`),
+        components: requiredFile(`${skillName}/references/components.md`),
+        patterns: requiredFile(`${skillName}/references/patterns.md`),
+        tokens,
+      },
+    },
+  }
+
+  return `${JSON.stringify(document, null, 2)}\n`
 }
 
 export function serializeSkillZip(): Uint8Array {

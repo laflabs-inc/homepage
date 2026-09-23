@@ -1,3 +1,7 @@
+import { existsSync } from "node:fs"
+import { join } from "node:path"
+import { pathToFileURL } from "node:url"
+
 import { strFromU8, unzipSync } from "fflate"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -57,6 +61,26 @@ async function expectUnavailable(response: Response, code: string, secret: strin
 }
 
 describe("public design machine routes", () => {
+  it("serves a single JSON context that AI web readers can ingest", async () => {
+    const routePath = join(
+      process.cwd(),
+      "app/(documents)/design/context.json/route.ts",
+    )
+    expect(existsSync(routePath)).toBe(true)
+    if (!existsSync(routePath)) return
+
+    const route = await import(pathToFileURL(routePath).href) as {
+      GET: () => Promise<Response>
+    }
+    const response = await route.GET()
+
+    expectPublicTextHeaders(response, "application/json; charset=utf-8")
+    await expectSha256Etag(response)
+    const context = await response.json() as { canonicalUrl: string; guide: string }
+    expect(context.canonicalUrl).toBe("https://www.laflabs.co/design/context.json")
+    expect(context.guide).toContain("# LafLabs Web Design")
+  })
+
   it("serves the exact generated guide with public UTF-8 response protections", async () => {
     const response = await getGuide()
 
