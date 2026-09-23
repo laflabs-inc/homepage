@@ -24,6 +24,8 @@ export const designComponentSlugs = [
   "skeleton",
   "empty-state",
   "separator",
+  "panel",
+  "status-label",
   "code-block",
 ] as const
 

@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.2 · Updated: 2026-09-22
+System version: 2026.9.3 · Updated: 2026-09-23
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -359,6 +359,18 @@ A select that preserves native browser selection behavior.
 - Related components: `field`, `label`, `input`
 - Dependencies: `@phosphor-icons/react`
 
+### Panel (`panel`)
+
+Maturity: **candidate** · Category: **structure**
+
+Structures related information and actions within one clear boundary.
+
+- Use: Use it when a settings group or summary module needs a genuine independent boundary.
+- Avoid: Do not wrap every section or list row, and do not nest Panels inside Panels.
+- Accessibility: Name independent regions with aria-label or aria-labelledby and keep heading levels consistent with the document.
+- States: `default`, `subtle`, `inverse`, `action`
+- Related components: `separator`, `button`, `status-label`
+
 ### Radio Group (`radio-group`)
 
 Maturity: **candidate** · Category: **selection**
@@ -420,6 +432,18 @@ Reserves content structure while data is loading.
 - Accessibility: Always hide it from assistive technology and announce loading separately.
 - States: `loading`, `reduced-motion`
 - Related components: `empty-state`
+
+### Status Label (`status-label`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Shows a current state with concise text and a square marker.
+
+- Use: Use it for static metadata such as publication or connection state that should scan in one or two words.
+- Avoid: Do not use it as an action, category filter, long explanation, or live error announcement.
+- Accessibility: Never rely on color alone; always pair the marker with explicit status text.
+- States: `neutral`, `info`, `success`, `warning`, `error`
+- Related components: `alert`, `panel`
 
 ### Switch (`switch`)
 
@@ -493,7 +517,7 @@ A full-width row separated by space and one-pixel rules.
 - Keep rules and spacing between items instead of wrapping each item in a card.
 - Align name, description, and status or action to shared columns.
 - Do not animate padding on hover.
-- Related components: `button`, `separator`, `text-link`
+- Related components: `button`, `separator`, `status-label`, `text-link`
 
 ### Contrast band (`contrast-band`)
 
@@ -511,7 +535,7 @@ A shared shell and reading rhythm connect document indices and detail pages.
 - Keep body measure, heading levels, dates, and metadata placement consistent.
 - Use Code Block for multiline code and distinguish it from inline identifiers.
 - Use direct links between document indices and reading surfaces.
-- Related components: `field`, `code-block`, `separator`, `text-link`
+- Related components: `field`, `code-block`, `panel`, `separator`, `text-link`
 
 ### Editorial heading (`editorial-heading`)
 
@@ -556,7 +580,7 @@ Loading, empty, and error states share one visual and verbal grammar.
 - Name the state and the next available action in short copy.
 - Provide a retry action for errors when recovery is available.
 - Do not fill empty states with invented example data.
-- Related components: `alert`, `button`, `empty-state`, `skeleton`, `text-link`
+- Related components: `alert`, `button`, `empty-state`, `panel`, `skeleton`, `status-label`, `text-link`
 
 ## Public machine resources
 
