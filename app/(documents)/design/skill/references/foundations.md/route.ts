@@ -8,7 +8,7 @@ export const dynamic = "force-static"
 export async function GET(): Promise<Response> {
   return designResourceResponse(
     () => serializeSkillFiles().get(path),
-    "text/markdown; charset=utf-8",
+    "text/plain; charset=utf-8",
     { missingCode: "design_skill_file_unavailable" },
   )
 }
