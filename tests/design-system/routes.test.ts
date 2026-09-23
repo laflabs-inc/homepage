@@ -60,7 +60,7 @@ describe("public design machine routes", () => {
   it("serves the exact generated guide with public UTF-8 response protections", async () => {
     const response = await getGuide()
 
-    expectPublicTextHeaders(response, "text/markdown; charset=utf-8")
+    expectPublicTextHeaders(response, "text/plain; charset=utf-8")
     await expectSha256Etag(response)
     await expect(responseText(response)).resolves.toBe(serializeDesignGuide())
   })
@@ -87,7 +87,7 @@ describe("public design machine routes", () => {
       const response = await get()
       const contentType = path.endsWith(".json")
         ? "application/json; charset=utf-8"
-        : "text/markdown; charset=utf-8"
+        : "text/plain; charset=utf-8"
 
       expectPublicTextHeaders(response, contentType)
       await expectSha256Etag(response)
