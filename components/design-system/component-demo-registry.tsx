@@ -9,6 +9,7 @@ import { TextLink } from "@/components/ui/text-link"
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
 import { actionDemos } from "./component-demo-actions"
+import { compositeDemos } from "./component-demo-composites"
 import { feedbackDemos } from "./component-demo-feedback"
 import { formDemos } from "./component-demo-forms"
 import { selectionDemos } from "./component-demo-selection"
@@ -132,5 +133,6 @@ export const componentDemos = {
   ...actionDemos,
   ...formDemos,
   ...selectionDemos,
+  ...compositeDemos,
   ...feedbackDemos,
 } satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>
