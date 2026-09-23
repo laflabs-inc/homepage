@@ -513,6 +513,7 @@ describe("Design system AI page", () => {
 curl -fsSL https://www.laflabs.co/design/skill.zip -o /tmp/laflabs-web-design.zip
 unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
   const resourceUrls = [
+    "https://www.laflabs.co/design/context.json",
     "https://www.laflabs.co/design/guide.md",
     "https://www.laflabs.co/design/tokens.json",
     "https://www.laflabs.co/design/skill/SKILL.md",
@@ -522,8 +523,8 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
     "https://www.laflabs.co/design/skill/references/tokens.json",
     "https://www.laflabs.co/design/skill.zip",
   ]
-  const koreanProviderInstruction = "LafLabs 공개 웹 작업을 시작하기 전에 https://www.laflabs.co/design/guide.md와 https://www.laflabs.co/design/tokens.json을 불러와 기준으로 사용하세요. 컴포넌트나 패턴을 구현할 때는 https://www.laflabs.co/design/skill/SKILL.md를 확인하고, 연결된 참고 문서 중 작업과 관련된 항목만 읽으세요. 해당 리소스를 불러올 수 없다면 임의로 보완하지 말고 사용자에게 확인하세요. 제품 주장, 공식 에셋, 지원하지 않는 컴포넌트는 만들지 마세요."
-  const englishProviderInstruction = "LafLabs public web work must begin by loading https://www.laflabs.co/design/guide.md and https://www.laflabs.co/design/tokens.json as the source of truth. When implementing components or patterns, load https://www.laflabs.co/design/skill/SKILL.md and only the references relevant to the task. If these resources cannot be loaded, do not improvise; ask the user. Do not invent product claims, official assets, or unsupported components."
+  const koreanProviderInstruction = "LafLabs 공개 웹 작업을 시작하기 전에 https://www.laflabs.co/design/context.json을 불러와 기준으로 사용하세요. JSON 안의 guide, tokens, skill과 관련 references만 사용하고, 불러올 수 없다면 임의로 보완하지 말고 사용자에게 확인하세요. 제품 주장, 공식 에셋, 지원하지 않는 컴포넌트는 만들지 마세요."
+  const englishProviderInstruction = "LafLabs public web work must begin by loading https://www.laflabs.co/design/context.json as the source of truth. Use only the guide, tokens, skill, and relevant references in that JSON. If it cannot be loaded, do not improvise; ask the user. Do not invent product claims, official assets, or unsupported components."
 
   function expectPoliteClipboardStatus(message: string): void {
     const status = screen.getByText(message).closest('[role="status"]')

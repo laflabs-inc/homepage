@@ -6,6 +6,7 @@ import { join, resolve } from "node:path"
 import { strFromU8, unzipSync } from "fflate"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import * as designSerializers from "@/lib/design-system/serialize"
 import {
   serializeDesignGuide,
   serializeRootDesign,
@@ -70,6 +71,7 @@ describe("design-system serializers", () => {
     expect(guide).toContain("Dependencies: `@phosphor-icons/react`")
     expect(guide).toContain("https://www.laflabs.co/design/guide.md")
     expect(guide).toContain("https://www.laflabs.co/design/tokens.json")
+    expect(guide).toContain("https://www.laflabs.co/design/context.json")
     expect(guide).not.toContain("https://laflabs.co/design/")
     expect(guide).not.toContain("calc(100% - 56px)")
     expectOneFinalNewline(guide)
@@ -114,6 +116,42 @@ describe("design-system serializers", () => {
     })
     expectOneFinalNewline(source)
     expect(source).toBe(serializeTokens())
+  })
+
+  it("serializes one JSON context with the guide, tokens, and complete Skill", () => {
+    expect(designSerializers).toHaveProperty("serializeAiContext")
+    const serializer = Reflect.get(designSerializers, "serializeAiContext") as unknown
+    expect(serializer).toBeTypeOf("function")
+    if (typeof serializer !== "function") return
+
+    const source = serializer() as string
+    const context = JSON.parse(source) as {
+      name: string
+      version: string
+      canonicalUrl: string
+      guide: string
+      tokens: unknown
+      skill: {
+        entry: string
+        references: Record<string, unknown>
+      }
+    }
+    const skillFiles = serializeSkillFiles()
+
+    expect(context.name).toBe("LafLabs Web Design")
+    expect(context.version).toBe("2026.9.2")
+    expect(context.canonicalUrl).toBe("https://www.laflabs.co/design/context.json")
+    expect(context.guide).toBe(serializeDesignGuide())
+    expect(context.tokens).toEqual(JSON.parse(serializeTokens()))
+    expect(context.skill.entry).toBe(skillFiles.get("laflabs-web-design/SKILL.md"))
+    expect(context.skill.references).toEqual({
+      foundations: skillFiles.get("laflabs-web-design/references/foundations.md"),
+      components: skillFiles.get("laflabs-web-design/references/components.md"),
+      patterns: skillFiles.get("laflabs-web-design/references/patterns.md"),
+      tokens: JSON.parse(skillFiles.get("laflabs-web-design/references/tokens.json") ?? "null"),
+    })
+    expectOneFinalNewline(source)
+    expect(source).toBe(serializer())
   })
 
   it("builds the exact progressive-disclosure Skill file map", () => {

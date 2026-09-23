@@ -11,10 +11,11 @@ unzip -q /tmp/laflabs-web-design.zip -d "$CODEX_HOME/skills"`
 const copy = {
   ko: {
     title: "AI에서 사용하기",
-    description: "LafLabs Web Design을 AI 작업 환경에 연결할 때 쓸 공개 Markdown, token, Skill 리소스입니다.",
+    description: "LafLabs Web Design을 AI 작업 환경에 연결할 때 쓸 공개 JSON, Markdown, token, Skill 리소스입니다.",
     metaLabels: ["시스템", "버전", "업데이트"],
     resourcesTitle: "직접 리소스",
     resourceDescriptions: [
+      "가이드, token, Skill을 한 번에 담은 AI용 JSON입니다.",
       "모든 제공자에서 읽을 수 있는 디자인 가이드입니다.",
       "버전과 업데이트 날짜를 포함한 기계 판독용 token 문서입니다.",
       "점진적으로 읽을 수 있는 Skill의 시작 문서입니다.",
@@ -25,6 +26,7 @@ const copy = {
       "설치할 수 있는 다섯 파일 Skill 아카이브입니다.",
     ],
     resourceLabels: [
+      "AI context JSON",
       "가이드 Markdown",
       "버전별 token JSON",
       "Skill 시작 문서",
@@ -46,8 +48,8 @@ const copy = {
     },
     download: "Skill 다운로드",
     neutralTitle: "어떤 AI 도구에서든 사용하기",
-    neutralDescription: "도구에 가이드 Markdown과 versioned token JSON을 제공한 뒤, 요청한 작업에 관련된 Skill 참고 문서만 읽도록 안내하세요.",
-    providerInstruction: "LafLabs 공개 웹 작업을 시작하기 전에 https://www.laflabs.co/design/guide.md와 https://www.laflabs.co/design/tokens.json을 불러와 기준으로 사용하세요. 컴포넌트나 패턴을 구현할 때는 https://www.laflabs.co/design/skill/SKILL.md를 확인하고, 연결된 참고 문서 중 작업과 관련된 항목만 읽으세요. 해당 리소스를 불러올 수 없다면 임의로 보완하지 말고 사용자에게 확인하세요. 제품 주장, 공식 에셋, 지원하지 않는 컴포넌트는 만들지 마세요.",
+    neutralDescription: "도구에 단일 context JSON을 제공하면 가이드, token, Skill과 참고 문서를 추가 요청 없이 읽을 수 있습니다.",
+    providerInstruction: "LafLabs 공개 웹 작업을 시작하기 전에 https://www.laflabs.co/design/context.json을 불러와 기준으로 사용하세요. JSON 안의 guide, tokens, skill과 관련 references만 사용하고, 불러올 수 없다면 임의로 보완하지 말고 사용자에게 확인하세요. 제품 주장, 공식 에셋, 지원하지 않는 컴포넌트는 만들지 마세요.",
     providerInstructionCopy: {
       buttonLabel: "AI 작업 안내문 복사",
       copyText: "복사",
@@ -61,10 +63,11 @@ const copy = {
   },
   en: {
     title: "Use with AI",
-    description: "Public Markdown, token, and Skill resources for connecting LafLabs Web Design to an AI workflow.",
+    description: "Public JSON, Markdown, token, and Skill resources for connecting LafLabs Web Design to an AI workflow.",
     metaLabels: ["System", "Version", "Updated"],
     resourcesTitle: "Direct resources",
     resourceDescriptions: [
+      "A single AI-ready JSON bundle containing the guide, tokens, and Skill.",
       "A design guide that any provider can read.",
       "A machine-readable token document with its version and update date.",
       "The progressive-disclosure entry document for the Skill.",
@@ -75,6 +78,7 @@ const copy = {
       "The five-file Skill archive for installation.",
     ],
     resourceLabels: [
+      "AI context JSON",
       "Guide Markdown",
       "Versioned token JSON",
       "Skill entry document",
@@ -96,8 +100,8 @@ const copy = {
     },
     download: "Download Skill",
     neutralTitle: "Use with any AI provider",
-    neutralDescription: "Give your tool the guide Markdown and versioned token JSON, then direct it to read only the Skill references relevant to the requested work.",
-    providerInstruction: "LafLabs public web work must begin by loading https://www.laflabs.co/design/guide.md and https://www.laflabs.co/design/tokens.json as the source of truth. When implementing components or patterns, load https://www.laflabs.co/design/skill/SKILL.md and only the references relevant to the task. If these resources cannot be loaded, do not improvise; ask the user. Do not invent product claims, official assets, or unsupported components.",
+    neutralDescription: "Give your tool the single context JSON so it can read the guide, tokens, Skill, and references without additional requests.",
+    providerInstruction: "LafLabs public web work must begin by loading https://www.laflabs.co/design/context.json as the source of truth. Use only the guide, tokens, skill, and relevant references in that JSON. If it cannot be loaded, do not improvise; ask the user. Do not invent product claims, official assets, or unsupported components.",
     providerInstructionCopy: {
       buttonLabel: "Copy AI work instruction",
       copyText: "COPY",
@@ -112,6 +116,7 @@ const copy = {
 } as const
 
 const resourcePaths = [
+  "/design/context.json",
   "/design/guide.md",
   "/design/tokens.json",
   "/design/skill/SKILL.md",
