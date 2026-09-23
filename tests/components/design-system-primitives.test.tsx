@@ -1,5 +1,6 @@
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr"
 import { fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { componentDemos } from "@/components/design-system/component-demo-registry"
@@ -42,6 +43,27 @@ describe("public design-system primitives", () => {
     render(<IconControl label="Search"><MagnifyingGlass aria-hidden /></IconControl>)
 
     expect(screen.getByRole("button", { name: "Search" })).toHaveAttribute("type", "button")
+  })
+
+  it("shows a navigable Select with a readable disabled option in its disabled preview", async () => {
+    const user = userEvent.setup()
+    const Demo = componentDemos.select
+    render(<Demo locale="ko" state="disabled" />)
+
+    const trigger = screen.getByRole("combobox", { name: "문서 언어" })
+    expect(trigger).toBeEnabled()
+    await user.click(trigger)
+    expect(screen.getByRole("option", { name: "일본어 · 준비 중" })).toHaveAttribute(
+      "data-disabled",
+      "",
+    )
+  })
+
+  it("renders a disabled Accordion item in its disabled preview", () => {
+    const Demo = componentDemos.accordion
+    render(<Demo locale="ko" state="disabled" />)
+
+    expect(screen.getByRole("button", { name: "어떻게 운영하나요?" })).toBeDisabled()
   })
 
   it("renders Text Links with an accessible destination", () => {

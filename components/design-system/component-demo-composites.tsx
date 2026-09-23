@@ -16,7 +16,7 @@ import styles from "./design-system.module.css"
 function SelectDemo({ locale, state }: ComponentDemoProps) {
   return (
     <div className={styles.demoCompositeControl}>
-      <Select defaultValue="ko" disabled={state === "disabled"}>
+      <Select defaultValue="ko">
         <SelectTrigger aria-label={locale === "ko" ? "문서 언어" : "Document language"}>
           <SelectValue />
         </SelectTrigger>
@@ -25,7 +25,11 @@ function SelectDemo({ locale, state }: ComponentDemoProps) {
             <SelectLabel>{locale === "ko" ? "언어" : "Language"}</SelectLabel>
             <SelectItem value="ko">{locale === "ko" ? "한국어" : "Korean"}</SelectItem>
             <SelectItem value="en">English</SelectItem>
-            <SelectItem value="ja" disabled>{locale === "ko" ? "일본어 · 준비 중" : "Japanese · unavailable"}</SelectItem>
+            <SelectItem value="ja" disabled={state === "disabled"}>
+              {state === "disabled"
+                ? locale === "ko" ? "일본어 · 준비 중" : "Japanese · unavailable"
+                : locale === "ko" ? "일본어" : "Japanese"}
+            </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
@@ -77,7 +81,7 @@ function AccordionDemo({ locale, state }: ComponentDemoProps) {
           <AccordionTrigger>{locale === "ko" ? "어떻게 구축하나요?" : "How do we build?"}</AccordionTrigger>
           <AccordionContent>{locale === "ko" ? "제품에서 확인한 문제를 공통 기반으로 정리합니다." : "We turn product lessons into shared foundations."}</AccordionContent>
         </AccordionItem>
-        <AccordionItem value="operate">
+        <AccordionItem value="operate" disabled={state === "disabled"}>
           <AccordionTrigger>{locale === "ko" ? "어떻게 운영하나요?" : "How do we operate?"}</AccordionTrigger>
           <AccordionContent>{locale === "ko" ? "직접 운영하며 실패 경로를 확인합니다." : "We operate it directly and inspect failure paths."}</AccordionContent>
         </AccordionItem>

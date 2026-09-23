@@ -59,7 +59,7 @@ export const DropdownMenuItem = forwardRef<
 
 export const DropdownMenuSubTrigger = forwardRef<
   ComponentRef<typeof DropdownMenuPrimitive.SubTrigger>,
-  ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger>
+  Omit<ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger>, "asChild">
 >(function DropdownMenuSubTrigger({ children, className, ...props }, ref) {
   return (
     <DropdownMenuPrimitive.SubTrigger ref={ref} className={classes(styles.item, className)} {...props}>
@@ -71,7 +71,7 @@ export const DropdownMenuSubTrigger = forwardRef<
 
 export const DropdownMenuCheckboxItem = forwardRef<
   ComponentRef<typeof DropdownMenuPrimitive.CheckboxItem>,
-  ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
+  Omit<ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>, "asChild">
 >(function DropdownMenuCheckboxItem({ children, className, ...props }, ref) {
   return (
     <DropdownMenuPrimitive.CheckboxItem ref={ref} className={classes(styles.choiceItem, className)} {...props}>
@@ -85,7 +85,7 @@ export const DropdownMenuCheckboxItem = forwardRef<
 
 export const DropdownMenuRadioItem = forwardRef<
   ComponentRef<typeof DropdownMenuPrimitive.RadioItem>,
-  ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
+  Omit<ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>, "asChild">
 >(function DropdownMenuRadioItem({ children, className, ...props }, ref) {
   return (
     <DropdownMenuPrimitive.RadioItem ref={ref} className={classes(styles.choiceItem, className)} {...props}>

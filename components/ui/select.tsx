@@ -16,7 +16,7 @@ export const SelectValue = SelectPrimitive.Value
 
 export const SelectTrigger = forwardRef<
   ComponentRef<typeof SelectPrimitive.Trigger>,
-  ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+  Omit<ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>, "asChild">
 >(function SelectTrigger({ children, className, ...props }, ref) {
   return (
     <SelectPrimitive.Trigger ref={ref} className={classes(styles.trigger, className)} {...props}>
@@ -30,7 +30,7 @@ export const SelectTrigger = forwardRef<
 
 export const SelectContent = forwardRef<
   ComponentRef<typeof SelectPrimitive.Content>,
-  ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+  Omit<ComponentPropsWithoutRef<typeof SelectPrimitive.Content>, "asChild">
 >(function SelectContent({ children, className, position = "popper", sideOffset = 5, ...props }, ref) {
   return (
     <SelectPrimitive.Portal>
@@ -65,7 +65,7 @@ export const SelectLabel = forwardRef<
 
 export const SelectItem = forwardRef<
   ComponentRef<typeof SelectPrimitive.Item>,
-  ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+  Omit<ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, "asChild">
 >(function SelectItem({ children, className, ...props }, ref) {
   return (
     <SelectPrimitive.Item ref={ref} className={classes(styles.item, className)} {...props}>

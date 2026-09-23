@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -62,5 +64,31 @@ describe("Tabs", () => {
     await user.click(screen.getByRole("tab", { name: "API" }))
     expect(onValueChange).toHaveBeenCalledWith("api")
     expect(screen.getByRole("tabpanel", { name: "개요" })).toBeVisible()
+  })
+
+  it("aligns vertical keyboard navigation with a vertical visual layout", async () => {
+    const user = userEvent.setup()
+    render(
+      <Tabs defaultValue="overview" orientation="vertical">
+        <TabsList aria-label="세로 문서 보기">
+          <TabsTrigger value="overview">개요</TabsTrigger>
+          <TabsTrigger value="api">API</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">개요 내용</TabsContent>
+        <TabsContent value="api">API 내용</TabsContent>
+      </Tabs>,
+    )
+
+    const overview = screen.getByRole("tab", { name: "개요" })
+    expect(screen.getByRole("tablist", { name: "세로 문서 보기" })).toHaveAttribute(
+      "aria-orientation",
+      "vertical",
+    )
+    overview.focus()
+    await user.keyboard("{ArrowDown}")
+    expect(screen.getByRole("tab", { name: "API" })).toHaveFocus()
+
+    const css = readFileSync(join(process.cwd(), "components/ui/tabs.module.css"), "utf8")
+    expect(css).toContain('[data-orientation="vertical"]')
   })
 })

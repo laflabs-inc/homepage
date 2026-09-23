@@ -21,7 +21,7 @@ export const AccordionItem = forwardRef<
 
 export const AccordionTrigger = forwardRef<
   ComponentRef<typeof AccordionPrimitive.Trigger>,
-  ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+  Omit<ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>, "asChild">
 >(function AccordionTrigger({ children, className, ...props }, ref) {
   return (
     <AccordionPrimitive.Header className={styles.header}>
@@ -35,7 +35,7 @@ export const AccordionTrigger = forwardRef<
 
 export const AccordionContent = forwardRef<
   ComponentRef<typeof AccordionPrimitive.Content>,
-  ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+  Omit<ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>, "asChild">
 >(function AccordionContent({ children, className, ...props }, ref) {
   return (
     <AccordionPrimitive.Content ref={ref} className={classes(styles.content, className)} {...props}>

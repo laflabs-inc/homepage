@@ -19,7 +19,10 @@ export const Dialog = DialogPrimitive.Root
 export const DialogTrigger = DialogPrimitive.Trigger
 export const DialogClose = DialogPrimitive.Close
 
-type DialogContentProps = ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+type DialogContentProps = Omit<
+  ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+  "asChild"
+> & {
   closeLabel: string
 }
 

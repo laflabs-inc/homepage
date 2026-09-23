@@ -74,6 +74,47 @@
   outline-offset: 2px;
 }
 
+.root[data-orientation="vertical"] {
+  display: grid;
+  grid-template-columns: minmax(112px, max-content) minmax(0, 1fr);
+  align-items: start;
+}
+
+.list[data-orientation="vertical"] {
+  max-height: min(420px, 70vh);
+  padding: 2px 0 2px 2px;
+  flex-direction: column;
+  overflow-x: visible;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  border-bottom: 0;
+}
+
+.trigger[data-orientation="vertical"] {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 18px 12px 12px;
+  text-align: left;
+}
+
+.trigger[data-orientation="vertical"]::after {
+  top: 10px;
+  right: -1px;
+  bottom: 10px;
+  left: auto;
+  width: 3px;
+  height: auto;
+  transform: scaleY(0.35);
+}
+
+.trigger[data-orientation="vertical"][data-state="active"]::after {
+  transform: scaleY(1);
+}
+
+.content[data-orientation="vertical"] {
+  padding: 4px 0 4px 24px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .trigger,
   .trigger::after {
