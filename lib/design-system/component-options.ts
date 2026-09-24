@@ -47,6 +47,13 @@ export const componentDemoKeys = [
   "combobox",
   "input-group",
   "breadcrumb",
+  "table",
+  "data-table",
+  "pagination",
+  "item",
+  "spinner",
+  "progress",
+  "notice-toast",
   "code-block",
 ] as const
 

@@ -91,7 +91,7 @@ export const coreExpansionComponents = [
     importExample: 'import { Combobox, type ComboboxOption } from "@/components/ui/combobox"',
     usageExample: '<Combobox aria-label="Framework" options={options} value={value} onValueChange={setValue} emptyText="No results" />',
     relatedComponents: ["field", "select", "input"],
-    dependencies: ["@phosphor-icons/react"],
+    dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "선택값과 입력 목적이 함께 읽히는지 확인합니다.", en: "Confirm the selected value and input purpose are both readable." } },
       { id: "open", guidance: { ko: "활성 항목, 선택 항목, 비활성 항목을 구분합니다.", en: "Distinguish active, selected, and disabled options." } },

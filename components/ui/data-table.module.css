@@ -1,0 +1,4 @@
+.sort { width: 100%; min-height: 36px; margin: -9px -8px; padding: 9px 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-radius: 0; background: transparent; color: inherit; font: inherit; letter-spacing: inherit; text-align: inherit; text-transform: inherit; cursor: pointer; }
+.sort:hover { color: var(--blue); }
+.sort:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.empty { height: 120px; color: var(--muted); text-align: center !important; }

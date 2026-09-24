@@ -1,0 +1,7 @@
+.spinner { display: inline-grid; place-items: center; color: currentColor; line-height: 1; }
+.spinner[data-size="compact"] { font-size: 16px; }
+.spinner[data-size="default"] { font-size: 22px; }
+.spinner[data-size="large"] { font-size: 32px; }
+.spinner svg { animation: spinner-turn 800ms linear infinite; }
+@keyframes spinner-turn { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { .spinner svg { animation: none; } }

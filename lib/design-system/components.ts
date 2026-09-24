@@ -1,5 +1,6 @@
 import { actionComponents } from "./component-catalog/actions"
 import { coreExpansionComponents } from "./component-catalog/core-expansion"
+import { coreExpansionC2Components } from "./component-catalog/core-expansion-c2"
 import { existingComponents } from "./component-catalog/existing"
 import { feedbackComponents } from "./component-catalog/feedback"
 import { formComponents } from "./component-catalog/forms"
@@ -29,6 +30,7 @@ export const components = [
   ...disclosureComponents,
   ...overlayComponents,
   ...coreExpansionComponents,
+  ...coreExpansionC2Components,
   ...feedbackComponents,
   ...structureComponents,
   existing("code-block"),
