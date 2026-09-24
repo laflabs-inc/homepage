@@ -1,0 +1,59 @@
+.overlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  background: rgb(15 23 42 / .54);
+  animation: side-overlay-in 160ms ease-out;
+}
+
+.content {
+  position: fixed;
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border: 0 solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.content[data-side="right"], .content[data-side="left"] {
+  top: 0;
+  bottom: 0;
+  width: min(520px, 92vw);
+  padding: clamp(28px, 5vw, 48px);
+}
+.content[data-side="right"] { right: 0; border-left-width: 1px; animation: side-in-right 220ms cubic-bezier(.2,.8,.2,1); }
+.content[data-side="left"] { left: 0; border-right-width: 1px; animation: side-in-left 220ms cubic-bezier(.2,.8,.2,1); }
+.content[data-side="top"], .content[data-side="bottom"] { left: 0; right: 0; max-height: 84svh; padding: clamp(28px, 5vw, 48px); }
+.content[data-side="top"] { top: 0; border-bottom-width: 1px; animation: side-in-top 220ms cubic-bezier(.2,.8,.2,1); }
+.content[data-side="bottom"] { bottom: 0; border-top-width: 1px; animation: side-in-bottom 220ms cubic-bezier(.2,.8,.2,1); }
+
+.close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.close:hover { background: #eef2f7; border-color: var(--ink); }
+.close:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.header { display: grid; gap: 12px; padding-right: 48px; }
+.title { margin: 0; font-size: clamp(28px, 4vw, 44px); line-height: 1.02; letter-spacing: -.04em; }
+.description { margin: 0; max-width: 48ch; color: var(--muted); font-size: 14px; line-height: 1.65; }
+.footer { margin-top: auto; padding-top: 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+@keyframes side-overlay-in { from { opacity: 0; } }
+@keyframes side-in-right { from { transform: translateX(100%); } }
+@keyframes side-in-left { from { transform: translateX(-100%); } }
+@keyframes side-in-top { from { transform: translateY(-100%); } }
+@keyframes side-in-bottom { from { transform: translateY(100%); } }
+
+@media (prefers-reduced-motion: reduce) { .overlay, .content { animation: none !important; } }
