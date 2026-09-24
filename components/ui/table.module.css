@@ -1,0 +1,16 @@
+.scroll { width: 100%; max-width: 100%; overflow-x: auto; border-block: 1px solid var(--ink); }
+.table { width: 100%; min-width: 560px; border-collapse: collapse; color: var(--ink); font-size: 13px; }
+.header { background: #eef2f7; }
+.body .row { transition: background-color 140ms ease; }
+.body .row:hover { background: #eff6ff; }
+.footer { border-top: 1px solid var(--ink); background: #eef2f7; font-weight: 700; }
+.row { border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.head, .cell { min-width: 120px; padding: 13px 16px; vertical-align: middle; }
+.head { height: 44px; color: var(--muted); font: 650 10px/1.4 var(--font-geist-mono), "Pretendard", monospace; letter-spacing: .04em; text-transform: uppercase; }
+.cell { height: 48px; line-height: 1.5; }
+.head[data-align="start"], .cell[data-align="start"] { text-align: start; }
+.head[data-align="center"], .cell[data-align="center"] { text-align: center; }
+.head[data-align="end"], .cell[data-align="end"] { text-align: end; }
+.caption { caption-side: bottom; padding: 13px 16px; color: var(--muted); font-size: 12px; line-height: 1.5; text-align: start; }
+@media (max-width: 720px) { .head, .cell { padding-inline: 12px; } }

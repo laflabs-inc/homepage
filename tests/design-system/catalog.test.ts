@@ -97,7 +97,7 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.9.4",
+      version: "2026.9.5",
       updatedAt: "2026-09-24",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
@@ -108,7 +108,7 @@ describe("design catalog schema", () => {
   it("rejects catalog metadata that differs from the fixed contract", () => {
     const catalog = {
       ...validCatalog,
-      meta: { ...designSystemMeta, version: "2026.9.5" },
+      meta: { ...designSystemMeta, version: "2026.9.6" },
     } satisfies DesignCatalog
 
     expect(() => assertDesignCatalog(catalog)).toThrow("metadata version: invalid metadata value")
@@ -311,6 +311,13 @@ describe("production design catalog", () => {
       "combobox",
       "input-group",
       "breadcrumb",
+      "table",
+      "data-table",
+      "pagination",
+      "item",
+      "spinner",
+      "progress",
+      "notice-toast",
       "alert",
       "skeleton",
       "empty-state",
@@ -529,8 +536,12 @@ describe("production design catalog", () => {
       "alert-dialog": ["radix-ui"],
       popover: ["radix-ui"],
       "side-panel": ["@phosphor-icons/react", "radix-ui"],
-      combobox: ["@phosphor-icons/react"],
+      combobox: ["@phosphor-icons/react", "radix-ui"],
       breadcrumb: ["@phosphor-icons/react"],
+      "data-table": ["@phosphor-icons/react"],
+      pagination: ["@phosphor-icons/react"],
+      spinner: ["@phosphor-icons/react"],
+      "notice-toast": ["@phosphor-icons/react"],
       alert: ["@phosphor-icons/react"],
     })
   })

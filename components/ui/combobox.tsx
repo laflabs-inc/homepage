@@ -1,8 +1,8 @@
 "use client"
 
 import { CaretDown, Check } from "@phosphor-icons/react"
+import { Popover as PopoverPrimitive } from "radix-ui"
 import {
-  useEffect,
   useId,
   useMemo,
   useRef,
@@ -62,14 +62,6 @@ export function Combobox({
     return options.filter((option) => optionText(option).includes(normalized))
   }, [options, query, selected?.label])
 
-  useEffect(() => {
-    function handlePointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    document.addEventListener("pointerdown", handlePointerDown)
-    return () => document.removeEventListener("pointerdown", handlePointerDown)
-  }, [])
-
   function commit(option: ComboboxOption) {
     if (option.disabled) return
     if (!isControlled) setInternalValue(option.value)
@@ -117,55 +109,80 @@ export function Combobox({
   const activeOption = activeIndex >= 0 ? filteredOptions[activeIndex] : undefined
 
   return (
-    <div ref={rootRef} className={styles.root} data-open={open || undefined}>
-      <div className={styles.control}>
-        <input
-          {...fieldProps}
-          ref={inputRef}
-          aria-activedescendant={activeOption ? `${listboxId}-option-${activeIndex}` : undefined}
-          aria-autocomplete="list"
-          aria-controls={listboxId}
-          aria-expanded={open}
-          className={styles.input}
-          onBlur={(event) => {
-            inputProps.onBlur?.(event)
-            window.setTimeout(() => {
-              if (!rootRef.current?.contains(document.activeElement)) {
-                setOpen(false)
+    <PopoverPrimitive.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+        if (!nextOpen) {
+          setActiveIndex(-1)
+          setQuery(selected?.label ?? "")
+        }
+      }}
+    >
+      <PopoverPrimitive.Anchor asChild>
+        <div ref={rootRef} className={styles.root} data-open={open || undefined}>
+          <div className={styles.control}>
+            <input
+              {...fieldProps}
+              ref={inputRef}
+              aria-activedescendant={activeOption ? `${listboxId}-option-${activeIndex}` : undefined}
+              aria-autocomplete="list"
+              aria-controls={listboxId}
+              aria-expanded={open}
+              className={[styles.input, inputProps.className].filter(Boolean).join(" ")}
+              onBlur={(event) => {
+                inputProps.onBlur?.(event)
+                window.setTimeout(() => {
+                  if (!rootRef.current?.contains(document.activeElement)) {
+                    setOpen(false)
+                    setActiveIndex(-1)
+                  }
+                }, 0)
+              }}
+              onChange={(event) => {
+                setQuery(event.target.value)
+                setOpen(true)
                 setActiveIndex(-1)
-              }
-            }, 0)
+                if (selectedValue) {
+                  if (!isControlled) setInternalValue("")
+                  onValueChange?.("")
+                }
+              }}
+              onClick={(event) => {
+                inputProps.onClick?.(event)
+                if (!open) setQuery(selected?.label ?? "")
+                setOpen(true)
+              }}
+              onFocus={(event) => {
+                inputProps.onFocus?.(event)
+                if (!open) setQuery(selected?.label ?? "")
+                setOpen(true)
+              }}
+              onKeyDown={(event) => {
+                inputProps.onKeyDown?.(event)
+                if (!event.defaultPrevented) handleKeyDown(event)
+              }}
+              role="combobox"
+              value={open ? query : selected?.label ?? ""}
+            />
+            <CaretDown aria-hidden className={styles.icon} size={16} weight="bold" />
+          </div>
+        </div>
+      </PopoverPrimitive.Anchor>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          id={listboxId}
+          align="start"
+          className={styles.listbox}
+          collisionPadding={12}
+          onCloseAutoFocus={(event) => event.preventDefault()}
+          onOpenAutoFocus={(event) => event.preventDefault()}
+          onPointerDownOutside={(event) => {
+            if (rootRef.current?.contains(event.target as Node)) event.preventDefault()
           }}
-          onChange={(event) => {
-            setQuery(event.target.value)
-            setOpen(true)
-            setActiveIndex(-1)
-            if (selectedValue) {
-              if (!isControlled) setInternalValue("")
-              onValueChange?.("")
-            }
-          }}
-          onClick={(event) => {
-            inputProps.onClick?.(event)
-            if (!open) setQuery(selected?.label ?? "")
-            setOpen(true)
-          }}
-          onFocus={(event) => {
-            inputProps.onFocus?.(event)
-            if (!open) setQuery(selected?.label ?? "")
-            setOpen(true)
-          }}
-          onKeyDown={(event) => {
-            inputProps.onKeyDown?.(event)
-            if (!event.defaultPrevented) handleKeyDown(event)
-          }}
-          role="combobox"
-          value={open ? query : selected?.label ?? ""}
-        />
-        <CaretDown aria-hidden className={styles.icon} size={16} weight="bold" />
-      </div>
-      {open ? (
-        <div id={listboxId} className={styles.listbox} role="listbox">
+          role="listbox"
+          sideOffset={6}
+        >
           {filteredOptions.length > 0 ? filteredOptions.map((option, index) => (
             <div
               id={`${listboxId}-option-${index}`}
@@ -184,8 +201,8 @@ export function Combobox({
               {option.value === selectedValue ? <Check aria-hidden size={16} weight="bold" /> : null}
             </div>
           )) : <p className={styles.empty}>{emptyText}</p>}
-        </div>
-      ) : null}
-    </div>
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
   )
 }

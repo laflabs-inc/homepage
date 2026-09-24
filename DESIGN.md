@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.4 · Updated: 2026-09-24
+System version: 2026.9.5 · Updated: 2026-09-24
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -285,6 +285,19 @@ Selects one value from a searchable list.
 - Accessibility: Exposes combobox/listbox relationships, active option, selection, and arrow-key operation.
 - States: `closed`, `open`, `empty`
 - Related components: `field`, `select`, `input`
+- Dependencies: `@phosphor-icons/react`, `radix-ui`
+
+### Data Table (`data-table`)
+
+Maturity: **candidate** · Category: **content**
+
+Displays structured data with sorting and an explicit empty state.
+
+- Use: Use it for operational lists that people need to reorder by column.
+- Avoid: Use Table for static comparison and Item for editorial browsing.
+- Accessibility: Connects sort buttons with aria-sort while preserving real Table semantics.
+- States: `default`, `sorted`, `empty`
+- Related components: `table`, `pagination`, `empty-state`
 - Dependencies: `@phosphor-icons/react`
 
 ### Dialog (`dialog`)
@@ -373,6 +386,18 @@ Groups an input with a unit, prefix, or compact action.
 - States: `default`, `focus-visible`, `invalid`
 - Related components: `field`, `input`, `button`
 
+### Item (`item`)
+
+Maturity: **candidate** · Category: **structure**
+
+Composes media, copy, metadata, and actions into one row.
+
+- Use: Use it for repeated entities such as repositories, documents, or people without card grids.
+- Avoid: Use Table for column comparison and Panel for a standalone region.
+- Accessibility: Chooses article, div, or li for the surrounding structure and labels the item from its title.
+- States: `default`, `subtle`, `inverse`
+- Related components: `panel`, `table`, `status-label`
+
 ### Label (`label`)
 
 Maturity: **candidate** · Category: **form**
@@ -410,6 +435,32 @@ A select that preserves native browser selection behavior.
 - Related components: `field`, `label`, `input`
 - Dependencies: `@phosphor-icons/react`
 
+### Notice Toast (`notice-toast`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Announces a brief result without blocking the current task.
+
+- Use: Use it for brief outcomes of completed actions such as save, publish, or copy.
+- Avoid: Use Alert for form errors, recoverable failures, or information that must remain visible.
+- Accessibility: Uses status for routine notices, alert for errors, and always provides dismissal.
+- States: `info`, `success`, `warning`, `error`
+- Related components: `alert`, `status-label`, `spinner`
+- Dependencies: `@phosphor-icons/react`
+
+### Pagination (`pagination`)
+
+Maturity: **candidate** · Category: **navigation**
+
+Navigates to previous, next, or specific pages in a large collection.
+
+- Use: Use it when a collection is split across URL-addressable pages.
+- Avoid: Do not use it for slides or in-page tab switching.
+- Accessibility: Uses a named nav, real links, aria-current, and a named ellipsis.
+- States: `default`, `current`, `collapsed`
+- Related components: `data-table`, `breadcrumb`, `text-link`
+- Dependencies: `@phosphor-icons/react`
+
 ### Panel (`panel`)
 
 Maturity: **candidate** · Category: **structure**
@@ -434,6 +485,18 @@ Opens compact information or controls beside the current context.
 - States: `closed`, `open`
 - Related components: `dropdown-menu`, `dialog`, `tooltip`
 - Dependencies: `radix-ui`
+
+### Progress (`progress`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Shows measurable completion or an indeterminate connection state.
+
+- Use: Use it for uploads, processing, or synchronization that takes time.
+- Avoid: Do not use it for instant actions or final success status.
+- Accessibility: Connects native progress with a visible label and never invents a numeric value.
+- States: `determinate`, `indeterminate`, `reduced-motion`
+- Related components: `spinner`, `skeleton`, `status-label`
 
 ### Radio Group (`radio-group`)
 
@@ -510,6 +573,19 @@ Reserves content structure while data is loading.
 - States: `loading`, `reduced-motion`
 - Related components: `empty-state`
 
+### Spinner (`spinner`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Signals indeterminate progress in a compact area.
+
+- Use: Use it inside a button or compact inline task where Skeleton is unsuitable.
+- Avoid: Use Skeleton for page loading and Progress when completion can be measured.
+- Accessibility: Provides a named status and hides the rotating icon from assistive technology.
+- States: `compact`, `default`, `reduced-motion`
+- Related components: `progress`, `skeleton`, `button`
+- Dependencies: `@phosphor-icons/react`
+
 ### Status Label (`status-label`)
 
 Maturity: **candidate** · Category: **feedback**
@@ -533,6 +609,18 @@ Turns one immediately applied setting on or off.
 - Accessibility: Preserve native checkbox behavior with role switch and a stable label.
 - States: `off`, `on`, `focus-visible`, `disabled`
 - Related components: `checkbox`, `segmented-toggle`
+
+### Table (`table`)
+
+Maturity: **candidate** · Category: **content**
+
+Presents information that must be compared across native table rows and columns.
+
+- Use: Use it to compare the same attributes, such as status, name, or date, across records.
+- Avoid: Use Item for one record's details or a list whose sequence matters more than column comparison.
+- Accessibility: Preserves native caption, thead, tbody, and scoped header semantics.
+- States: `default`, `overflow`
+- Related components: `data-table`, `item`, `separator`
 
 ### Tabs (`tabs`)
 

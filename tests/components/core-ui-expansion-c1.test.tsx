@@ -197,6 +197,28 @@ const frameworkOptions: readonly ComboboxOption[] = [
 ]
 
 describe("Combobox", () => {
+  it("renders its listbox outside clipping preview containers", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <div data-testid="clipped-preview" style={{ height: 80, overflow: "hidden" }}>
+        <Combobox
+          aria-label="Framework"
+          emptyText="No framework found"
+          options={frameworkOptions}
+          placeholder="Search frameworks"
+        />
+      </div>,
+    )
+
+    await user.click(screen.getByRole("combobox", { name: "Framework" }))
+
+    const preview = screen.getByTestId("clipped-preview")
+    const listbox = screen.getByRole("listbox")
+    expect(preview).not.toContainElement(listbox)
+    expect(document.body).toContainElement(listbox)
+  })
+
   it("filters options, skips disabled choices, and selects with the keyboard", async () => {
     const user = userEvent.setup()
     const onValueChange = vi.fn()

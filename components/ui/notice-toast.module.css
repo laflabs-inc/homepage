@@ -1,0 +1,17 @@
+.viewport { position: fixed; z-index: 140; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); width: min(400px, calc(100vw - 32px)); display: grid; gap: 8px; }
+.toast { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 13px; align-items: start; padding: 16px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); animation: toast-in 180ms cubic-bezier(.2,.8,.2,1); }
+.toast[data-variant="success"] { border-color: var(--success); }
+.toast[data-variant="warning"] { border-color: var(--warning); }
+.toast[data-variant="error"] { border-color: var(--error); }
+.toast[data-variant="info"] { border-color: var(--info); }
+.icon { margin-top: 1px; color: var(--blue); }
+.toast[data-variant="success"] .icon { color: var(--success); }
+.toast[data-variant="warning"] .icon { color: #b45309; }
+.toast[data-variant="error"] .icon { color: var(--error); }
+.copy h3 { margin: 0; font-size: 14px; line-height: 1.35; }
+.copy p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.close { width: 32px; height: 32px; margin: -7px -7px 0 0; display: grid; place-items: center; border: 1px solid transparent; border-radius: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.close:hover { border-color: var(--line); background: #eef2f7; }
+.close:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }

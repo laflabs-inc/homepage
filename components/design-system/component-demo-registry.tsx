@@ -11,6 +11,7 @@ import type { Locale } from "@/lib/i18n"
 import { actionDemos } from "./component-demo-actions"
 import { compositeDemos } from "./component-demo-composites"
 import { coreExpansionDemos } from "./component-demo-core-expansion"
+import { coreExpansionC2Demos } from "./component-demo-core-expansion-c2"
 import { feedbackDemos } from "./component-demo-feedback"
 import { formDemos } from "./component-demo-forms"
 import { selectionDemos } from "./component-demo-selection"
@@ -137,6 +138,7 @@ export const componentDemos = {
   ...selectionDemos,
   ...compositeDemos,
   ...coreExpansionDemos,
+  ...coreExpansionC2Demos,
   ...feedbackDemos,
   ...structureDemos,
 } satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>
