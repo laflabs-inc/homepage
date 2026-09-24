@@ -41,6 +41,12 @@ export const componentDemoKeys = [
   "accordion",
   "dialog",
   "tooltip",
+  "alert-dialog",
+  "popover",
+  "side-panel",
+  "combobox",
+  "input-group",
+  "breadcrumb",
   "code-block",
 ] as const
 

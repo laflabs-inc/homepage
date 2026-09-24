@@ -1,0 +1,19 @@
+.content {
+  z-index: 70;
+  width: min(360px, calc(100vw - 24px));
+  padding: 20px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  animation: popover-in 150ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.header { display: grid; gap: 7px; margin-bottom: 18px; }
+.title { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.02em; }
+.description { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) { .content { animation: none; } }

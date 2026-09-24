@@ -109,6 +109,12 @@ const designSitemapUrls = [
   `${siteUrl}/design/components/accordion`,
   `${siteUrl}/design/components/dialog`,
   `${siteUrl}/design/components/tooltip`,
+  `${siteUrl}/design/components/alert-dialog`,
+  `${siteUrl}/design/components/popover`,
+  `${siteUrl}/design/components/side-panel`,
+  `${siteUrl}/design/components/combobox`,
+  `${siteUrl}/design/components/input-group`,
+  `${siteUrl}/design/components/breadcrumb`,
   `${siteUrl}/design/components/alert`,
   `${siteUrl}/design/components/skeleton`,
   `${siteUrl}/design/components/empty-state`,
@@ -629,7 +635,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(86)
+    expect(entries).toHaveLength(92)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

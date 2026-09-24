@@ -10,6 +10,7 @@ import type { DemoKey } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
 import { actionDemos } from "./component-demo-actions"
 import { compositeDemos } from "./component-demo-composites"
+import { coreExpansionDemos } from "./component-demo-core-expansion"
 import { feedbackDemos } from "./component-demo-feedback"
 import { formDemos } from "./component-demo-forms"
 import { selectionDemos } from "./component-demo-selection"
@@ -135,6 +136,7 @@ export const componentDemos = {
   ...formDemos,
   ...selectionDemos,
   ...compositeDemos,
+  ...coreExpansionDemos,
   ...feedbackDemos,
   ...structureDemos,
 } satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>

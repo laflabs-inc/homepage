@@ -1,0 +1,9 @@
+.breadcrumb { color: var(--muted); }
+.list { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.item { display: inline-flex; align-items: center; min-width: 0; }
+.link { color: inherit; font-size: 12px; text-underline-offset: 4px; }
+.link:hover { color: var(--blue); text-decoration: underline; }
+.link:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+.page { overflow: hidden; color: var(--ink); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.separator { display: inline-flex; align-items: center; color: var(--line); }
+.ellipsis { display: inline-grid; place-items: center; color: var(--muted); }

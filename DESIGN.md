@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.3 · Updated: 2026-09-23
+System version: 2026.9.4 · Updated: 2026-09-24
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -200,6 +200,32 @@ Communicates an important state and the next action.
 - Related components: `button`, `empty-state`
 - Dependencies: `@phosphor-icons/react`
 
+### Alert Dialog (`alert-dialog`)
+
+Maturity: **candidate** · Category: **overlay**
+
+Requests an explicit decision before a consequential action.
+
+- Use: Use it for immediate, consequential actions such as deletion or permission changes.
+- Avoid: Use Dialog or Alert for general information or easily reversible actions.
+- Accessibility: Provides alertdialog semantics, title, description, explicit actions, and focus restoration.
+- States: `closed`, `open`, `destructive`
+- Related components: `dialog`, `alert`, `button`
+- Dependencies: `radix-ui`
+
+### Breadcrumb (`breadcrumb`)
+
+Maturity: **candidate** · Category: **navigation**
+
+Shows where the current page sits in the information hierarchy.
+
+- Use: Use it in documents or admin views more than one level deep.
+- Avoid: Do not use it on a single-level page or as a progress indicator.
+- Accessibility: Uses a named nav, ordered list, current-page state, and hidden separators.
+- States: `default`, `collapsed`
+- Related components: `text-link`, `dropdown-menu`
+- Dependencies: `@phosphor-icons/react`
+
 ### Button (`button`)
 
 Maturity: **candidate** · Category: **action**
@@ -247,6 +273,19 @@ A readable code region with a language label and copy action.
 - Accessibility: The copy button names the language, and the source remains selectable after a copy failure.
 - States: `idle`, `copied`, `error`
 - Related components: `icon-control`
+
+### Combobox (`combobox`)
+
+Maturity: **candidate** · Category: **form**
+
+Selects one value from a searchable list.
+
+- Use: Use it when the option list is long or labels may be unfamiliar.
+- Avoid: Use Native Select or Select for short, fixed option lists.
+- Accessibility: Exposes combobox/listbox relationships, active option, selection, and arrow-key operation.
+- States: `closed`, `open`, `empty`
+- Related components: `field`, `select`, `input`
+- Dependencies: `@phosphor-icons/react`
 
 ### Dialog (`dialog`)
 
@@ -322,6 +361,18 @@ A native input for single-line values.
 - States: `default`, `focus-visible`, `invalid`, `disabled`
 - Related components: `field`, `label`, `textarea`, `native-select`
 
+### Input Group (`input-group`)
+
+Maturity: **candidate** · Category: **form**
+
+Groups an input with a unit, prefix, or compact action.
+
+- Use: Use it for prefixes, units, or actions directly tied to an input.
+- Avoid: Do not place independent fields or several primary actions inside one boundary.
+- Accessibility: Keeps one native input and prevents decorative text from being announced twice.
+- States: `default`, `focus-visible`, `invalid`
+- Related components: `field`, `input`, `button`
+
 ### Label (`label`)
 
 Maturity: **candidate** · Category: **form**
@@ -370,6 +421,19 @@ Structures related information and actions within one clear boundary.
 - Accessibility: Name independent regions with aria-label or aria-labelledby and keep heading levels consistent with the document.
 - States: `default`, `subtle`, `inverse`, `action`
 - Related components: `separator`, `button`, `status-label`
+
+### Popover (`popover`)
+
+Maturity: **candidate** · Category: **overlay**
+
+Opens compact information or controls beside the current context.
+
+- Use: Use it for supporting tasks such as filters or compact settings.
+- Avoid: Use Dialog, Alert Dialog, or Dropdown Menu for long forms, confirmations, or command lists.
+- Accessibility: Names the supporting surface and preserves Escape dismissal and focus restoration.
+- States: `closed`, `open`
+- Related components: `dropdown-menu`, `dialog`, `tooltip`
+- Dependencies: `radix-ui`
 
 ### Radio Group (`radio-group`)
 
@@ -420,6 +484,19 @@ Creates a visual or semantic boundary between content.
 - Accessibility: Hide it by default and expose a separator only when the boundary carries meaning.
 - States: `decorative`, `horizontal`, `vertical`
 - Related components: `empty-state`
+
+### Side Panel (`side-panel`)
+
+Maturity: **candidate** · Category: **overlay**
+
+Opens a larger workspace from a viewport edge without leaving the page.
+
+- Use: Use it for settings, details, or editing that need more room than a Popover.
+- Avoid: Do not confine a primary page flow or complex multi-step task to a panel.
+- Accessibility: Preserves Dialog title, description, focus trap, Escape dismissal, and focus restoration.
+- States: `closed`, `open`
+- Related components: `dialog`, `popover`, `panel`
+- Dependencies: `@phosphor-icons/react`, `radix-ui`
 
 ### Skeleton (`skeleton`)
 
