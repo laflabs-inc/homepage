@@ -358,6 +358,22 @@ describe("Agent settings", () => {
     })
   })
 
+  it("announces a pending Agent operation on its action controls", async () => {
+    const user = userEvent.setup()
+    let resolveRequest: ((value: Response) => void) | undefined
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise<Response>((resolve) => {
+      resolveRequest = resolve
+    }))
+    render(<AgentSettings initialConfiguration={configuration} />)
+
+    const action = screen.getByRole("button", { name: "Test connection" })
+    await user.click(action)
+
+    await waitFor(() => expect(action).toHaveAttribute("aria-busy", "true"))
+    resolveRequest?.(await response())
+    await waitFor(() => expect(action).not.toHaveAttribute("aria-busy"))
+  })
+
   it("refreshes persisted disabled and failed state after a connection-test failure while retaining the error", async () => {
     const user = userEvent.setup()
     const enabled = { ...configuration, settings: { ...configuration.settings, enabled: true } }

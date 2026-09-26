@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation"
 
 import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
+import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { StatusLabel } from "@/components/ui/status-label"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminDocumentListRow } from "@/lib/documents/admin-list"
 import type { Locale } from "@/lib/i18n"
@@ -17,6 +23,12 @@ type DocumentListProps = {
   initialFilters?: { search?: string; kind?: string; status?: string; locale?: string }
 }
 const emptyFilters: NonNullable<DocumentListProps["initialFilters"]> = {}
+const statusVariants = {
+  draft: "neutral",
+  scheduled: "warning",
+  published: "success",
+  archived: "neutral",
+} as const
 
 function displayDocumentLocale(value: AdminDocumentListRow["locale"], locale: Locale) {
   const t = adminCopy[locale].documents
@@ -80,20 +92,29 @@ export function DocumentList({
   }, [initialFilters.search, kind, locale, replaceFilters, search, status])
 
   const hasActiveFilters = Boolean(search.trim() || kind || status || locale)
+  const clearFilters = () => {
+    setSearch("")
+    setKind("")
+    setStatus("")
+    setLocale("")
+    replaceFilters({})
+  }
 
   return (
     <div className={styles.documentListWorkspace}>
       <div className={styles.documentFilters}>
-        <label>{t.search}
-          <input
+        <Field className={styles.documentFilterField}>
+          <FieldLabel>{t.search}</FieldLabel>
+          <Input
             type="search"
             maxLength={160}
             value={search}
             onChange={(event) => setSearch(event.target.value.slice(0, 160))}
           />
-        </label>
-        <label>{t.kindFilter}
-          <select value={kind} onChange={(event) => {
+        </Field>
+        <Field className={styles.documentFilterField}>
+          <FieldLabel>{t.kindFilter}</FieldLabel>
+          <NativeSelect value={kind} onChange={(event) => {
             const nextKind = event.target.value
             setKind(nextKind)
             replaceFilters({
@@ -107,10 +128,11 @@ export function DocumentList({
             <option value="notice">{t.notice}</option>
             <option value="legal">{t.legal}</option>
             <option value="disclosure">{t.disclosure}</option>
-          </select>
-        </label>
-        <label>{t.statusFilter}
-          <select value={status} onChange={(event) => {
+          </NativeSelect>
+        </Field>
+        <Field className={styles.documentFilterField}>
+          <FieldLabel>{t.statusFilter}</FieldLabel>
+          <NativeSelect value={status} onChange={(event) => {
             const nextStatus = event.target.value
             setStatus(nextStatus)
             replaceFilters({
@@ -125,10 +147,11 @@ export function DocumentList({
             <option value="scheduled">{t.scheduled}</option>
             <option value="published">{t.published}</option>
             <option value="archived">{t.archived}</option>
-          </select>
-        </label>
-        <label>{t.localeFilter}
-          <select value={locale} onChange={(event) => {
+          </NativeSelect>
+        </Field>
+        <Field className={styles.documentFilterField}>
+          <FieldLabel>{t.localeFilter}</FieldLabel>
+          <NativeSelect value={locale} onChange={(event) => {
             const nextLocale = event.target.value
             setLocale(nextLocale)
             replaceFilters({
@@ -141,34 +164,33 @@ export function DocumentList({
             <option value="">{t.allLocales}</option>
             <option value="ko">{t.korean}</option>
             <option value="en">{t.english}</option>
-          </select>
-        </label>
+          </NativeSelect>
+        </Field>
       </div>
       <div className={styles.documentListMeta}>
         <p aria-live="polite">{t.resultsCount(rows.length)}</p>
         <div className={styles.editorActions}>
-          {hasActiveFilters ? (
-            <button
-              className={styles.secondaryButton}
-              type="button"
-              onClick={() => {
-                setSearch("")
-                setKind("")
-                setStatus("")
-                setLocale("")
-                replaceFilters({})
-              }}
-            >{t.clearFilters}</button>
+          {hasActiveFilters && rows.length > 0 ? (
+            <Button size="compact" variant="secondary" onClick={clearFilters}>
+              {t.clearFilters}
+            </Button>
           ) : null}
           {nextCursor ? <Link href={pageHref(initialFilters, nextCursor)}>{t.nextPage}</Link> : null}
         </div>
       </div>
       <div aria-busy={isPending}>
         {rows.length === 0 ? (
-          <div className={styles.documentEmpty}>
-            <h2>{hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}</h2>
-            {!hasActiveFilters ? <p>{t.firstDocumentDescription}</p> : null}
-          </div>
+          <EmptyState
+            aria-label={hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}
+            className={styles.documentEmpty}
+            title={hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}
+            description={hasActiveFilters ? t.noMatchingDocumentsDescription : t.firstDocumentDescription}
+            action={hasActiveFilters ? (
+              <Button size="compact" variant="secondary" onClick={clearFilters}>
+                {t.clearFilters}
+              </Button>
+            ) : undefined}
+          />
         ) : (
           <ul className={styles.documentList}>
             {rows.map((revision) => (
@@ -178,7 +200,7 @@ export function DocumentList({
                   <span>{t[revision.kind]} / {displayDocumentLocale(revision.locale, localePreference)} / r{revision.revision}</span>
                   <span>{t.by} {revision.publisher}</span>
                   <span>{t[revision.dateLabel === "Scheduled" ? "scheduledAt" : revision.dateLabel === "Published" ? "publishedAt" : "updatedAt"]} {formatDocumentDate(revision.relevantAt, localePreference)}</span>
-                  <span className={styles.statusBadge}>{t[revision.status]}</span>
+                  <StatusLabel variant={statusVariants[revision.status]}>{t[revision.status]}</StatusLabel>
                 </Link>
               </li>
             ))}

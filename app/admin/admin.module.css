@@ -135,27 +135,13 @@
   border: 1px solid var(--ink);
 }
 
-.documentFilters label {
+.documentFilterField {
   padding: 12px;
-  display: grid;
-  gap: 7px;
-  color: var(--muted);
-  font: 600 10px var(--font-geist-mono), monospace;
-  text-transform: uppercase;
+  align-content: start;
 }
 
-.documentFilters label + label {
+.documentFilterField + .documentFilterField {
   border-left: 1px solid var(--ink);
-}
-
-.documentFilters input,
-.documentFilters select {
-  min-height: 38px;
-  padding: 0 10px;
-  color: var(--ink);
-  background: white;
-  border: 1px solid var(--ink);
-  border-radius: 0;
 }
 
 .documentList {
@@ -193,14 +179,6 @@
   white-space: nowrap;
 }
 
-.statusBadge {
-  padding: 6px 8px;
-  color: var(--ink);
-  border: 1px solid var(--ink);
-  font: 650 10px var(--font-geist-mono), monospace;
-  text-transform: uppercase;
-}
-
 .documentEmpty {
   min-height: 280px;
   padding: 40px;
@@ -209,7 +187,7 @@
   border: 1px solid var(--ink);
 }
 
-.documentEmpty h2,
+.documentEmpty h3,
 .documentEmpty p {
   margin: 0;
 }
@@ -779,23 +757,7 @@
 .signInButton {
   width: 100%;
   min-height: 54px;
-  padding: 0 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 10px;
-  color: var(--ink);
-  background: white;
-  border: 1px solid var(--ink);
-  font: 700 12px var(--font-geist-mono), monospace;
-  cursor: pointer;
-  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
-}
-
-.signInButton:hover {
-  color: white;
-  background: var(--ink);
-  transform: translate(-3px, -3px);
 }
 
 .dashboard {
@@ -1203,34 +1165,6 @@
   font-size: 13px;
 }
 
-.killSwitch,
-.agentSetupForm button,
-.agentActions button,
-.agentSave {
-  min-height: 46px;
-  padding: 0 18px;
-  color: white;
-  background: var(--blue);
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  font: 650 11px var(--font-geist-mono), monospace;
-  cursor: pointer;
-}
-
-.killSwitch,
-.agentActions .dangerButton {
-  color: #9b1c1c;
-  background: white;
-}
-
-.killSwitch:disabled,
-.agentSetupForm button:disabled,
-.agentActions button:disabled,
-.agentSave:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .agentSection {
   display: grid;
   grid-template-columns: minmax(180px, 0.28fr) minmax(0, 1fr);
@@ -1277,33 +1211,6 @@
   grid-template-columns: 1fr;
 }
 
-.agentFieldGrid label,
-.agentSetupForm label,
-.agentAdvancedGrid label {
-  display: grid;
-  gap: 8px;
-  color: var(--muted);
-  font: 600 10px var(--font-geist-mono), monospace;
-  text-transform: uppercase;
-}
-
-.agentFieldGrid input,
-.agentFieldGrid select,
-.agentSetupForm input,
-.agentSetupForm select,
-.agentAdvancedGrid input,
-.agentAdvancedGrid select {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
-  color: var(--ink);
-  background: white;
-  border: 1px solid var(--ink);
-  border-radius: 0;
-  font: 400 14px var(--font-geist-sans), sans-serif;
-  text-transform: none;
-}
-
 .agentWideField,
 .agentFieldGrid > .editorGuidance,
 .agentFieldGrid > .agentMeta,
@@ -1319,10 +1226,7 @@
 }
 
 .connectionStatus {
-  padding: 14px;
-  background: #eff6ff;
-  border: 1px solid var(--ink);
-  font: 650 12px var(--font-geist-mono), monospace;
+  width: fit-content;
 }
 
 .agentSetupForm {
@@ -1342,8 +1246,6 @@
   display: grid;
   align-content: center;
   gap: 8px;
-  background: #eff6ff;
-  border: 1px solid var(--ink);
 }
 
 .agentModelCard p,
@@ -1424,14 +1326,8 @@
 }
 
 .agentCheckbox {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  color: var(--ink) !important;
-}
-
-.agentCheckbox input {
-  width: 18px;
-  min-height: 18px;
+  display: flex;
+  align-items: end;
 }
 
 @media (max-width: 900px) {
@@ -1506,12 +1402,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .documentFilters label:nth-child(3) {
+  .documentFilterField:nth-child(3) {
     border-top: 1px solid var(--ink);
     border-left: 0;
   }
 
-  .documentFilters label:nth-child(4) {
+  .documentFilterField:nth-child(4) {
     border-top: 1px solid var(--ink);
   }
 
@@ -1645,8 +1541,8 @@
     grid-template-columns: 1fr;
   }
 
-  .documentFilters label + label,
-  .documentFilters label:nth-child(4) {
+  .documentFilterField + .documentFilterField,
+  .documentFilterField:nth-child(4) {
     border-top: 1px solid var(--ink);
     border-left: 0;
   }
@@ -1737,7 +1633,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .signInButton,
   .rangeNav a,
   .adminNav a,
   .documentList a,

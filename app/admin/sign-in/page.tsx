@@ -1,4 +1,5 @@
 import { signIn } from "@/auth"
+import { Button } from "@/components/ui/button"
 import { adminCopy } from "@/lib/admin/i18n"
 import { getAdminLocale } from "@/lib/admin/locale"
 import styles from "../admin.module.css"
@@ -35,10 +36,10 @@ export default async function AdminSignInPage() {
           <p>{t.cardDescription}</p>
         </div>
         <form action={startGitHubSignIn}>
-          <button type="submit" className={styles.signInButton}>
+          <Button type="submit" className={styles.signInButton} variant="secondary">
             <GitHubMark />
             {t.submit}
-          </button>
+          </Button>
         </form>
       </div>
     </section>
