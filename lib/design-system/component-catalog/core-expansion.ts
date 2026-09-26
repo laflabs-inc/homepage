@@ -19,7 +19,7 @@ export const coreExpansionComponents = [
     states: [
       { id: "closed", guidance: { ko: "트리거가 결과를 구체적으로 설명하는지 확인합니다.", en: "Confirm the trigger names the consequence clearly." } },
       { id: "open", guidance: { ko: "취소와 실행의 차이, 초기 초점과 초점 복귀를 확인합니다.", en: "Inspect action hierarchy, initial focus, and focus restoration." } },
-      { id: "destructive", guidance: { ko: "위험 색상만이 아니라 문구로 결과를 설명합니다.", en: "Explain the consequence in text instead of relying on danger color." } },
+      { id: "destructive", guidance: { ko: "Error Deep과 흰색 전경을 쓰고 문구로 결과를 설명합니다.", en: "Use Error Deep with a white foreground and explain the consequence in text." } },
     ],
     props: [
       { name: "open", type: "boolean", required: false, description: { ko: "제어되는 열림 상태입니다.", en: "The controlled open state." } },

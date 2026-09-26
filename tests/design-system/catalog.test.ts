@@ -97,8 +97,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.9.5",
-      updatedAt: "2026-09-24",
+      version: "2026.9.6",
+      updatedAt: "2026-09-26",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
@@ -108,7 +108,7 @@ describe("design catalog schema", () => {
   it("rejects catalog metadata that differs from the fixed contract", () => {
     const catalog = {
       ...validCatalog,
-      meta: { ...designSystemMeta, version: "2026.9.6" },
+      meta: { ...designSystemMeta, version: "invalid" },
     } satisfies DesignCatalog
 
     expect(() => assertDesignCatalog(catalog)).toThrow("metadata version: invalid metadata value")
@@ -366,7 +366,16 @@ describe("production design catalog", () => {
       "color.success",
       "color.warning",
       "color.error",
+      "color.error-deep",
     ]))
+  })
+
+  it("publishes a high-contrast danger-action pair for white labels", () => {
+    const errorDeep = designCatalog.tokens.find(({ id }) => id === "color.error-deep")
+    const pureWhite = designCatalog.tokens.find(({ id }) => id === "color.pure-white")
+
+    expect(errorDeep).toMatchObject({ value: "#b91c1c", cssVariable: "--error-deep" })
+    expect(pureWhite).toMatchObject({ value: "#fff", cssVariable: "--pure-white" })
   })
 
   it("keeps active color defaults separate from legacy route-era colors", () => {

@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.5 · Updated: 2026-09-24
+System version: 2026.9.6 · Updated: 2026-09-26
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -106,6 +106,7 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `color.border-blue-strong` | color | `#385a91` | Legacy reference | Legacy emphasized rule and outline-action border color. |
 | `color.button-ink` | color | `#0a0e18` | Legacy reference | Legacy text color for the light contact action. |
 | `color.error` | color | `#ef4444` | Current | Reserved for error and danger status. |
+| `color.error-deep` | color | `#b91c1c` | Current | High-contrast background for destructive actions with a white foreground. |
 | `color.info` | color | `#0ea5e9` | Current | Reserved for informational status. |
 | `color.ink` | color | `#0f172a` | Current | The default text, rule, and dark contrast-band color. |
 | `color.inverse-navy` | color | `#071022` | Legacy reference | Legacy contact-section surface from the route-era interface. |
@@ -117,7 +118,7 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `color.paper` | color | `#f8fafc` | Current | The default page and control surface. |
 | `color.primary` | color | `#2563eb` | Current | The primary accent for key actions, selected states, and structure. |
 | `color.primary-deep` | color | `#1e40af` | Current | The hover and pressed color for Primary Blue actions. |
-| `color.pure-white` | color | `#fff` | Current | Foreground color on Ink and Primary Blue surfaces. |
+| `color.pure-white` | color | `#fff` | Current | Foreground color on Ink, Primary Blue, and Error Deep surfaces. |
 | `color.raised-navy` | color | `#101c35` | Legacy reference | Legacy raised dark detail from the route-era interface. |
 | `color.route-blue` | color | `#165dff` | Legacy reference | Legacy fill and structural accent from the route-era interface. |
 | `color.route-blue-deep` | color | `#0f4bd8` | Legacy reference | Legacy primary-button hover color from the route-era interface. |
