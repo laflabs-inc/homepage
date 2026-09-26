@@ -4,6 +4,14 @@ import { useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
+import { Alert } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { Panel } from "@/components/ui/panel"
+import { StatusLabel } from "@/components/ui/status-label"
 import {
   agentModelCatalog,
   defaultAgentModelId,
@@ -348,19 +356,21 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           <h1>{t.heading}</h1>
           <p>{configuration.settings.enabled ? t.enabled : t.disabled}</p>
         </div>
-        <button
+        <Button
           className={styles.killSwitch}
           type="button"
           disabled={!configuration.settings.enabled || busy}
+          loading={busy}
+          size="compact"
+          variant="secondary"
           onClick={disableAi}
         >
           {t.disableNow}
-        </button>
+        </Button>
       </div>
 
       {error ? (
-        <div className={styles.formAlert} role="alert">
-          <p>{error}</p>
+        <Alert className={styles.formAlert} live title={error} variant="error">
           {diagnostic ? (
             <details>
               <summary>{t.diagnosticDetails}</summary>
@@ -374,7 +384,7 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
               ) : null}
             </details>
           ) : null}
-        </div>
+        </Alert>
       ) : null}
       {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
 
@@ -384,16 +394,19 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           <h2>{t.connection}</h2>
         </div>
         <div className={styles.agentSectionBody}>
-          <p className={styles.connectionStatus}>{credentialStatus}</p>
+          <StatusLabel
+            className={styles.connectionStatus}
+            variant={credential.verificationStatus === "verified" ? "success" : "neutral"}
+          >
+            {credentialStatus}
+          </StatusLabel>
           {legacyModel ? (
-            <p className={styles.formAlert} role="alert">
-              {t.legacyModel(legacyModel)}
-            </p>
+            <Alert className={styles.formAlert} live title={t.legacyModel(legacyModel)} variant="error" />
           ) : null}
           <form className={styles.agentSetupForm} onSubmit={configureCredential}>
-            <label>
-              {t.model}
-              <select
+            <Field>
+              <FieldLabel>{t.model}</FieldLabel>
+              <NativeSelect
                 value={selectedModel}
                 onChange={(event) => setSelectedModel(event.target.value as SupportedAgentModelId)}
               >
@@ -402,9 +415,9 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
                     {item.label}{item.recommended ? ` · ${t.recommended}` : ""}
                   </option>
                 ))}
-              </select>
-            </label>
-            <div className={styles.agentModelCard}>
+              </NativeSelect>
+            </Field>
+            <Panel className={styles.agentModelCard} tone="subtle">
               <p>{t.modelDescriptions[model.id]}</p>
               <strong>
                 {t.price(
@@ -413,15 +426,15 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
                 )}
               </strong>
               <span>{t.pricingChecked(dateLabel(locale, model.pricingCheckedAt))}</span>
-            </div>
+            </Panel>
             {modelChanged && credential.configured ? (
               <p className={styles.editorGuidance} role="status">
                 {t.modelChanged}
               </p>
             ) : null}
-            <label>
-              {t.apiKey}
-              <input
+            <Field required={!credential.configured}>
+              <FieldLabel>{t.apiKey}</FieldLabel>
+              <Input
                 name="apiKey"
                 type="password"
                 autoComplete="new-password"
@@ -431,13 +444,16 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
                 onChange={(event) => setApiKey(event.target.value)}
                 placeholder={credential.configured ? t.apiKeyPlaceholder : undefined}
               />
-            </label>
-            <button type="submit" disabled={busy}>{setupAction}</button>
+            </Field>
+            <Button type="submit" loading={busy}>{setupAction}</Button>
           </form>
           <div className={styles.agentActions}>
-            <button
+            <Button
               type="button"
               disabled={!credential.configured || busy}
+              loading={busy}
+              size="compact"
+              variant="secondary"
               onClick={() => mutate(
                 "/api/admin/agent/credential/test",
                 "POST",
@@ -447,15 +463,17 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
               )}
             >
               {t.testConnection}
-            </button>
-            <button
-              className={styles.dangerButton}
+            </Button>
+            <Button
               type="button"
               disabled={!credential.configured || busy}
+              loading={busy}
+              size="compact"
+              variant="danger"
               onClick={deleteCredential}
             >
               {t.deleteCredential}
-            </button>
+            </Button>
           </div>
         </div>
       </section>
@@ -467,55 +485,58 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
             <h2>{t.usage}</h2>
           </div>
           <div className={styles.agentFieldGrid}>
-            <label>
-              {t.monthlyEstimatedCostLimit}
-              <input type="number" min="1" max="10000" step="0.000001" value={draft.monthlyCostLimitUsd} onChange={(event) => set("monthlyCostLimitUsd", event.target.value)} />
-            </label>
-            <label>
-              {t.summaryPolicy}
-              <select value={draft.summaryPolicy} onChange={(event) => set("summaryPolicy", event.target.value as Draft["summaryPolicy"])}>
+            <Field>
+              <FieldLabel>{t.monthlyEstimatedCostLimit}</FieldLabel>
+              <Input type="number" min="1" max="10000" step="0.000001" value={draft.monthlyCostLimitUsd} onChange={(event) => set("monthlyCostLimitUsd", event.target.value)} />
+            </Field>
+            <Field>
+              <FieldLabel>{t.summaryPolicy}</FieldLabel>
+              <NativeSelect value={draft.summaryPolicy} onChange={(event) => set("summaryPolicy", event.target.value as Draft["summaryPolicy"])}>
                 <option value="review">{t.reviewBeforePublishing}</option>
                 <option value="automatic">{t.automatic}</option>
-              </select>
-            </label>
-            <label className={styles.agentCheckbox}>
-              <input type="checkbox" checked={draft.enabled} onChange={(event) => set("enabled", event.target.checked)} />
-              {t.enableAi}
-            </label>
+              </NativeSelect>
+            </Field>
+            <div className={styles.agentCheckbox}>
+              <Checkbox
+                checked={draft.enabled}
+                label={t.enableAi}
+                onChange={(event) => set("enabled", event.target.checked)}
+              />
+            </div>
             <p className={styles.agentMetric}>{t.estimatedMonthlyGuardrail(estimatedLimit)}</p>
             <p className={styles.agentMeta}>{t.estimateDisclaimer}</p>
 
             <details className={styles.agentAdvanced}>
               <summary>{t.advancedLimits}</summary>
               <div className={styles.agentAdvancedGrid}>
-                <label>
-                  {t.dailyTokenLimit}
-                  <input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
-                </label>
-                <label>
-                  {t.dailyQuestionLimit}
-                  <input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
-                </label>
-                <label>
-                  {t.maximumOutputTokens}
-                  <input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
-                </label>
-                <label>
-                  {t.resetTimezone}
-                  <input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
-                </label>
-                <label>
-                  {t.dailyResetTime}
-                  <input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
-                </label>
-                <label>
-                  {t.identityCookieRetention}
-                  <input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
-                </label>
+                <Field>
+                  <FieldLabel>{t.dailyTokenLimit}</FieldLabel>
+                  <Input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
+                </Field>
+                <Field>
+                  <FieldLabel>{t.dailyQuestionLimit}</FieldLabel>
+                  <Input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
+                </Field>
+                <Field>
+                  <FieldLabel>{t.maximumOutputTokens}</FieldLabel>
+                  <Input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
+                </Field>
+                <Field>
+                  <FieldLabel>{t.resetTimezone}</FieldLabel>
+                  <Input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
+                </Field>
+                <Field>
+                  <FieldLabel>{t.dailyResetTime}</FieldLabel>
+                  <Input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
+                </Field>
+                <Field>
+                  <FieldLabel>{t.identityCookieRetention}</FieldLabel>
+                  <Input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
+                </Field>
               </div>
             </details>
 
-            <button className={styles.agentSave} type="submit" disabled={busy}>{t.saveSettings}</button>
+            <Button className={styles.agentSave} type="submit" loading={busy}>{t.saveSettings}</Button>
           </div>
         </section>
       </form>

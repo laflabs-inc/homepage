@@ -1,7 +1,7 @@
 # LafLabs Website and Admin Platform Roadmap
 
-Status: Planned
-Last updated: 2026-09-10
+Status: Active
+Last updated: 2026-09-26
 
 ## Objective
 
@@ -27,20 +27,30 @@ Evolve the LafLabs website from a company homepage with document publishing into
 - Configurable OpenAI provider, budget controls, and usage accounting
 - Consent-aware first-party analytics
 - Site-wide search
+- Public, AI-readable design guidance and a native LafLabs Core UI library
+
+## Current delivery status
+
+| Workstream | Status | Current boundary |
+| --- | --- | --- |
+| Public document index polish | Shipped | The three public indexes share the Navbar shell and compact masthead. |
+| Document editor workspace | Shipped | Authors switch explicitly between a persistent Markdown source editor and the rendered preview. |
+| Design system foundation | Shipped; adoption ongoing | Tokens, guidance, and Core UI primitives are public; product surfaces are adopting them incrementally. |
+| Logo motion | Next | The official mark receives a restrained reveal with static and reduced-motion fallbacks. |
 
 ## Delivery sequence
 
-| Order | Milestone | Outcome | Size | Depends on |
-| --- | --- | --- | --- | --- |
-| 1 | Public document index polish | Notices, disclosures, and legal indexes align to the Navbar shell and use a compact document masthead without redundant cross-navigation | S | Existing document platform |
-| 2 | Document editor workspace | Obsidian-style inline Markdown editing with an exact full-source fallback | M | Shared Markdown renderer |
-| 3 | Logo motion | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
-| 4 | Media platform foundation | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
-| 5 | Media authoring integration | Asset picker, Markdown insertion, reference tracking, safe archive, and deletion rules | M | Media platform foundation |
-| 6 | Careers page | Bilingual, API-ready careers page backed by typed local content and a real empty state | M | Media platform for reusable visuals |
-| 7 | Inquiry platform | Public contact form, protected API, Admin inbox, status workflow, retention, and abuse controls | L | Admin foundation |
-| 8 | Inquiry email and AI assistance | Resend notifications, delivery history, optional AI classification, summary, and reply drafts | M | Inquiry platform and Agent settings |
-| 9 | Careers publishing | Admin-managed roles with localized draft, published, closed, and archived states | L | Careers page and document workflow patterns |
+| Order | Milestone | Status | Outcome | Size | Depends on |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Public document index polish | Shipped | Notices, disclosures, and legal indexes align to the Navbar shell and use a compact document masthead without redundant cross-navigation | S | Existing document platform |
+| 2 | Document editor workspace | Shipped | One authoring workspace with explicit source and rendered preview modes | M | Shared Markdown renderer |
+| 3 | Logo motion | Next | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
+| 4 | Media platform foundation | Planned | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
+| 5 | Media authoring integration | Planned | Asset picker, Markdown insertion, reference tracking, safe archive, and deletion rules | M | Media platform foundation |
+| 6 | Careers page | Planned | Bilingual, API-ready careers page backed by typed local content and a real empty state | M | Media platform for reusable visuals |
+| 7 | Inquiry platform | Planned | Public contact form, protected API, Admin inbox, status workflow, retention, and abuse controls | L | Admin foundation |
+| 8 | Inquiry email and AI assistance | Planned | Resend notifications, delivery history, optional AI classification, summary, and reply drafts | M | Inquiry platform and Agent settings |
+| 9 | Careers publishing | Planned | Admin-managed roles with localized draft, published, closed, and archived states | L | Careers page and document workflow patterns |
 
 ## Milestone boundaries
 
@@ -54,9 +64,10 @@ Evolve the LafLabs website from a company homepage with document publishing into
 ### 2. Document editor workspace
 
 - Reuse the current renderer and unsaved draft state.
-- Present one rendered document surface instead of separate editor and preview panes.
-- Turn only the selected top-level Markdown block into source while it is being edited.
-- Keep an explicit full-source mode for advanced or cross-block edits.
+- Present one authoring workspace instead of simultaneous editor and preview panes.
+- Keep an explicit Source/Preview control in the editor toolbar.
+- Preserve the CodeMirror source editor and its selection when the author checks the rendered preview.
+- Do not use block-level live editing; the explicit modes are the stable editing boundary.
 - Preserve Markdown source exactly; never store draft content outside the existing in-memory form state.
 - Keep publishing lifecycle controls unchanged.
 

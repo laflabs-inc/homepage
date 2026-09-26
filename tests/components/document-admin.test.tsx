@@ -896,6 +896,19 @@ describe("document admin", () => {
     expect(screen.getByRole("link", { name: /Privacy policy/ })).toBeInTheDocument()
   })
 
+  it("exposes filtered-empty recovery as one labelled region", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <DocumentList rows={[]} initialFilters={{ status: "draft" }} />
+      </LocaleProvider>,
+    )
+
+    const emptyState = screen.getByRole("region", {
+      name: "No documents match these filters.",
+    })
+    expect(within(emptyState).getByRole("button", { name: "Clear filters" })).toBeInTheDocument()
+  })
+
   it("localizes list row locales and dates while keeping canonical list values", () => {
     const published = {
       ...revision,
