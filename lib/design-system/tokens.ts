@@ -137,6 +137,16 @@ export const designTokens = [
     purpose: { ko: "오류와 위험 상태에만 씁니다.", en: "Reserved for error and danger status." },
   },
   {
+    id: "color.error-deep",
+    group: "color",
+    value: "#b91c1c",
+    cssVariable: "--error-deep",
+    purpose: {
+      ko: "흰색 전경이 필요한 파괴적 동작의 배경색입니다.",
+      en: "High-contrast background for destructive actions with a white foreground.",
+    },
+  },
+  {
     id: "color.slate-soft",
     group: "color",
     value: "#94a3b8",
@@ -176,9 +186,10 @@ export const designTokens = [
     id: "color.pure-white",
     group: "color",
     value: "#fff",
+    cssVariable: "--pure-white",
     purpose: {
-      ko: "어두운 면과 Primary Blue 위의 전경색입니다.",
-      en: "Foreground color on Ink and Primary Blue surfaces.",
+      ko: "Ink, Primary Blue, Error Deep 위의 전경색입니다.",
+      en: "Foreground color on Ink, Primary Blue, and Error Deep surfaces.",
     },
   },
   {

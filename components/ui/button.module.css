@@ -71,9 +71,9 @@
 }
 
 .danger {
-  border-color: var(--error);
-  background: var(--error);
-  color: var(--ink);
+  border-color: var(--error-deep);
+  background: var(--error-deep);
+  color: var(--pure-white);
 }
 
 .danger:hover:not(:disabled) {

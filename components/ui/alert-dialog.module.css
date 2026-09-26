@@ -38,8 +38,8 @@
 }
 
 .cancel { background: transparent; color: var(--ink); }
-.action { background: var(--blue); color: white; border-color: var(--blue); }
-.action[data-variant="destructive"] { background: var(--error); border-color: var(--error); }
+.action { background: var(--blue); color: var(--pure-white); border-color: var(--blue); }
+.action[data-variant="destructive"] { background: var(--error-deep); border-color: var(--error-deep); }
 .cancel:hover { background: #eef2f7; }
 .action:hover { filter: brightness(.92); }
 .cancel:focus-visible,

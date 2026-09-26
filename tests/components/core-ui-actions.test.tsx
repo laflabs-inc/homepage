@@ -57,9 +57,11 @@ describe("Button", () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
-  it("uses an accessible foreground for the Error danger surface", () => {
+  it("uses a white foreground on the high-contrast Error danger surface", () => {
     const stylesheet = readFileSync(join(process.cwd(), "components/ui/button.module.css"), "utf8")
-    expect(stylesheet).toMatch(/\.danger\s*\{[^}]*color:\s*var\(--ink\);/s)
+    expect(stylesheet).toMatch(
+      /\.danger\s*\{[^}]*background:\s*var\(--error-deep\);[^}]*color:\s*var\(--pure-white\);/s,
+    )
   })
 })
 

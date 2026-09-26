@@ -22,7 +22,7 @@ export const actionComponents = [
       { id: "focus-visible", guidance: { ko: "키보드 초점 표시가 선명한지 확인합니다.", en: "Confirm keyboard focus remains clearly visible." } },
       { id: "disabled", guidance: { ko: "비활성 상태에서 실행되지 않는지 확인합니다.", en: "Confirm the disabled action cannot run." } },
       { id: "loading", guidance: { ko: "이름을 유지하면서 busy 상태를 알리는지 확인합니다.", en: "Confirm busy state is exposed without replacing the label." } },
-      { id: "danger", guidance: { ko: "파괴적 동작에만 Error 색을 쓰는지 확인합니다.", en: "Confirm Error color is reserved for destructive actions." } },
+      { id: "danger", guidance: { ko: "파괴적 동작에만 Error Deep과 흰색 전경을 씁니다.", en: "Use Error Deep with a white foreground only for destructive actions." } },
     ],
     props: [
       { name: "variant", type: '"primary" | "secondary" | "inverse" | "danger"', required: false, description: { ko: "동작의 위계와 의미를 정합니다.", en: "Sets action hierarchy and semantics." } },
