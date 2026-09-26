@@ -36,7 +36,8 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | Public document index polish | Shipped | The three public indexes share the Navbar shell and compact masthead. |
 | Document editor workspace | Shipped | Authors switch explicitly between a persistent Markdown source editor and the rendered preview. |
 | Design system foundation | Shipped; adoption ongoing | Tokens, guidance, and Core UI primitives are public; product surfaces are adopting them incrementally. |
-| Logo motion | Next | The official mark receives a restrained reveal with static and reduced-motion fallbacks. |
+| Logo motion | In review | The public header reveal is implemented in PR #50 with session, replay, and reduced-motion coverage. |
+| Media platform foundation | Planned next | Establish Vercel Blob storage, protected upload APIs, and Admin asset metadata after Logo motion lands. |
 
 ## Delivery sequence
 
@@ -44,8 +45,8 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | --- | --- | --- | --- | --- | --- |
 | 1 | Public document index polish | Shipped | Notices, disclosures, and legal indexes align to the Navbar shell and use a compact document masthead without redundant cross-navigation | S | Existing document platform |
 | 2 | Document editor workspace | Shipped | One authoring workspace with explicit source and rendered preview modes | M | Shared Markdown renderer |
-| 3 | Logo motion | Next | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
-| 4 | Media platform foundation | Planned | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
+| 3 | Logo motion | In review | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
+| 4 | Media platform foundation | Planned next | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
 | 5 | Media authoring integration | Planned | Asset picker, Markdown insertion, reference tracking, safe archive, and deletion rules | M | Media platform foundation |
 | 6 | Careers page | Planned | Bilingual, API-ready careers page backed by typed local content and a real empty state | M | Media platform for reusable visuals |
 | 7 | Inquiry platform | Planned | Public contact form, protected API, Admin inbox, status workflow, retention, and abuse controls | L | Admin foundation |

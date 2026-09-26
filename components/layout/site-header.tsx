@@ -7,7 +7,7 @@ import { useConsent } from "@/components/analytics/consent-provider"
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { SITE_SEARCH_OVERLAY_ID, SiteSearchOverlay } from "@/components/search/site-search-overlay"
 import searchStyles from "@/components/search/site-search-overlay.module.css"
-import { Logo } from "@/components/ui/logo"
+import { AnimatedLogoLink } from "@/components/ui/animated-logo-link"
 import { SegmentedToggle } from "@/components/ui/segmented-toggle"
 import { contactEmail, copy, githubOrg } from "@/lib/content"
 
@@ -103,9 +103,7 @@ export function SiteHeader({ homeHref }: { homeHref?: string } = {}) {
     <>
       <header className="site-header" data-stuck={stuck || searchOpen}>
       <div className="header-inner">
-        <a href={homeHref ?? "#top"} aria-label="LafLabs">
-          <Logo />
-        </a>
+        <AnimatedLogoLink href={homeHref ?? "#top"} />
 
         <nav className="header-nav">
           <a href={homeHref ? `${homeHref}#company` : "#company"}>{t.principles}</a>
