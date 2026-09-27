@@ -56,7 +56,7 @@ The private store is also the future boundary for protected attachments, but thi
 
 ### Provider isolation
 
-All `@vercel/blob` calls live behind `lib/assets/blob-store.ts`. Application services exchange LafLabs-owned values such as `StagedBlob`, `PublicBlob`, and `BlobStoreError`. They never return Vercel SDK objects through service or route interfaces.
+Server-side `@vercel/blob` calls live behind `lib/assets/blob-store.ts`. The browser-only `@vercel/blob/client` call lives behind `lib/assets/client-upload.ts` so it does not pull server credentials or server-only modules into the client bundle. Application services and components exchange LafLabs-owned values such as `StagedBlob`, `PublicBlob`, `UploadProgress`, and `BlobStoreError`; no Vercel SDK object crosses those adapter boundaries.
 
 This boundary is deliberately small. It is not a general storage-provider plugin framework.
 
