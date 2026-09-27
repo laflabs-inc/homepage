@@ -16,6 +16,10 @@ export type MediaTelemetryFields = Partial<{
   mediaType: MediaType
   count: number
   byteSize: number
+  processingTimedOut: number
+  stagingDeleted: number
+  deletionsCompleted: number
+  failures: number
 }>
 
 export interface MediaTelemetry {
@@ -29,6 +33,10 @@ const allowedFields = new Set([
   "mediaType",
   "count",
   "byteSize",
+  "processingTimedOut",
+  "stagingDeleted",
+  "deletionsCompleted",
+  "failures",
 ])
 
 export function createMediaTelemetry(

@@ -86,7 +86,14 @@ export interface MediaAssetRepository {
   acquireDeletion(id: string, actor: AdminActor): Promise<DeletionAcquisition>
   markDeleted(id: string, actor: AdminActor): Promise<MediaAsset>
   addReference(input: AssetReferenceInput, actor: AdminActor): Promise<MediaAssetReference>
+  listStaleProcessing(before: Date, limit?: number): Promise<MediaAsset[]>
+  markProcessingTimedOut(id: string, before: Date): Promise<MediaAsset | null>
+  listExpiredStaging(before: Date, limit?: number): Promise<MediaAsset[]>
+  expirePending(id: string, before: Date): Promise<MediaAsset>
+  listDeleting(limit?: number): Promise<MediaAsset[]>
 }
+
+const cleanupActor: AdminActor = { githubId: "system:cron", name: "Asset cleanup" }
 
 const assetColumns = sql.raw(`
   "id", "visibility", "status", "original_filename" AS "originalFilename",
@@ -504,6 +511,66 @@ export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
         createdAt: date(row.createdAt, "createdAt"),
         updatedAt: date(row.updatedAt, "updatedAt"),
       }
+    },
+
+    async listStaleProcessing(before, limit = 50) {
+      const result = await database.execute(sql`
+        SELECT ${assetColumns} FROM ${mediaAssets}
+        WHERE "status" = 'processing' AND "updated_at" < ${before}
+        ORDER BY "updated_at" ASC, "id" ASC LIMIT ${Math.min(Math.max(limit, 1), 100)}
+      `)
+      return result.rows.map(mapAsset)
+    },
+
+    async markProcessingTimedOut(id, before) {
+      const code = "processing_timeout"
+      const result = await database.execute(sql`
+        WITH changed AS (
+          UPDATE ${mediaAssets}
+          SET "status" = 'failed', "failure_code" = ${code},
+            "updated_by" = ${cleanupActor.githubId}, "updated_by_name" = ${cleanupActor.name},
+            "updated_at" = statement_timestamp()
+          WHERE "id" = ${id}::uuid AND "status" = 'processing' AND "updated_at" < ${before}
+          RETURNING *
+        ), audit_entry AS (${auditCte("media.finalize_failed", cleanupActor, sql`jsonb_build_object('code', ${code}::text)`)})
+        SELECT ${assetColumns} FROM changed WHERE (SELECT count(*) FROM audit_entry) >= 0
+      `)
+      return result.rows[0] ? mapAsset(result.rows[0]) : null
+    },
+
+    async listExpiredStaging(before, limit = 50) {
+      const result = await database.execute(sql`
+        SELECT ${assetColumns} FROM ${mediaAssets}
+        WHERE "status" IN ('pending', 'failed') AND "staging_pathname" IS NOT NULL
+          AND "created_at" < ${before}
+        ORDER BY "created_at" ASC, "id" ASC LIMIT ${Math.min(Math.max(limit, 1), 100)}
+      `)
+      return result.rows.map(mapAsset)
+    },
+
+    async expirePending(id, before) {
+      const code = "upload_expired"
+      const result = await database.execute(sql`
+        WITH changed AS (
+          UPDATE ${mediaAssets}
+          SET "status" = 'failed', "failure_code" = ${code},
+            "updated_by" = ${cleanupActor.githubId}, "updated_by_name" = ${cleanupActor.name},
+            "updated_at" = statement_timestamp()
+          WHERE "id" = ${id}::uuid AND "status" = 'pending' AND "created_at" < ${before}
+          RETURNING *
+        ), audit_entry AS (${auditCte("media.finalize_failed", cleanupActor, sql`jsonb_build_object('code', ${code}::text)`)})
+        SELECT ${assetColumns} FROM changed WHERE (SELECT count(*) FROM audit_entry) >= 0
+      `)
+      return requiredAsset(result.rows)
+    },
+
+    async listDeleting(limit = 50) {
+      const result = await database.execute(sql`
+        SELECT ${assetColumns} FROM ${mediaAssets}
+        WHERE "status" = 'deleting'
+        ORDER BY "updated_at" ASC, "id" ASC LIMIT ${Math.min(Math.max(limit, 1), 100)}
+      `)
+      return result.rows.map(mapAsset)
     },
   }
 }

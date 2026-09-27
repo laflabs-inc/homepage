@@ -82,6 +82,8 @@ require the following server-side environment:
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | GitHub OAuth application | Required |
 | `ADMIN_GITHUB_ORG` | Required active GitHub organization | `laflabs-inc` |
 | `CRON_SECRET` | Retention bearer secret; 16+ bytes | Required |
+| `BLOB_PUBLIC_READ_WRITE_TOKEN` | Immutable, publicly delivered media store | Required for media operations |
+| `BLOB_PRIVATE_READ_WRITE_TOKEN` | Private browser-upload staging store | Required for media operations |
 | `NEXT_PUBLIC_SITE_URL` | Canonical origin for metadata and JSON-LD | `https://laflabs.co` |
 
 The public contact address is `contact@laflabs.co`. The route renders on demand
@@ -93,6 +95,9 @@ production, and complete legal review of consent/privacy copy by following
 
 AI summary configuration, credential, retention, and production procedures are
 in the [AI summary operations runbook](docs/ai-operations.md).
+
+Media store provisioning, staged-upload recovery, token rotation, and rollback
+procedures are in the [media operations runbook](docs/media-operations.md).
 
 All Vercel Cron jobs are Hobby-compatible daily schedules. Scheduled documents
 are published by the `04:07 UTC` daily run; use the admin's immediate publish

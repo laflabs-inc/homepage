@@ -53,6 +53,14 @@ export interface AssetService {
   archive(id: string, actor: AdminActor): Promise<MediaAsset>
   restore(id: string, actor: AdminActor): Promise<MediaAsset>
   delete(id: string, actor: AdminActor): Promise<MediaAsset>
+  cleanup(now: Date): Promise<AssetCleanupResult>
+}
+
+export type AssetCleanupResult = {
+  processingTimedOut: number
+  stagingDeleted: number
+  deletionsCompleted: number
+  failures: number
 }
 
 const acceptedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"] as const
@@ -266,6 +274,59 @@ export function createAssetService(dependencies: AssetServiceDependencies): Asse
       } catch (error) {
         throw normalizeError(error)
       }
+    },
+
+    async cleanup(cleanupNow) {
+      const result: AssetCleanupResult = {
+        processingTimedOut: 0,
+        stagingDeleted: 0,
+        deletionsCompleted: 0,
+        failures: 0,
+      }
+      const processingBefore = new Date(cleanupNow.getTime() - 60 * 60 * 1000)
+      const stagingBefore = new Date(cleanupNow.getTime() - 24 * 60 * 60 * 1000)
+      const cleanupActor: AdminActor = { githubId: "system:cron", name: "Asset cleanup" }
+
+      const processing = await repository.listStaleProcessing(processingBefore, 50)
+      for (const candidate of processing) {
+        try {
+          if (await repository.markProcessingTimedOut(candidate.id, processingBefore)) {
+            result.processingTimedOut += 1
+          }
+        } catch {
+          result.failures += 1
+        }
+      }
+
+      const staging = await repository.listExpiredStaging(stagingBefore, 50)
+      for (const candidate of staging) {
+        try {
+          if (candidate.status === "pending") {
+            await repository.expirePending(candidate.id, stagingBefore)
+          }
+          if (!candidate.stagingPathname) continue
+          await blobStore.deletePrivate(candidate.stagingPathname)
+          await repository.clearStaging(candidate.id, cleanupActor)
+          result.stagingDeleted += 1
+        } catch {
+          result.failures += 1
+        }
+      }
+
+      const deleting = await repository.listDeleting(50)
+      for (const candidate of deleting) {
+        try {
+          if (candidate.stagingPathname) await blobStore.deletePrivate(candidate.stagingPathname)
+          if (candidate.publicPathname) await blobStore.deletePublic(candidate.publicPathname)
+          await repository.markDeleted(candidate.id, cleanupActor)
+          result.deletionsCompleted += 1
+        } catch {
+          result.failures += 1
+        }
+      }
+
+      telemetry.record("media.cleanup_completed", result)
+      return result
     },
   }
 }
