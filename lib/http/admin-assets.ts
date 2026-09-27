@@ -18,7 +18,15 @@ const tokenPayloadSchema = z.object({
 
 type AdminAssetService = Pick<
   typeof assetService,
-  "createIntent" | "get" | "recordUploadCompleted" | "finalize"
+  | "createIntent"
+  | "get"
+  | "recordUploadCompleted"
+  | "finalize"
+  | "list"
+  | "updateMetadata"
+  | "archive"
+  | "restore"
+  | "delete"
 >
 
 type AdminBlobStore = Pick<BlobStore, "handlePrivateClientUpload">
@@ -85,6 +93,12 @@ export function assetErrorResponse(error: unknown): Response {
     return jsonNoStore({ error: error.code }, { status })
   }
   return jsonNoStore({ error: "unavailable" }, { status: 503 })
+}
+
+export function invalidAssetIdResponse(assetId: string): Response | null {
+  return assetIdSchema.safeParse(assetId).success
+    ? null
+    : jsonNoStore({ error: "invalid_request" }, { status: 400 })
 }
 
 export function toAdminAsset(asset: MediaAsset) {
@@ -201,9 +215,8 @@ export async function handleFinalizeAsset(
 ): Promise<Response> {
   const authorization = await authorizeAssetMutation(request, dependencies)
   if (!authorization.ok) return authorization.response
-  if (!assetIdSchema.safeParse(assetId).success) {
-    return jsonNoStore({ error: "invalid_request" }, { status: 400 })
-  }
+  const invalidId = invalidAssetIdResponse(assetId)
+  if (invalidId) return invalidId
   try {
     const asset = await dependencies.service.finalize(assetId, authorization.actor)
     return jsonNoStore({ asset: toAdminAsset(asset) })

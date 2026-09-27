@@ -80,6 +80,11 @@ function dependencies(overrides: Partial<AdminAssetDependencies> = {}): AdminAss
         publicPathname: `media/${id}/hero.png`,
         publicUrl: "https://public.example/hero.png",
       })),
+      list: vi.fn(async () => ({ items: [], nextCursor: null })),
+      updateMetadata: vi.fn(async () => asset()),
+      archive: vi.fn(async () => asset({ status: "archived" })),
+      restore: vi.fn(async () => asset({ status: "ready" })),
+      delete: vi.fn(async () => asset({ status: "deleted" })),
     },
     blobStore: {
       handlePrivateClientUpload: vi.fn(),
