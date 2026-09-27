@@ -1,5 +1,6 @@
 import "server-only"
 
+import { createHash } from "node:crypto"
 import {
   BlobNotFoundError,
   BlobPathnameMismatchError,
@@ -43,6 +44,7 @@ export type StagedBlob = {
 export type PublicBlob = StagedBlob & {
   size: number
   etag?: string
+  checksumSha256?: string
 }
 
 export type PrivateUploadToken = {
@@ -131,7 +133,11 @@ async function readStream(stream: ReadableStream<Uint8Array>, expectedSize: numb
 }
 
 export class BlobStore {
-  constructor(private readonly credentials: MediaCredentials = getMediaEnv()) {}
+  constructor(private readonly configuredCredentials?: MediaCredentials) {}
+
+  private get credentials(): MediaCredentials {
+    return this.configuredCredentials ?? getMediaEnv()
+  }
 
   async handlePrivateClientUpload(
     request: Request,
@@ -207,6 +213,7 @@ export class BlobStore {
         url: blob.url,
         contentType: blob.contentType,
         size: bytes.byteLength,
+        checksumSha256: createHash("sha256").update(bytes).digest("hex"),
       }
     } catch (error) {
       throw normalizeProviderError(error)
@@ -217,12 +224,22 @@ export class BlobStore {
     try {
       const blob = await head(pathname, { token: this.credentials.BLOB_PUBLIC_READ_WRITE_TOKEN })
       if (blob.pathname !== pathname) throw new BlobStoreError("conflict")
+      const content = await get(pathname, {
+        access: "public",
+        token: this.credentials.BLOB_PUBLIC_READ_WRITE_TOKEN,
+        useCache: false,
+      })
+      if (!content || content.statusCode === 304 || !content.stream || content.blob.pathname !== pathname) {
+        throw new BlobStoreError("conflict")
+      }
+      const bytes = await readStream(content.stream, content.blob.size)
       return {
         pathname: blob.pathname,
         url: blob.url,
         contentType: blob.contentType,
         size: blob.size,
         etag: blob.etag,
+        checksumSha256: createHash("sha256").update(bytes).digest("hex"),
       }
     } catch (error) {
       if (error instanceof BlobNotFoundError) return null

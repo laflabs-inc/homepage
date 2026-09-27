@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const provider = vi.hoisted(() => ({
@@ -56,6 +57,7 @@ describe("BlobStore", () => {
       url: "https://public.example/hero.png",
       contentType: "image/png",
       size: 3,
+      checksumSha256: createHash("sha256").update(bytes).digest("hex"),
     })
     expect(provider.put).toHaveBeenCalledWith(pathname, bytes, {
       access: "public",
