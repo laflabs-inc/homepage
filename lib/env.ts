@@ -50,6 +50,18 @@ const aiSecuritySchema = z.object({
     })
   }
 })
+const mediaSchema = z.object({
+  BLOB_PUBLIC_READ_WRITE_TOKEN: z.string().min(1),
+  BLOB_PRIVATE_READ_WRITE_TOKEN: z.string().min(1),
+}).superRefine((environment, context) => {
+  if (environment.BLOB_PUBLIC_READ_WRITE_TOKEN === environment.BLOB_PRIVATE_READ_WRITE_TOKEN) {
+    context.addIssue({
+      code: "custom",
+      path: ["BLOB_PRIVATE_READ_WRITE_TOKEN"],
+      message: "BLOB_PRIVATE_READ_WRITE_TOKEN must differ from BLOB_PUBLIC_READ_WRITE_TOKEN",
+    })
+  }
+})
 const schema = databaseSchema
   .merge(z.object(analyticsFields))
   .merge(authSchema)
@@ -75,3 +87,7 @@ export const getAnalyticsEnv = () => analyticsSchema.parse(process.env)
 export const getAuthEnv = () => authSchema.parse(process.env)
 export const getCronEnv = () => cronSchema.parse(process.env)
 export const getAiSecurityEnv = () => aiSecuritySchema.parse(process.env)
+export const getMediaEnv = () => mediaSchema.parse(process.env)
+export const isMediaConfigured = (
+  environment: Record<string, string | undefined> = process.env,
+) => mediaSchema.safeParse(environment).success
