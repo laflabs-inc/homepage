@@ -2,9 +2,9 @@ import { z } from "zod"
 
 import { authorizeAdminApi, type AdminActor, type AdminApiAuthorization } from "@/lib/auth/admin-api"
 import { AssetError } from "@/lib/assets/errors"
+import { toAdminAsset } from "@/lib/assets/admin-summary"
 import { BlobStore, BlobStoreError, type PrivateUploadCallbacks } from "@/lib/assets/blob-store"
 import { assetService, AssetServiceError } from "@/lib/assets/service"
-import type { MediaAsset } from "@/lib/assets/types"
 import { jsonNoStore, readBoundedJson, withNoStore } from "@/lib/http/json-body"
 import { isSameOriginRequest } from "@/lib/http/same-origin"
 
@@ -101,34 +101,7 @@ export function invalidAssetIdResponse(assetId: string): Response | null {
     : jsonNoStore({ error: "invalid_request" }, { status: 400 })
 }
 
-export function toAdminAsset(asset: MediaAsset) {
-  const deliverable = (asset.status === "ready" || asset.status === "archived") && asset.safeFilename
-  return {
-    id: asset.id,
-    visibility: asset.visibility,
-    status: asset.status,
-    originalFilename: asset.originalFilename,
-    safeFilename: asset.safeFilename,
-    declaredMediaType: asset.declaredMediaType,
-    mediaType: asset.mediaType,
-    byteSize: asset.byteSize,
-    width: asset.width,
-    height: asset.height,
-    checksumSha256: asset.checksumSha256,
-    altKo: asset.altKo,
-    altEn: asset.altEn,
-    tags: asset.tags,
-    familyId: asset.familyId,
-    previousAssetId: asset.previousAssetId,
-    version: asset.version,
-    createdAt: asset.createdAt.toISOString(),
-    updatedAt: asset.updatedAt.toISOString(),
-    readyAt: asset.readyAt?.toISOString() ?? null,
-    archivedAt: asset.archivedAt?.toISOString() ?? null,
-    deletedAt: asset.deletedAt?.toISOString() ?? null,
-    src: deliverable ? `/media/${asset.id}/${asset.safeFilename}` : null,
-  }
-}
+export { toAdminAsset } from "@/lib/assets/admin-summary"
 
 export async function handleCreateAssetIntent(
   request: Request,

@@ -6,7 +6,7 @@ import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy } from "@/lib/admin/i18n"
 
-export function AdminNav() {
+export function AdminNav({ mediaAvailable = true }: { mediaAvailable?: boolean }) {
   const t = adminCopy[useLocale()].nav
 
   return (
@@ -14,6 +14,7 @@ export function AdminNav() {
       <Link href="/admin/analytics">{t.analytics}</Link>
       <Link href="/admin/documents">{t.documents}</Link>
       <Link href="/admin/documents/categories">{t.categories}</Link>
+      {mediaAvailable ? <Link href="/admin/assets">{t.assets}</Link> : null}
       <Link href="/admin/agent">{t.agent}</Link>
     </nav>
   )
