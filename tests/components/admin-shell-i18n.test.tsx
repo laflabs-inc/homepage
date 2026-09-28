@@ -31,7 +31,7 @@ describe("Admin shell localization", () => {
 
     render(
       <LocaleProvider initialLocale="ko">
-        <AdminNav />
+        <AdminNav mediaAvailable />
         <AnalyticsError error={new Error("unavailable")} reset={reset} />
       </LocaleProvider>,
     )
@@ -42,6 +42,7 @@ describe("Admin shell localization", () => {
       "/admin/documents/categories",
     )
     expect(screen.getByRole("link", { name: "분석" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "미디어" })).toHaveAttribute("href", "/admin/assets")
     expect(screen.queryByText(/Analytics \/ 분석/)).not.toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "다시 시도" }))
     expect(reset).toHaveBeenCalledOnce()
@@ -66,7 +67,7 @@ describe("Admin shell localization", () => {
   it("keeps English rendering available from the shared locale provider", () => {
     render(
       <LocaleProvider initialLocale="en">
-        <AdminNav />
+        <AdminNav mediaAvailable />
         <AnalyticsError error={new Error("unavailable")} reset={vi.fn()} />
       </LocaleProvider>,
     )
@@ -77,5 +78,15 @@ describe("Admin shell localization", () => {
       "/admin/documents/categories",
     )
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument()
+  })
+
+  it("does not render the Assets nav entry when media health is unavailable", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <AdminNav mediaAvailable={false} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.queryByRole("link", { name: "Assets" })).not.toBeInTheDocument()
   })
 })

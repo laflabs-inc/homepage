@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+import type { AuditAction } from "@/lib/audit/types"
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { CategoryServiceError } from "@/lib/document-categories/service"
 import { createDocumentService } from "@/lib/documents/service"
@@ -8,7 +9,6 @@ import type {
   AdminDocumentSummary,
   AdminDocumentSummaryFilter,
   AdminDocumentSummaryPage,
-  AuditAction,
   DocumentDraftInput,
   DocumentRepository,
   DocumentRevision,

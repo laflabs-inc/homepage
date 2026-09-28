@@ -2,7 +2,7 @@ import "server-only"
 
 import { sql, type SQL } from "drizzle-orm"
 
-import type { AuditAction } from "@/lib/documents/types"
+import type { AuditAction } from "@/lib/audit/types"
 import { adminAuditLog } from "@/lib/db/schema"
 import { getDb } from "@/lib/db"
 

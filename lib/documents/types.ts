@@ -109,14 +109,6 @@ export type PublishedDocumentFilter = {
   before?: { pinned: boolean; publishedAt: Date; id: string }
 }
 
-export type AuditAction = {
-  action: string
-  targetType: string
-  targetId: string
-  actor: AdminActor
-  metadata?: Record<string, unknown>
-}
-
 export type SummaryGenerationMetadata = {
   model: string
   generatedAt: Date

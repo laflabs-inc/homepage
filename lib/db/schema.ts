@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm"
-import { bigint, boolean, check, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core"
+import { bigint, boolean, check, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core"
 import { foreignKey } from "drizzle-orm/pg-core"
 
 export const analyticsEvents = pgTable("analytics_events", {
@@ -41,6 +41,20 @@ export const documentLocaleEnum = pgEnum("document_locale", ["ko", "en"])
 export const documentStatusEnum = pgEnum("document_status", ["draft", "scheduled", "published", "archived"])
 export const summaryPolicyEnum = pgEnum("summary_policy", ["review", "automatic"])
 export const aiUsageReservationKindEnum = pgEnum("ai_usage_reservation_kind", ["question", "summary"])
+export const mediaAssetVisibilityEnum = pgEnum("media_asset_visibility", ["public", "private"])
+export const mediaAssetStatusEnum = pgEnum("media_asset_status", [
+  "pending",
+  "processing",
+  "ready",
+  "failed",
+  "archived",
+  "deleting",
+  "deleted",
+])
+export const mediaAssetReferenceOwnerTypeEnum = pgEnum(
+  "media_asset_reference_owner_type",
+  ["document_revision"],
+)
 
 export const agentSettings = pgTable("agent_settings", {
   id: text("id").default("default").primaryKey(),
@@ -155,6 +169,75 @@ export const adminAuditLog = pgTable("admin_audit_log", {
   metadata: jsonb("metadata").default({}).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
+
+export const mediaAssets = pgTable("media_assets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visibility: mediaAssetVisibilityEnum("visibility").default("public").notNull(),
+  status: mediaAssetStatusEnum("status").default("pending").notNull(),
+  originalFilename: text("original_filename").notNull(),
+  safeFilename: text("safe_filename"),
+  declaredMediaType: text("declared_media_type").notNull(),
+  mediaType: text("media_type"),
+  byteSize: integer("byte_size"),
+  width: integer("width"),
+  height: integer("height"),
+  checksumSha256: text("checksum_sha256"),
+  stagingPathname: text("staging_pathname"),
+  stagingUrl: text("staging_url"),
+  publicPathname: text("public_pathname"),
+  publicUrl: text("public_url"),
+  altKo: text("alt_ko"),
+  altEn: text("alt_en"),
+  tags: text("tags").array().default(sql`ARRAY[]::text[]`).notNull(),
+  failureCode: text("failure_code"),
+  familyId: uuid("family_id").notNull(),
+  previousAssetId: uuid("previous_asset_id"),
+  version: integer("version").default(1).notNull(),
+  createdBy: text("created_by").notNull(),
+  updatedBy: text("updated_by").notNull(),
+  createdByName: text("created_by_name").notNull(),
+  updatedByName: text("updated_by_name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  readyAt: timestamp("ready_at", { withTimezone: true }),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  archivedBy: text("archived_by"),
+  deletedBy: text("deleted_by"),
+}, (table) => [
+  index("media_assets_status_created_idx").on(table.status, table.createdAt, table.id),
+  index("media_assets_checksum_idx").on(table.checksumSha256),
+  index("media_assets_original_filename_lower_idx").on(sql`lower(${table.originalFilename})`),
+  index("media_assets_safe_filename_lower_idx").on(sql`lower(${table.safeFilename})`),
+  uniqueIndex("media_assets_family_version_unique").on(table.familyId, table.version),
+  uniqueIndex("media_public_pathname_unique").on(table.publicPathname),
+  uniqueIndex("media_staging_pathname_unique").on(table.stagingPathname),
+  foreignKey({
+    columns: [table.previousAssetId],
+    foreignColumns: [table.id],
+    name: "media_assets_previous_asset_fk",
+  }).onDelete("restrict"),
+  check("media_assets_version_positive", sql`${table.version} > 0`),
+  check("media_assets_byte_size_nonnegative", sql`${table.byteSize} IS NULL OR ${table.byteSize} >= 0`),
+  check("media_assets_width_nonnegative", sql`${table.width} IS NULL OR ${table.width} >= 0`),
+  check("media_assets_height_nonnegative", sql`${table.height} IS NULL OR ${table.height} >= 0`),
+])
+
+export const mediaAssetReferences = pgTable("media_asset_references", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  assetId: uuid("asset_id").notNull().references(() => mediaAssets.id, { onDelete: "restrict" }),
+  ownerType: mediaAssetReferenceOwnerTypeEnum("owner_type").notNull(),
+  ownerId: text("owner_id").notNull(),
+  field: text("field").notNull(),
+  revisionId: uuid("revision_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("media_asset_references_asset_idx").on(table.assetId),
+  unique("media_asset_references_owner_unique")
+    .on(table.assetId, table.ownerType, table.ownerId, table.field, table.revisionId)
+    .nullsNotDistinct(),
+])
 
 export const aiUsageDaily = pgTable("ai_usage_daily", {
   visitorHash: text("visitor_hash").notNull(),
