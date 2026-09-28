@@ -30,8 +30,9 @@ Use a disposable image without sensitive metadata.
    `staging/{assetId}/` and contains no original filename.
 3. Upload and finalize it. Confirm the Admin response exposes only
    `/media/{assetId}/{safeFilename}`, not either provider URL.
-4. Open the stable media path. It must return `308` only for a ready public
-   asset, with a one-year immutable cache policy.
+4. Open the stable media path. It must return `308` only for a ready or archived
+   public asset, with a one-year immutable cache policy. Archiving hides an
+   asset from new selection without breaking existing delivery.
 5. Archive and restore the asset, then archive and delete it. Referenced assets
    must return `409 asset_referenced` instead of deleting.
 6. Check that the private object disappears after successful promotion and the

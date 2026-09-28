@@ -92,6 +92,21 @@ describe("AssetLibrary", () => {
     expect(screen.getByText("Reference browsing is not available yet.")).toBeInTheDocument()
   })
 
+  it("explains that archiving preserves existing stable delivery paths", async () => {
+    const user = userEvent.setup()
+    render(
+      <LocaleProvider initialLocale="en">
+        <AssetLibrary assets={[asset]} nextCursor={null} initialFilters={{}} />
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "Archive" }))
+
+    expect(screen.getByRole("alertdialog")).toHaveTextContent(
+      "It will be hidden from new selection while existing stable paths keep working.",
+    )
+  })
+
   it("uses an explicit single-column mobile contract without horizontal overflow", () => {
     render(
       <LocaleProvider initialLocale="ko">
