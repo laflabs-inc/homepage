@@ -16,29 +16,33 @@ afterEach(() => vi.unstubAllEnvs())
 
 describe("media environment", () => {
   it("keeps media configuration lazy", () => {
-    vi.stubEnv("BLOB_PUBLIC_READ_WRITE_TOKEN", "")
-    vi.stubEnv("BLOB_PRIVATE_READ_WRITE_TOKEN", "")
+    vi.stubEnv("PUBLIC_BLOB_STORE_ID", "")
+    vi.stubEnv("PRIVATE_BLOB_STORE_ID", "")
+    vi.stubEnv("PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY", "")
 
     expect(() => parseServerEnv(baseEnvironment)).not.toThrow()
     expect(() => getMediaEnv()).toThrow()
     expect(isMediaConfigured()).toBe(false)
   })
 
-  it("returns exactly the two distinct media credentials", () => {
-    vi.stubEnv("BLOB_PUBLIC_READ_WRITE_TOKEN", "public-token")
-    vi.stubEnv("BLOB_PRIVATE_READ_WRITE_TOKEN", "private-token")
+  it("returns exactly the linked public and private store metadata", () => {
+    vi.stubEnv("PUBLIC_BLOB_STORE_ID", "public-store")
+    vi.stubEnv("PRIVATE_BLOB_STORE_ID", "private-store")
+    vi.stubEnv("PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY", "private-webhook-key")
 
     expect(getMediaEnv()).toEqual({
-      BLOB_PUBLIC_READ_WRITE_TOKEN: "public-token",
-      BLOB_PRIVATE_READ_WRITE_TOKEN: "private-token",
+      PUBLIC_BLOB_STORE_ID: "public-store",
+      PRIVATE_BLOB_STORE_ID: "private-store",
+      PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY: "private-webhook-key",
     })
     expect(isMediaConfigured()).toBe(true)
   })
 
-  it("rejects reused credentials without exposing their value", () => {
-    const reusedToken = "reused-secret-token"
-    vi.stubEnv("BLOB_PUBLIC_READ_WRITE_TOKEN", reusedToken)
-    vi.stubEnv("BLOB_PRIVATE_READ_WRITE_TOKEN", reusedToken)
+  it("rejects one store reused for both trust boundaries without exposing its ID", () => {
+    const reusedStoreId = "reused-store-id"
+    vi.stubEnv("PUBLIC_BLOB_STORE_ID", reusedStoreId)
+    vi.stubEnv("PRIVATE_BLOB_STORE_ID", reusedStoreId)
+    vi.stubEnv("PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY", "private-webhook-key")
 
     let error: unknown
     try {
@@ -48,7 +52,17 @@ describe("media environment", () => {
     }
 
     expect(error).toBeInstanceOf(Error)
-    expect(String(error)).not.toContain(reusedToken)
+    expect(String(error)).not.toContain(reusedStoreId)
+    expect(isMediaConfigured()).toBe(false)
+  })
+
+  it("does not treat legacy long-lived tokens as a complete setup", () => {
+    vi.stubEnv("BLOB_PUBLIC_READ_WRITE_TOKEN", "legacy-public-token")
+    vi.stubEnv("BLOB_PRIVATE_READ_WRITE_TOKEN", "legacy-private-token")
+    vi.stubEnv("PUBLIC_BLOB_STORE_ID", "")
+    vi.stubEnv("PRIVATE_BLOB_STORE_ID", "")
+    vi.stubEnv("PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY", "")
+
     expect(isMediaConfigured()).toBe(false)
   })
 })

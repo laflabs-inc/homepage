@@ -8,16 +8,22 @@ boundary: unverified browser uploads must never be readable from a public URL.
 
 1. Create two Vercel Blob stores per deployment environment:
    `laflabs-media-public` and `laflabs-media-private` (or equally explicit
-   names). Do not connect one store to both variables.
-2. Scope Preview tokens to Preview and Production tokens to Production. Never
-   copy Production tokens into local or Preview environments.
-3. Set `BLOB_PUBLIC_READ_WRITE_TOKEN` from the public store and
-   `BLOB_PRIVATE_READ_WRITE_TOKEN` from the private store. The application
-   rejects missing or identical values when a media operation begins; unrelated
-   pages remain available.
-4. Set `CRON_SECRET` independently. The daily cleanup request uses
+   names). The first store must be Public and the second must be Private.
+2. Connect the public store to the Vercel project with the custom prefix
+   `PUBLIC`. Connect the private store with the custom prefix `PRIVATE`. Scope
+   each connection to the intended Production, Preview, or Development
+   environments; never connect a Production store to Preview.
+3. Verify that Vercel created `PUBLIC_BLOB_STORE_ID`,
+   `PRIVATE_BLOB_STORE_ID`, and `PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY`. The
+   application rejects missing values or one store reused across both trust
+   boundaries. Do not create or copy a long-lived Blob read-write token: the
+   SDK obtains Vercel's short-lived OIDC identity at request time.
+4. Redeploy after connecting or changing either store. For local verification,
+   run `vercel link` once, then `vercel env pull .env.local` before starting the
+   app. Re-pull when the local OIDC credential expires.
+5. Set `CRON_SECRET` independently. The daily cleanup request uses
    `Authorization: Bearer <CRON_SECRET>`.
-5. Apply database migration `0011_media_platform.sql` before deploying code
+6. Apply database migration `0011_media_platform.sql` before deploying code
    that exposes the Admin media routes. Then deploy and verify the migration
    journal matches the release.
 
@@ -61,10 +67,13 @@ health, then invoke the job again. Never edit a `deleting` row back to `ready`.
 
 ## Callback troubleshooting
 
-- `401` or `403` while requesting an upload token: confirm the Admin session,
+- `401` or `403` while requesting a presigned upload URL: confirm the Admin session,
   exact site Origin, and organization membership.
 - `invalid_callback`: confirm the browser uses the intent's exact pathname,
-  `/api/admin/assets/upload`, and the private store token.
+  `/api/admin/assets/upload`, and the private store connection.
+- `unavailable` before an upload begins: confirm both store IDs are present,
+  the Vercel project has OIDC enabled, and the deployment was created after the
+  stores were connected.
 - Upload completed but finalization cannot find it: inspect the asset's expected
   staging pathname and the private store. Do not paste a provider URL into the
   database or retry with a client-chosen pathname.
@@ -80,24 +89,27 @@ logs and backups, and removed manually only after ownership is established.
 Private objects under `staging/` may be matched to the asset ID in the path and
 the corresponding row before manual deletion.
 
-## Token rotation
+## OIDC credential lifecycle
 
-Rotate one store at a time.
+Vercel issues short-lived OIDC credentials to deployments and rotates them
+automatically. There is no application token to generate, paste, or rotate.
+When a store connection must change:
 
-1. Create the replacement token in Vercel Blob.
-2. update the matching Preview or Production environment variable;
-3. deploy and complete the release verification for that store;
-4. revoke the previous token only after the new deployment is healthy;
-5. repeat for the other store.
+1. Connect the replacement store with the same `PUBLIC` or `PRIVATE` prefix in
+   the intended environment only.
+2. Redeploy so the new store ID and webhook public key reach the Functions.
+3. Complete release verification before disconnecting the previous store.
+4. Change one store at a time so the failing boundary is unambiguous.
 
-Never swap the public and private variables, and never rotate both stores in a
-single unverified deployment.
+Never swap the public and private connections or introduce a shared read-write
+token as a shortcut.
 
 ## Rollback
 
 Roll back application code without rolling back or deleting `media_assets`,
 `media_asset_references`, or either Blob store. Database rows and objects are
-the recovery record. Disable the media Admin entry if necessary, keep the
-cleanup job active when compatible, and redeploy the last known-good version.
+the recovery record. A disconnected setup leaves the media Admin entry visible
+with setup guidance; keep the cleanup job active when compatible, and redeploy
+the last known-good version.
 If the previous release predates media support, temporarily disable only the
 asset cleanup schedule while preserving all rows and objects for a forward fix.

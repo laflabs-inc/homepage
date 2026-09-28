@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const upload = vi.hoisted(() => vi.fn())
+const uploadPresigned = vi.hoisted(() => vi.fn())
 
-vi.mock("@vercel/blob/client", () => ({ upload }))
+vi.mock("@vercel/blob/client", () => ({ uploadPresigned }))
 
 import { uploadStagedAsset } from "@/lib/assets/client-upload"
 
@@ -14,7 +14,7 @@ beforeEach(() => vi.clearAllMocks())
 
 describe("uploadStagedAsset", () => {
   it("uploads to the exact private pathname and exposes only normalized progress", async () => {
-    upload.mockImplementation(async (_pathname, _file, options) => {
+    uploadPresigned.mockImplementation(async (_pathname, _file, options) => {
       options.onUploadProgress({ loaded: 2, total: 4, percentage: 50 })
       return { pathname, url: "https://private.example/provider-result" }
     })
@@ -22,7 +22,7 @@ describe("uploadStagedAsset", () => {
     const onProgress = vi.fn()
 
     await expect(uploadStagedAsset({ file, pathname, assetId, onProgress })).resolves.toBeUndefined()
-    expect(upload).toHaveBeenCalledWith(pathname, file, {
+    expect(uploadPresigned).toHaveBeenCalledWith(pathname, file, {
       access: "private",
       clientPayload: JSON.stringify({ assetId }),
       contentType: "image/png",
@@ -42,6 +42,6 @@ describe("uploadStagedAsset", () => {
     await expect(uploadStagedAsset({ file, pathname: invalidPathname, assetId: invalidId })).rejects.toThrow(
       /invalid_upload_intent/,
     )
-    expect(upload).not.toHaveBeenCalled()
+    expect(uploadPresigned).not.toHaveBeenCalled()
   })
 })

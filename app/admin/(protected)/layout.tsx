@@ -1,6 +1,5 @@
 import { AdminNav } from "@/components/admin/admin-nav"
 import { requireAdmin } from "@/lib/auth/require-admin"
-import { isMediaConfigured } from "@/lib/env"
 
 export default async function ProtectedAdminLayout({
   children,
@@ -11,7 +10,7 @@ export default async function ProtectedAdminLayout({
 
   return (
     <>
-      <AdminNav mediaAvailable={isMediaConfigured()} />
+      <AdminNav />
       {children}
     </>
   )

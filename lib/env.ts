@@ -51,14 +51,15 @@ const aiSecuritySchema = z.object({
   }
 })
 const mediaSchema = z.object({
-  BLOB_PUBLIC_READ_WRITE_TOKEN: z.string().min(1),
-  BLOB_PRIVATE_READ_WRITE_TOKEN: z.string().min(1),
+  PUBLIC_BLOB_STORE_ID: z.string().min(1),
+  PRIVATE_BLOB_STORE_ID: z.string().min(1),
+  PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY: z.string().min(1),
 }).superRefine((environment, context) => {
-  if (environment.BLOB_PUBLIC_READ_WRITE_TOKEN === environment.BLOB_PRIVATE_READ_WRITE_TOKEN) {
+  if (environment.PUBLIC_BLOB_STORE_ID === environment.PRIVATE_BLOB_STORE_ID) {
     context.addIssue({
       code: "custom",
-      path: ["BLOB_PRIVATE_READ_WRITE_TOKEN"],
-      message: "BLOB_PRIVATE_READ_WRITE_TOKEN must differ from BLOB_PUBLIC_READ_WRITE_TOKEN",
+      path: ["PRIVATE_BLOB_STORE_ID"],
+      message: "PRIVATE_BLOB_STORE_ID must differ from PUBLIC_BLOB_STORE_ID",
     })
   }
 })

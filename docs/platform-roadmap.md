@@ -82,7 +82,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 ### 4. Media platform foundation
 
 - Use Vercel Blob for the first storage provider.
-- Use direct client upload tokens instead of proxying file bytes through the application server.
+- Use short-lived presigned client uploads instead of proxying file bytes through the application server.
 - Store searchable metadata, ownership, lifecycle, and audit data in Neon.
 - Separate public website media from private future attachments.
 - Provide immutable public delivery paths and expiring private access.

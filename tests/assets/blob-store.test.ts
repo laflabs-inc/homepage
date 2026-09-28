@@ -4,19 +4,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const provider = vi.hoisted(() => ({
   del: vi.fn(),
   get: vi.fn(),
-  handleUpload: vi.fn(),
+  handleUploadPresigned: vi.fn(),
   head: vi.fn(),
+  issueSignedToken: vi.fn(),
   put: vi.fn(),
 }))
 
 vi.mock("@vercel/blob", async (importOriginal) => {
   const original = await importOriginal<typeof import("@vercel/blob")>()
-  return { ...original, del: provider.del, get: provider.get, head: provider.head, put: provider.put }
+  return {
+    ...original,
+    del: provider.del,
+    get: provider.get,
+    head: provider.head,
+    issueSignedToken: provider.issueSignedToken,
+    put: provider.put,
+  }
 })
 
 vi.mock("@vercel/blob/client", async (importOriginal) => {
   const original = await importOriginal<typeof import("@vercel/blob/client")>()
-  return { ...original, handleUpload: provider.handleUpload }
+  return { ...original, handleUploadPresigned: provider.handleUploadPresigned }
 })
 
 import {
@@ -25,23 +33,25 @@ import {
   type PrivateUploadCallbacks,
 } from "@/lib/assets/blob-store"
 
-const publicToken = "public-token"
-const privateToken = "private-token"
+const publicStoreId = "public-store"
+const privateStoreId = "private-store"
+const privateWebhookPublicKey = "private-webhook-key"
 const assetId = "018f47a3-321f-7a90-b123-123456789abc"
 const uploadNonce = "018f47a3-321f-7a90-b123-abcdef012345"
 const stagingPathname = `staging/${assetId}/${uploadNonce}`
 
 function createStore() {
   return new BlobStore({
-    BLOB_PUBLIC_READ_WRITE_TOKEN: publicToken,
-    BLOB_PRIVATE_READ_WRITE_TOKEN: privateToken,
+    PUBLIC_BLOB_STORE_ID: publicStoreId,
+    PRIVATE_BLOB_STORE_ID: privateStoreId,
+    PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY: privateWebhookPublicKey,
   })
 }
 
 beforeEach(() => vi.clearAllMocks())
 
 describe("BlobStore", () => {
-  it("writes public bytes without overwrite using only the public token", async () => {
+  it("writes public bytes without overwrite using only the public store ID", async () => {
     const bytes = new Uint8Array([1, 2, 3])
     const pathname = `media/${assetId}/hero.png`
     provider.put.mockResolvedValue({
@@ -65,12 +75,13 @@ describe("BlobStore", () => {
       allowOverwrite: false,
       cacheControlMaxAge: 31_536_000,
       contentType: "image/png",
-      token: publicToken,
+      storeId: publicStoreId,
     })
-    expect(JSON.stringify(provider.put.mock.calls)).not.toContain(privateToken)
+    expect(JSON.stringify(provider.put.mock.calls)).not.toContain(privateStoreId)
+    expect(JSON.stringify(provider.put.mock.calls)).not.toContain("token")
   })
 
-  it("reads staged bytes using only the private token", async () => {
+  it("reads staged bytes using only the private store ID", async () => {
     provider.get.mockResolvedValue({
       stream: new ReadableStream({
         start(controller) {
@@ -90,10 +101,11 @@ describe("BlobStore", () => {
     await expect(createStore().readPrivate(stagingPathname)).resolves.toEqual(new Uint8Array([4, 5, 6]))
     expect(provider.get).toHaveBeenCalledWith(stagingPathname, {
       access: "private",
-      token: privateToken,
+      storeId: privateStoreId,
       useCache: false,
     })
-    expect(JSON.stringify(provider.get.mock.calls)).not.toContain(publicToken)
+    expect(JSON.stringify(provider.get.mock.calls)).not.toContain(publicStoreId)
+    expect(JSON.stringify(provider.get.mock.calls)).not.toContain("token")
   })
 
   it("normalizes a missing private blob", async () => {
@@ -115,18 +127,27 @@ describe("BlobStore", () => {
       })),
       onUploadCompleted: vi.fn(async () => undefined),
     }
-    provider.handleUpload.mockImplementation(async (options) => {
-      const tokenOptions = await options.onBeforeGenerateToken(
+    const signedToken = {
+      delegationToken: "delegation-token",
+      clientSigningToken: "client-signing-token",
+      validUntil: 1_800_000_000_000,
+    }
+    provider.issueSignedToken.mockResolvedValue(signedToken)
+    provider.handleUploadPresigned.mockImplementation(async (options) => {
+      const signedOptions = await options.getSignedToken(
         stagingPathname,
         JSON.stringify({ assetId }),
         false,
       )
-      expect(tokenOptions).toEqual({
-        addRandomSuffix: false,
-        allowOverwrite: false,
-        allowedContentTypes: ["image/png"],
-        maximumSizeInBytes: 1024,
-        tokenPayload: JSON.stringify({ assetId }),
+      expect(signedOptions).toEqual({
+        token: signedToken,
+        urlOptions: {
+          addRandomSuffix: false,
+          allowOverwrite: false,
+          allowedContentTypes: ["image/png"],
+          maximumSizeInBytes: 1024,
+          tokenPayload: JSON.stringify({ assetId }),
+        },
       })
       await options.onUploadCompleted({
         blob: {
@@ -142,17 +163,25 @@ describe("BlobStore", () => {
     const request = new Request("https://laflabs.co/api/admin/assets/upload", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "blob.generate-client-token", payload: {} }),
+      body: JSON.stringify({ type: "blob.generate-presigned-url", payload: {} }),
     })
 
     await expect(createStore().handlePrivateClientUpload(request, callbacks)).resolves.toEqual({
       type: "blob.upload-completed",
       response: "ok",
     })
-    expect(provider.handleUpload).toHaveBeenCalledWith(expect.objectContaining({
+    expect(provider.handleUploadPresigned).toHaveBeenCalledWith(expect.objectContaining({
       request,
-      token: privateToken,
+      webhookPublicKey: privateWebhookPublicKey,
     }))
+    expect(provider.issueSignedToken).toHaveBeenCalledWith({
+      allowedContentTypes: ["image/png"],
+      maximumSizeInBytes: 1024,
+      operations: ["put"],
+      pathname: stagingPathname,
+      storeId: privateStoreId,
+      validUntil: undefined,
+    })
     expect(callbacks.onUploadCompleted).toHaveBeenCalledWith({
       blob: {
         pathname: stagingPathname,
@@ -164,7 +193,7 @@ describe("BlobStore", () => {
   })
 
   it("rejects a callback pathname changed by application code", async () => {
-    provider.handleUpload.mockImplementation(async (options) => options.onBeforeGenerateToken(
+    provider.handleUploadPresigned.mockImplementation(async (options) => options.getSignedToken(
       stagingPathname,
       JSON.stringify({ assetId }),
       false,
@@ -195,7 +224,7 @@ describe("BlobStore", () => {
     await createStore().deletePrivate(stagingPathname)
     await createStore().deletePublic(`media/${assetId}/hero.png`)
 
-    expect(provider.del).toHaveBeenNthCalledWith(1, stagingPathname, { token: privateToken })
-    expect(provider.del).toHaveBeenNthCalledWith(2, `media/${assetId}/hero.png`, { token: publicToken })
+    expect(provider.del).toHaveBeenNthCalledWith(1, stagingPathname, { storeId: privateStoreId })
+    expect(provider.del).toHaveBeenNthCalledWith(2, `media/${assetId}/hero.png`, { storeId: publicStoreId })
   })
 })
