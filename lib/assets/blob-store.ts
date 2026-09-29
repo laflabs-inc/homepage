@@ -10,11 +10,12 @@ import {
   del,
   get,
   head,
+  issueSignedToken,
   put,
 } from "@vercel/blob"
 import {
-  handleUpload,
-  type HandleUploadBody,
+  handleUploadPresigned,
+  type HandleUploadPresignedBody,
 } from "@vercel/blob/client"
 
 import { MAX_ASSET_BYTES } from "@/lib/assets/policy"
@@ -67,9 +68,7 @@ export type PrivateUploadCallbacks = {
   }): Promise<void>
 }
 
-export type PrivateUploadResult =
-  | { type: "blob.generate-client-token"; clientToken: string }
-  | { type: "blob.upload-completed"; response: "ok" }
+export type PrivateUploadResult = Awaited<ReturnType<typeof handleUploadPresigned>>
 
 type MediaCredentials = ReturnType<typeof getMediaEnv>
 
@@ -147,11 +146,12 @@ export class BlobStore {
     if (!parsed.ok) throw new BlobStoreError("invalid_callback")
 
     try {
-      return await handleUpload({
-        token: this.credentials.BLOB_PRIVATE_READ_WRITE_TOKEN,
+      const credentials = this.credentials
+      return await handleUploadPresigned({
+        webhookPublicKey: credentials.PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY,
         request,
-        body: parsed.value as HandleUploadBody,
-        onBeforeGenerateToken: async (pathname, clientPayload, multipart) => {
+        body: parsed.value as HandleUploadPresignedBody,
+        getSignedToken: async (pathname, clientPayload, multipart) => {
           if (!isStagingPathname(pathname)) throw new BlobStoreError("invalid_callback")
           const policy = await callbacks.onBeforeGenerateToken({
             pathname,
@@ -159,13 +159,24 @@ export class BlobStore {
             multipart,
           })
           if (policy.pathname !== pathname) throw new BlobStoreError("invalid_callback")
-          return {
+          const token = await issueSignedToken({
+            storeId: credentials.PRIVATE_BLOB_STORE_ID,
+            pathname,
+            operations: ["put"],
             allowedContentTypes: [...policy.allowedContentTypes],
             maximumSizeInBytes: policy.maximumSizeInBytes,
             validUntil: policy.validUntil,
-            addRandomSuffix: false,
-            allowOverwrite: false,
-            tokenPayload: policy.tokenPayload,
+          })
+          return {
+            token,
+            urlOptions: {
+              allowedContentTypes: [...policy.allowedContentTypes],
+              maximumSizeInBytes: policy.maximumSizeInBytes,
+              validUntil: policy.validUntil,
+              addRandomSuffix: false,
+              allowOverwrite: false,
+              tokenPayload: policy.tokenPayload,
+            },
           }
         },
         onUploadCompleted: async ({ blob, tokenPayload }) => {
@@ -184,7 +195,7 @@ export class BlobStore {
     try {
       const result = await get(pathname, {
         access: "private",
-        token: this.credentials.BLOB_PRIVATE_READ_WRITE_TOKEN,
+        storeId: this.credentials.PRIVATE_BLOB_STORE_ID,
         useCache: false,
       })
       if (!result || result.statusCode === 304 || !result.stream) {
@@ -205,7 +216,7 @@ export class BlobStore {
         allowOverwrite: false,
         cacheControlMaxAge: IMMUTABLE_CACHE_SECONDS,
         contentType,
-        token: this.credentials.BLOB_PUBLIC_READ_WRITE_TOKEN,
+        storeId: this.credentials.PUBLIC_BLOB_STORE_ID,
       })
       if (blob.pathname !== pathname) throw new BlobStoreError("conflict")
       return {
@@ -222,11 +233,11 @@ export class BlobStore {
 
   async headPublic(pathname: string): Promise<PublicBlob | null> {
     try {
-      const blob = await head(pathname, { token: this.credentials.BLOB_PUBLIC_READ_WRITE_TOKEN })
+      const blob = await head(pathname, { storeId: this.credentials.PUBLIC_BLOB_STORE_ID })
       if (blob.pathname !== pathname) throw new BlobStoreError("conflict")
       const content = await get(pathname, {
         access: "public",
-        token: this.credentials.BLOB_PUBLIC_READ_WRITE_TOKEN,
+        storeId: this.credentials.PUBLIC_BLOB_STORE_ID,
         useCache: false,
       })
       if (!content || content.statusCode === 304 || !content.stream || content.blob.pathname !== pathname) {
@@ -248,16 +259,16 @@ export class BlobStore {
   }
 
   async deletePrivate(pathname: string): Promise<void> {
-    await this.delete(pathname, this.credentials.BLOB_PRIVATE_READ_WRITE_TOKEN)
+    await this.delete(pathname, this.credentials.PRIVATE_BLOB_STORE_ID)
   }
 
   async deletePublic(pathname: string): Promise<void> {
-    await this.delete(pathname, this.credentials.BLOB_PUBLIC_READ_WRITE_TOKEN)
+    await this.delete(pathname, this.credentials.PUBLIC_BLOB_STORE_ID)
   }
 
-  private async delete(pathname: string, token: string): Promise<void> {
+  private async delete(pathname: string, storeId: string): Promise<void> {
     try {
-      await del(pathname, { token })
+      await del(pathname, { storeId })
     } catch (error) {
       if (error instanceof BlobNotFoundError) return
       throw normalizeProviderError(error)

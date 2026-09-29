@@ -1,6 +1,6 @@
 "use client"
 
-import { upload } from "@vercel/blob/client"
+import { uploadPresigned } from "@vercel/blob/client"
 
 const UUID_PATTERN = "[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
 const UUID = new RegExp(`^${UUID_PATTERN}$`, "i")
@@ -30,7 +30,7 @@ export async function uploadStagedAsset({
     throw new Error("invalid_upload_intent")
   }
 
-  await upload(pathname, file, {
+  await uploadPresigned(pathname, file, {
     access: "private",
     clientPayload: JSON.stringify({ assetId }),
     contentType: file.type,

@@ -31,7 +31,7 @@ describe("Admin shell localization", () => {
 
     render(
       <LocaleProvider initialLocale="ko">
-        <AdminNav mediaAvailable />
+        <AdminNav />
         <AnalyticsError error={new Error("unavailable")} reset={reset} />
       </LocaleProvider>,
     )
@@ -67,7 +67,7 @@ describe("Admin shell localization", () => {
   it("keeps English rendering available from the shared locale provider", () => {
     render(
       <LocaleProvider initialLocale="en">
-        <AdminNav mediaAvailable />
+        <AdminNav />
         <AnalyticsError error={new Error("unavailable")} reset={vi.fn()} />
       </LocaleProvider>,
     )
@@ -80,13 +80,13 @@ describe("Admin shell localization", () => {
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument()
   })
 
-  it("does not render the Assets nav entry when media health is unavailable", () => {
+  it("keeps the Assets nav entry discoverable before storage is configured", () => {
     render(
       <LocaleProvider initialLocale="en">
-        <AdminNav mediaAvailable={false} />
+        <AdminNav />
       </LocaleProvider>,
     )
 
-    expect(screen.queryByRole("link", { name: "Assets" })).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Assets" })).toHaveAttribute("href", "/admin/assets")
   })
 })
