@@ -44,6 +44,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   replaceBeforeArchive = false
   transitionMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown" | "effectiveAt">> | null = null
   summaryMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown">> | null = null
+  assetSnapshots: string[][] = []
   private nextId = 1
 
   seed(values: Partial<DocumentRevision> & Pick<DocumentRevision, "seriesId" | "locale" | "status">): DocumentRevision {
@@ -76,7 +77,8 @@ class MemoryDocumentRepository implements DocumentRepository {
     return revision
   }
 
-  async createDraft(values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
+  async createDraft(values: DocumentDraftInput, admin: AdminActor, assets?: { assetIds: string[] }): Promise<DocumentRevision> {
+    this.assetSnapshots.push(assets?.assetIds ?? [])
     return this.seed({
       ...values,
       seriesId: `series-${this.nextId}`,
@@ -117,7 +119,8 @@ class MemoryDocumentRepository implements DocumentRepository {
       }))
   }
 
-  async updateDraft(revisionId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
+  async updateDraft(revisionId: string, values: DocumentDraftInput, admin: AdminActor, assets?: { assetIds: string[] }): Promise<DocumentRevision> {
+    this.assetSnapshots.push(assets?.assetIds ?? [])
     const revision = await this.required(revisionId)
     if (revision.status !== "draft") throw new Error("immutable")
     Object.assign(revision, values, { updatedBy: admin.githubId, updatedAt: now })
@@ -192,7 +195,8 @@ class MemoryDocumentRepository implements DocumentRepository {
     })
   }
 
-  async createNextDraft(seriesId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
+  async createNextDraft(seriesId: string, values: DocumentDraftInput, admin: AdminActor, assets?: { assetIds: string[] }): Promise<DocumentRevision> {
+    this.assetSnapshots.push(assets?.assetIds ?? [])
     const revisions = this.revisions.filter((revision) => revision.seriesId === seriesId && revision.locale === values.locale)
     return this.seed({
       ...values,
@@ -917,5 +921,14 @@ describe("document workflow service", () => {
 
     await expect(service.getRevision(revision.id)).resolves.toEqual(revision)
     await expect(service.getRevision("missing")).resolves.toBeNull()
+  })
+
+  it("passes deduplicated managed media references into draft persistence", async () => {
+    const assetId = "11111111-1111-4111-8111-111111111111"
+    await service.createDraft({
+      ...input,
+      bodyMarkdown: `![첫째](/media/${assetId}/hero.png)\n\n![중복](/media/${assetId}/hero.png)`,
+    }, actor)
+    expect(repository.assetSnapshots.at(-1)).toEqual([assetId])
   })
 })

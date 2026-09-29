@@ -12,6 +12,7 @@ import type {
 } from "@/lib/documents/types"
 import { documentDraftSchema, generatedSummarySchema, publishDocumentSchema } from "@/lib/documents/validation"
 import { documentStore } from "@/lib/documents/store"
+import { extractLafMediaReferences } from "@/lib/markdown/media-assets"
 
 export type DocumentServiceErrorCode =
   | "not_found"
@@ -60,6 +61,10 @@ function publicInput(revision: DocumentRevision): DocumentDraftInput {
     bodyMarkdown: revision.bodyMarkdown,
     effectiveAt: revision.effectiveAt,
   }
+}
+
+function assetSnapshot(input: Pick<DocumentDraftInput, "bodyMarkdown">) {
+  return { assetIds: extractLafMediaReferences(input.bodyMarkdown).map(({ assetId }) => assetId) }
 }
 
 async function requireRevision(repository: DocumentRepository, revisionId: string): Promise<DocumentRevision> {
@@ -185,7 +190,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       if (validInput.locale !== "ko") {
         throw new DocumentServiceError("korean_required", "Create the Korean revision first")
       }
-      return repository.createDraft(validInput, actor)
+      return repository.createDraft(validInput, actor, assetSnapshot(validInput))
     },
 
     async createEnglishDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
@@ -210,7 +215,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       if (series.some(({ locale, status }) => locale === "en" && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable English revision already exists")
       }
-      return repository.createNextDraft(seriesId, validInput, actor)
+      return repository.createNextDraft(seriesId, validInput, actor, assetSnapshot(validInput))
     },
 
     async updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
@@ -226,7 +231,7 @@ export function createDocumentService(repository: DocumentRepository, categories
         throw new DocumentServiceError("conflict", "Shared series metadata cannot be changed")
       }
       await requireAssignableCategory(categories, validInput, revision.category)
-      return repository.updateDraft(revisionId, validInput, actor)
+      return repository.updateDraft(revisionId, validInput, actor, assetSnapshot(validInput))
     },
 
     async updateDraftSummary(
@@ -281,7 +286,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       if (series.some(({ locale, status }) => locale === source.locale && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable revision already exists")
       }
-      return repository.createNextDraft(source.seriesId, publicInput(source), actor)
+      return repository.createNextDraft(source.seriesId, publicInput(source), actor, assetSnapshot(source))
     },
 
     async schedule(

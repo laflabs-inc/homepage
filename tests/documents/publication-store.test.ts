@@ -153,7 +153,7 @@ describe("document publication store boundary", () => {
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
 
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_revisions as")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("for update")
@@ -296,7 +296,7 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_revisions as")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("korean.\"locale\" = 'ko'")
@@ -316,7 +316,7 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_series.\"metadata_locked\"")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revision as"))
     expect(normalizedSql).not.toContain("from \"document_revisions\" sibling")
@@ -342,7 +342,7 @@ describe("document publication store boundary", () => {
       normalizedSql.indexOf("locked_revision as"),
       normalizedSql.indexOf("), eligible as"),
     )
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(lockedSql).toContain("from \"document_revisions\" r")
     expect(lockedSql).toContain("locked_series")
     expect(lockedSql).toContain("for update of r")

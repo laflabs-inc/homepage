@@ -229,11 +229,12 @@ export const mediaAssetReferences = pgTable("media_asset_references", {
   ownerType: mediaAssetReferenceOwnerTypeEnum("owner_type").notNull(),
   ownerId: text("owner_id").notNull(),
   field: text("field").notNull(),
-  revisionId: uuid("revision_id"),
+  revisionId: uuid("revision_id").references(() => documentRevisions.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index("media_asset_references_asset_idx").on(table.assetId),
+  index("media_asset_references_owner_idx").on(table.ownerType, table.ownerId, table.field),
   unique("media_asset_references_owner_unique")
     .on(table.assetId, table.ownerType, table.ownerId, table.field, table.revisionId)
     .nullsNotDistinct(),

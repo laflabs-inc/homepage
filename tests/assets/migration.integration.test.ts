@@ -4,6 +4,7 @@ import { PGlite } from "@electric-sql/pglite"
 import { describe, expect, it } from "vitest"
 
 const migrationPath = join(process.cwd(), "drizzle/0011_media_platform.sql")
+const authoringMigrationPath = join(process.cwd(), "drizzle/0012_media_authoring.sql")
 
 describe("media platform migration", () => {
   it("creates immutable path constraints and restricted references", async () => {
@@ -42,5 +43,16 @@ describe("media platform migration", () => {
     } finally {
       await database.close()
     }
+  })
+})
+
+describe("media authoring migration", () => {
+  it("connects document references to revision lifecycle", () => {
+    expect(existsSync(authoringMigrationPath)).toBe(true)
+    if (!existsSync(authoringMigrationPath)) return
+    const migration = readFileSync(authoringMigrationPath, "utf8")
+    expect(migration).toContain("media_asset_references_revision_fk")
+    expect(migration).toContain("ON DELETE CASCADE")
+    expect(migration).toContain("media_asset_references_owner_idx")
   })
 })

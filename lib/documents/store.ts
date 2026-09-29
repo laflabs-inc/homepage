@@ -4,7 +4,14 @@ import { sql, type SQL } from "drizzle-orm"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
 import { getDb } from "@/lib/db"
-import { adminAuditLog, documentCategories, documentRevisions, documentSeries } from "@/lib/db/schema"
+import {
+  adminAuditLog,
+  documentCategories,
+  documentRevisions,
+  documentSeries,
+  mediaAssetReferences,
+  mediaAssets,
+} from "@/lib/db/schema"
 import { documentLocales } from "@/lib/documents/types"
 import type {
   AdminDocumentSummary,
@@ -161,12 +168,23 @@ function inputValues(input: DocumentDraftInput) {
   }
 }
 
+function uuidArray(values: string[]): SQL {
+  if (values.length === 0) return sql`ARRAY[]::uuid[]`
+  return sql`ARRAY[${sql.join(values.map((value) => sql`${value}::uuid`), sql`, `)}]::uuid[]`
+}
+
 export function createDocumentStore(database: SqlExecutor): DocumentRepository {
   return {
-    async createDraft(input, actor) {
+    async createDraft(input, actor, assets = { assetIds: [] }) {
       const values = inputValues(input)
       const result = await database.execute(sql`
-        WITH created_series AS (
+        WITH requested_assets AS (
+          SELECT DISTINCT unnest(${uuidArray(assets.assetIds)}) AS "id"
+        ), valid_assets AS (
+          SELECT asset."id" FROM ${mediaAssets} asset
+          INNER JOIN requested_assets requested ON requested."id" = asset."id"
+          WHERE asset."status" IN ('ready', 'archived')
+        ), created_series AS (
           INSERT INTO ${documentSeries} (
             "kind", "slug", "category", "pinned", "created_by", "updated_at"
           ) VALUES (
@@ -185,6 +203,15 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             ${actor.githubId}, ${actor.githubId}, statement_timestamp()
           FROM created_series
           RETURNING *
+        ), reference_entries AS (
+          INSERT INTO ${mediaAssetReferences} (
+            "asset_id", "owner_type", "owner_id", "field", "revision_id"
+          )
+          SELECT valid_assets."id", 'document_revision', created_revision."id"::text,
+            'body_markdown', created_revision."id"
+          FROM valid_assets CROSS JOIN created_revision
+          ON CONFLICT DO NOTHING
+          RETURNING "id"
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
             "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
@@ -199,6 +226,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         FROM created_revision r
         INNER JOIN created_series s ON s."id" = r."series_id"
         WHERE (SELECT count(*) FROM audit_entry) >= 0
+          AND (SELECT count(*) FROM reference_entries) >= 0
       `)
       return requiredRevision(result.rows, "Draft could not be created")
     },
@@ -249,10 +277,16 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       })
     },
 
-    async updateDraft(revisionId, input, actor) {
+    async updateDraft(revisionId, input, actor, assets = { assetIds: [] }) {
       const values = inputValues(input)
       const result = await database.execute(sql`
-        WITH locked_series AS (
+        WITH requested_assets AS (
+          SELECT DISTINCT unnest(${uuidArray(assets.assetIds)}) AS "id"
+        ), valid_assets AS (
+          SELECT asset."id" FROM ${mediaAssets} asset
+          INNER JOIN requested_assets requested ON requested."id" = asset."id"
+          WHERE asset."status" IN ('ready', 'archived')
+        ), locked_series AS (
           SELECT s.*
           FROM ${documentSeries} s
           WHERE s."id" = (
@@ -301,6 +335,25 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
           FROM eligible, updated_series
           WHERE r."id" = eligible."id"
           RETURNING r.*
+        ), reference_entries AS (
+          INSERT INTO ${mediaAssetReferences} (
+            "asset_id", "owner_type", "owner_id", "field", "revision_id"
+          )
+          SELECT valid_assets."id", 'document_revision', updated_revision."id"::text,
+            'body_markdown', updated_revision."id"
+          FROM valid_assets CROSS JOIN updated_revision
+          ON CONFLICT DO NOTHING
+          RETURNING "id"
+        ), removed_references AS (
+          DELETE FROM ${mediaAssetReferences} existing
+          USING updated_revision
+          WHERE existing."owner_type" = 'document_revision'
+            AND existing."owner_id" = updated_revision."id"::text
+            AND existing."field" = 'body_markdown'
+            AND NOT EXISTS (
+              SELECT 1 FROM valid_assets WHERE valid_assets."id" = existing."asset_id"
+            )
+          RETURNING existing."id"
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
             "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
@@ -315,6 +368,8 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         FROM updated_revision r
         INNER JOIN updated_series s ON s."id" = r."series_id"
         WHERE (SELECT count(*) FROM audit_entry) >= 0
+          AND (SELECT count(*) FROM reference_entries) >= 0
+          AND (SELECT count(*) FROM removed_references) >= 0
       `)
       return requiredRevision(result.rows, "Draft changed before it could be updated")
     },
@@ -493,10 +548,16 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
       if (!result.rows[0]) throw new DocumentStoreError("conflict", "Only an eligible archived revision may be deleted")
     },
 
-    async createNextDraft(seriesId, input, actor) {
+    async createNextDraft(seriesId, input, actor, assets = { assetIds: [] }) {
       const values = inputValues(input)
       const result = await database.execute(sql`
-        WITH locked_series AS (
+        WITH requested_assets AS (
+          SELECT DISTINCT unnest(${uuidArray(assets.assetIds)}) AS "id"
+        ), valid_assets AS (
+          SELECT asset."id" FROM ${mediaAssets} asset
+          INNER JOIN requested_assets requested ON requested."id" = asset."id"
+          WHERE asset."status" IN ('ready', 'archived')
+        ), locked_series AS (
           SELECT * FROM ${documentSeries}
           WHERE "id" = ${seriesId}::uuid
             AND "kind" = ${input.kind}::document_kind
@@ -538,6 +599,15 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             ${actor.githubId}, ${actor.githubId}, statement_timestamp()
           FROM eligible_series, next_number
           RETURNING *
+        ), reference_entries AS (
+          INSERT INTO ${mediaAssetReferences} (
+            "asset_id", "owner_type", "owner_id", "field", "revision_id"
+          )
+          SELECT valid_assets."id", 'document_revision', created_revision."id"::text,
+            'body_markdown', created_revision."id"
+          FROM valid_assets CROSS JOIN created_revision
+          ON CONFLICT DO NOTHING
+          RETURNING "id"
         ), audit_entry AS (
           INSERT INTO ${adminAuditLog} (
             "action", "target_type", "target_id", "actor_github_id", "actor_name", "metadata"
@@ -552,6 +622,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         FROM created_revision r
         INNER JOIN eligible_series s ON s."id" = r."series_id"
         WHERE (SELECT count(*) FROM audit_entry) >= 0
+          AND (SELECT count(*) FROM reference_entries) >= 0
       `)
       return requiredRevision(result.rows, "A new draft could not be created")
     },
@@ -818,6 +889,22 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
         WHERE (SELECT count(*) FROM audit_entry) >= 0
       `)
       return result.rows[0] ? mapRevision(result.rows[0]) : null
+    },
+
+    async listUnavailableAssetIds(assetIds) {
+      if (assetIds.length === 0) return []
+      const result = await database.execute(sql`
+        WITH requested AS (
+          SELECT DISTINCT unnest(${uuidArray(assetIds)}) AS "id"
+        )
+        SELECT requested."id"
+        FROM requested
+        LEFT JOIN ${mediaAssets} asset ON asset."id" = requested."id"
+          AND asset."status" IN ('ready', 'archived')
+        WHERE asset."id" IS NULL
+        ORDER BY requested."id"
+      `)
+      return result.rows.map((row) => String((row as { id: unknown }).id))
     },
 
     async listAdminSummaries(filter: AdminDocumentSummaryFilter = {}) {

@@ -41,7 +41,7 @@ export function extractLafMediaReferences(source: string): MarkdownMediaReferenc
   visit(tree, "definition", (node: { identifier?: string; url?: string }) => {
     if (node.identifier && node.url) definitions.set(node.identifier.toLowerCase(), node.url)
   })
-  visit(tree, (node: { type?: string; url?: string; identifier?: string; alt?: string }) => {
+  visit(tree, (node: { type?: string; url?: string; identifier?: string; alt?: string | null }) => {
     if (node.type !== "image" && node.type !== "imageReference") return
     const src = node.type === "image" ? node.url : definitions.get(node.identifier?.toLowerCase() ?? "")
     if (!src) return

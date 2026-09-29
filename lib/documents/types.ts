@@ -21,6 +21,8 @@ export type DocumentDraftInput = {
   effectiveAt?: Date | null
 }
 
+export type DocumentAssetSnapshot = { assetIds: string[] }
+
 export type DocumentRevision = {
   id: string
   seriesId: string
@@ -149,11 +151,11 @@ export type DocumentSeriesRevisionState = Pick<
 >
 
 export interface DocumentRepository {
-  createDraft(input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
+  createDraft(input: DocumentDraftInput, actor: AdminActor, assets?: DocumentAssetSnapshot): Promise<DocumentRevision>
   getRevision(revisionId: string): Promise<DocumentRevision | null>
   getSeriesState(seriesId: string): Promise<DocumentSeriesState | null>
   listSeriesRevisionStates(seriesId: string): Promise<DocumentSeriesRevisionState[]>
-  updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
+  updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor, assets?: DocumentAssetSnapshot): Promise<DocumentRevision>
   updateDraftSummary(
     revisionId: string,
     summary: string,
@@ -163,7 +165,8 @@ export interface DocumentRepository {
   ): Promise<DocumentRevision>
   deleteDraft(revisionId: string, actor: AdminActor): Promise<void>
   deleteArchived(revisionId: string, actor: AdminActor): Promise<void>
-  createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision>
+  createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor, assets?: DocumentAssetSnapshot): Promise<DocumentRevision>
+  listUnavailableAssetIds?(assetIds: string[]): Promise<string[]>
   scheduleRevision(revisionId: string, scheduledAt: Date, snapshot: PublicationTransitionSnapshot, actor: AdminActor): Promise<DocumentRevision>
   returnScheduledToDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision>
   publishRevision(revisionId: string, snapshot: PublicationTransitionSnapshot, actor: AdminActor, now: Date): Promise<DocumentRevision>
