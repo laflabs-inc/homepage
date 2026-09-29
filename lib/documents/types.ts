@@ -138,6 +138,7 @@ export type PublicationTransitionSnapshot = Pick<
   | "effectiveAt"
 > & {
   normalizedSummary: string
+  assetIds: string[]
 }
 
 export type DocumentSeriesState = {
@@ -166,7 +167,7 @@ export interface DocumentRepository {
   deleteDraft(revisionId: string, actor: AdminActor): Promise<void>
   deleteArchived(revisionId: string, actor: AdminActor): Promise<void>
   createNextDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor, assets?: DocumentAssetSnapshot): Promise<DocumentRevision>
-  listUnavailableAssetIds?(assetIds: string[]): Promise<string[]>
+  listUnavailableAssetIds(assetIds: string[]): Promise<string[]>
   scheduleRevision(revisionId: string, scheduledAt: Date, snapshot: PublicationTransitionSnapshot, actor: AdminActor): Promise<DocumentRevision>
   returnScheduledToDraft(revisionId: string, actor: AdminActor): Promise<DocumentRevision>
   publishRevision(revisionId: string, snapshot: PublicationTransitionSnapshot, actor: AdminActor, now: Date): Promise<DocumentRevision>

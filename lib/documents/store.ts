@@ -13,6 +13,7 @@ import {
   mediaAssets,
 } from "@/lib/db/schema"
 import { documentLocales } from "@/lib/documents/types"
+import { extractLafMediaReferences } from "@/lib/markdown/media-assets"
 import type {
   AdminDocumentSummary,
   AdminDocumentSummaryFilter,
@@ -629,7 +630,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async scheduleRevision(revisionId, scheduledAt, snapshot, actor) {
       const result = await database.execute(sql`
-        WITH locked_series AS (
+        WITH requested_assets AS (
+          SELECT DISTINCT unnest(${uuidArray(snapshot.assetIds)}) AS "id"
+        ), available_assets AS (
+          SELECT asset."id" FROM ${mediaAssets} asset
+          INNER JOIN requested_assets requested ON requested."id" = asset."id"
+          WHERE asset."status" IN ('ready', 'archived')
+        ), locked_series AS (
           SELECT s.*
           FROM ${documentSeries} s
           WHERE s."id" = (
@@ -664,6 +671,11 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND locked_revision."slug" = ${snapshot.slug}
             AND locked_revision."category" IS NOT DISTINCT FROM ${snapshot.category}
             AND locked_revision."pinned" = ${snapshot.pinned}
+            AND NOT EXISTS (
+              SELECT 1 FROM requested_assets requested
+              LEFT JOIN available_assets available ON available."id" = requested."id"
+              WHERE available."id" IS NULL
+            )
             AND (
               locked_revision."category" IS NULL
               OR EXISTS (
@@ -750,7 +762,13 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
 
     async publishRevision(revisionId, snapshot, actor, now) {
       const result = await database.execute(sql`
-        WITH locked_series AS (
+        WITH requested_assets AS (
+          SELECT DISTINCT unnest(${uuidArray(snapshot.assetIds)}) AS "id"
+        ), available_assets AS (
+          SELECT asset."id" FROM ${mediaAssets} asset
+          INNER JOIN requested_assets requested ON requested."id" = asset."id"
+          WHERE asset."status" IN ('ready', 'archived')
+        ), locked_series AS (
           SELECT s.*
           FROM ${documentSeries} s
           WHERE s."id" = (
@@ -782,6 +800,11 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             AND locked_revision."slug" = ${snapshot.slug}
             AND locked_revision."category" IS NOT DISTINCT FROM ${snapshot.category}
             AND locked_revision."pinned" = ${snapshot.pinned}
+            AND NOT EXISTS (
+              SELECT 1 FROM requested_assets requested
+              LEFT JOIN available_assets available ON available."id" = requested."id"
+              WHERE available."id" IS NULL
+            )
             AND (
               locked_revision."category" IS NULL
               OR EXISTS (
@@ -1052,6 +1075,7 @@ export function createDocumentStore(database: SqlExecutor): DocumentRepository {
             normalizedSummary: row.summary.trim(),
             bodyMarkdown: row.bodyMarkdown,
             effectiveAt: row.effectiveAt,
+            assetIds: extractLafMediaReferences(row.bodyMarkdown).map(({ assetId }) => assetId),
           }, actor, now)
           publishedRevisions.push({
             id: published.id,

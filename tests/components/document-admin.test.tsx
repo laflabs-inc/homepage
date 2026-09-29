@@ -1154,6 +1154,21 @@ describe("document admin", () => {
     expect(alert).not.toHaveTextContent("secret document contents")
   })
 
+  it("explains how to repair unavailable managed media before publishing", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(
+      JSON.stringify({ error: "asset_unavailable", fields: ["bodyMarkdown"] }),
+      { status: 409, headers: { "content-type": "application/json" } },
+    )))
+    render(<DocumentEditor revision={revision} />)
+
+    await user.click(screen.getByRole("button", { name: "Publish now" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Replace or remove unavailable LafLabs media, save the draft, and publish again.",
+    )
+  })
+
   it.each([
     ["provider_unavailable", "AI summary is unavailable."],
     ["monthly_limit", "The AI monthly limit has been reached."],

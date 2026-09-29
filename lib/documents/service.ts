@@ -27,6 +27,7 @@ export type DocumentServiceErrorCode =
   | "invalid_state"
   | "confirmation_mismatch"
   | "delete_dependency"
+  | "asset_unavailable"
   | "unavailable"
 
 export class DocumentServiceError extends Error {
@@ -60,6 +61,19 @@ function publicInput(revision: DocumentRevision): DocumentDraftInput {
     summary: revision.summary,
     bodyMarkdown: revision.bodyMarkdown,
     effectiveAt: revision.effectiveAt,
+  }
+}
+
+async function requireAvailableAssets(
+  repository: DocumentRepository,
+  snapshot: PublicationTransitionSnapshot,
+): Promise<void> {
+  if ((await repository.listUnavailableAssetIds(snapshot.assetIds)).length > 0) {
+    throw new DocumentServiceError(
+      "asset_unavailable",
+      "A managed media asset is unavailable",
+      { fields: ["bodyMarkdown"] },
+    )
   }
 }
 
@@ -102,6 +116,7 @@ function requirePublishable(revision: DocumentRevision): PublicationTransitionSn
     normalizedSummary: result.data.summary,
     bodyMarkdown: revision.bodyMarkdown,
     effectiveAt: revision.effectiveAt,
+    assetIds: assetSnapshot(revision).assetIds,
   }
 }
 
@@ -178,6 +193,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       throw new DocumentServiceError("conflict", "The document changed before publication")
     }
     const snapshot = requirePublishable(revision)
+    await requireAvailableAssets(repository, snapshot)
     await requireAssignableCategory(categories, publicInput(revision), revision.category)
     if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
     return repository.publishRevision(revisionId, snapshot, actor, now)
@@ -298,6 +314,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       const revision = await requireRevision(repository, revisionId)
       requireDraft(revision)
       const snapshot = requirePublishable(revision)
+      await requireAvailableAssets(repository, snapshot)
       if (!Number.isFinite(scheduledAt.getTime()) || scheduledAt.getTime() <= now.getTime()) {
         throw new DocumentServiceError("invalid_schedule", "Scheduled publication must be in the future")
       }

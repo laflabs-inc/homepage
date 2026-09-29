@@ -151,6 +151,9 @@ function mutationErrorMessage(
     }
     return t.incompleteDocument
   }
+  if (error === "asset_unavailable") {
+    return t.assetUnavailable(isPublish)
+  }
   if (error === "provider_unavailable") {
     return t.providerUnavailable
   }

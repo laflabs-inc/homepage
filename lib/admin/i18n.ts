@@ -403,6 +403,9 @@ const en = {
           ? "Add meaningful alt text to every Markdown image, save the draft, and publish again."
           : "Add meaningful alt text to every Markdown image, save the draft, and try again.",
         incompleteDocument: "Complete the required publication fields, save the draft, and try again.",
+        assetUnavailable: (isPublish: boolean) => isPublish
+          ? "Replace or remove unavailable LafLabs media, save the draft, and publish again."
+          : "Replace or remove unavailable LafLabs media, save the draft, and try again.",
         providerUnavailable: "AI summary is unavailable. Enter a one-line summary manually, save the draft, and publish again.",
         monthlyLimit: "The AI monthly limit has been reached. Enter a one-line summary manually, save the draft, and publish again.",
         aiDisabled: "Enable AI in Agent settings, then try again.",
@@ -820,6 +823,9 @@ const ko = {
           ? "모든 Markdown 이미지에 의미 있는 대체 텍스트를 추가하고 초안을 저장한 뒤 다시 발행해 주세요."
           : "모든 Markdown 이미지에 의미 있는 대체 텍스트를 추가하고 초안을 저장한 뒤 다시 시도해 주세요.",
         incompleteDocument: "필수 발행 항목을 채우고 초안을 저장한 뒤 다시 시도해 주세요.",
+        assetUnavailable: (isPublish: boolean) => isPublish
+          ? "사용할 수 없는 LafLabs 이미지를 교체하거나 제거하고, 초안을 저장한 뒤 다시 발행해 주세요."
+          : "사용할 수 없는 LafLabs 이미지를 교체하거나 제거하고, 초안을 저장한 뒤 다시 시도해 주세요.",
         providerUnavailable: "AI 요약을 지금 사용할 수 없습니다. 한 줄 요약을 직접 입력하고 초안을 저장한 뒤 다시 발행해 주세요.",
         monthlyLimit: "AI 월간 한도에 도달했습니다. 한 줄 요약을 직접 입력하고 초안을 저장한 뒤 다시 발행해 주세요.",
         aiDisabled: "에이전트 설정에서 AI 사용을 켠 뒤 다시 시도해 주세요.",

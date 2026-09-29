@@ -23,6 +23,7 @@ import type {
 
 const actor: AdminActor = { githubId: "github:42", name: "Laf Admin" }
 const now = new Date("2026-08-23T12:00:00.000Z")
+const managedAssetId = "9bbf61b9-9ef4-42c1-a498-43e6049d5188"
 const input: DocumentDraftInput = {
   kind: "notice",
   locale: "ko",
@@ -45,6 +46,7 @@ class MemoryDocumentRepository implements DocumentRepository {
   transitionMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown" | "effectiveAt">> | null = null
   summaryMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown">> | null = null
   assetSnapshots: string[][] = []
+  unavailableAssetIds = new Set<string>()
   private nextId = 1
 
   seed(values: Partial<DocumentRevision> & Pick<DocumentRevision, "seriesId" | "locale" | "status">): DocumentRevision {
@@ -95,6 +97,10 @@ class MemoryDocumentRepository implements DocumentRepository {
   async getRevision(revisionId: string): Promise<DocumentRevision | null> {
     if (this.readFailure) throw this.readFailure
     return this.revisions.find(({ id }) => id === revisionId) ?? null
+  }
+
+  async listUnavailableAssetIds(assetIds: string[]): Promise<string[]> {
+    return assetIds.filter((assetId) => this.unavailableAssetIds.has(assetId))
   }
 
   async getSeriesState(seriesId: string) {
@@ -762,6 +768,45 @@ describe("document workflow service", () => {
 
     await expect(service.publish(draft.id, actor, now)).resolves.toMatchObject({ summary: "즉시 공개 요약" })
     expect(repository.revisions.find(({ id }) => id === draft.id)?.summary).toBe("즉시 공개 요약")
+  })
+
+  it.each(["schedule", "publish", "publishWithExpectedSummary"] as const)(
+    "rejects unavailable managed media before %s",
+    async (operation) => {
+      const draft = repository.seed({
+        seriesId: "series-1",
+        locale: "ko",
+        status: "draft",
+        bodyMarkdown: `![Architecture](/media/${managedAssetId}/architecture.png)`,
+      })
+      repository.unavailableAssetIds.add(managedAssetId)
+
+      const action = operation === "schedule"
+        ? service.schedule(draft.id, new Date(now.getTime() + 60_000), actor, now)
+        : operation === "publishWithExpectedSummary"
+          ? service.publishWithExpectedSummary(draft.id, {
+              title: draft.title,
+              summary: draft.summary,
+              bodyMarkdown: draft.bodyMarkdown,
+            }, actor, now)
+          : service.publish(draft.id, actor, now)
+
+      await expect(action).rejects.toMatchObject({
+        code: "asset_unavailable",
+        fields: ["bodyMarkdown"],
+      })
+    },
+  )
+
+  it("allows managed media that the repository reports as available", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      bodyMarkdown: `![Architecture](/media/${managedAssetId}/architecture.png)`,
+    })
+
+    await expect(service.publish(draft.id, actor, now)).resolves.toMatchObject({ status: "published" })
   })
 
   it.each([
