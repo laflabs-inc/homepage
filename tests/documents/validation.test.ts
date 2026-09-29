@@ -79,6 +79,22 @@ describe("document validation", () => {
     }).success).toBe(true)
   })
 
+  it("accepts tracked LafLabs images and rejects untrackable local media markup", () => {
+    const id = "11111111-1111-4111-8111-111111111111"
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: `![서비스 화면](/media/${id}/status.png)`,
+    }).success).toBe(true)
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: `![서비스 화면](/media/${id}/status.png?raw=1)`,
+    }).success).toBe(false)
+    expect(publishDocumentSchema.safeParse({
+      ...validDraft,
+      bodyMarkdown: `<img src="/media/${id}/status.png" alt="서비스 화면">`,
+    }).success).toBe(false)
+  })
+
   it.each([
     ["title", "가".repeat(160), true],
     ["title", "가".repeat(161), false],

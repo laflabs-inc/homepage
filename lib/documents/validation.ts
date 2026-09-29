@@ -4,6 +4,7 @@ import remarkParse from "remark-parse"
 import { visit } from "unist-util-visit"
 
 import { documentKinds, documentLocales } from "@/lib/documents/types"
+import { extractLafMediaReferences, UnsupportedLafMediaMarkupError } from "@/lib/markdown/media-assets"
 
 export const revisionIdSchema = z.uuid()
 
@@ -69,6 +70,19 @@ export const publishDocumentSchema = z.object({
       })
     }
   })
+  try {
+    extractLafMediaReferences(bodyMarkdown)
+  } catch (error) {
+    if (error instanceof UnsupportedLafMediaMarkupError) {
+      context.addIssue({
+        code: "custom",
+        message: "LafLabs media must use a stable Markdown image path",
+        path: ["bodyMarkdown"],
+      })
+      return
+    }
+    throw error
+  }
 })
 
 export const scheduleDocumentSchema = z.object({
