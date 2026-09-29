@@ -76,7 +76,7 @@ describe("AssetLibrary", () => {
     })
   })
 
-  it("copies the stable delivery path and exposes unavailable future operations", async () => {
+  it("copies the stable delivery path and exposes replacement", async () => {
     const user = userEvent.setup()
     const writeText = vi.spyOn(navigator.clipboard, "writeText")
     render(
@@ -88,7 +88,7 @@ describe("AssetLibrary", () => {
     await user.click(screen.getByRole("button", { name: "Copy path for brand.png" }))
     expect(writeText).toHaveBeenCalledWith(asset.src)
     expect(screen.getByText("Stable path copied.")).toBeInTheDocument()
-    expect(screen.getByText("Version replacement is not available yet.")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Replace brand.png" })).toBeEnabled()
     expect(screen.getByText("Reference browsing is not available yet.")).toBeInTheDocument()
   })
 

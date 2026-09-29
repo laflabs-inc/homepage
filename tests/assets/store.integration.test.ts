@@ -11,6 +11,7 @@ const actor = { githubId: "github:42", name: "Laf Admin" }
 const id = "00000000-0000-4000-8000-000000000001"
 const otherId = "00000000-0000-4000-8000-000000000002"
 const nonce = "00000000-0000-4000-8000-000000000003"
+const thirdId = "00000000-0000-4000-8000-000000000004"
 
 async function setup() {
   const database = new PGlite()
@@ -78,6 +79,101 @@ describe("media asset store integration", () => {
       ])
       expect(attempts.filter((value) => value.status === "acquired")).toHaveLength(1)
       expect(attempts.filter((value) => value.status === "current")).toHaveLength(1)
+    } finally {
+      await database.close()
+    }
+  })
+
+  it("creates immutable replacement versions in the source family", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+      await database.exec(`UPDATE "media_assets" SET "status" = 'ready' WHERE "id" = '${id}'`)
+
+      const replacement = await store.createPending({
+        id: otherId,
+        familyId: otherId,
+        previousAssetId: id,
+        originalFilename: "Hero-v2.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${otherId}/${nonce}`,
+      }, actor)
+
+      expect(replacement).toMatchObject({
+        id: otherId,
+        familyId: id,
+        previousAssetId: id,
+        version: 2,
+        status: "pending",
+      })
+      await expect(store.get(id)).resolves.toMatchObject({ status: "ready", version: 1 })
+    } finally {
+      await database.close()
+    }
+  })
+
+  it("rejects replacement from a non-deliverable asset", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+
+      await expect(store.createPending({
+        id: otherId,
+        familyId: otherId,
+        previousAssetId: id,
+        originalFilename: "Hero-v2.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${otherId}/${nonce}`,
+      }, actor)).rejects.toMatchObject({ code: "conflict" })
+    } finally {
+      await database.close()
+    }
+  })
+
+  it("serializes concurrent replacements into distinct family versions", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+      await database.exec(`UPDATE "media_assets" SET "status" = 'ready' WHERE "id" = '${id}'`)
+
+      const versions = await Promise.all([
+        store.createPending({
+          id: otherId,
+          familyId: otherId,
+          previousAssetId: id,
+          originalFilename: "Hero-v2.PNG",
+          declaredMediaType: "image/png",
+          stagingPathname: `staging/${otherId}/${nonce}`,
+        }, actor),
+        store.createPending({
+          id: thirdId,
+          familyId: thirdId,
+          previousAssetId: id,
+          originalFilename: "Hero-v3.PNG",
+          declaredMediaType: "image/png",
+          stagingPathname: `staging/${thirdId}/${nonce}`,
+        }, actor),
+      ])
+
+      expect(versions.map(({ version }) => version).sort()).toEqual([2, 3])
     } finally {
       await database.close()
     }

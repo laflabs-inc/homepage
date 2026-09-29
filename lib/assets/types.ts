@@ -86,6 +86,7 @@ export type UploadIntentInput = {
   originalFilename: string
   declaredMediaType: string
   byteSize: number
+  replaceAssetId?: string
 }
 
 export type UploadIntent = {

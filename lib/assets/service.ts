@@ -131,13 +131,18 @@ export function createAssetService(dependencies: AssetServiceDependencies): Asse
       const parsed: UploadIntentInput = parseUploadIntent(input)
       const assetId = randomUUID()
       const pathname = `staging/${assetId}/${randomUUID()}`
-      await repository.createPending({
-        id: assetId,
-        familyId: assetId,
-        originalFilename: parsed.originalFilename,
-        declaredMediaType: parsed.declaredMediaType,
-        stagingPathname: pathname,
-      }, actor)
+      try {
+        await repository.createPending({
+          id: assetId,
+          familyId: assetId,
+          ...(parsed.replaceAssetId ? { previousAssetId: parsed.replaceAssetId } : {}),
+          originalFilename: parsed.originalFilename,
+          declaredMediaType: parsed.declaredMediaType,
+          stagingPathname: pathname,
+        }, actor)
+      } catch (error) {
+        throw normalizeError(error)
+      }
       telemetry.record("media.intent_created", { assetId, byteSize: parsed.byteSize })
       return { assetId, pathname, acceptedTypes, maxBytes }
     },

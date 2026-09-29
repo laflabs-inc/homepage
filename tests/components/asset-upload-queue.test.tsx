@@ -104,4 +104,27 @@ describe("AssetUploadQueue", () => {
     await waitFor(() => expect(screen.queryByText("motion.gif")).not.toBeInTheDocument())
     expect(screen.getByText("brand.png")).toBeInTheDocument()
   })
+
+  it("sends the replacement target and limits the picker to one file", async () => {
+    const user = userEvent.setup()
+    render(
+      <LocaleProvider initialLocale="en">
+        <AssetUploadQueue
+          replaceAssetId="22222222-2222-4222-8222-222222222222"
+          multiple={false}
+          onReady={vi.fn()}
+        />
+      </LocaleProvider>,
+    )
+
+    const input = screen.getByLabelText("Upload images", { selector: "input" })
+    expect(input).not.toHaveAttribute("multiple")
+    await user.upload(input, new File([new Uint8Array(68)], "brand-v2.png", { type: "image/png" }))
+    await screen.findByText("Ready")
+
+    const request = vi.mocked(fetch).mock.calls.find(([url]) => String(url).endsWith("/api/admin/assets/intents"))
+    expect(JSON.parse(String((request?.[1] as RequestInit).body))).toMatchObject({
+      replaceAssetId: "22222222-2222-4222-8222-222222222222",
+    })
+  })
 })

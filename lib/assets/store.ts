@@ -30,6 +30,7 @@ export class AssetStoreError extends Error {
 export type PendingAssetInput = {
   id: string
   familyId: string
+  previousAssetId?: string
   originalFilename: string
   declaredMediaType: string
   stagingPathname: string
@@ -179,8 +180,35 @@ function auditCte(action: string, actor: AdminActor, metadata: SQL = sql`'{}'::j
 export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
   return {
     async createPending(input, actor) {
-      const result = await database.execute(sql`
-        WITH changed AS (
+      try {
+        const result = input.previousAssetId
+          ? await database.execute(sql`
+            WITH locked_source AS (
+              SELECT * FROM ${mediaAssets}
+              WHERE "id" = ${input.previousAssetId}::uuid
+                AND "status" IN ('ready', 'archived')
+              FOR UPDATE
+            ), next_version AS (
+              SELECT COALESCE(MAX(family."version"), 0) + 1 AS "version"
+              FROM ${mediaAssets} family
+              INNER JOIN locked_source source ON source."family_id" = family."family_id"
+            ), changed AS (
+              INSERT INTO ${mediaAssets} (
+                "id", "visibility", "status", "original_filename", "declared_media_type",
+                "staging_pathname", "family_id", "previous_asset_id", "version",
+                "created_by", "updated_by", "created_by_name", "updated_by_name"
+              )
+              SELECT ${input.id}::uuid, 'public', 'pending', ${input.originalFilename},
+                ${input.declaredMediaType}, ${input.stagingPathname}, source."family_id", source."id",
+                next_version."version", ${actor.githubId}, ${actor.githubId}, ${actor.name}, ${actor.name}
+              FROM locked_source source CROSS JOIN next_version
+              RETURNING *
+            ), audit_entry AS (${auditCte("media.intent_created", actor, sql`jsonb_build_object('previousAssetId', ${input.previousAssetId}::text)`)})
+            SELECT ${assetColumns} FROM changed
+            WHERE (SELECT count(*) FROM audit_entry) >= 0
+          `)
+          : await database.execute(sql`
+          WITH changed AS (
           INSERT INTO ${mediaAssets} (
             "id", "visibility", "status", "original_filename", "declared_media_type",
             "staging_pathname", "family_id", "created_by", "updated_by",
@@ -194,7 +222,14 @@ export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
         SELECT ${assetColumns} FROM changed
         WHERE (SELECT count(*) FROM audit_entry) >= 0
       `)
-      return requiredAsset(result.rows, "conflict")
+        return requiredAsset(result.rows, "conflict")
+      } catch (error) {
+        if (error instanceof AssetStoreError) throw error
+        if (typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === "23505") {
+          throw new AssetStoreError("conflict")
+        }
+        throw error
+      }
     },
 
     async get(id) {

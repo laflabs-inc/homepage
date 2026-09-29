@@ -56,7 +56,15 @@ async function readJson<ResponseShape>(response: Response): Promise<ResponseShap
   return response.json() as Promise<ResponseShape>
 }
 
-export function AssetUploadQueue({ onReady }: { onReady: (asset: AdminAssetSummary) => void }) {
+export function AssetUploadQueue({
+  onReady,
+  replaceAssetId,
+  multiple = true,
+}: {
+  onReady: (asset: AdminAssetSummary) => void
+  replaceAssetId?: string
+  multiple?: boolean
+}) {
   const locale = useLocale()
   const t = adminCopy[locale].assets
   const inputRef = useRef<HTMLInputElement>(null)
@@ -76,6 +84,7 @@ export function AssetUploadQueue({ onReady }: { onReady: (asset: AdminAssetSumma
           originalFilename: item.file.name,
           declaredMediaType: item.file.type,
           byteSize: item.file.size,
+          ...(replaceAssetId ? { replaceAssetId } : {}),
         }),
       })
       const { intent } = await readJson<IntentResponse>(intentResponse)
@@ -102,7 +111,7 @@ export function AssetUploadQueue({ onReady }: { onReady: (asset: AdminAssetSumma
   }
 
   const addFiles = (files: File[]) => {
-    const nextItems = files.map<QueueItem>((file) => {
+    const nextItems = (multiple ? files : files.slice(0, 1)).map<QueueItem>((file) => {
       const failureReason = validateFile(file)
       return {
         id: localId(file),
@@ -141,7 +150,7 @@ export function AssetUploadQueue({ onReady }: { onReady: (asset: AdminAssetSumma
           className={styles.visuallyHidden}
           type="file"
           accept=".jpg,.jpeg,.png,.webp,.avif,.svg,image/jpeg,image/png,image/webp,image/avif,image/svg+xml"
-          multiple
+          multiple={multiple}
           aria-label={t.uploadInput}
           onChange={(event) => {
             addFiles(Array.from(event.target.files ?? []))

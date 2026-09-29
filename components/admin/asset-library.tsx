@@ -3,6 +3,7 @@
 import {
   Archive,
   ArrowCounterClockwise,
+  ArrowsClockwise,
   Copy,
   GridFour,
   ListBullets,
@@ -182,6 +183,7 @@ export function AssetLibrary({
   const [view, setView] = useState<"grid" | "list">("grid")
   const [selected, setSelected] = useState<AdminAssetSummary | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
+  const [replacement, setReplacement] = useState<AdminAssetSummary | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -394,6 +396,16 @@ export function AssetLibrary({
                         <Copy aria-hidden size={16} weight="bold" />
                       </Button>
                     ) : null}
+                    {(asset.status === "ready" || asset.status === "archived") ? (
+                      <Button
+                        size="compact"
+                        variant="secondary"
+                        aria-label={t.replace(asset.originalFilename)}
+                        onClick={() => setReplacement(asset)}
+                      >
+                        <ArrowsClockwise aria-hidden size={16} weight="bold" />
+                      </Button>
+                    ) : null}
                     {asset.status === "ready" ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -450,9 +462,30 @@ export function AssetLibrary({
       ) : null}
 
       <aside className={styles.futureNotes} aria-label="Pending media capabilities">
-        <p>{t.versionUnavailable}</p>
         <p>{t.referencesUnavailable}</p>
       </aside>
+
+      <Dialog open={Boolean(replacement)} onOpenChange={(open) => { if (!open) setReplacement(null) }}>
+        <DialogContent closeLabel={t.close}>
+          <DialogHeader>
+            <DialogTitle>{t.replaceTitle}</DialogTitle>
+            <DialogDescription>
+              {replacement ? t.replaceDescription(replacement.originalFilename, replacement.version) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {replacement ? (
+            <AssetUploadQueue
+              replaceAssetId={replacement.id}
+              multiple={false}
+              onReady={(asset) => {
+                setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)])
+                setReplacement(null)
+                setNotice(t.replacedNotice(asset.version))
+              }}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {selected ? (
         <AssetMetadataDialog
