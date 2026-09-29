@@ -20,7 +20,9 @@ boundary: unverified browser uploads must never be readable from a public URL.
    SDK obtains Vercel's short-lived OIDC identity at request time.
 4. Redeploy after connecting or changing either store. For local verification,
    run `vercel link` once, then `vercel env pull .env.local` before starting the
-   app. Re-pull when the local OIDC credential expires.
+   app. The SDK refreshes an expired development OIDC credential through the
+   linked Vercel CLI session; pull again only after project, store, or environment
+   connections change.
 5. Set `CRON_SECRET` independently. The daily cleanup request uses
    `Authorization: Bearer <CRON_SECRET>`.
 6. Apply database migration `0011_media_platform.sql` before deploying code
@@ -74,6 +76,10 @@ health, then invoke the job again. Never edit a `deleting` row back to `ready`.
 - `unavailable` before an upload begins: confirm both store IDs are present,
   the Vercel project has OIDC enabled, and the deployment was created after the
   stores were connected.
+- Configuration remains unavailable even though both stores are connected:
+  remove a leftover generic `BLOB_READ_WRITE_TOKEN`. The SDK would otherwise be
+  able to fall back to that token and select a store outside the configured
+  public/private boundary.
 - Upload completed but finalization cannot find it: inspect the asset's expected
   staging pathname and the private store. Do not paste a provider URL into the
   database or retry with a client-chosen pathname.

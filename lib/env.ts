@@ -50,10 +50,20 @@ const aiSecuritySchema = z.object({
     })
   }
 })
+const blobStoreId = z.string()
+  .trim()
+  .min(1)
+  .transform((value) => value.startsWith("store_") ? value.slice("store_".length) : value)
+  .pipe(z.string().min(1))
+const optionalLegacyBlobToken = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().min(1).optional(),
+)
 const mediaSchema = z.object({
-  PUBLIC_BLOB_STORE_ID: z.string().min(1),
-  PRIVATE_BLOB_STORE_ID: z.string().min(1),
+  PUBLIC_BLOB_STORE_ID: blobStoreId,
+  PRIVATE_BLOB_STORE_ID: blobStoreId,
   PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY: z.string().min(1),
+  BLOB_READ_WRITE_TOKEN: optionalLegacyBlobToken,
 }).superRefine((environment, context) => {
   if (environment.PUBLIC_BLOB_STORE_ID === environment.PRIVATE_BLOB_STORE_ID) {
     context.addIssue({
@@ -62,7 +72,18 @@ const mediaSchema = z.object({
       message: "PRIVATE_BLOB_STORE_ID must differ from PUBLIC_BLOB_STORE_ID",
     })
   }
-})
+  if (environment.BLOB_READ_WRITE_TOKEN) {
+    context.addIssue({
+      code: "custom",
+      path: ["BLOB_READ_WRITE_TOKEN"],
+      message: "BLOB_READ_WRITE_TOKEN must be removed so media operations use OIDC",
+    })
+  }
+}).transform((environment) => ({
+  PUBLIC_BLOB_STORE_ID: environment.PUBLIC_BLOB_STORE_ID,
+  PRIVATE_BLOB_STORE_ID: environment.PRIVATE_BLOB_STORE_ID,
+  PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY: environment.PRIVATE_BLOB_WEBHOOK_PUBLIC_KEY,
+}))
 const schema = databaseSchema
   .merge(z.object(analyticsFields))
   .merge(authSchema)
