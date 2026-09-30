@@ -4,21 +4,26 @@ import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { markdown } from "@codemirror/lang-markdown"
 import { Annotation, Compartment, EditorState, Prec, Transaction } from "@codemirror/state"
 import { EditorView, keymap } from "@codemirror/view"
-import { Eye, PencilSimple } from "@phosphor-icons/react"
+import { Eye, ImageSquare, PencilSimple } from "@phosphor-icons/react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
-import { markdownEditorKeymap, markdownMaxLength } from "@/components/admin/markdown-editor-commands"
+import { AssetPickerDialog } from "@/components/admin/asset-picker-dialog"
+import { insertMarkdownBlock, markdownEditorKeymap, markdownMaxLength } from "@/components/admin/markdown-editor-commands"
 import contentStyles from "@/components/content/content.module.css"
 import { MarkdownBody } from "@/components/content/markdown-document"
 import { useLocale } from "@/components/i18n/locale-provider"
+import { Button } from "@/components/ui/button"
 import { SegmentedToggle } from "@/components/ui/segmented-toggle"
 import { adminCopy } from "@/lib/admin/i18n"
+import type { Locale } from "@/lib/i18n"
+import { buildMarkdownImage } from "@/lib/markdown/media-assets"
 
 type MarkdownLiveEditorProps = {
   value: string
   onChange: (value: string) => void
   maxLength?: number
+  documentLocale?: Locale
 }
 
 const externalValueSync = Annotation.define<boolean>()
@@ -42,10 +47,12 @@ function minimalExternalChange(currentValue: string, nextValue: string) {
   return { from, to, insert: nextValue.slice(from, nextTo) }
 }
 
-export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: MarkdownLiveEditorProps) {
+export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000, documentLocale = "ko" }: MarkdownLiveEditorProps) {
   const locale = useLocale()
   const t = adminCopy[locale].documents.editor
   const [previewMode, setPreviewMode] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [insertError, setInsertError] = useState<string | null>(null)
   const [contentAttributes] = useState(() => new Compartment())
   const [maxLengthConfiguration] = useState(() => new Compartment())
   const editorHostRef = useRef<HTMLDivElement>(null)
@@ -135,26 +142,31 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
 
   return (
     <div className={styles.markdownLiveEditor}>
-      <SegmentedToggle
-        className={styles.markdownViewSwitch}
-        label={t.markdownView}
-        value={previewMode ? "preview" : "source"}
-        options={[
-          {
-            value: "source",
-            label: t.source,
-            content: <PencilSimple aria-hidden="true" weight="bold" />,
-            buttonProps: { title: t.source },
-          },
-          {
-            value: "preview",
-            label: t.preview,
-            content: <Eye aria-hidden="true" weight="bold" />,
-            buttonProps: { title: t.preview },
-          },
-        ]}
-        onValueChange={(value) => setPreviewMode(value === "preview")}
-      />
+      <div className={styles.markdownToolbar}>
+        <Button size="compact" variant="secondary" aria-label={t.insertImage} onClick={() => setPickerOpen(true)}>
+          <ImageSquare aria-hidden size={17} weight="bold" />
+        </Button>
+        <SegmentedToggle
+          className={styles.markdownViewSwitch}
+          label={t.markdownView}
+          value={previewMode ? "preview" : "source"}
+          options={[
+            {
+              value: "source",
+              label: t.source,
+              content: <PencilSimple aria-hidden="true" weight="bold" />,
+              buttonProps: { title: t.source },
+            },
+            {
+              value: "preview",
+              label: t.preview,
+              content: <Eye aria-hidden="true" weight="bold" />,
+              buttonProps: { title: t.preview },
+            },
+          ]}
+          onValueChange={(value) => setPreviewMode(value === "preview")}
+        />
+      </div>
 
       <div
         ref={editorHostRef}
@@ -167,6 +179,22 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000 }: Mar
       >
         <MarkdownBody source={normalizeMarkdownLineEndings(value) || t.previewEmpty} />
       </div>
+      {insertError ? <p className={styles.formAlert} role="alert">{insertError}</p> : null}
+      <AssetPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        documentLocale={documentLocale}
+        onSelect={(reference) => {
+          setPreviewMode(false)
+          setInsertError(null)
+          window.requestAnimationFrame(() => {
+            const view = editorViewRef.current
+            if (!view || !insertMarkdownBlock(view, buildMarkdownImage(reference))) {
+              setInsertError(t.assetPickerTooLong)
+            }
+          })
+        }}
+      />
     </div>
   )
 }

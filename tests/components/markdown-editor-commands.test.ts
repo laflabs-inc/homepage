@@ -5,9 +5,11 @@ import {
   type StateCommand,
   type Transaction,
 } from "@codemirror/state"
+import { EditorView } from "@codemirror/view"
 import { describe, expect, it } from "vitest"
 
 import {
+  insertMarkdownBlock,
   markdownEditorKeymap,
   markdownMaxLength,
 } from "@/components/admin/markdown-editor-commands"
@@ -147,5 +149,33 @@ describe("Markdown maximum length", () => {
     const state = createState("12345", markdownMaxLength(3))
 
     expect(applyInsert(state, 5, "6").doc.toString()).toBe("12345")
+  })
+})
+
+describe("Markdown block insertion", () => {
+  it.each([
+    ["", 0, 0, "![Alt](/media/id/image.png)"],
+    ["before after", 7, 7, "before \n\n![Alt](/media/id/image.png)\n\nafter"],
+    ["before\n\nafter", 8, 8, "before\n\n![Alt](/media/id/image.png)\n\nafter"],
+    ["replace me", 0, 7, "![Alt](/media/id/image.png)\n\n me"],
+  ])("inserts a standalone block with only required blank lines", (doc, anchor, head, expected) => {
+    const parent = document.createElement("div")
+    document.body.append(parent)
+    const view = new EditorView({ parent, state: createState(doc, [], anchor, head) })
+
+    expect(insertMarkdownBlock(view, "![Alt](/media/id/image.png)")).toBe(true)
+    expect(view.state.doc.toString()).toBe(expected)
+    expect(view.hasFocus).toBe(true)
+    view.destroy()
+    parent.remove()
+  })
+
+  it("reports a rejected insertion when the maximum length filter blocks it", () => {
+    const parent = document.createElement("div")
+    const view = new EditorView({ parent, state: createState("12345", markdownMaxLength(5)) })
+
+    expect(insertMarkdownBlock(view, "image")).toBe(false)
+    expect(view.state.doc.toString()).toBe("12345")
+    view.destroy()
   })
 })

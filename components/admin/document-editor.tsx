@@ -589,6 +589,7 @@ export function DocumentEditor({
             </div>
             <MarkdownLiveEditor
               value={values.bodyMarkdown}
+              documentLocale={values.locale}
               onChange={(nextValue) => update("bodyMarkdown", nextValue)}
             />
           </div>
