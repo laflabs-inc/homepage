@@ -69,7 +69,7 @@ export function AssetPickerDialog({
         setNextCursor(page.nextCursor)
         setSelected(null)
         setAlt("")
-      } catch (fetchError) {
+      } catch {
         if (!controller.signal.aborted) setError(t.assetPickerError)
       } finally {
         if (!controller.signal.aborted) setLoading(false)
