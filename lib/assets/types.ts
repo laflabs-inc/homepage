@@ -68,6 +68,16 @@ export type MediaAssetReference = {
   updatedAt: Date
 }
 
+export type MediaAssetUsage = {
+  revisionId: string
+  kind: DocumentKind
+  locale: Locale
+  title: string
+  status: DocumentStatus
+  field: string
+  updatedAt: Date
+}
+
 export type MediaAssetListFilter = {
   search?: string
   mediaType?: MediaType
@@ -95,3 +105,4 @@ export type UploadIntent = {
   acceptedTypes: readonly MediaType[]
   maxBytes: number
 }
+import type { DocumentKind, DocumentStatus, Locale } from "@/lib/documents/types"

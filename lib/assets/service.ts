@@ -9,7 +9,7 @@ import { parseUploadIntent } from "@/lib/assets/policy"
 import { assetStore, AssetStoreError, type AssetMetadataInput, type MediaAssetRepository } from "@/lib/assets/store"
 import { BlobStore, BlobStoreError, type PublicBlob } from "@/lib/assets/blob-store"
 import { mediaTelemetry, type MediaTelemetry } from "@/lib/assets/telemetry"
-import type { MediaAsset, MediaAssetListFilter, MediaAssetPage, UploadIntent, UploadIntentInput } from "@/lib/assets/types"
+import type { MediaAsset, MediaAssetListFilter, MediaAssetPage, MediaAssetUsage, UploadIntent, UploadIntentInput } from "@/lib/assets/types"
 
 export type AssetServiceErrorCode =
   | "not_found"
@@ -49,6 +49,7 @@ export interface AssetService {
   finalize(id: string, actor: AdminActor): Promise<MediaAsset>
   list(filter: MediaAssetListFilter): Promise<MediaAssetPage>
   get(id: string): Promise<MediaAsset>
+  listUsage(id: string): Promise<MediaAssetUsage[]>
   updateMetadata(id: string, input: AssetMetadataInput, actor: AdminActor): Promise<MediaAsset>
   archive(id: string, actor: AdminActor): Promise<MediaAsset>
   restore(id: string, actor: AdminActor): Promise<MediaAsset>
@@ -248,6 +249,12 @@ export function createAssetService(dependencies: AssetServiceDependencies): Asse
       const asset = await repository.get(id)
       if (!asset) throw new AssetServiceError("not_found")
       return asset
+    },
+
+    async listUsage(id) {
+      const asset = await repository.get(id)
+      if (!asset) throw new AssetServiceError("not_found")
+      return repository.listUsage(id)
     },
 
     updateMetadata(id, input, actor) {

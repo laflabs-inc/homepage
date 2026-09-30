@@ -20,6 +20,7 @@ type AdminAssetService = Pick<
   typeof assetService,
   | "createIntent"
   | "get"
+  | "listUsage"
   | "recordUploadCompleted"
   | "finalize"
   | "list"

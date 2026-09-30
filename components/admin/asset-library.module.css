@@ -142,6 +142,54 @@
   gap: 6px;
 }
 
+.usageState {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.usageList {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+  list-style: none;
+}
+
+.usageList li {
+  min-height: 72px;
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.usageList div {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.usageList strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usageList span,
+.usageList a {
+  color: var(--muted);
+  font: 600 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.usageList a:hover {
+  color: var(--blue);
+}
+
 .toolbar {
   display: grid;
   grid-template-columns: minmax(210px, 1fr) repeat(3, minmax(130px, 0.48fr));

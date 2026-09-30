@@ -3,13 +3,20 @@ import "server-only"
 import { sql, type SQL } from "drizzle-orm"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
-import { adminAuditLog, mediaAssetReferences, mediaAssets } from "@/lib/db/schema"
+import {
+  adminAuditLog,
+  documentRevisions,
+  documentSeries,
+  mediaAssetReferences,
+  mediaAssets,
+} from "@/lib/db/schema"
 import { getDb } from "@/lib/db"
 import type {
   MediaAsset,
   MediaAssetListFilter,
   MediaAssetPage,
   MediaAssetReference,
+  MediaAssetUsage,
   MediaType,
 } from "@/lib/assets/types"
 import type { ProcessedAsset } from "@/lib/assets/image-processor"
@@ -87,6 +94,7 @@ export interface MediaAssetRepository {
   acquireDeletion(id: string, actor: AdminActor): Promise<DeletionAcquisition>
   markDeleted(id: string, actor: AdminActor): Promise<MediaAsset>
   addReference(input: AssetReferenceInput, actor: AdminActor): Promise<MediaAssetReference>
+  listUsage(assetId: string): Promise<MediaAssetUsage[]>
   listStaleProcessing(before: Date, limit?: number): Promise<MediaAsset[]>
   markProcessingTimedOut(id: string, before: Date): Promise<MediaAsset | null>
   listExpiredStaging(before: Date, limit?: number): Promise<MediaAsset[]>
@@ -546,6 +554,33 @@ export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
         createdAt: date(row.createdAt, "createdAt"),
         updatedAt: date(row.updatedAt, "updatedAt"),
       }
+    },
+
+    async listUsage(assetId) {
+      const result = await database.execute(sql`
+        SELECT ref."revision_id" AS "revisionId", series."kind", revision."locale",
+          revision."title", revision."status", ref."field",
+          revision."updated_at" AS "updatedAt"
+        FROM ${mediaAssetReferences} ref
+        INNER JOIN ${documentRevisions} revision ON revision."id" = ref."revision_id"
+        INNER JOIN ${documentSeries} series ON series."id" = revision."series_id"
+        WHERE ref."asset_id" = ${assetId}::uuid
+          AND ref."owner_type" = 'document_revision'
+        ORDER BY revision."updated_at" DESC, revision."id" DESC
+        LIMIT 100
+      `)
+      return result.rows.map((value) => {
+        const row = value as Record<string, unknown>
+        return {
+          revisionId: String(row.revisionId),
+          kind: row.kind as MediaAssetUsage["kind"],
+          locale: row.locale as MediaAssetUsage["locale"],
+          title: String(row.title),
+          status: row.status as MediaAssetUsage["status"],
+          field: String(row.field),
+          updatedAt: date(row.updatedAt, "updatedAt"),
+        }
+      })
     },
 
     async listStaleProcessing(before, limit = 50) {

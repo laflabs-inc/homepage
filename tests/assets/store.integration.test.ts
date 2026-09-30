@@ -224,4 +224,56 @@ describe("media asset store integration", () => {
       await database.close()
     }
   })
+
+  it("lists bounded document usage without returning document bodies", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+      await database.exec(`
+        CREATE TABLE "document_series" (
+          "id" uuid PRIMARY KEY,
+          "kind" text NOT NULL
+        );
+        CREATE TABLE "document_revisions" (
+          "id" uuid PRIMARY KEY,
+          "series_id" uuid NOT NULL,
+          "locale" text NOT NULL,
+          "title" text NOT NULL,
+          "body_markdown" text NOT NULL,
+          "status" text NOT NULL,
+          "updated_at" timestamptz NOT NULL
+        );
+        INSERT INTO "document_series" ("id", "kind") VALUES ('${otherId}', 'notice');
+        INSERT INTO "document_revisions" (
+          "id", "series_id", "locale", "title", "body_markdown", "status", "updated_at"
+        ) VALUES (
+          '${thirdId}', '${otherId}', 'ko', '서비스 공지', 'secret body', 'draft', '2026-09-29T10:00:00Z'
+        );
+        INSERT INTO "media_asset_references" (
+          "asset_id", "owner_type", "owner_id", "field", "revision_id"
+        ) VALUES (
+          '${id}', 'document_revision', '${thirdId}', 'body_markdown', '${thirdId}'
+        );
+      `)
+
+      const usage = await store.listUsage(id)
+      expect(usage).toEqual([expect.objectContaining({
+        revisionId: thirdId,
+        kind: "notice",
+        locale: "ko",
+        title: "서비스 공지",
+        status: "draft",
+        field: "body_markdown",
+      })])
+      expect(usage[0]).not.toHaveProperty("bodyMarkdown")
+    } finally {
+      await database.close()
+    }
+  })
 })
