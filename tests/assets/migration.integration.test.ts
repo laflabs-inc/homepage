@@ -51,8 +51,10 @@ describe("media authoring migration", () => {
     expect(existsSync(authoringMigrationPath)).toBe(true)
     if (!existsSync(authoringMigrationPath)) return
     const migration = readFileSync(authoringMigrationPath, "utf8")
-    expect(migration).toContain("media_asset_references_revision_fk")
-    expect(migration).toContain("ON DELETE CASCADE")
+    expect(migration).toContain(
+      "media_asset_references_revision_id_document_revisions_id_fk",
+    )
+    expect(migration).toContain("ON DELETE cascade")
     expect(migration).toContain("media_asset_references_owner_idx")
   })
 })
