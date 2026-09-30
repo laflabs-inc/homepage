@@ -99,6 +99,10 @@ in the [AI summary operations runbook](docs/ai-operations.md).
 
 Media store provisioning, staged-upload recovery, OIDC operation, and rollback
 procedures are in the [media operations runbook](docs/media-operations.md).
+The Admin document editor can select or upload ready media, save localized alt
+text, and insert only immutable `/media/{assetId}/{safeFilename}` paths. The
+library also supports non-destructive version replacement and document-usage
+inspection; referenced assets cannot be hard-deleted.
 
 All Vercel Cron jobs are Hobby-compatible daily schedules. Scheduled documents
 are published by the `04:07 UTC` daily run; use the admin's immediate publish

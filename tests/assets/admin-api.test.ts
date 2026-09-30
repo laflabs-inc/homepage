@@ -8,6 +8,7 @@ import {
   handleUpdateAsset,
 } from "@/app/api/admin/assets/[id]/route"
 import { handleListAssets } from "@/app/api/admin/assets/route"
+import { handleListAssetReferences } from "@/app/api/admin/assets/[id]/references/route"
 import { AssetServiceError } from "@/lib/assets/service"
 import type { MediaAsset } from "@/lib/assets/types"
 import type { AdminAssetDependencies } from "@/lib/http/admin-assets"
@@ -69,6 +70,15 @@ function dependencies(overrides: Partial<AdminAssetDependencies> = {}): AdminAss
       archive: vi.fn(async () => asset({ status: "archived" })),
       restore: vi.fn(async () => asset()),
       delete: vi.fn(async () => asset({ status: "deleted" })),
+      listUsage: vi.fn(async () => [{
+        revisionId: "11111111-1111-4111-8111-111111111111",
+        kind: "notice" as const,
+        locale: "ko" as const,
+        title: "서비스 공지",
+        status: "draft" as const,
+        field: "body_markdown",
+        updatedAt: new Date("2026-09-29T10:00:00Z"),
+      }]),
     },
     blobStore: { handlePrivateClientUpload: vi.fn() },
     ...overrides,
@@ -147,5 +157,38 @@ describe("Admin asset management API", () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get("cache-control")).toBe("no-store")
+  })
+
+  it("returns safe authenticated document usage", async () => {
+    const deps = dependencies()
+    const response = await handleListAssetReferences(
+      new Request(`https://laflabs.co/api/admin/assets/${id}/references`),
+      id,
+      deps,
+    )
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ references: [{
+      revisionId: "11111111-1111-4111-8111-111111111111",
+      kind: "notice",
+      locale: "ko",
+      title: "서비스 공지",
+      status: "draft",
+      field: "body_markdown",
+      updatedAt: "2026-09-29T10:00:00.000Z",
+    }] })
+    expect(response.headers.get("cache-control")).toBe("no-store")
+  })
+
+  it("rejects malformed usage IDs before reading storage", async () => {
+    const deps = dependencies()
+    const response = await handleListAssetReferences(
+      new Request("https://laflabs.co/api/admin/assets/nope/references"),
+      "nope",
+      deps,
+    )
+
+    expect(response.status).toBe(400)
+    expect(deps.service.listUsage).not.toHaveBeenCalled()
   })
 })

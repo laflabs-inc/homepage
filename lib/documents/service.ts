@@ -12,6 +12,7 @@ import type {
 } from "@/lib/documents/types"
 import { documentDraftSchema, generatedSummarySchema, publishDocumentSchema } from "@/lib/documents/validation"
 import { documentStore } from "@/lib/documents/store"
+import { extractLafMediaReferences } from "@/lib/markdown/media-assets"
 
 export type DocumentServiceErrorCode =
   | "not_found"
@@ -26,6 +27,7 @@ export type DocumentServiceErrorCode =
   | "invalid_state"
   | "confirmation_mismatch"
   | "delete_dependency"
+  | "asset_unavailable"
   | "unavailable"
 
 export class DocumentServiceError extends Error {
@@ -60,6 +62,23 @@ function publicInput(revision: DocumentRevision): DocumentDraftInput {
     bodyMarkdown: revision.bodyMarkdown,
     effectiveAt: revision.effectiveAt,
   }
+}
+
+async function requireAvailableAssets(
+  repository: DocumentRepository,
+  snapshot: PublicationTransitionSnapshot,
+): Promise<void> {
+  if ((await repository.listUnavailableAssetIds(snapshot.assetIds)).length > 0) {
+    throw new DocumentServiceError(
+      "asset_unavailable",
+      "A managed media asset is unavailable",
+      { fields: ["bodyMarkdown"] },
+    )
+  }
+}
+
+function assetSnapshot(input: Pick<DocumentDraftInput, "bodyMarkdown">) {
+  return { assetIds: extractLafMediaReferences(input.bodyMarkdown).map(({ assetId }) => assetId) }
 }
 
 async function requireRevision(repository: DocumentRepository, revisionId: string): Promise<DocumentRevision> {
@@ -97,6 +116,7 @@ function requirePublishable(revision: DocumentRevision): PublicationTransitionSn
     normalizedSummary: result.data.summary,
     bodyMarkdown: revision.bodyMarkdown,
     effectiveAt: revision.effectiveAt,
+    assetIds: assetSnapshot(revision).assetIds,
   }
 }
 
@@ -173,6 +193,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       throw new DocumentServiceError("conflict", "The document changed before publication")
     }
     const snapshot = requirePublishable(revision)
+    await requireAvailableAssets(repository, snapshot)
     await requireAssignableCategory(categories, publicInput(revision), revision.category)
     if (revision.locale === "en") await requirePublishedKorean(repository, revision.seriesId)
     return repository.publishRevision(revisionId, snapshot, actor, now)
@@ -185,7 +206,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       if (validInput.locale !== "ko") {
         throw new DocumentServiceError("korean_required", "Create the Korean revision first")
       }
-      return repository.createDraft(validInput, actor)
+      return repository.createDraft(validInput, actor, assetSnapshot(validInput))
     },
 
     async createEnglishDraft(seriesId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
@@ -210,7 +231,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       if (series.some(({ locale, status }) => locale === "en" && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable English revision already exists")
       }
-      return repository.createNextDraft(seriesId, validInput, actor)
+      return repository.createNextDraft(seriesId, validInput, actor, assetSnapshot(validInput))
     },
 
     async updateDraft(revisionId: string, input: DocumentDraftInput, actor: AdminActor): Promise<DocumentRevision> {
@@ -226,7 +247,7 @@ export function createDocumentService(repository: DocumentRepository, categories
         throw new DocumentServiceError("conflict", "Shared series metadata cannot be changed")
       }
       await requireAssignableCategory(categories, validInput, revision.category)
-      return repository.updateDraft(revisionId, validInput, actor)
+      return repository.updateDraft(revisionId, validInput, actor, assetSnapshot(validInput))
     },
 
     async updateDraftSummary(
@@ -281,7 +302,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       if (series.some(({ locale, status }) => locale === source.locale && (status === "draft" || status === "scheduled"))) {
         throw new DocumentServiceError("conflict", "An editable revision already exists")
       }
-      return repository.createNextDraft(source.seriesId, publicInput(source), actor)
+      return repository.createNextDraft(source.seriesId, publicInput(source), actor, assetSnapshot(source))
     },
 
     async schedule(
@@ -293,6 +314,7 @@ export function createDocumentService(repository: DocumentRepository, categories
       const revision = await requireRevision(repository, revisionId)
       requireDraft(revision)
       const snapshot = requirePublishable(revision)
+      await requireAvailableAssets(repository, snapshot)
       if (!Number.isFinite(scheduledAt.getTime()) || scheduledAt.getTime() <= now.getTime()) {
         throw new DocumentServiceError("invalid_schedule", "Scheduled publication must be in the future")
       }

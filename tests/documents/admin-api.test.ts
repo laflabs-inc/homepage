@@ -636,6 +636,27 @@ describe("admin document revision actions", () => {
     expect(deps.revalidate).not.toHaveBeenCalled()
   })
 
+  it("returns a safe field-level conflict when managed media is unavailable", async () => {
+    const deps = dependencies()
+    deps.publishWithSummaryPolicy.mockRejectedValue(new DocumentServiceError(
+      "asset_unavailable",
+      "A managed asset is unavailable",
+      { fields: ["bodyMarkdown"] },
+    ))
+
+    const response = await handlePublishDocument(
+      jsonRequest(`/api/admin/documents/${revisionId}/publish`, {}),
+      revisionId,
+      deps,
+    )
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toEqual({
+      error: "asset_unavailable",
+      fields: ["bodyMarkdown"],
+    })
+  })
+
   it("archives and invalidates only after the committed public change", async () => {
     const deps = dependencies()
     const response = await handleArchiveDocument(

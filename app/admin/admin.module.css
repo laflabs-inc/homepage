@@ -367,11 +367,14 @@
   outline-offset: 3px;
 }
 
-.markdownViewSwitch {
+.markdownToolbar {
   position: absolute;
   z-index: 2;
   top: 14px;
   right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .markdownCodeMirror {
@@ -1574,7 +1577,7 @@
     padding: 22px 20px 0;
   }
 
-  .markdownViewSwitch {
+  .markdownToolbar {
     top: 10px;
     right: 10px;
   }

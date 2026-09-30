@@ -3,13 +3,20 @@ import "server-only"
 import { sql, type SQL } from "drizzle-orm"
 
 import type { AdminActor } from "@/lib/auth/admin-api"
-import { adminAuditLog, mediaAssetReferences, mediaAssets } from "@/lib/db/schema"
+import {
+  adminAuditLog,
+  documentRevisions,
+  documentSeries,
+  mediaAssetReferences,
+  mediaAssets,
+} from "@/lib/db/schema"
 import { getDb } from "@/lib/db"
 import type {
   MediaAsset,
   MediaAssetListFilter,
   MediaAssetPage,
   MediaAssetReference,
+  MediaAssetUsage,
   MediaType,
 } from "@/lib/assets/types"
 import type { ProcessedAsset } from "@/lib/assets/image-processor"
@@ -30,6 +37,7 @@ export class AssetStoreError extends Error {
 export type PendingAssetInput = {
   id: string
   familyId: string
+  previousAssetId?: string
   originalFilename: string
   declaredMediaType: string
   stagingPathname: string
@@ -86,6 +94,7 @@ export interface MediaAssetRepository {
   acquireDeletion(id: string, actor: AdminActor): Promise<DeletionAcquisition>
   markDeleted(id: string, actor: AdminActor): Promise<MediaAsset>
   addReference(input: AssetReferenceInput, actor: AdminActor): Promise<MediaAssetReference>
+  listUsage(assetId: string): Promise<MediaAssetUsage[]>
   listStaleProcessing(before: Date, limit?: number): Promise<MediaAsset[]>
   markProcessingTimedOut(id: string, before: Date): Promise<MediaAsset | null>
   listExpiredStaging(before: Date, limit?: number): Promise<MediaAsset[]>
@@ -179,8 +188,35 @@ function auditCte(action: string, actor: AdminActor, metadata: SQL = sql`'{}'::j
 export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
   return {
     async createPending(input, actor) {
-      const result = await database.execute(sql`
-        WITH changed AS (
+      try {
+        const result = input.previousAssetId
+          ? await database.execute(sql`
+            WITH locked_source AS (
+              SELECT * FROM ${mediaAssets}
+              WHERE "id" = ${input.previousAssetId}::uuid
+                AND "status" IN ('ready', 'archived')
+              FOR UPDATE
+            ), next_version AS (
+              SELECT COALESCE(MAX(family."version"), 0) + 1 AS "version"
+              FROM ${mediaAssets} family
+              INNER JOIN locked_source source ON source."family_id" = family."family_id"
+            ), changed AS (
+              INSERT INTO ${mediaAssets} (
+                "id", "visibility", "status", "original_filename", "declared_media_type",
+                "staging_pathname", "family_id", "previous_asset_id", "version",
+                "created_by", "updated_by", "created_by_name", "updated_by_name"
+              )
+              SELECT ${input.id}::uuid, 'public', 'pending', ${input.originalFilename},
+                ${input.declaredMediaType}, ${input.stagingPathname}, source."family_id", source."id",
+                next_version."version", ${actor.githubId}, ${actor.githubId}, ${actor.name}, ${actor.name}
+              FROM locked_source source CROSS JOIN next_version
+              RETURNING *
+            ), audit_entry AS (${auditCte("media.intent_created", actor, sql`jsonb_build_object('previousAssetId', ${input.previousAssetId}::text)`)})
+            SELECT ${assetColumns} FROM changed
+            WHERE (SELECT count(*) FROM audit_entry) >= 0
+          `)
+          : await database.execute(sql`
+          WITH changed AS (
           INSERT INTO ${mediaAssets} (
             "id", "visibility", "status", "original_filename", "declared_media_type",
             "staging_pathname", "family_id", "created_by", "updated_by",
@@ -194,7 +230,14 @@ export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
         SELECT ${assetColumns} FROM changed
         WHERE (SELECT count(*) FROM audit_entry) >= 0
       `)
-      return requiredAsset(result.rows, "conflict")
+        return requiredAsset(result.rows, "conflict")
+      } catch (error) {
+        if (error instanceof AssetStoreError) throw error
+        if (typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === "23505") {
+          throw new AssetStoreError("conflict")
+        }
+        throw error
+      }
     },
 
     async get(id) {
@@ -511,6 +554,33 @@ export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
         createdAt: date(row.createdAt, "createdAt"),
         updatedAt: date(row.updatedAt, "updatedAt"),
       }
+    },
+
+    async listUsage(assetId) {
+      const result = await database.execute(sql`
+        SELECT ref."revision_id" AS "revisionId", series."kind", revision."locale",
+          revision."title", revision."status", ref."field",
+          revision."updated_at" AS "updatedAt"
+        FROM ${mediaAssetReferences} ref
+        INNER JOIN ${documentRevisions} revision ON revision."id" = ref."revision_id"
+        INNER JOIN ${documentSeries} series ON series."id" = revision."series_id"
+        WHERE ref."asset_id" = ${assetId}::uuid
+          AND ref."owner_type" = 'document_revision'
+        ORDER BY revision."updated_at" DESC, revision."id" DESC
+        LIMIT 100
+      `)
+      return result.rows.map((value) => {
+        const row = value as Record<string, unknown>
+        return {
+          revisionId: String(row.revisionId),
+          kind: row.kind as MediaAssetUsage["kind"],
+          locale: row.locale as MediaAssetUsage["locale"],
+          title: String(row.title),
+          status: row.status as MediaAssetUsage["status"],
+          field: String(row.field),
+          updatedAt: date(row.updatedAt, "updatedAt"),
+        }
+      })
     },
 
     async listStaleProcessing(before, limit = 50) {

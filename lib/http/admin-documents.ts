@@ -67,7 +67,7 @@ export function serviceErrorResponse(error: unknown): Response {
         ? 503
         : 409
     return jsonNoStore(
-      error.code === "incomplete_document"
+      error.code === "incomplete_document" || error.code === "asset_unavailable"
         ? { error: error.code, fields: error.fields }
         : { error: error.code },
       { status },

@@ -25,9 +25,41 @@ boundary: unverified browser uploads must never be readable from a public URL.
    connections change.
 5. Set `CRON_SECRET` independently. The daily cleanup request uses
    `Authorization: Bearer <CRON_SECRET>`.
-6. Apply database migration `0011_media_platform.sql` before deploying code
-   that exposes the Admin media routes. Then deploy and verify the migration
-   journal matches the release.
+6. Apply database migrations `0011_media_platform.sql` and
+   `0012_media_authoring.sql` before deploying code that exposes the Admin
+   media routes. Migration 0012 adds only a nullable revision foreign key and
+   an owner lookup index, so it remains compatible while old and new
+   application versions overlap. Then deploy and verify the migration journal
+   matches the release.
+
+## Authoring workflow
+
+1. In a document draft, choose **Insert managed image** in the Markdown
+   toolbar. The picker lists only `ready` assets; archived assets remain
+   deliverable but are intentionally hidden from new selection.
+2. Enter meaningful alternative text in the document language. If it differs
+   from the asset metadata, the picker saves that locale before inserting.
+3. The editor inserts only
+   `/media/{assetId}/{safeFilename}` Markdown. Never paste a Blob provider URL.
+4. Saving a draft synchronizes its valid references atomically. A broken local
+   media path may remain in a draft for repair, but schedule and publish reject
+   it with `asset_unavailable` until the asset is `ready` or `archived`.
+5. Use **Document usage** on an asset before cleanup. It lists at most 100
+   referencing revisions and links to their Admin editor pages without
+   returning document bodies.
+
+## Archive, replacement, and deletion
+
+- **Archive** hides an asset from the picker while keeping every existing
+  stable path available. Restore makes it selectable again.
+- **Create a new version** uploads a new immutable asset ID in the same family.
+  The old file, path, metadata, and document references are never rewritten.
+- **Delete permanently** is available only for archived or failed assets and
+  remains blocked with `409 asset_referenced` while any saved revision uses the
+  asset. Open Document usage and update or delete those revisions first.
+- A failed replacement does not affect the previous version. Retry the new
+  pending/failed asset or start another replacement; do not mutate the old
+  public object.
 
 ## Release verification
 
@@ -41,9 +73,14 @@ Use a disposable image without sensitive metadata.
 4. Open the stable media path. It must return `308` only for a ready or archived
    public asset, with a one-year immutable cache policy. Archiving hides an
    asset from new selection without breaking existing delivery.
-5. Archive and restore the asset, then archive and delete it. Referenced assets
+5. Insert the asset through the document picker, save the draft, and confirm
+   Document usage links back to that revision. Scheduling or publishing must
+   reject missing, deleting, or deleted local assets.
+6. Create a replacement and confirm it receives a new ID and the next family
+   version while the original Markdown path remains unchanged.
+7. Archive and restore the asset, then archive and delete it. Referenced assets
    must return `409 asset_referenced` instead of deleting.
-6. Check that the private object disappears after successful promotion and the
+8. Check that the private object disappears after successful promotion and the
    public object remains immutable.
 
 ## Cleanup and manual recovery
@@ -119,3 +156,6 @@ with setup guidance; keep the cleanup job active when compatible, and redeploy
 the last known-good version.
 If the previous release predates media support, temporarily disable only the
 asset cleanup schedule while preserving all rows and objects for a forward fix.
+The nullable migration 0012 foreign key and owner index can remain in place
+during rollback. Existing stable paths and every previous asset version remain
+valid; do not reverse the migration or rewrite Markdown.

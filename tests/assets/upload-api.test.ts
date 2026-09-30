@@ -72,6 +72,7 @@ function dependencies(overrides: Partial<AdminAssetDependencies> = {}): AdminAss
         maxBytes: 10 * 1024 * 1024,
       })),
       get: vi.fn(async () => asset()),
+      listUsage: vi.fn(async () => []),
       recordUploadCompleted: vi.fn(async () => asset({ stagingUrl: "https://private.example/staged" })),
       finalize: vi.fn(async () => asset({
         status: "ready",

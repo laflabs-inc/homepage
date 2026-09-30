@@ -119,6 +119,28 @@ function dependencies(overrides: Partial<AssetServiceDependencies> = {}): AssetS
 }
 
 describe("asset lifecycle service", () => {
+  it("creates a replacement intent without changing the source asset", async () => {
+    const deps = dependencies()
+    vi.mocked(deps.repository.createPending).mockResolvedValueOnce(asset({
+      id: "00000000-0000-4000-8000-000000000010",
+      familyId: id,
+      previousAssetId: id,
+      version: 2,
+    }))
+    const service = createAssetService(deps)
+
+    await service.createIntent({
+      originalFilename: "hero-v2.png",
+      declaredMediaType: "image/png",
+      byteSize: 200,
+      replaceAssetId: id,
+    }, actor)
+
+    expect(deps.repository.createPending).toHaveBeenCalledWith(expect.objectContaining({
+      previousAssetId: id,
+    }), actor)
+  })
+
   it("finalizes once and returns the stored ready asset on repeat", async () => {
     const deps = dependencies()
     const service = createAssetService(deps)

@@ -55,6 +55,7 @@ const publicationSnapshot = {
   normalizedSummary: publishedRow.summary.trim(),
   bodyMarkdown: publishedRow.bodyMarkdown,
   effectiveAt: publishedRow.effectiveAt,
+  assetIds: [] as string[],
 }
 
 beforeEach(() => {
@@ -153,7 +154,7 @@ describe("document publication store boundary", () => {
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
 
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_revisions as")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("for update")
@@ -178,6 +179,9 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("locked_revision.\"summary\" =")
     expect(normalizedSql).toContain("locked_revision.\"body_markdown\" =")
     expect(normalizedSql).toContain("locked_revision.\"effective_at\" is not distinct from")
+    expect(normalizedSql).toContain("requested_assets as")
+    expect(normalizedSql).toContain("available_assets as")
+    expect(normalizedSql).toContain("not exists")
     expect(normalizedSql).toContain("locked_revision.\"kind\" =")
     expect(normalizedSql).toContain("locked_revision.\"locale\" =")
     expect(normalizedSql).toContain("locked_revision.\"slug\" =")
@@ -296,7 +300,7 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_revisions as")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("korean.\"locale\" = 'ko'")
@@ -316,7 +320,7 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_series.\"metadata_locked\"")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revision as"))
     expect(normalizedSql).not.toContain("from \"document_revisions\" sibling")
@@ -342,7 +346,7 @@ describe("document publication store boundary", () => {
       normalizedSql.indexOf("locked_revision as"),
       normalizedSql.indexOf("), eligible as"),
     )
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(lockedSql).toContain("from \"document_revisions\" r")
     expect(lockedSql).toContain("locked_series")
     expect(lockedSql).toContain("for update of r")
@@ -360,7 +364,7 @@ describe("document publication store boundary", () => {
 
     const compiled = new PgDialect().sqlToQuery(execute.mock.calls[0][0])
     const normalizedSql = compiled.sql.replace(/\s+/g, " ").toLowerCase()
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_revisions as")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("deleted_series as")
@@ -430,7 +434,7 @@ describe("document publication store boundary", () => {
     expect(normalizedSql).toContain("managed_category.\"kind\" = locked_revision.\"kind\"")
     expect(normalizedSql).toContain("managed_category.\"slug\" = locked_revision.\"category\"")
     expect(normalizedSql).not.toContain("category\" in ('general'")
-    expect(normalizedSql).toContain("with locked_series as")
+    expect(normalizedSql).toContain("locked_series as")
     expect(normalizedSql).toContain("locked_revisions as")
     expect(normalizedSql.indexOf("locked_series as")).toBeLessThan(normalizedSql.indexOf("locked_revisions as"))
     expect(normalizedSql).toContain("locked_revision.\"title\" =")

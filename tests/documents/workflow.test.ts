@@ -23,6 +23,7 @@ import type {
 
 const actor: AdminActor = { githubId: "github:42", name: "Laf Admin" }
 const now = new Date("2026-08-23T12:00:00.000Z")
+const managedAssetId = "9bbf61b9-9ef4-42c1-a498-43e6049d5188"
 const input: DocumentDraftInput = {
   kind: "notice",
   locale: "ko",
@@ -44,6 +45,8 @@ class MemoryDocumentRepository implements DocumentRepository {
   replaceBeforeArchive = false
   transitionMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown" | "effectiveAt">> | null = null
   summaryMutation: Partial<Pick<DocumentRevision, "title" | "summary" | "bodyMarkdown">> | null = null
+  assetSnapshots: string[][] = []
+  unavailableAssetIds = new Set<string>()
   private nextId = 1
 
   seed(values: Partial<DocumentRevision> & Pick<DocumentRevision, "seriesId" | "locale" | "status">): DocumentRevision {
@@ -76,7 +79,8 @@ class MemoryDocumentRepository implements DocumentRepository {
     return revision
   }
 
-  async createDraft(values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
+  async createDraft(values: DocumentDraftInput, admin: AdminActor, assets?: { assetIds: string[] }): Promise<DocumentRevision> {
+    this.assetSnapshots.push(assets?.assetIds ?? [])
     return this.seed({
       ...values,
       seriesId: `series-${this.nextId}`,
@@ -93,6 +97,10 @@ class MemoryDocumentRepository implements DocumentRepository {
   async getRevision(revisionId: string): Promise<DocumentRevision | null> {
     if (this.readFailure) throw this.readFailure
     return this.revisions.find(({ id }) => id === revisionId) ?? null
+  }
+
+  async listUnavailableAssetIds(assetIds: string[]): Promise<string[]> {
+    return assetIds.filter((assetId) => this.unavailableAssetIds.has(assetId))
   }
 
   async getSeriesState(seriesId: string) {
@@ -117,7 +125,8 @@ class MemoryDocumentRepository implements DocumentRepository {
       }))
   }
 
-  async updateDraft(revisionId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
+  async updateDraft(revisionId: string, values: DocumentDraftInput, admin: AdminActor, assets?: { assetIds: string[] }): Promise<DocumentRevision> {
+    this.assetSnapshots.push(assets?.assetIds ?? [])
     const revision = await this.required(revisionId)
     if (revision.status !== "draft") throw new Error("immutable")
     Object.assign(revision, values, { updatedBy: admin.githubId, updatedAt: now })
@@ -192,7 +201,8 @@ class MemoryDocumentRepository implements DocumentRepository {
     })
   }
 
-  async createNextDraft(seriesId: string, values: DocumentDraftInput, admin: AdminActor): Promise<DocumentRevision> {
+  async createNextDraft(seriesId: string, values: DocumentDraftInput, admin: AdminActor, assets?: { assetIds: string[] }): Promise<DocumentRevision> {
+    this.assetSnapshots.push(assets?.assetIds ?? [])
     const revisions = this.revisions.filter((revision) => revision.seriesId === seriesId && revision.locale === values.locale)
     return this.seed({
       ...values,
@@ -760,6 +770,45 @@ describe("document workflow service", () => {
     expect(repository.revisions.find(({ id }) => id === draft.id)?.summary).toBe("즉시 공개 요약")
   })
 
+  it.each(["schedule", "publish", "publishWithExpectedSummary"] as const)(
+    "rejects unavailable managed media before %s",
+    async (operation) => {
+      const draft = repository.seed({
+        seriesId: "series-1",
+        locale: "ko",
+        status: "draft",
+        bodyMarkdown: `![Architecture](/media/${managedAssetId}/architecture.png)`,
+      })
+      repository.unavailableAssetIds.add(managedAssetId)
+
+      const action = operation === "schedule"
+        ? service.schedule(draft.id, new Date(now.getTime() + 60_000), actor, now)
+        : operation === "publishWithExpectedSummary"
+          ? service.publishWithExpectedSummary(draft.id, {
+              title: draft.title,
+              summary: draft.summary,
+              bodyMarkdown: draft.bodyMarkdown,
+            }, actor, now)
+          : service.publish(draft.id, actor, now)
+
+      await expect(action).rejects.toMatchObject({
+        code: "asset_unavailable",
+        fields: ["bodyMarkdown"],
+      })
+    },
+  )
+
+  it("allows managed media that the repository reports as available", async () => {
+    const draft = repository.seed({
+      seriesId: "series-1",
+      locale: "ko",
+      status: "draft",
+      bodyMarkdown: `![Architecture](/media/${managedAssetId}/architecture.png)`,
+    })
+
+    await expect(service.publish(draft.id, actor, now)).resolves.toMatchObject({ status: "published" })
+  })
+
   it.each([
     ["summary", { summary: "" }],
     ["bodyMarkdown", { bodyMarkdown: "![](https://example.com/status.png)" }],
@@ -917,5 +966,14 @@ describe("document workflow service", () => {
 
     await expect(service.getRevision(revision.id)).resolves.toEqual(revision)
     await expect(service.getRevision("missing")).resolves.toBeNull()
+  })
+
+  it("passes deduplicated managed media references into draft persistence", async () => {
+    const assetId = "11111111-1111-4111-8111-111111111111"
+    await service.createDraft({
+      ...input,
+      bodyMarkdown: `![첫째](/media/${assetId}/hero.png)\n\n![중복](/media/${assetId}/hero.png)`,
+    }, actor)
+    expect(repository.assetSnapshots.at(-1)).toEqual([assetId])
   })
 })

@@ -151,6 +151,9 @@ function mutationErrorMessage(
     }
     return t.incompleteDocument
   }
+  if (error === "asset_unavailable") {
+    return t.assetUnavailable(isPublish)
+  }
   if (error === "provider_unavailable") {
     return t.providerUnavailable
   }
@@ -586,6 +589,7 @@ export function DocumentEditor({
             </div>
             <MarkdownLiveEditor
               value={values.bodyMarkdown}
+              documentLocale={values.locale}
               onChange={(nextValue) => update("bodyMarkdown", nextValue)}
             />
           </div>

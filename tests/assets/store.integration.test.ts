@@ -11,6 +11,7 @@ const actor = { githubId: "github:42", name: "Laf Admin" }
 const id = "00000000-0000-4000-8000-000000000001"
 const otherId = "00000000-0000-4000-8000-000000000002"
 const nonce = "00000000-0000-4000-8000-000000000003"
+const thirdId = "00000000-0000-4000-8000-000000000004"
 
 async function setup() {
   const database = new PGlite()
@@ -83,6 +84,101 @@ describe("media asset store integration", () => {
     }
   })
 
+  it("creates immutable replacement versions in the source family", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+      await database.exec(`UPDATE "media_assets" SET "status" = 'ready' WHERE "id" = '${id}'`)
+
+      const replacement = await store.createPending({
+        id: otherId,
+        familyId: otherId,
+        previousAssetId: id,
+        originalFilename: "Hero-v2.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${otherId}/${nonce}`,
+      }, actor)
+
+      expect(replacement).toMatchObject({
+        id: otherId,
+        familyId: id,
+        previousAssetId: id,
+        version: 2,
+        status: "pending",
+      })
+      await expect(store.get(id)).resolves.toMatchObject({ status: "ready", version: 1 })
+    } finally {
+      await database.close()
+    }
+  })
+
+  it("rejects replacement from a non-deliverable asset", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+
+      await expect(store.createPending({
+        id: otherId,
+        familyId: otherId,
+        previousAssetId: id,
+        originalFilename: "Hero-v2.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${otherId}/${nonce}`,
+      }, actor)).rejects.toMatchObject({ code: "conflict" })
+    } finally {
+      await database.close()
+    }
+  })
+
+  it("serializes concurrent replacements into distinct family versions", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+      await database.exec(`UPDATE "media_assets" SET "status" = 'ready' WHERE "id" = '${id}'`)
+
+      const versions = await Promise.all([
+        store.createPending({
+          id: otherId,
+          familyId: otherId,
+          previousAssetId: id,
+          originalFilename: "Hero-v2.PNG",
+          declaredMediaType: "image/png",
+          stagingPathname: `staging/${otherId}/${nonce}`,
+        }, actor),
+        store.createPending({
+          id: thirdId,
+          familyId: thirdId,
+          previousAssetId: id,
+          originalFilename: "Hero-v3.PNG",
+          declaredMediaType: "image/png",
+          stagingPathname: `staging/${thirdId}/${nonce}`,
+        }, actor),
+      ])
+
+      expect(versions.map(({ version }) => version).sort()).toEqual([2, 3])
+    } finally {
+      await database.close()
+    }
+  })
+
   it("blocks references once hard deletion is acquired", async () => {
     const { database, store } = await setup()
     try {
@@ -124,6 +220,58 @@ describe("media asset store integration", () => {
         items: [{ id, tags: ["hero", "company"] }],
         nextCursor: null,
       })
+    } finally {
+      await database.close()
+    }
+  })
+
+  it("lists bounded document usage without returning document bodies", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Hero.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+      await database.exec(`
+        CREATE TABLE "document_series" (
+          "id" uuid PRIMARY KEY,
+          "kind" text NOT NULL
+        );
+        CREATE TABLE "document_revisions" (
+          "id" uuid PRIMARY KEY,
+          "series_id" uuid NOT NULL,
+          "locale" text NOT NULL,
+          "title" text NOT NULL,
+          "body_markdown" text NOT NULL,
+          "status" text NOT NULL,
+          "updated_at" timestamptz NOT NULL
+        );
+        INSERT INTO "document_series" ("id", "kind") VALUES ('${otherId}', 'notice');
+        INSERT INTO "document_revisions" (
+          "id", "series_id", "locale", "title", "body_markdown", "status", "updated_at"
+        ) VALUES (
+          '${thirdId}', '${otherId}', 'ko', '서비스 공지', 'secret body', 'draft', '2026-09-29T10:00:00Z'
+        );
+        INSERT INTO "media_asset_references" (
+          "asset_id", "owner_type", "owner_id", "field", "revision_id"
+        ) VALUES (
+          '${id}', 'document_revision', '${thirdId}', 'body_markdown', '${thirdId}'
+        );
+      `)
+
+      const usage = await store.listUsage(id)
+      expect(usage).toEqual([expect.objectContaining({
+        revisionId: thirdId,
+        kind: "notice",
+        locale: "ko",
+        title: "서비스 공지",
+        status: "draft",
+        field: "body_markdown",
+      })])
+      expect(usage[0]).not.toHaveProperty("bodyMarkdown")
     } finally {
       await database.close()
     }

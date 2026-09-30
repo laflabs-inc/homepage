@@ -3,8 +3,10 @@
 import {
   Archive,
   ArrowCounterClockwise,
+  ArrowsClockwise,
   Copy,
   GridFour,
+  LinkSimple,
   ListBullets,
   NotePencil,
   Trash,
@@ -47,6 +49,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminAssetSummary } from "@/lib/assets/admin-summary"
 import type { MediaAssetStatus, MediaType } from "@/lib/assets/types"
+
+type AssetUsage = {
+  revisionId: string
+  kind: "notice" | "legal" | "disclosure"
+  locale: "ko" | "en"
+  title: string
+  status: "draft" | "scheduled" | "published" | "archived"
+  field: string
+  updatedAt: string
+}
 
 export type { AdminAssetSummary } from "@/lib/assets/admin-summary"
 
@@ -182,6 +194,11 @@ export function AssetLibrary({
   const [view, setView] = useState<"grid" | "list">("grid")
   const [selected, setSelected] = useState<AdminAssetSummary | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
+  const [replacement, setReplacement] = useState<AdminAssetSummary | null>(null)
+  const [usageAsset, setUsageAsset] = useState<AdminAssetSummary | null>(null)
+  const [usage, setUsage] = useState<AssetUsage[]>([])
+  const [usageLoading, setUsageLoading] = useState(false)
+  const [usageError, setUsageError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -226,6 +243,23 @@ export function AssetLibrary({
     setAssets((current) => current.map((asset) => asset.id === updated.id ? updated : asset))
   }
 
+  const openUsage = async (asset: AdminAssetSummary) => {
+    setUsageAsset(asset)
+    setUsage([])
+    setUsageError(null)
+    setUsageLoading(true)
+    try {
+      const response = await fetch(`/api/admin/assets/${asset.id}/references`)
+      if (!response.ok) throw new Error("request_failed")
+      const body = await response.json() as { references: AssetUsage[] }
+      setUsage(body.references)
+    } catch {
+      setUsageError(t.usageError)
+    } finally {
+      setUsageLoading(false)
+    }
+  }
+
   const mutateAsset = async (
     asset: AdminAssetSummary,
     operation: "archive" | "restore" | "delete",
@@ -240,6 +274,15 @@ export function AssetLibrary({
           body: JSON.stringify({ confirm: true }),
         })
         : await fetch(`/api/admin/assets/${asset.id}/${operation}`, { method: "POST" })
+      if (!response.ok) {
+        const body = await response.json().catch(() => null) as { error?: string } | null
+        if (body?.error === "asset_referenced") {
+          setError(t.assetReferenced)
+          await openUsage(asset)
+          return
+        }
+        throw new Error("request_failed")
+      }
       const updated = await readAsset(response)
       if (operation === "delete") setAssets((current) => current.filter((item) => item.id !== asset.id))
       else replaceAsset(updated)
@@ -394,6 +437,24 @@ export function AssetLibrary({
                         <Copy aria-hidden size={16} weight="bold" />
                       </Button>
                     ) : null}
+                    {(asset.status === "ready" || asset.status === "archived") ? (
+                      <Button
+                        size="compact"
+                        variant="secondary"
+                        aria-label={t.replace(asset.originalFilename)}
+                        onClick={() => setReplacement(asset)}
+                      >
+                        <ArrowsClockwise aria-hidden size={16} weight="bold" />
+                      </Button>
+                    ) : null}
+                    <Button
+                      size="compact"
+                      variant="secondary"
+                      aria-label={t.usage(asset.originalFilename)}
+                      onClick={() => void openUsage(asset)}
+                    >
+                      <LinkSimple aria-hidden size={16} weight="bold" />
+                    </Button>
                     {asset.status === "ready" ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -449,10 +510,57 @@ export function AssetLibrary({
         <Link className={styles.nextLink} href={hrefFor(initialFilters, nextCursor)}>{t.nextPage}</Link>
       ) : null}
 
-      <aside className={styles.futureNotes} aria-label="Pending media capabilities">
-        <p>{t.versionUnavailable}</p>
-        <p>{t.referencesUnavailable}</p>
-      </aside>
+      <Dialog open={Boolean(replacement)} onOpenChange={(open) => { if (!open) setReplacement(null) }}>
+        <DialogContent closeLabel={t.close}>
+          <DialogHeader>
+            <DialogTitle>{t.replaceTitle}</DialogTitle>
+            <DialogDescription>
+              {replacement ? t.replaceDescription(replacement.originalFilename, replacement.version) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {replacement ? (
+            <AssetUploadQueue
+              replaceAssetId={replacement.id}
+              multiple={false}
+              onReady={(asset) => {
+                setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)])
+                setReplacement(null)
+                setNotice(t.replacedNotice(asset.version))
+              }}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(usageAsset)} onOpenChange={(open) => { if (!open) setUsageAsset(null) }}>
+        <DialogContent closeLabel={t.close}>
+          <DialogHeader>
+            <DialogTitle>{t.usageTitle}</DialogTitle>
+            <DialogDescription>{usageAsset ? t.usageDescription(usageAsset.originalFilename) : ""}</DialogDescription>
+          </DialogHeader>
+          {error === t.assetReferenced ? <p className={styles.errorText} role="alert">{error}</p> : null}
+          {usageLoading ? <p className={styles.usageState} role="status">{t.usageLoading}</p> : null}
+          {usageError ? <p className={styles.errorText} role="alert">{usageError}</p> : null}
+          {!usageLoading && !usageError && usage.length === 0 ? (
+            <EmptyState title={t.usageEmpty} description={t.usageEmptyDescription} />
+          ) : null}
+          {usage.length > 0 ? (
+            <ul className={styles.usageList}>
+              {usage.map((reference) => (
+                <li key={`${reference.revisionId}:${reference.field}`}>
+                  <div>
+                    <strong>{reference.title}</strong>
+                    <span>{reference.locale.toUpperCase()} · {t.usageStatus[reference.status]}</span>
+                  </div>
+                  <Link href={`/admin/documents/${reference.revisionId}`} aria-label={t.openUsage(reference.title)}>
+                    {t.open}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {selected ? (
         <AssetMetadataDialog

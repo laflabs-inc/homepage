@@ -76,7 +76,7 @@ describe("AssetLibrary", () => {
     })
   })
 
-  it("copies the stable delivery path and exposes unavailable future operations", async () => {
+  it("copies the stable delivery path and exposes replacement", async () => {
     const user = userEvent.setup()
     const writeText = vi.spyOn(navigator.clipboard, "writeText")
     render(
@@ -88,8 +88,8 @@ describe("AssetLibrary", () => {
     await user.click(screen.getByRole("button", { name: "Copy path for brand.png" }))
     expect(writeText).toHaveBeenCalledWith(asset.src)
     expect(screen.getByText("Stable path copied.")).toBeInTheDocument()
-    expect(screen.getByText("Version replacement is not available yet.")).toBeInTheDocument()
-    expect(screen.getByText("Reference browsing is not available yet.")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Replace brand.png" })).toBeEnabled()
+    expect(screen.getByRole("button", { name: "View usage for brand.png" })).toBeEnabled()
   })
 
   it("explains that archiving preserves existing stable delivery paths", async () => {
@@ -151,5 +151,63 @@ describe("AssetLibrary", () => {
       tags: ["brand", "hero"],
     })
     expect(await screen.findByText("Metadata saved.")).toBeInTheDocument()
+  })
+
+  it("shows linked document usage in a focused dialog", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      references: [{
+        revisionId: "33333333-3333-4333-8333-333333333333",
+        kind: "notice",
+        locale: "ko",
+        title: "서비스 공지",
+        status: "draft",
+        field: "body_markdown",
+        updatedAt: "2026-09-29T10:00:00.000Z",
+      }],
+    }), { status: 200, headers: { "content-type": "application/json" } })))
+    render(
+      <LocaleProvider initialLocale="en">
+        <AssetLibrary assets={[asset]} nextCursor={null} initialFilters={{}} />
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "View usage for brand.png" }))
+
+    const dialog = await screen.findByRole("dialog", { name: "Document usage" })
+    expect(dialog).toHaveTextContent("서비스 공지")
+    expect(dialog).toHaveTextContent("KO · Draft")
+    expect(screen.getByRole("link", { name: "Open 서비스 공지" })).toHaveAttribute(
+      "href",
+      "/admin/documents/33333333-3333-4333-8333-333333333333",
+    )
+  })
+
+  it("opens usage guidance when deletion is blocked by references", async () => {
+    const user = userEvent.setup()
+    const archived = { ...asset, status: "archived" as const }
+    vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "DELETE") {
+        return new Response(JSON.stringify({ error: "asset_referenced" }), {
+          status: 409,
+          headers: { "content-type": "application/json" },
+        })
+      }
+      return new Response(JSON.stringify({ references: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    }))
+    render(
+      <LocaleProvider initialLocale="en">
+        <AssetLibrary assets={[archived]} nextCursor={null} initialFilters={{}} />
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "Delete permanently" }))
+    await user.click(screen.getByRole("button", { name: "Delete permanently" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Review Document usage")
+    expect(await screen.findByRole("dialog", { name: "Document usage" })).toBeInTheDocument()
   })
 })
