@@ -8,7 +8,11 @@ import { describe, expect, it, vi } from "vitest"
 
 import { Button } from "@/components/ui/button"
 import { ButtonLink } from "@/components/ui/button-link"
-import { ButtonGroup } from "@/components/ui/button-group"
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
+} from "@/components/ui/button-group"
 
 describe("Button", () => {
   it("forwards a typed ref to the native button", () => {
@@ -138,5 +142,46 @@ describe("ButtonGroup", () => {
 
     rerender(<ButtonGroup label="Actions" data-testid="group" orientation="vertical" />)
     expect(screen.getByTestId("group")).toHaveAttribute("data-orientation", "vertical")
+  })
+
+  it("composes text, actions, and a decorative separator in one named group", () => {
+    render(
+      <ButtonGroup aria-label="Search actions" data-testid="compound-group">
+        <ButtonGroupText>12 results</ButtonGroupText>
+        <Button variant="ghost">Previous</Button>
+        <ButtonGroupSeparator data-testid="separator" />
+        <Button variant="ghost">Next</Button>
+      </ButtonGroup>,
+    )
+
+    const group = screen.getByRole("group", { name: "Search actions" })
+    expect(group).toHaveAttribute("data-slot", "button-group")
+    expect(group).toHaveAttribute("data-orientation", "horizontal")
+    expect(screen.getByText("12 results")).toHaveAttribute("data-slot", "button-group-text")
+    expect(screen.getByTestId("separator")).toHaveAttribute(
+      "data-slot",
+      "button-group-separator",
+    )
+    expect(screen.getByTestId("separator")).toHaveAttribute("aria-hidden", "true")
+  })
+
+  it("supports labelled nested groups without cloning their children", () => {
+    render(
+      <ButtonGroup label="Editor toolbar">
+        <ButtonGroup label="History">
+          <Button variant="secondary">Undo</Button>
+          <Button variant="secondary">Redo</Button>
+        </ButtonGroup>
+        <ButtonGroup label="Publish">
+          <Button>Publish</Button>
+          <Button size="icon" aria-label="Publish options">+</Button>
+        </ButtonGroup>
+      </ButtonGroup>,
+    )
+
+    expect(screen.getByRole("group", { name: "Editor toolbar" })).toBeVisible()
+    expect(screen.getByRole("group", { name: "History" })).toBeVisible()
+    expect(screen.getByRole("group", { name: "Publish" })).toBeVisible()
+    expect(screen.getByRole("button", { name: "Publish options" })).toBeVisible()
   })
 })
