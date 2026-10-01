@@ -5,7 +5,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { IconControl } from "@/components/ui/icon-control"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -114,9 +113,9 @@ function TooltipDemo({ locale }: ComponentDemoProps) {
     <TooltipProvider delayDuration={120}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <IconControl label={locale === "ko" ? "운영 상태" : "Operational status"}>
+          <Button aria-label={locale === "ko" ? "운영 상태" : "Operational status"} size="icon" variant="secondary">
             <Info aria-hidden weight="bold" />
-          </IconControl>
+          </Button>
         </TooltipTrigger>
         <TooltipContent>{locale === "ko" ? "현재 정상 운영 중" : "All systems operational"}</TooltipContent>
       </Tooltip>

@@ -59,14 +59,14 @@ describe("searchSite", () => {
   it("surfaces a concrete component detail page by component name", async () => {
     const repository = createRepository(vi.fn().mockResolvedValue([]))
 
-    const result = await searchSite("Segmented Toggle", "en", repository)
+    const result = await searchSite("Segmented Control", "en", repository)
 
     expect(result.results[0]).toMatchObject({
-      id: "design-component-segmented-toggle",
+      id: "design-component-segmented-control",
       group: "page",
-      title: "Segmented Toggle",
-      description: "Switches between two mutually exclusive values in place.",
-      href: "/design/components/segmented-toggle",
+      title: "Segmented Control",
+      description: "Selects one value from two or more short options.",
+      href: "/design/components/segmented-control",
     })
   })
 

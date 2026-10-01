@@ -1,9 +1,6 @@
-import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr"
 import type { ComponentType } from "react"
 
 import { CodeBlock, type CodeBlockCopyLabels } from "@/components/content/code-block"
-import { Action } from "@/components/ui/action"
-import { IconControl } from "@/components/ui/icon-control"
 import { Logo } from "@/components/ui/logo"
 import { TextLink } from "@/components/ui/text-link"
 import type { DemoKey } from "@/lib/design-system/schema"
@@ -15,66 +12,11 @@ import { coreExpansionC2Demos } from "./component-demo-core-expansion-c2"
 import { feedbackDemos } from "./component-demo-feedback"
 import { formDemos } from "./component-demo-forms"
 import { selectionDemos } from "./component-demo-selection"
-import { SegmentedToggleDemo } from "./component-demo-segmented-toggle"
 import { structureDemos } from "./component-demo-structure"
 import styles from "./design-system.module.css"
 
 function LogoDemo({ state }: ComponentDemoProps) {
   return <Logo size={state === "compact" ? 16 : 24} />
-}
-
-function ActionDemo({ locale, state }: ComponentDemoProps) {
-  if (state) {
-    const labels = locale === "ko"
-      ? {
-        primary: "주요 동작",
-        secondary: "보조 동작",
-        inverse: "반전 동작",
-        hover: "hover 동작",
-        "focus-visible": "focus-visible 동작",
-        disabled: "비활성 동작",
-      }
-      : {
-        primary: "Primary action",
-        secondary: "Secondary action",
-        inverse: "Inverse action",
-        hover: "Hover action",
-        "focus-visible": "Focus-visible action",
-        disabled: "Disabled action",
-      }
-    const variant = state === "secondary" ? "secondary" : state === "inverse" ? "inverse" : "primary"
-    const action = (
-      <Action type="button" variant={variant} disabled={state === "disabled"}>
-        {labels[state as keyof typeof labels] ?? state}
-      </Action>
-    )
-
-    return state === "inverse" ? <span className={styles.inverseDemo}>{action}</span> : action
-  }
-
-  return (
-    <div className={styles.demoCluster}>
-      <Action type="button" variant="primary">Primary</Action>
-      <Action type="button" variant="secondary">Secondary</Action>
-      <span className={styles.inverseDemo}>
-        <Action type="button" variant="inverse">Inverse</Action>
-      </span>
-    </div>
-  )
-}
-
-function IconControlDemo({ locale, state }: ComponentDemoProps) {
-  const label = state === "disabled"
-    ? locale === "ko" ? "비활성 아이콘 컨트롤" : "Disabled icon control"
-    : state
-      ? locale === "ko" ? `${state} 아이콘 컨트롤` : `${state} icon control`
-      : locale === "ko" ? "검색 미리보기" : "Search preview"
-
-  return (
-    <IconControl label={label} disabled={state === "disabled"}>
-      <MagnifyingGlass aria-hidden weight="bold" />
-    </IconControl>
-  )
 }
 
 function TextLinkDemo({ locale, state }: ComponentDemoProps) {
@@ -124,9 +66,6 @@ export type ComponentDemoProps = Readonly<{ locale: Locale; state?: string }>
 
 const existingDemos = {
   logo: LogoDemo,
-  action: ActionDemo,
-  "segmented-toggle": SegmentedToggleDemo,
-  "icon-control": IconControlDemo,
   "text-link": TextLinkDemo,
   "code-block": CodeBlockDemo,
 } satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>

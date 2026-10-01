@@ -15,9 +15,10 @@ export type ComponentCategory = typeof componentCategories[number]
 
 export const componentDemoKeys = [
   "logo",
-  "action",
   "button",
+  "button-link",
   "button-group",
+  "segmented-control",
   "field",
   "label",
   "input",
@@ -33,8 +34,6 @@ export const componentDemoKeys = [
   "separator",
   "panel",
   "status-label",
-  "segmented-toggle",
-  "icon-control",
   "text-link",
   "dropdown-menu",
   "tabs",

@@ -1,7 +1,8 @@
 import type { ComponentType } from "react"
-import { CaretDown } from "@phosphor-icons/react"
+import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react"
 
 import { Button } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button-link"
 import {
   ButtonGroup,
   ButtonGroupSeparator,
@@ -19,21 +20,53 @@ import {
 } from "@/components/ui/input-group"
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { ComponentDemoProps } from "./component-demo-registry"
+import { SegmentedControlDemo } from "./component-demo-segmented-control"
 import styles from "./design-system.module.css"
 
 function ButtonDemo({ locale, state }: ComponentDemoProps) {
   const label = locale === "ko" ? "변경 사항 저장" : "Save changes"
+  if (state === "icon") {
+    return (
+      <Button aria-label={locale === "ko" ? "검색" : "Search"} size="icon" variant="secondary">
+        <MagnifyingGlass aria-hidden weight="bold" />
+      </Button>
+    )
+  }
+
+  const variant = state === "secondary" || state === "inverse" || state === "ghost" || state === "danger"
+    ? state
+    : "primary"
   const button = (
     <Button
       disabled={state === "disabled"}
       loading={state === "loading"}
-      variant={state === "danger" ? "danger" : state === "default" ? "secondary" : "primary"}
+      variant={variant}
     >
       {label}
     </Button>
   )
 
-  return state === "danger" ? button : <div className={styles.demoCluster}>{button}</div>
+  return state === "inverse"
+    ? <span className={styles.inverseDemo}>{button}</span>
+    : <div className={styles.demoCluster}>{button}</div>
+}
+
+function ButtonLinkDemo({ locale, state }: ComponentDemoProps) {
+  const label = locale === "ko" ? "디자인 가이드 보기" : "View design guide"
+  const variant = state === "secondary" || state === "inverse" || state === "ghost"
+    ? state
+    : "primary"
+
+  if (state === "icon") {
+    return (
+      <ButtonLink aria-label={label} href="/design" size="icon" variant="secondary">
+        <MagnifyingGlass aria-hidden weight="bold" />
+      </ButtonLink>
+    )
+  }
+
+  const link = <ButtonLink href="/design" variant={variant}>{label}</ButtonLink>
+  return state === "inverse" ? <span className={styles.inverseDemo}>{link}</span> : link
 }
 
 function ButtonGroupDemo({ locale, state }: ComponentDemoProps) {
@@ -100,5 +133,7 @@ function ButtonGroupDemo({ locale, state }: ComponentDemoProps) {
 
 export const actionDemos = {
   button: ButtonDemo,
+  "button-link": ButtonLinkDemo,
   "button-group": ButtonGroupDemo,
+  "segmented-control": SegmentedControlDemo,
 } satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>

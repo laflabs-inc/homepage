@@ -19,7 +19,7 @@ export type SegmentedControlOption<Value extends string> = {
   buttonProps?: Omit<
     ButtonHTMLAttributes<HTMLButtonElement>,
     "aria-checked" | "aria-label" | "children" | "disabled" | "onClick" | "role" | "tabIndex" | "type"
-  >
+  > & Partial<Record<`data-${string}`, string | number | boolean | undefined>>
 }
 
 export type SegmentedControlProps<Value extends string> = {

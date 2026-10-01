@@ -39,7 +39,7 @@ export const overlayComponents = [
     demoKey: "tooltip",
     importExample: 'import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"',
     usageExample: '<TooltipProvider><Tooltip><TooltipTrigger aria-label="Status">●</TooltipTrigger><TooltipContent>Operational</TooltipContent></Tooltip></TooltipProvider>',
-    relatedComponents: ["icon-control"],
+    relatedComponents: ["button"],
     dependencies: ["radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "툴팁 없이도 트리거 이름이 남는지 확인합니다.", en: "Confirm the trigger keeps an accessible name without the tooltip." } },

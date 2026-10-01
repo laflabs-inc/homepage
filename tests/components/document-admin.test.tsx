@@ -252,20 +252,18 @@ describe("document admin", () => {
 
     expect(editorHost).toBeInTheDocument()
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
-    expect(screen.getByRole("button", { name: "Source" })).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "false")
-    expect(screen.getByRole("group", { name: "Markdown view" })).toHaveAttribute("data-active-index", "0")
+    expect(screen.getByRole("radio", { name: "Source" })).toHaveAttribute("aria-checked", "true")
+    expect(screen.getByRole("radio", { name: "Preview" })).toHaveAttribute("aria-checked", "false")
 
-    await user.click(screen.getByRole("button", { name: "Preview" }))
+    await user.click(screen.getByRole("radio", { name: "Preview" }))
 
     expect(screen.queryByRole("textbox", { name: "Markdown body" })).not.toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "First" })).toBeInTheDocument()
     expect(screen.getByText("second").tagName).toBe("STRONG")
-    expect(screen.getByRole("button", { name: "Preview" })).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByRole("group", { name: "Markdown view" })).toHaveAttribute("data-active-index", "1")
+    expect(screen.getByRole("radio", { name: "Preview" })).toHaveAttribute("aria-checked", "true")
     expect(editorHost?.querySelectorAll(".cm-editor")).toHaveLength(1)
 
-    await user.click(screen.getByRole("button", { name: "Source" }))
+    await user.click(screen.getByRole("radio", { name: "Source" }))
 
     expect(screen.getByRole("textbox", { name: "Markdown body" })).toBe(textbox)
     expect(EditorView.findFromDOM(textbox)).toBe(view)
@@ -345,8 +343,8 @@ describe("document admin", () => {
     }))
     expect(undoDepth(view.state)).toBe(1)
 
-    await user.click(screen.getByRole("button", { name: "Preview" }))
-    await user.click(screen.getByRole("button", { name: "Source" }))
+    await user.click(screen.getByRole("radio", { name: "Preview" }))
+    await user.click(screen.getByRole("radio", { name: "Source" }))
 
     expect(EditorView.findFromDOM(textbox)).toBe(view)
     expect(view.state.doc.toString()).toBe("first!\n\nsecond")
@@ -472,13 +470,13 @@ describe("document admin", () => {
 
     expect(view.state.doc.toString()).toBe("first\n\nsecond")
 
-    await user.click(screen.getByRole("button", { name: "Preview" }))
+    await user.click(screen.getByRole("radio", { name: "Preview" }))
 
     expect(EditorView.findFromDOM(textbox)).toBe(view)
     expect(screen.queryByRole("textbox", { name: "Markdown body" })).not.toBeInTheDocument()
     expect(screen.getAllByText("first").some((node) => node.tagName === "P")).toBe(true)
 
-    await user.click(screen.getByRole("button", { name: "Source" }))
+    await user.click(screen.getByRole("radio", { name: "Source" }))
 
     expect(EditorView.findFromDOM(textbox)).toBe(view)
     expect(screen.getByRole("textbox", { name: "Markdown body" })).toBe(textbox)

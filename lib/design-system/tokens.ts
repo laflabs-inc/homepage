@@ -594,7 +594,7 @@ export const designTokens = [
     group: "layout",
     value: "34px",
     purpose: {
-      ko: "데스크톱의 언어 선택과 Icon Control에 쓰는 시각 크기입니다.",
+      ko: "데스크톱의 언어 선택과 아이콘 Button에 쓰는 시각 크기입니다.",
       en: "The desktop visual size for language and icon controls.",
     },
   },
@@ -617,12 +617,12 @@ export const designTokens = [
     },
   },
   {
-    id: "motion.segmented-toggle",
+    id: "motion.segmented-control",
     group: "motion",
     value: "spring(stiffness: 520, damping: 38)",
     purpose: {
-      ko: "Segmented Toggle의 선택 표시가 이동할 때 쓰는 공통 spring입니다.",
-      en: "The shared spring for the Segmented Toggle selection thumb.",
+      ko: "Segmented Control의 선택 표시가 이동할 때 쓰는 공통 spring입니다.",
+      en: "The shared spring for the Segmented Control selection surface.",
     },
   },
   {

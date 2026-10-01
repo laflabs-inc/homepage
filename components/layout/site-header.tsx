@@ -8,7 +8,7 @@ import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { SITE_SEARCH_OVERLAY_ID, SiteSearchOverlay } from "@/components/search/site-search-overlay"
 import searchStyles from "@/components/search/site-search-overlay.module.css"
 import { AnimatedLogoLink } from "@/components/ui/animated-logo-link"
-import { SegmentedToggle } from "@/components/ui/segmented-toggle"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { contactEmail, copy, githubOrg } from "@/lib/content"
 
 function LanguageToggle({ navigateDocumentLocale = false }: { navigateDocumentLocale?: boolean }) {
@@ -18,7 +18,7 @@ function LanguageToggle({ navigateDocumentLocale = false }: { navigateDocumentLo
   const router = useRouter()
 
   return (
-    <SegmentedToggle
+    <SegmentedControl
       label="Language"
       value={locale}
       options={[

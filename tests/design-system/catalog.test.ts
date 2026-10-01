@@ -97,8 +97,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.9.6",
-      updatedAt: "2026-09-26",
+      version: "2026.10.0",
+      updatedAt: "2026-10-01",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
@@ -285,9 +285,10 @@ describe("production design catalog", () => {
     ])
     expect(designCatalog.components.map(({ id }) => id)).toEqual([
       "logo",
-      "action",
       "button",
+      "button-link",
       "button-group",
+      "segmented-control",
       "field",
       "label",
       "input",
@@ -297,8 +298,6 @@ describe("production design catalog", () => {
       "checkbox",
       "radio-group",
       "switch",
-      "segmented-toggle",
-      "icon-control",
       "text-link",
       "dropdown-menu",
       "tabs",
@@ -416,7 +415,7 @@ describe("production design catalog", () => {
       "shape.radius": "0px",
       "shape.rule": "1px",
       "layout.compact-control": "34px",
-      "motion.segmented-toggle": "spring(stiffness: 520, damping: 38)",
+      "motion.segmented-control": "spring(stiffness: 520, damping: 38)",
     })
   })
 
@@ -486,23 +485,22 @@ describe("production design catalog", () => {
         .map(({ id, maturity }) => [id, maturity]),
     ).toEqual([
       ["logo", "stable"],
-      ["action", "stable"],
-      ["segmented-toggle", "stable"],
-      ["icon-control", "stable"],
+      ["button", "stable"],
+      ["button-link", "stable"],
       ["text-link", "stable"],
       ["code-block", "stable"],
     ])
     expect(getComponentEntry("logo")?.importExample).toBe(
       'import { Logo } from "@/components/ui/logo"',
     )
-    expect(getComponentEntry("segmented-toggle")?.importExample).toBe(
-      'import { SegmentedToggle } from "@/components/ui/segmented-toggle"',
+    expect(getComponentEntry("segmented-control")?.importExample).toBe(
+      'import { SegmentedControl } from "@/components/ui/segmented-control"',
     )
-    expect(getComponentEntry("action")?.importExample).toBe(
-      'import { Action } from "@/components/ui/action"',
+    expect(getComponentEntry("button")?.importExample).toBe(
+      'import { Button } from "@/components/ui/button"',
     )
-    expect(getComponentEntry("icon-control")?.importExample).toBe(
-      'import { IconControl } from "@/components/ui/icon-control"',
+    expect(getComponentEntry("button-link")?.importExample).toBe(
+      'import { ButtonLink } from "@/components/ui/button-link"',
     )
     expect(getComponentEntry("text-link")?.importExample).toBe(
       'import { TextLink } from "@/components/ui/text-link"',
@@ -533,7 +531,7 @@ describe("production design catalog", () => {
         .map(({ id, dependencies }) => [id, dependencies]),
     )).toEqual({
       logo: ["next"],
-      "segmented-toggle": ["motion"],
+      "segmented-control": ["motion"],
       "text-link": ["@phosphor-icons/react"],
       "native-select": ["@phosphor-icons/react"],
       select: ["@phosphor-icons/react", "radix-ui"],

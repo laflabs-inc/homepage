@@ -43,7 +43,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
-import { SegmentedToggle } from "@/components/ui/segmented-toggle"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { StatusLabel, type StatusLabelProps } from "@/components/ui/status-label"
 import { Textarea } from "@/components/ui/textarea"
 import { adminCopy } from "@/lib/admin/i18n"
@@ -367,7 +367,7 @@ export function AssetLibrary({
           <span aria-live="polite">{t.results(assets.length)}</span>
           {hasFilters ? <Button size="compact" variant="secondary" onClick={clearFilters}>{t.clearFilters}</Button> : null}
         </div>
-        <SegmentedToggle
+        <SegmentedControl
           label={t.view}
           value={view}
           onValueChange={setView}

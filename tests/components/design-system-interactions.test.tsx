@@ -11,9 +11,9 @@ vi.mock("@/components/analytics/consent-provider", () => ({
 import { ComponentCode } from "@/components/design-system/component-code"
 import { designCatalog } from "@/lib/design-system/catalog"
 
-const actionEntry = designCatalog.components.find((component) => component.id === "action")
+const actionEntry = designCatalog.components.find((component) => component.id === "button")
 
-if (!actionEntry) throw new Error("Action component fixture is missing")
+if (!actionEntry) throw new Error("Button component fixture is missing")
 
 describe("Design system component code", () => {
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe("Design system component code", () => {
 
     expect(writeText).toHaveBeenCalledWith(actionEntry.usageExample)
     expect(screen.getByRole("status")).toHaveTextContent("Copied")
-    expect(track).toHaveBeenCalledWith("design_code_copy", "action")
+    expect(track).toHaveBeenCalledWith("design_code_copy", "button")
   })
 
   it("announces clipboard failure without tracking and leaves the source selectable", async () => {

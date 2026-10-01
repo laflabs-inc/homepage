@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -31,17 +31,17 @@ describe("AdminLanguageToggle", () => {
       </LocaleProvider>,
     )
 
-    const korean = screen.getByRole("button", { name: "KO" })
-    const english = screen.getByRole("button", { name: "EN" })
-    expect(korean).toHaveAttribute("aria-pressed", "true")
-    expect(english).toHaveAttribute("aria-pressed", "false")
+    const korean = screen.getByRole("radio", { name: "KO" })
+    const english = screen.getByRole("radio", { name: "EN" })
+    expect(korean).toHaveAttribute("aria-checked", "true")
+    expect(english).toHaveAttribute("aria-checked", "false")
 
     await user.click(english)
 
     expect(document.cookie).toContain("laf_locale=en")
     expect(navigationMocks.routerRefresh).toHaveBeenCalledOnce()
     expect(document.documentElement.lang).toBe("en")
-    expect(english).toHaveAttribute("aria-pressed", "true")
+    expect(english).toHaveAttribute("aria-checked", "true")
   })
 
   it("moves the shared segmented thumb with the selected language", async () => {
@@ -52,11 +52,11 @@ describe("AdminLanguageToggle", () => {
       </LocaleProvider>,
     )
 
-    const toggle = screen.getByRole("group", { name: "언어" })
-    expect(toggle).toHaveAttribute("data-active-index", "0")
+    const toggle = screen.getByRole("radiogroup", { name: "언어" })
+    expect(within(toggle).getByRole("radio", { name: "KO" })).toHaveAttribute("aria-checked", "true")
 
-    await user.click(screen.getByRole("button", { name: "EN" }))
+    await user.click(screen.getByRole("radio", { name: "EN" }))
 
-    expect(toggle).toHaveAttribute("data-active-index", "1")
+    expect(within(toggle).getByRole("radio", { name: "EN" })).toHaveAttribute("aria-checked", "true")
   })
 })

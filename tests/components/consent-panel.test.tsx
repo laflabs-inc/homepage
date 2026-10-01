@@ -101,7 +101,7 @@ function DesignAnalyticsProbe() {
   const { track } = useAnalytics()
 
   return (
-    <button type="button" onClick={() => track("design_code_copy", "action")}>
+    <button type="button" onClick={() => track("design_code_copy", "button")}>
       Track design copy
     </button>
   )
@@ -291,7 +291,7 @@ describe("ConsentProvider", () => {
 
   it("lets component documentation track a copied component slug after consent", async () => {
     const user = userEvent.setup()
-    window.history.replaceState({}, "", "/design/components/action?locale=en")
+    window.history.replaceState({}, "", "/design/components/button?locale=en")
 
     render(
       <LocaleProvider initialLocale="en">
@@ -303,12 +303,12 @@ describe("ConsentProvider", () => {
 
     await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledWith({
       locale: "en",
-      pathname: "/design/components/action",
+      pathname: "/design/components/button",
     }))
     analyticsClientMocks.track.mockClear()
     await user.click(screen.getByRole("button", { name: "Track design copy" }))
 
-    expect(analyticsClientMocks.track).toHaveBeenCalledWith("design_code_copy", "action")
+    expect(analyticsClientMocks.track).toHaveBeenCalledWith("design_code_copy", "button")
   })
 
   it.each([
@@ -552,7 +552,7 @@ describe("ConsentProvider", () => {
     expect(analyticsClientMocks.track).toHaveBeenCalledWith("page_view", null)
     expect(analyticsClientMocks.track).not.toHaveBeenCalledWith("consent_update", "analytics")
 
-    await user.click(screen.getByRole("button", { name: "EN" }))
+    await user.click(screen.getByRole("radio", { name: "EN" }))
 
     await waitFor(() => expect(analyticsClientMocks.setLocale).toHaveBeenCalledWith("en"))
     expect(analyticsClientMocks.create).toHaveBeenCalledOnce()
@@ -573,11 +573,11 @@ describe("ConsentProvider", () => {
 
     await waitFor(() => expect(analyticsClientMocks.create).toHaveBeenCalledOnce())
     analyticsClientMocks.track.mockClear()
-    await user.click(screen.getByRole("button", { name: "KO" }))
+    await user.click(screen.getByRole("radio", { name: "KO" }))
 
     expect(analyticsClientMocks.track).not.toHaveBeenCalled()
     expect(document.cookie).not.toContain("laf_locale=")
-    expect(screen.getByRole("button", { name: "KO" })).not.toHaveAttribute("data-analytics-event")
+    expect(screen.getByRole("radio", { name: "KO" })).not.toHaveAttribute("data-analytics-event")
   })
 
   it("stops the active client before exposing a successful withdrawal", async () => {
@@ -675,9 +675,9 @@ describe("ConsentProvider", () => {
       </LocaleProvider>,
     )
 
-    expect(screen.getByRole("button", { name: "KO" })).toHaveAttribute("data-analytics-event", "locale_change")
-    expect(screen.getByRole("button", { name: "KO" })).toHaveAttribute("data-analytics-target", "ko")
-    expect(screen.getByRole("button", { name: "EN" })).not.toHaveAttribute("data-analytics-event")
+    expect(screen.getByRole("radio", { name: "KO" })).toHaveAttribute("data-analytics-event", "locale_change")
+    expect(screen.getByRole("radio", { name: "KO" })).toHaveAttribute("data-analytics-target", "ko")
+    expect(screen.getByRole("radio", { name: "EN" })).not.toHaveAttribute("data-analytics-event")
 
     const contacts = Array.from(container.querySelectorAll<HTMLAnchorElement>('a[href^="mailto:"]'))
     expect(contacts).not.toHaveLength(0)
