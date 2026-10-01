@@ -1,9 +1,8 @@
 "use client"
 
 import type { ButtonHTMLAttributes, ReactNode } from "react"
-import { motion, useReducedMotion } from "motion/react"
 
-import styles from "./segmented-toggle.module.css"
+import { SegmentedControlCompat } from "./segmented-control"
 
 type SegmentedToggleOption<Value extends string> = {
   value: Value
@@ -33,45 +32,13 @@ export function SegmentedToggle<Value extends string>({
   onValueChange,
   className,
 }: SegmentedToggleProps<Value>) {
-  const reducedMotion = useReducedMotion()
-  const activeIndex = Math.max(0, options.findIndex((option) => option.value === value))
-
   return (
-    <div
-      className={[styles.root, className].filter(Boolean).join(" ")}
-      role="group"
-      aria-label={label}
-      data-active-index={activeIndex}
-    >
-      <motion.span
-        className={styles.thumb}
-        aria-hidden="true"
-        initial={false}
-        animate={{ x: activeIndex * 34 }}
-        transition={reducedMotion
-          ? { duration: 0 }
-          : { type: "spring", stiffness: 520, damping: 38 }}
-      />
-      {options.map((option) => {
-        const active = option.value === value
-
-        return (
-          <button
-            {...option.buttonProps}
-            key={option.value}
-            className={styles.button}
-            type="button"
-            data-active={active}
-            aria-label={option.label}
-            aria-pressed={active}
-            onClick={() => {
-              if (!active) onValueChange(option.value)
-            }}
-          >
-            {option.content}
-          </button>
-        )
-      })}
-    </div>
+    <SegmentedControlCompat
+      className={className}
+      label={label}
+      onValueChange={onValueChange}
+      options={options}
+      value={value}
+    />
   )
 }
