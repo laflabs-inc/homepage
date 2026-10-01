@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
+import { MagnifyingGlass } from "@phosphor-icons/react"
 
 import { AccordionContent, AccordionTrigger } from "@/components/ui/accordion"
+import { Button } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button-link"
 import { DialogContent } from "@/components/ui/dialog"
 import {
   DropdownMenuCheckboxItem,
@@ -30,6 +33,12 @@ function UnsupportedCompositionProps() {
       <AccordionTrigger asChild />
       {/* @ts-expect-error LafLabs owns the animated content wrapper. */}
       <AccordionContent asChild />
+      {/* @ts-expect-error Icon-only buttons require an accessible name. */}
+      <Button size="icon"><MagnifyingGlass aria-hidden /></Button>
+      {/* @ts-expect-error Navigation does not expose disabled button semantics. */}
+      <ButtonLink href="/design" disabled>Design</ButtonLink>
+      {/* @ts-expect-error Navigation does not expose loading button semantics. */}
+      <ButtonLink href="/design" loading>Design</ButtonLink>
     </>
   )
 }

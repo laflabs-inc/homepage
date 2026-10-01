@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react"
 
-import styles from "./icon-control.module.css"
+import { Button } from "./button"
 
 export type IconControlProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -10,12 +10,17 @@ export type IconControlProps = Omit<
   label: string
 }
 
+/**
+ * @deprecated Use Button with size="icon" and an aria-label.
+ */
 export function IconControl({ className, label, type, ...props }: IconControlProps) {
   return (
-    <button
+    <Button
       {...props}
       aria-label={label}
-      className={[styles.control, className].filter(Boolean).join(" ")}
+      className={className}
+      size="icon"
+      variant="secondary"
       type={type ?? "button"}
     />
   )

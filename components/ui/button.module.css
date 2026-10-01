@@ -36,6 +36,20 @@
   padding-inline: 16px;
 }
 
+.icon {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+}
+
+.icon > svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
 .primary {
   border-color: var(--blue);
   background: var(--blue);
@@ -79,6 +93,27 @@
 .danger:hover:not(:disabled) {
   border-color: var(--ink);
   background: var(--ink);
+}
+
+.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink);
+}
+
+.ghost:hover:not(:disabled) {
+  border-color: var(--line);
+  background: #eff6ff;
+  color: var(--blue);
+}
+
+@media (max-width: 720px) {
+  .icon {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

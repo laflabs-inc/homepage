@@ -1,11 +1,13 @@
 import { createRef } from "react"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
+import { MagnifyingGlass } from "@phosphor-icons/react"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { Button } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button-link"
 import { ButtonGroup } from "@/components/ui/button-group"
 
 describe("Button", () => {
@@ -31,6 +33,28 @@ describe("Button", () => {
 
     expect(screen.getByRole("button", { name: label })).toHaveAttribute("data-variant", "danger")
     expect(screen.getByRole("button", { name: label })).toHaveAttribute("data-size", "compact")
+  })
+
+  it("renders a low-emphasis ghost action", () => {
+    render(<Button variant="ghost">More options</Button>)
+
+    expect(screen.getByRole("button", { name: "More options" })).toHaveAttribute(
+      "data-variant",
+      "ghost",
+    )
+  })
+
+  it("renders an accessible icon-only action", () => {
+    render(
+      <Button size="icon" aria-label="Search">
+        <MagnifyingGlass aria-hidden />
+      </Button>,
+    )
+
+    expect(screen.getByRole("button", { name: "Search" })).toHaveAttribute(
+      "data-size",
+      "icon",
+    )
   })
 
   it("marks a loading action busy, disables it, and suppresses activation", async () => {
@@ -62,6 +86,34 @@ describe("Button", () => {
     expect(stylesheet).toMatch(
       /\.danger\s*\{[^}]*background:\s*var\(--error-deep\);[^}]*color:\s*var\(--pure-white\);/s,
     )
+  })
+})
+
+describe("ButtonLink", () => {
+  it("preserves navigation semantics and native anchor attributes", () => {
+    const ref = createRef<HTMLAnchorElement>()
+    render(
+      <ButtonLink ref={ref} href="/design" target="_self">
+        Design guide
+      </ButtonLink>,
+    )
+
+    const link = screen.getByRole("link", { name: "Design guide" })
+    expect(link).toHaveAttribute("href", "/design")
+    expect(link).toHaveAttribute("target", "_self")
+    expect(ref.current).toBe(link)
+  })
+
+  it("shares Button variants and sizes", () => {
+    render(
+      <ButtonLink href="/design" variant="secondary" size="compact">
+        Components
+      </ButtonLink>,
+    )
+
+    const link = screen.getByRole("link", { name: "Components" })
+    expect(link).toHaveAttribute("data-variant", "secondary")
+    expect(link).toHaveAttribute("data-size", "compact")
   })
 })
 
