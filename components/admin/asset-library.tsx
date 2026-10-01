@@ -479,21 +479,27 @@ export function AssetLibrary({
                         <ArrowCounterClockwise aria-hidden size={16} weight="bold" />
                       </Button>
                     ) : null}
-                    {(asset.status === "archived" || asset.status === "failed") ? (
+                    {(asset.status === "pending" || asset.status === "archived" || asset.status === "failed") ? (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button size="compact" variant="danger" aria-label={t.delete}>
+                          <Button
+                            size="compact"
+                            variant="danger"
+                            aria-label={asset.status === "pending" ? t.cancelPendingUpload : t.delete}
+                          >
                             <Trash aria-hidden size={16} weight="bold" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>{t.deleteTitle}</AlertDialogTitle>
-                            <AlertDialogDescription>{t.deleteDescription}</AlertDialogDescription>
+                            <AlertDialogTitle>{asset.status === "pending" ? t.cancelPendingTitle : t.deleteTitle}</AlertDialogTitle>
+                            <AlertDialogDescription>{asset.status === "pending" ? t.cancelPendingDescription : t.deleteDescription}</AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                            <AlertDialogAction variant="destructive" onClick={() => void mutateAsset(asset, "delete")}>{t.delete}</AlertDialogAction>
+                            <AlertDialogAction variant="destructive" onClick={() => void mutateAsset(asset, "delete")}>
+                              {asset.status === "pending" ? t.cancelPendingAction : t.delete}
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>

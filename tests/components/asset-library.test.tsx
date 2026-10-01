@@ -107,6 +107,16 @@ describe("AssetLibrary", () => {
     )
   })
 
+  it("offers permanent cleanup for an interrupted pending upload", () => {
+    render(
+      <LocaleProvider initialLocale="en">
+        <AssetLibrary assets={[{ ...asset, status: "pending", src: null }]} nextCursor={null} initialFilters={{}} />
+      </LocaleProvider>,
+    )
+
+    expect(screen.getByRole("button", { name: "Cancel upload and delete" })).toBeEnabled()
+  })
+
   it("uses an explicit single-column mobile contract without horizontal overflow", () => {
     render(
       <LocaleProvider initialLocale="ko">
