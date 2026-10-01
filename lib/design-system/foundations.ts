@@ -150,8 +150,8 @@ export const foundations = [
     },
     guidance: [
       {
-        ko: "Segmented Toggle은 stiffness 520, damping 38의 공통 spring을 씁니다.",
-        en: "The Segmented Toggle uses the shared spring at stiffness 520 and damping 38.",
+        ko: "Segmented Control은 stiffness 520, damping 38의 공통 spring을 씁니다.",
+        en: "The Segmented Control uses the shared spring at stiffness 520 and damping 38.",
       },
       {
         ko: "hover에서 레이아웃 위치나 padding을 움직이지 않습니다.",

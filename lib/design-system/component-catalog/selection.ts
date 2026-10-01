@@ -69,7 +69,7 @@ export const selectionComponents = [
     demoKey: "switch",
     importExample: 'import { Switch } from "@/components/ui/switch"',
     usageExample: '<Switch label="Allow analytics" />',
-    relatedComponents: ["checkbox", "segmented-toggle"],
+    relatedComponents: ["checkbox", "segmented-control"],
     dependencies: [],
     states: [
       { id: "off", guidance: { ko: "꺼짐 상태에서도 설정 이름이 분명한지 확인합니다.", en: "Confirm the setting remains clear while off." } },

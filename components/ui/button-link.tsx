@@ -6,41 +6,34 @@ import {
   type ButtonVariant,
 } from "./button-contract"
 
-type ButtonBaseProps = Omit<ComponentPropsWithRef<"button">, "className"> & {
+type ButtonLinkBaseProps = Omit<ComponentPropsWithRef<"a">, "className"> & {
   className?: string
   variant?: ButtonVariant
-  loading?: boolean
 }
 
-type ButtonTextProps = ButtonBaseProps & {
+type ButtonLinkTextProps = ButtonLinkBaseProps & {
   size?: Exclude<ButtonSize, "icon">
 }
 
-type ButtonIconProps = ButtonBaseProps & {
+type ButtonLinkIconProps = ButtonLinkBaseProps & {
   "aria-label": string
   size: "icon"
 }
 
-export type ButtonProps = ButtonTextProps | ButtonIconProps
+export type ButtonLinkProps = ButtonLinkTextProps | ButtonLinkIconProps
 
-export function Button({
+export function ButtonLink({
   className,
-  disabled = false,
-  loading = false,
   size = "default",
-  type = "button",
   variant = "primary",
   ...props
-}: ButtonProps) {
+}: ButtonLinkProps) {
   return (
-    <button
+    <a
       {...props}
-      aria-busy={loading || undefined}
       className={getButtonClassName({ className, size, variant })}
       data-size={size}
       data-variant={variant}
-      disabled={disabled || loading}
-      type={type}
     />
   )
 }

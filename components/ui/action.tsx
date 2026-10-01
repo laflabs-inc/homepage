@@ -4,7 +4,8 @@ import type {
   ReactNode,
 } from "react"
 
-import styles from "./action.module.css"
+import { Button } from "./button"
+import { ButtonLink } from "./button-link"
 
 type ActionVariant = "primary" | "secondary" | "inverse"
 
@@ -28,16 +29,30 @@ function isActionLink(props: ActionProps): props is ActionLinkProps {
   return typeof props.href === "string"
 }
 
+/**
+ * @deprecated Use Button for in-place actions or ButtonLink for navigation.
+ */
 export function Action({ className, variant = "primary", ...props }: ActionProps) {
-  const classes = [styles.action, styles[variant], className].filter(Boolean).join(" ")
-
   if (isActionLink(props)) {
     const { href, ...linkProps } = props
 
-    return <a {...linkProps} className={classes} data-variant={variant} href={href} />
+    return (
+      <ButtonLink
+        {...linkProps}
+        className={className}
+        href={href}
+        variant={variant}
+      />
+    )
   }
 
   const buttonProps = props as ActionButtonProps
 
-  return <button {...buttonProps} className={classes} data-variant={variant} type={buttonProps.type ?? "button"} />
+  return (
+    <Button
+      {...buttonProps}
+      className={className}
+      variant={variant}
+    />
+  )
 }

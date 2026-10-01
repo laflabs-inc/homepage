@@ -25,9 +25,9 @@ describe("analytics normalization", () => {
 
   it.each([
     "/design/components/logo",
-    "/design/components/action",
-    "/design/components/segmented-toggle",
-    "/design/components/icon-control",
+    "/design/components/button",
+    "/design/components/button-link",
+    "/design/components/segmented-control",
     "/design/components/text-link",
     "/design/components/code-block",
   ])("keeps the exact public component-detail path %s", (pathname) => {
@@ -91,7 +91,7 @@ describe("analytics event schema", () => {
     ["search_submit", "q6:r6"],
     ["search_result_click", "product"],
     ["work_navigate", "next:lafetch"],
-    ["design_code_copy", "action"],
+    ["design_code_copy", "button"],
   ])("accepts the allowlisted %s target %s", (type, targetId) => {
     expect(AnalyticsEventInputSchema.safeParse({ ...baseEvent, type, targetId }).success).toBe(true)
   })

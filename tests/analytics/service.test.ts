@@ -187,8 +187,8 @@ describe("collectAnalyticsBatch", () => {
       events: [{
         ...validEvent,
         type: "design_code_copy",
-        pathname: "/design/components/action?locale=en#usage",
-        targetId: "action",
+        pathname: "/design/components/button?locale=en#usage",
+        targetId: "button",
         referrerHost: undefined,
       }],
     }, requestContext, fakeStore)
@@ -196,8 +196,8 @@ describe("collectAnalyticsBatch", () => {
     expect(result).toEqual({ status: "accepted", accepted: 1 })
     expect(fakeStore.events[0]).toMatchObject({
       eventType: "design_code_copy",
-      pathname: "/design/components/action",
-      targetId: "action",
+      pathname: "/design/components/button",
+      targetId: "button",
       referrerHost: null,
     })
   })

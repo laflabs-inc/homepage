@@ -89,7 +89,7 @@ describe("Design system component pages", () => {
         screen.getByRole("link", { name: `${component.name} 자세히 보기` }),
       ).toHaveAttribute("href", `/design/components/${component.id}`)
     }
-    expect(screen.getByRole("button", { name: "검색 미리보기" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "디자인 가이드 보기" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /컴포넌트 보기/ })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "TypeScript 코드 복사" })).toBeInTheDocument()
   })
@@ -119,17 +119,17 @@ describe("Design system component pages", () => {
     )
   })
 
-  it("renders the real segmented toggle with complete English guidance", async () => {
+  it("renders the real segmented control with complete English guidance", async () => {
     render(await ComponentDetailPage({
-      params: Promise.resolve({ slug: "segmented-toggle" }),
+      params: Promise.resolve({ slug: "segmented-control" }),
       searchParams: Promise.resolve({ locale: "en" }),
     }))
 
-    expect(screen.getByRole("heading", { level: 1, name: "Segmented Toggle" })).toBeInTheDocument()
-    expect(screen.getByRole("group", { name: "Language preview" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 1, name: "Segmented Control" })).toBeInTheDocument()
+    expect(screen.getAllByRole("radiogroup", { name: "Document status preview" }).length).toBeGreaterThan(0)
     expect(screen.getByRole("link", { name: "Source" })).toHaveAttribute(
       "href",
-      "https://github.com/laflabs-inc/homepage/blob/main/components/ui/segmented-toggle.tsx",
+      "https://github.com/laflabs-inc/homepage/blob/main/components/ui/segmented-control.tsx",
     )
     expect(screen.getByRole("heading", { level: 2, name: "When to use" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "Accessibility" })).toBeInTheDocument()
@@ -139,93 +139,74 @@ describe("Design system component pages", () => {
 
   it("renders localized Korean detail guidance", async () => {
     render(await ComponentDetailPage({
-      params: Promise.resolve({ slug: "segmented-toggle" }),
+      params: Promise.resolve({ slug: "segmented-control" }),
       searchParams: Promise.resolve({}),
     }))
 
-    expect(screen.getByRole("group", { name: "언어 미리보기" })).toBeInTheDocument()
+    expect(screen.getAllByRole("radiogroup", { name: "문서 상태 미리보기" }).length).toBeGreaterThan(0)
     expect(screen.getByRole("heading", { level: 2, name: "사용할 때" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "접근성" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { level: 2, name: "사용 예시" })).toBeInTheDocument()
-    const segmentedToggle = designCatalog.components.find(({ id }) => id === "segmented-toggle")
-    if (!segmentedToggle) throw new Error("Segmented Toggle catalog fixture is missing")
-    expect(screen.getByText(segmentedToggle.whenNotToUse.ko)).toBeInTheDocument()
+    const segmentedControl = designCatalog.components.find(({ id }) => id === "segmented-control")
+    if (!segmentedControl) throw new Error("Segmented Control catalog fixture is missing")
+    expect(screen.getByText(segmentedControl.whenNotToUse.ko)).toBeInTheDocument()
   })
 
-  it("renders every Action variant and state as an inspectable real production control", () => {
-    const action = designCatalog.components.find(({ id }) => id === "action")
-    if (!action) throw new Error("Action catalog fixture is missing")
+  it("renders every Button variant and state as an inspectable production control", () => {
+    const button = designCatalog.components.find(({ id }) => id === "button")
+    if (!button) throw new Error("Button catalog fixture is missing")
 
-    render(<ComponentDetail component={action} locale="en" />)
+    render(<ComponentDetail component={button} locale="en" />)
 
-    const inspections = screen.getByRole("list", { name: "Action state inspections" })
-    expect(within(inspections).getAllByRole("listitem")).toHaveLength(6)
-    const expectedStates = [
-      ["primary", "Inspect the real blue primary button as the highest-priority action."],
-      ["secondary", "Inspect the real outlined secondary button as a lower-priority action."],
-      ["inverse", "Inspect the real inverse button for a clear boundary and label on Ink."],
-      ["hover", "Hover the real button and confirm its color change does not move the layout."],
-      ["focus-visible", "Tab to the real button and inspect its two-pixel blue focus outline."],
-      ["disabled", "Inspect the real disabled button: it stays named, cannot activate, and uses reduced opacity."],
-    ] as const
-    for (const [state, guidance] of expectedStates) {
-      const preview = within(inspections).getByRole("region", {
-        name: `Action ${state} state preview`,
-      })
-      expect(preview).toBeInTheDocument()
-      expect(within(inspections).getByText(guidance)).toBeInTheDocument()
+    const inspections = screen.getByRole("list", { name: "Button state inspections" })
+    expect(within(inspections).getAllByRole("listitem")).toHaveLength(button.states.length)
+    for (const state of button.states) {
+      expect(within(inspections).getByRole("region", {
+        name: `Button ${state.id} state preview`,
+      })).toBeInTheDocument()
+      expect(within(inspections).getByText(state.guidance.en)).toBeInTheDocument()
     }
-    expect(within(inspections).getByRole("button", { name: "Disabled action" })).toBeDisabled()
+    expect(within(inspections).getAllByRole("button", { name: "Save changes" }).some(
+      (item) => item.hasAttribute("disabled"),
+    )).toBe(true)
   })
 
-  it("derives locale-preserving related component and pattern links from the catalog", () => {
-    const action = designCatalog.components.find(({ id }) => id === "action")
-    if (!action) throw new Error("Action catalog fixture is missing")
+  it("derives locale-preserving related component links from the catalog", () => {
+    const button = designCatalog.components.find(({ id }) => id === "button")
+    if (!button) throw new Error("Button catalog fixture is missing")
 
-    render(<ComponentDetail component={action} locale="en" />)
+    render(<ComponentDetail component={button} locale="en" />)
 
     const related = screen.getByRole("region", { name: "Related documentation" })
-    expect(within(related).getByRole("link", { name: "Logo" })).toHaveAttribute(
+    expect(within(related).getByRole("link", { name: "Button Link" })).toHaveAttribute(
       "href",
-      "/design/components/logo?locale=en",
+      "/design/components/button-link?locale=en",
     )
-    expect(within(related).getByRole("link", { name: "Text Link" })).toHaveAttribute(
+    expect(within(related).getByRole("link", { name: "Button Group" })).toHaveAttribute(
       "href",
-      "/design/components/text-link?locale=en",
-    )
-    expect(within(related).getByRole("link", { name: "Icon Control" })).toHaveAttribute(
-      "href",
-      "/design/components/icon-control?locale=en",
-    )
-    expect(within(related).getByRole("link", { name: "Contrast band" })).toHaveAttribute(
-      "href",
-      "/design/patterns?locale=en#pattern-contrast-band",
+      "/design/components/button-group?locale=en",
     )
     expect(within(related).queryByRole("link", { name: "Action" })).not.toBeInTheDocument()
   })
 
-  it("shows Korean state inspection guidance and related links without changing locale", () => {
-    const iconControl = designCatalog.components.find(({ id }) => id === "icon-control")
-    if (!iconControl) throw new Error("Icon Control catalog fixture is missing")
+  it("shows Korean Segmented Control state guidance and related links", () => {
+    const segmentedControl = designCatalog.components.find(({ id }) => id === "segmented-control")
+    if (!segmentedControl) throw new Error("Segmented Control catalog fixture is missing")
 
-    render(<ComponentDetail component={iconControl} locale="ko" />)
+    render(<ComponentDetail component={segmentedControl} locale="ko" />)
 
-    const inspections = screen.getByRole("list", { name: "Icon Control 상태 살펴보기" })
-    const expectedGuidance = [
-      "실제 34px 컨트롤 안의 아이콘과 접근성 이름을 확인합니다.",
-      "실제 컨트롤에 포인터를 올려 Blue 배경과 Paper 아이콘 전환을 확인합니다.",
-      "Tab으로 실제 컨트롤에 초점을 옮겨 외부 focus outline을 확인합니다.",
-      "실제 비활성 컨트롤이 이름을 유지하고 실행되지 않는지 확인합니다.",
-    ]
-    for (const guidance of expectedGuidance) {
-      expect(within(inspections).getByText(guidance)).toBeInTheDocument()
+    const inspections = screen.getByRole("list", { name: "Segmented Control 상태 살펴보기" })
+    for (const state of segmentedControl.states) {
+      expect(within(inspections).getByText(state.guidance.ko)).toBeInTheDocument()
     }
-    expect(within(inspections).getByRole("button", { name: "비활성 아이콘 컨트롤" })).toBeDisabled()
+    expect(within(inspections).getAllByRole("radio", { name: "검토 중" }).some(
+      (item) => item.hasAttribute("disabled"),
+    )).toBe(true)
 
     const related = screen.getByRole("region", { name: "관련 문서" })
-    expect(within(related).getByRole("link", { name: "Segmented Toggle" })).toHaveAttribute(
+    expect(within(related).getByRole("link", { name: "Radio Group" })).toHaveAttribute(
       "href",
-      "/design/components/segmented-toggle",
+      "/design/components/radio-group",
     )
     expect(within(related).getByRole("link", { name: "반응형 쌓기" })).toHaveAttribute(
       "href",
@@ -258,10 +239,10 @@ describe("Design system component pages", () => {
       description: "Supported UI states, APIs, and usage guidance.",
     })
     await expect(generateComponentMetadata({
-      params: Promise.resolve({ slug: "action" }),
+      params: Promise.resolve({ slug: "button" }),
       searchParams: Promise.resolve({}),
     })).resolves.toMatchObject({
-      title: `Action | ${designCatalog.meta.name}`,
+      title: `Button | ${designCatalog.meta.name}`,
       description: designCatalog.components[1].summary.ko,
     })
   })
@@ -322,15 +303,13 @@ describe("Design system foundations page", () => {
 
     render(await FoundationsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
 
-    const sample = screen.getByRole("group", { name: "Motion" })
-    expect(sample).toHaveAttribute("data-active-index", "0")
-    expect(within(sample).getByRole("button", { name: "A" })).toHaveAttribute("aria-pressed", "true")
-    expect(within(sample).getByRole("button", { name: "B" })).toHaveAttribute("aria-pressed", "false")
+    const sample = screen.getByRole("radiogroup", { name: "Motion" })
+    expect(within(sample).getByRole("radio", { name: "A" })).toHaveAttribute("aria-checked", "true")
+    expect(within(sample).getByRole("radio", { name: "B" })).toHaveAttribute("aria-checked", "false")
 
-    await user.click(within(sample).getByRole("button", { name: "B" }))
+    await user.click(within(sample).getByRole("radio", { name: "B" }))
 
-    expect(sample).toHaveAttribute("data-active-index", "1")
-    expect(within(sample).getByRole("button", { name: "B" })).toHaveAttribute("aria-pressed", "true")
+    expect(within(sample).getByRole("radio", { name: "B" })).toHaveAttribute("aria-checked", "true")
   })
 
   it("applies catalog typography specimen metrics", async () => {

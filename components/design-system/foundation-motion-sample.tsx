@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 
-import { SegmentedToggle } from "@/components/ui/segmented-toggle"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 
 export function FoundationMotionSample({ label }: { label: string }) {
   const [value, setValue] = useState<"a" | "b">("a")
 
   return (
-    <SegmentedToggle
+    <SegmentedControl
       label={label}
       value={value}
       onValueChange={setValue}

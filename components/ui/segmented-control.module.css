@@ -1,0 +1,74 @@
+.root {
+  max-width: 100%;
+  min-height: 34px;
+  padding: 2px;
+  display: inline-flex;
+  align-items: stretch;
+  isolation: isolate;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  background: transparent;
+}
+
+.button {
+  position: relative;
+  min-width: 34px;
+  min-height: 28px;
+  padding: 0 10px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font: 700 9px / 1 var(--font-geist-mono), monospace;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.button:hover:not(:disabled, [data-active="true"]) {
+  color: var(--ink);
+}
+
+.button[data-active="true"] {
+  color: var(--paper);
+}
+
+.button:focus-visible {
+  z-index: 2;
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.indicator {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

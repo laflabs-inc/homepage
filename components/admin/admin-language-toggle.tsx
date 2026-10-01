@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 
 import { useLocale, useSetLocale } from "@/components/i18n/locale-provider"
 import { adminCopy } from "@/lib/admin/i18n"
-import { SegmentedToggle } from "@/components/ui/segmented-toggle"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 
 export function AdminLanguageToggle() {
   const locale = useLocale()
@@ -13,7 +13,7 @@ export function AdminLanguageToggle() {
   const t = adminCopy[locale].shell
 
   return (
-    <SegmentedToggle
+    <SegmentedControl
       label={t.languageLabel}
       value={locale}
       options={[

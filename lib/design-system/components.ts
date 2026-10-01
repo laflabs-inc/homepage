@@ -19,12 +19,9 @@ function existing(id: string): ComponentEntry {
 
 export const components = [
   existing("logo"),
-  existing("action"),
   ...actionComponents,
   ...formComponents,
   ...selectionComponents,
-  existing("segmented-toggle"),
-  existing("icon-control"),
   existing("text-link"),
   ...navigationComponents,
   ...disclosureComponents,

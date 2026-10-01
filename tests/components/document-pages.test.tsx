@@ -89,9 +89,10 @@ const designSitemapUrls = [
   `${siteUrl}/design/assets`,
   `${siteUrl}/design/ai`,
   `${siteUrl}/design/components/logo`,
-  `${siteUrl}/design/components/action`,
   `${siteUrl}/design/components/button`,
+  `${siteUrl}/design/components/button-link`,
   `${siteUrl}/design/components/button-group`,
+  `${siteUrl}/design/components/segmented-control`,
   `${siteUrl}/design/components/field`,
   `${siteUrl}/design/components/label`,
   `${siteUrl}/design/components/input`,
@@ -101,8 +102,6 @@ const designSitemapUrls = [
   `${siteUrl}/design/components/checkbox`,
   `${siteUrl}/design/components/radio-group`,
   `${siteUrl}/design/components/switch`,
-  `${siteUrl}/design/components/segmented-toggle`,
-  `${siteUrl}/design/components/icon-control`,
   `${siteUrl}/design/components/text-link`,
   `${siteUrl}/design/components/dropdown-menu`,
   `${siteUrl}/design/components/tabs`,
@@ -542,7 +541,7 @@ describe("public document pages", () => {
       </LocaleProvider>,
     )
 
-    await user.click(screen.getByRole("button", { name: "KO" }))
+    await user.click(screen.getByRole("radio", { name: "KO" }))
 
     expect(navigationMocks.replace).toHaveBeenCalledWith(
       "/notices/service-update?locale=ko&category=service",
@@ -642,7 +641,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(99)
+    expect(entries).toHaveLength(98)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

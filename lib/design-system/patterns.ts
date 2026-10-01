@@ -22,7 +22,7 @@ export const patterns = [
         en: "Place page-local navigation inside the content shell.",
       },
     ],
-    relatedComponents: ["logo", "segmented-toggle", "icon-control", "text-link"],
+    relatedComponents: ["logo", "segmented-control", "button", "text-link"],
   },
   {
     id: "editorial-heading",
@@ -91,7 +91,7 @@ export const patterns = [
         en: "Provide previous and next actions as named, keyboard-operable buttons.",
       },
     ],
-    relatedComponents: ["button", "segmented-toggle", "icon-control", "text-link"],
+    relatedComponents: ["button", "segmented-control", "text-link"],
   },
   {
     id: "document-surface",
@@ -160,7 +160,7 @@ export const patterns = [
         en: "Keep a 44px target area on small screens.",
       },
     ],
-    relatedComponents: ["button", "button-group", "field", "segmented-toggle", "icon-control"],
+    relatedComponents: ["button", "button-group", "field", "segmented-control"],
   },
   {
     id: "contrast-band",
@@ -183,6 +183,6 @@ export const patterns = [
         en: "Do not restore legacy Page Navy as the default surface for new public pages.",
       },
     ],
-    relatedComponents: ["logo", "action", "text-link"],
+    relatedComponents: ["logo", "button-link", "text-link"],
   },
 ] as const satisfies readonly PatternEntry[]

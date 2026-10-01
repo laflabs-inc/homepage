@@ -14,7 +14,7 @@ export const disclosureComponents = [
     demoKey: "tabs",
     importExample: 'import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"',
     usageExample: '<Tabs defaultValue="overview"><TabsList aria-label="Views"><TabsTrigger value="overview">Overview</TabsTrigger></TabsList><TabsContent value="overview">Content</TabsContent></Tabs>',
-    relatedComponents: ["segmented-toggle", "accordion"],
+    relatedComponents: ["segmented-control", "accordion"],
     dependencies: ["radix-ui"],
     states: [
       { id: "default", guidance: { ko: "첫 패널과 활성 탭이 연결되는지 확인합니다.", en: "Confirm the initial panel is associated with the active tab." } },

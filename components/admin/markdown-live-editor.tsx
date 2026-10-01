@@ -14,7 +14,7 @@ import contentStyles from "@/components/content/content.module.css"
 import { MarkdownBody } from "@/components/content/markdown-document"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { Button } from "@/components/ui/button"
-import { SegmentedToggle } from "@/components/ui/segmented-toggle"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { Locale } from "@/lib/i18n"
 import { buildMarkdownImage } from "@/lib/markdown/media-assets"
@@ -146,7 +146,7 @@ export function MarkdownLiveEditor({ value, onChange, maxLength = 200_000, docum
         <Button size="compact" variant="secondary" aria-label={t.insertImage} onClick={() => setPickerOpen(true)}>
           <ImageSquare aria-hidden size={17} weight="bold" />
         </Button>
-        <SegmentedToggle
+        <SegmentedControl
           className={styles.markdownViewSwitch}
           label={t.markdownView}
           value={previewMode ? "preview" : "source"}

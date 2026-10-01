@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.9.6 · Updated: 2026-09-26
+System version: 2026.10.0 · Updated: 2026-10-01
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -55,7 +55,7 @@ Keep the official logo shape and proportions intact.
 
 Motion explains entry, progress, and state changes only.
 
-- The Segmented Toggle uses the shared spring at stiffness 520 and damping 38.
+- The Segmented Control uses the shared spring at stiffness 520 and damping 38.
 - Do not move layout position or padding on hover.
 - Under prefers-reduced-motion, show the final state immediately.
 
@@ -136,7 +136,7 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `layout.gutter` | layout | `max(32px, calc((100vw - 1280px) / 2))` | Current | Responsive inline space for full-width sections. |
 | `layout.shell` | layout | `min(1280px, calc(100% - 64px))` | Current | The current public-shell maximum width and inline space. |
 | `motion.reduced` | motion | `0ms` | Current | State transitions complete immediately when reduced motion is requested. |
-| `motion.segmented-toggle` | motion | `spring(stiffness: 520, damping: 38)` | Current | The shared spring for the Segmented Toggle selection thumb. |
+| `motion.segmented-control` | motion | `spring(stiffness: 520, damping: 38)` | Current | The shared spring for the Segmented Control selection surface. |
 | `shape.radius` | shape | `0px` | Current | The default corner radius for controls, surfaces, and indicators. |
 | `shape.rule` | shape | `1px` | Current | The default rule width for sections, rows, and controls. |
 | `spacing.section-vertical` | spacing | `80px–150px` | Current | Responsive vertical section space, adjusted to content and viewport width. |
@@ -175,18 +175,6 @@ Expands and collapses longer content by heading.
 - States: `closed`, `open`, `disabled`
 - Related components: `tabs`, `separator`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
-
-### Action (`action`)
-
-Maturity: **stable** · Category: **action**
-
-A reusable primary action rendered as a link or button.
-
-- Use: Use it for a clear navigation or execution action in primary, secondary, or inverse form.
-- Avoid: Do not use it for inline navigation or icon-only actions.
-- Accessibility: Use a link for navigation and a button for in-place actions, with visible focus in both cases.
-- States: `primary`, `secondary`, `inverse`, `hover`, `focus-visible`, `disabled`
-- Related components: `text-link`, `icon-control`
 
 ### Alert (`alert`)
 
@@ -229,27 +217,39 @@ Shows where the current page sits in the information hierarchy.
 
 ### Button (`button`)
 
-Maturity: **candidate** · Category: **action**
+Maturity: **stable** · Category: **action**
 
 Runs an action in the current interface.
 
 - Use: Use it for immediate actions such as save, submit, and confirm.
-- Avoid: Use Action or Text Link for navigation.
-- Accessibility: Keep an action-specific name and expose busy and disabled states.
-- States: `default`, `hover`, `focus-visible`, `disabled`, `loading`, `danger`
-- Related components: `action`, `button-group`, `icon-control`
+- Avoid: Use Button Link or Text Link for navigation.
+- Accessibility: Keep an action-specific name, expose busy and disabled states, and name icon buttons with aria-label.
+- States: `primary`, `secondary`, `inverse`, `ghost`, `icon`, `disabled`, `loading`, `danger`
+- Related components: `button-link`, `button-group`
 
 ### Button Group (`button-group`)
 
 Maturity: **candidate** · Category: **action**
 
-Groups related buttons under one accessible name.
+Composes related actions and supporting parts in one connected frame.
 
-- Use: Use it for actions that share context, such as save and publish.
+- Use: Use it for related actions, split actions, or an input paired with its action.
 - Avoid: Do not force unrelated actions or long explanations into one row.
-- Accessibility: Name the group while preserving an action-specific name on each button.
-- States: `horizontal`, `vertical`, `wrapped`
-- Related components: `button`
+- Accessibility: Name the group while preserving a specific name for every control.
+- States: `horizontal`, `vertical`, `split`, `input`
+- Related components: `button`, `button-link`, `dropdown-menu`, `input-group`
+
+### Button Link (`button-link`)
+
+Maturity: **stable** · Category: **action**
+
+Navigates to another address using Button's visual contract.
+
+- Use: Use it for navigation that needs strong CTA hierarchy.
+- Avoid: Use Button for actions that change the current interface.
+- Accessibility: Preserve native anchor semantics and name the destination.
+- States: `primary`, `secondary`, `inverse`, `ghost`, `icon`
+- Related components: `button`, `text-link`
 
 ### Checkbox (`checkbox`)
 
@@ -273,7 +273,7 @@ A readable code region with a language label and copy action.
 - Avoid: Do not use it for short inline identifiers or as an executable editor.
 - Accessibility: The copy button names the language, and the source remains selectable after a copy failure.
 - States: `idle`, `copied`, `error`
-- Related components: `icon-control`
+- Related components: `button`
 
 ### Combobox (`combobox`)
 
@@ -350,18 +350,6 @@ Connects a label, control, description, and error as one field.
 - Accessibility: Links direct description and error children to the nested control.
 - States: `default`, `required`, `invalid`
 - Related components: `label`, `input`, `textarea`, `native-select`
-
-### Icon Control (`icon-control`)
-
-Maturity: **stable** · Category: **action**
-
-A reusable button that represents one action with an icon.
-
-- Use: Use it for a familiar, simple action such as opening search in a compact area.
-- Avoid: Do not use it when the icon is ambiguous or navigation is the primary purpose.
-- Accessibility: Always provide a label and keep a 44px target area on small screens.
-- States: `default`, `hover`, `focus-visible`, `disabled`
-- Related components: `action`
 
 ### Input (`input`)
 
@@ -511,17 +499,17 @@ Selects exactly one value from a named group.
 - States: `default`, `selected`, `controlled`, `disabled`
 - Related components: `checkbox`, `native-select`
 
-### Segmented Toggle (`segmented-toggle`)
+### Segmented Control (`segmented-control`)
 
-Maturity: **stable** · Category: **action**
+Maturity: **candidate** · Category: **selection**
 
-Switches between two mutually exclusive values in place.
+Selects one value from two or more short options.
 
-- Use: Use it when two short options, such as languages, have equal weight.
-- Avoid: Do not use it for more than two choices or options that need long descriptions.
-- Accessibility: Name the group and each button; expose selection with aria-pressed.
-- States: `default`, `hover`, `focus-visible`, `selected`, `reduced-motion`
-- Related components: `icon-control`
+- Use: Use it to switch short peer values such as locale, view, or status.
+- Avoid: Use Radio Group or Select for verbose or numerous options.
+- Accessibility: Provides radiogroup and radio semantics, aria-checked, and arrow-key roving focus.
+- States: `default`, `three-options`, `focus-visible`, `selected`, `disabled`, `reduced-motion`
+- Related components: `radio-group`, `tabs`
 - Dependencies: `motion`
 
 ### Select (`select`)
@@ -609,7 +597,7 @@ Turns one immediately applied setting on or off.
 - Avoid: Use Checkbox when consent is only committed on form submission.
 - Accessibility: Preserve native checkbox behavior with role switch and a stable label.
 - States: `off`, `on`, `focus-visible`, `disabled`
-- Related components: `checkbox`, `segmented-toggle`
+- Related components: `checkbox`, `segmented-control`
 
 ### Table (`table`)
 
@@ -633,7 +621,7 @@ Switches between peer panels within one context.
 - Avoid: Do not use it for sequential steps or independent page navigation.
 - Accessibility: Preserves tablist, tab, tabpanel relationships and arrow-key roving focus.
 - States: `default`, `selected`, `disabled`
-- Related components: `segmented-toggle`, `accordion`
+- Related components: `segmented-control`, `accordion`
 - Dependencies: `radix-ui`
 
 ### Text Link (`text-link`)
@@ -646,7 +634,7 @@ A reusable link that pairs text with an arrow toward the next destination.
 - Avoid: Do not use it for primary submission actions or icon-only controls.
 - Accessibility: The link text must identify its destination; treat the arrow as decorative.
 - States: `default`, `hover`, `focus-visible`, `visited`
-- Related components: `action`
+- Related components: `button-link`
 - Dependencies: `@phosphor-icons/react`
 
 ### Textarea (`textarea`)
@@ -671,7 +659,7 @@ Provides a short supporting description on hover and focus.
 - Avoid: Do not rely on it for essential information, long copy, or touch-only actions.
 - Accessibility: Opens on keyboard focus as well as hover and is associated as the trigger description.
 - States: `closed`, `open`
-- Related components: `icon-control`
+- Related components: `button`
 - Dependencies: `radix-ui`
 
 ## Composition and responsive patterns
@@ -692,7 +680,7 @@ A restrained Ink surface divides the flow of the light public theme.
 - Use a dark band only for a clear content shift, such as the company statement.
 - Use white for primary text and Blue Light for short highlights.
 - Do not restore legacy Page Navy as the default surface for new public pages.
-- Related components: `logo`, `action`, `text-link`
+- Related components: `logo`, `button-link`, `text-link`
 
 ### Document surface (`document-surface`)
 
@@ -719,7 +707,7 @@ Desktop relationships become a one-column reading order on small screens.
 - Stack complex grids at 1080px and simplify navigation and actions at 720px.
 - Reorder the same content for reading instead of shrinking a desktop diagram.
 - Keep a 44px target area on small screens.
-- Related components: `button`, `button-group`, `field`, `segmented-toggle`, `icon-control`
+- Related components: `button`, `button-group`, `field`, `segmented-control`
 
 ### Selected work (`selected-work`)
 
@@ -728,7 +716,7 @@ An editorial module pairing a real image with verified project copy.
 - Use real images from public and never fabricate a product screen.
 - Show product status and destinations only when current data provides them.
 - Provide previous and next actions as named, keyboard-operable buttons.
-- Related components: `button`, `segmented-toggle`, `icon-control`, `text-link`
+- Related components: `button`, `segmented-control`, `text-link`
 
 ### Site chrome (`site-chrome`)
 
@@ -737,7 +725,7 @@ The existing Site Header and Footer frame every public surface.
 - Do not add a second fixed navbar inside a page.
 - Keep logo, locale, search, and document navigation in their established chrome positions.
 - Place page-local navigation inside the content shell.
-- Related components: `logo`, `segmented-toggle`, `icon-control`, `text-link`
+- Related components: `logo`, `segmented-control`, `button`, `text-link`
 
 ### System states (`system-states`)
 
