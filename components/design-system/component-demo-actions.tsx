@@ -1,5 +1,5 @@
 import type { ComponentType } from "react"
-import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react"
+import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr"
 
 import { Button } from "@/components/ui/button"
 import { ButtonLink } from "@/components/ui/button-link"

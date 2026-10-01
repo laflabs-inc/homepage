@@ -138,6 +138,7 @@ function SegmentedControlRoot<Value extends string>({
           >
             {active ? (
               <motion.span
+                key="indicator"
                 aria-hidden="true"
                 className={styles.indicator}
                 data-slot="segmented-control-indicator"
@@ -147,7 +148,11 @@ function SegmentedControlRoot<Value extends string>({
                   : { type: "spring", stiffness: 520, damping: 38 }}
               />
             ) : null}
-            <span className={styles.content} data-slot="segmented-control-content">
+            <span
+              key="content"
+              className={styles.content}
+              data-slot="segmented-control-content"
+            >
               {option.content}
             </span>
           </button>

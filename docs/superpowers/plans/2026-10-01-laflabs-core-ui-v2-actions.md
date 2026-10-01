@@ -95,7 +95,7 @@
 - Preserves: ActionProps and Action with a deprecation annotation.
 - Preserves: IconControlProps and IconControl with a deprecation annotation.
 
-- [ ] **Step 1: Write failing Button family tests**
+- [x] **Step 1: Write failing Button family tests**
 
 Add cases that assert:
 
@@ -117,7 +117,7 @@ Add a compile-time contract proving that size icon requires aria-label and that 
     // @ts-expect-error anchors do not expose disabled button semantics
     <ButtonLink href="/design" disabled>Design</ButtonLink>
 
-- [ ] **Step 2: Run focused tests and confirm the new API is missing**
+- [x] **Step 2: Run focused tests and confirm the new API is missing**
 
 Run:
 
@@ -125,13 +125,13 @@ Run:
 
 Expected: failure for missing ButtonLink, ghost and icon sizes, and wrapper migration.
 
-- [ ] **Step 3: Implement the shared visual contract**
+- [x] **Step 3: Implement the shared visual contract**
 
 Create button-contract.ts with the exact types above and a deterministic class-name helper that maps CSS Module classes. Update Button to consume it while preserving loading, disabled, ref, native props, and type button default.
 
 Add ghost and icon CSS. The icon visual size is 34px on desktop and its interactive target reaches 44px on small screens without pseudo-elements covering neighboring controls.
 
-- [ ] **Step 4: Implement ButtonLink and compatibility wrappers**
+- [x] **Step 4: Implement ButtonLink and compatibility wrappers**
 
 ButtonLink renders a native anchor, forwards anchor attributes and refs, and consumes the shared variant and size contract. It does not accept disabled or loading props.
 
@@ -139,7 +139,7 @@ Action delegates href props to ButtonLink and non-href props to Button while pre
 
 IconControl delegates to Button with size icon and secondary as its compatibility default.
 
-- [ ] **Step 5: Run action tests**
+- [x] **Step 5: Run action tests**
 
 Run:
 
@@ -147,7 +147,7 @@ Run:
 
 Expected: all tests pass.
 
-- [ ] **Step 6: Commit the Button family**
+- [x] **Step 6: Commit the Button family**
 
     git add components/ui/button-contract.ts components/ui/button.tsx components/ui/button.module.css components/ui/button-link.tsx components/ui/action.tsx components/ui/icon-control.tsx tests/components/core-ui-actions.test.tsx tests/components/core-ui-composition-contracts.test.tsx tests/components/design-system-primitives.test.tsx
     git add -u components/ui
@@ -170,13 +170,13 @@ Expected: all tests pass.
 - Produces: ButtonGroupSeparator with orientation horizontal or vertical.
 - Produces: ButtonGroupText.
 
-- [ ] **Step 1: Write failing compound-component tests**
+- [x] **Step 1: Write failing compound-component tests**
 
 Test a labelled group containing ButtonGroupText, two Buttons, and ButtonGroupSeparator. Assert group semantics, forwarded native attributes, orientation data, separator aria-hidden state, and visible text.
 
 Add a nested-group rendering case and a split-action case. Do not require child introspection or cloning.
 
-- [ ] **Step 2: Run the focused tests and verify failure**
+- [x] **Step 2: Run the focused tests and verify failure**
 
 Run:
 
@@ -184,13 +184,13 @@ Run:
 
 Expected: failure because Separator and Text are not exported.
 
-- [ ] **Step 3: Implement the compound API and connected frame**
+- [x] **Step 3: Implement the compound API and connected frame**
 
 Use data-slot attributes on each part. CSS owns adjacency through slot selectors and orientation. Connected children share one outer frame, internal borders remain one pixel, and focus outlines render above adjacent siblings.
 
 Do not impose width on nested inputs or Buttons. Allow horizontal overflow where the caller requests no wrapping; otherwise wrap only at an explicit responsive boundary.
 
-- [ ] **Step 4: Replace the minimal demo with real compositions**
+- [x] **Step 4: Replace the minimal demo with real compositions**
 
 Add:
 
@@ -201,7 +201,7 @@ Add:
 
 Use existing production components only.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run:
 
@@ -232,7 +232,7 @@ Commit:
 - Produces: SegmentedControl.
 - Preserves: SegmentedToggle with its existing two-option prop contract as a deprecated wrapper.
 
-- [ ] **Step 1: Write failing selection and keyboard tests**
+- [x] **Step 1: Write failing selection and keyboard tests**
 
 Cover:
 
@@ -246,7 +246,7 @@ Cover:
 - group and option accessible names;
 - reduced motion does not remove the active state.
 
-- [ ] **Step 2: Run the focused tests and verify failure**
+- [x] **Step 2: Run the focused tests and verify failure**
 
 Run:
 
@@ -254,7 +254,7 @@ Run:
 
 Expected: failure because SegmentedControl does not exist and the current control only accepts two fixed options.
 
-- [ ] **Step 3: Implement SegmentedControl**
+- [x] **Step 3: Implement SegmentedControl**
 
 Render a named radiogroup with button options using role radio and aria-checked. Maintain refs for roving focus. Skip disabled options and wrap keyboard navigation.
 
@@ -262,11 +262,11 @@ Render the active surface inside the selected button with Motion layout rather t
 
 Require at least two options at runtime in development. For an unknown current value, render no selected option, give the first enabled option the only tab stop, and do not mutate selection until the user acts.
 
-- [ ] **Step 4: Implement the compatibility wrapper**
+- [x] **Step 4: Implement the compatibility wrapper**
 
 SegmentedToggle keeps its current two-item tuple type and maps directly to SegmentedControl. It contains no independent layout or motion logic.
 
-- [ ] **Step 5: Run focused tests and commit**
+- [x] **Step 5: Run focused tests and commit**
 
 Run:
 
@@ -307,7 +307,7 @@ Commit:
 - Removes from recommended catalog: action, icon-control, segmented-toggle.
 - Preserves source imports for deprecated aliases outside the catalog.
 
-- [ ] **Step 1: Write failing catalog and page tests**
+- [x] **Step 1: Write failing catalog and page tests**
 
 Assert:
 
@@ -321,7 +321,7 @@ Assert that generated Markdown explains Button versus ButtonLink, documents icon
 
 Assert the live page renders every Button variant, ButtonGroup split composition, and a SegmentedControl with at least three options.
 
-- [ ] **Step 2: Run the catalog tests and verify failure**
+- [x] **Step 2: Run the catalog tests and verify failure**
 
 Run:
 
@@ -329,19 +329,19 @@ Run:
 
 Expected: failure because retired catalog entries remain and the new entries are absent.
 
-- [ ] **Step 3: Migrate internal consumers**
+- [x] **Step 3: Migrate internal consumers**
 
 Replace every non-compatibility SegmentedToggle import under app and components with SegmentedControl. Replace demo IconControl usage with Button size icon. Replace demo Action usage with Button or ButtonLink according to semantics.
 
 Do not change labels, analytics attributes, routes, callbacks, or form behavior.
 
-- [ ] **Step 4: Update catalog metadata and demos**
+- [x] **Step 4: Update catalog metadata and demos**
 
 Move SegmentedControl into the action or selection-navigation section agreed by the existing category taxonomy. Button documentation includes variant priority, icon naming, and loading behavior. ButtonLink explicitly states navigation semantics. ButtonGroup documents split, nested, and mixed-control composition.
 
 Every entry includes production source path, dependencies, state guidance, related components, and a copyable realistic example.
 
-- [ ] **Step 5: Regenerate public and AI resources**
+- [x] **Step 5: Regenerate public and AI resources**
 
 Run:
 
@@ -350,7 +350,7 @@ Run:
 
 Expected: DESIGN.md and generated resource snapshots contain only the recommended v2 names while compatibility exports remain in source.
 
-- [ ] **Step 6: Run focused tests and commit**
+- [x] **Step 6: Run focused tests and commit**
 
 Run:
 
@@ -377,7 +377,7 @@ Commit:
 - Consumes: all prior tasks.
 - Produces: a verified Delivery C3A and records C3B as the next delivery.
 
-- [ ] **Step 1: Run the complete static and unit suite**
+- [x] **Step 1: Run the complete static and unit suite**
 
 Run:
 
@@ -388,7 +388,7 @@ Run:
 
 Expected: design check passes, TypeScript reports no errors, lint reports no errors, and all unit tests pass.
 
-- [ ] **Step 2: Run the production build**
+- [x] **Step 2: Run the production build**
 
 Run:
 
@@ -396,7 +396,7 @@ Run:
 
 Expected: Next.js production build completes without route, serialization, or hydration errors.
 
-- [ ] **Step 3: Review representative pages in a browser**
+- [x] **Step 3: Review representative pages in a browser**
 
 Review:
 
@@ -409,19 +409,19 @@ Review:
 
 Check desktop and 320px mobile widths, 200% zoom, long Korean and English labels, keyboard focus, Arrow/Home/End navigation, disabled options, reduced motion, and connected group borders.
 
-- [ ] **Step 4: Run the Impeccable manual detector**
+- [x] **Step 4: Run the Impeccable manual detector**
 
 Run:
 
-    node /home/singlethread/.codex/skills/impeccable/scripts/detect.js --root . --scope components/ui --scope components/design-system
+    node /home/singlethread/.codex/skills/impeccable/scripts/detect.mjs components/ui components/design-system
 
 Review each reported pattern and fix only actual violations. Record intentional exceptions in the delivery notes.
 
-- [ ] **Step 5: Update roadmap and plan status**
+- [x] **Step 5: Update roadmap and plan status**
 
 Mark Delivery C3A complete in docs/platform-roadmap.md, identify C3B form composition as next, and check every completed plan item.
 
-- [ ] **Step 6: Commit verification fixes**
+- [x] **Step 6: Commit verification fixes**
 
     git add components docs DESIGN.md
     git commit -m "chore(design): verify core ui v2 actions"
