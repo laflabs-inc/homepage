@@ -44,7 +44,7 @@ describe("AssetUploadQueue", () => {
     uploadMocks.uploadStagedAsset.mockReset().mockImplementation(async ({ onProgress }) => {
       onProgress?.({ loaded: 68, total: 68, percentage: 100 })
     })
-    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.endsWith("/api/admin/assets/intents")) {
         return new Response(JSON.stringify({
@@ -58,6 +58,12 @@ describe("AssetUploadQueue", () => {
       }
       if (url.endsWith(`/${readyAsset.id}/finalize`)) {
         return new Response(JSON.stringify({ asset: readyAsset }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      }
+      if (url.endsWith(`/api/admin/assets/${readyAsset.id}`) && init?.method === "DELETE") {
+        return new Response(JSON.stringify({ asset: { ...readyAsset, status: "deleted" } }), {
           status: 200,
           headers: { "content-type": "application/json" },
         })
@@ -103,6 +109,29 @@ describe("AssetUploadQueue", () => {
     await user.click(screen.getByRole("button", { name: "Remove failed upload" }))
     await waitFor(() => expect(screen.queryByText("motion.gif")).not.toBeInTheDocument())
     expect(screen.getByText("brand.png")).toBeInTheDocument()
+  })
+
+  it("deletes the pending server record when a staged upload fails", async () => {
+    const user = userEvent.setup()
+    uploadMocks.uploadStagedAsset.mockRejectedValueOnce(new Error("provider unavailable"))
+    render(
+      <LocaleProvider initialLocale="en">
+        <AssetUploadQueue onReady={vi.fn()} />
+      </LocaleProvider>,
+    )
+
+    await user.upload(
+      screen.getByLabelText("Upload images", { selector: "input" }),
+      new File([new Uint8Array(68)], "brand.png", { type: "image/png" }),
+    )
+    await screen.findByText("Upload failed. Try again.")
+    await user.click(screen.getByRole("button", { name: "Remove failed upload" }))
+
+    await waitFor(() => expect(screen.queryByText("brand.png")).not.toBeInTheDocument())
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      `/api/admin/assets/${readyAsset.id}`,
+      expect.objectContaining({ method: "DELETE" }),
+    )
   })
 
   it("sends the replacement target and limits the picker to one file", async () => {

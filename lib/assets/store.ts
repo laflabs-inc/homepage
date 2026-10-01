@@ -477,7 +477,7 @@ export function createAssetStore(database: SqlExecutor): MediaAssetRepository {
             "updated_by" = ${actor.githubId}, "updated_by_name" = ${actor.name},
             "updated_at" = statement_timestamp()
           FROM locked l WHERE a."id" = l."id" AND l."reference_count" = 0
-            AND l."status" IN ('archived', 'failed')
+            AND l."status" IN ('pending', 'archived', 'failed')
           RETURNING a.*
         ), audit_entry AS (${auditCte("media.delete_acquired", actor)}), current_asset AS (
           SELECT locked.*, locked."reference_count" AS "referenceCount"

@@ -149,6 +149,7 @@ Allowed transitions:
 pending -> processing -> ready -> archived -> ready
 pending -> processing -> failed
 pending -> failed
+pending -> deleting -> deleted
 failed -> deleting -> deleted
 archived -> deleting -> deleted
 ```
@@ -157,7 +158,7 @@ archived -> deleting -> deleted
 
 Archive changes only database visibility. It does not remove the public Blob object or break the stable media route. Restore returns the asset to `ready`.
 
-Hard delete requires `archived` or `failed`, zero reference rows, and explicit confirmation. One database transaction locks the asset, rechecks the reference count, and conditionally moves it to `deleting`. Reference creation takes a compatible row lock and rejects assets outside `ready` or `archived`, so it cannot race past deletion acquisition. The public route never resolves `deleting` assets. Blob deletion then runs outside the transaction, and a missing Blob is treated as already deleted. Success moves the record to `deleted`; failure leaves it in `deleting` so the administrator or cleanup job can retry without reopening delivery.
+Hard delete requires `pending`, `archived`, or `failed`, zero reference rows, and explicit confirmation. Allowing `pending` deletion lets an administrator cancel an interrupted direct upload and clean up its staging object. One database transaction locks the asset, rechecks the reference count, and conditionally moves it to `deleting`. Reference creation takes a compatible row lock and rejects assets outside `ready` or `archived`, so it cannot race past deletion acquisition. The public route never resolves `deleting` assets. Blob deletion then runs outside the transaction, and a missing Blob is treated as already deleted. Success moves the record to `deleted`; failure leaves it in `deleting` so the administrator or cleanup job can retry without reopening delivery.
 
 ## Upload and finalization flow
 
@@ -212,7 +213,7 @@ A matching checksum on an existing ready or archived asset produces a duplicate 
 - `PATCH /api/admin/assets/{id}`: update localized alt text and tags; stable filenames never change in place
 - `POST /api/admin/assets/{id}/archive`: archive a ready asset
 - `POST /api/admin/assets/{id}/restore`: restore an archived asset
-- `DELETE /api/admin/assets/{id}`: start or retry hard deletion of an archived, failed, or deleting unreferenced asset
+- `DELETE /api/admin/assets/{id}`: cancel a pending upload or start/retry hard deletion of an archived, failed, or deleting unreferenced asset
 - `GET /api/cron/assets/cleanup`: remove expired staging objects and settle stale records
 
 All Admin reads require GitHub organization authorization. All browser-originated mutations additionally require same-origin validation. Request JSON uses the shared bounded parser. List limits are between 1 and 100 and use an opaque cursor.

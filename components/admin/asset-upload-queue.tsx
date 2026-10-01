@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { StatusLabel } from "@/components/ui/status-label"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminAssetSummary } from "@/lib/assets/admin-summary"
+import { finalizeUploadedAsset } from "@/lib/assets/client-finalize"
 import { uploadStagedAsset } from "@/lib/assets/client-upload"
 
 const ACCEPTED_TYPES = new Set([
@@ -29,6 +30,7 @@ type QueueItem = {
   file: File
   status: QueueStatus
   progress: number
+  assetId?: string
   failureReason?: FailureReason
 }
 
@@ -38,8 +40,6 @@ type IntentResponse = {
     pathname: string
   }
 }
-
-type FinalizeResponse = { asset: AdminAssetSummary }
 
 function localId(file: File): string {
   return `${file.name}:${file.size}:${file.lastModified}:${Math.random().toString(36).slice(2)}`
@@ -75,7 +75,7 @@ export function AssetUploadQueue({
   }
 
   const runUpload = async (item: QueueItem) => {
-    updateItem(item.id, { status: "queued", progress: 0, failureReason: undefined })
+    updateItem(item.id, { status: "queued", progress: 0, assetId: undefined, failureReason: undefined })
     try {
       const intentResponse = await fetch("/api/admin/assets/intents", {
         method: "POST",
@@ -88,7 +88,7 @@ export function AssetUploadQueue({
         }),
       })
       const { intent } = await readJson<IntentResponse>(intentResponse)
-      updateItem(item.id, { status: "uploading", progress: 0 })
+      updateItem(item.id, { status: "uploading", progress: 0, assetId: intent.assetId })
       await uploadStagedAsset({
         file: item.file,
         assetId: intent.assetId,
@@ -99,12 +99,36 @@ export function AssetUploadQueue({
         }),
       })
       updateItem(item.id, { status: "processing", progress: 100 })
-      const finalizeResponse = await fetch(`/api/admin/assets/${intent.assetId}/finalize`, {
-        method: "POST",
-      })
-      const { asset } = await readJson<FinalizeResponse>(finalizeResponse)
+      const asset = await finalizeUploadedAsset(intent.assetId)
       updateItem(item.id, { status: "ready", progress: 100 })
       onReady(asset)
+    } catch {
+      updateItem(item.id, { status: "failed", failureReason: "upload_failed" })
+    }
+  }
+
+  const discardIntent = async (assetId: string) => {
+    const response = await fetch(`/api/admin/assets/${assetId}`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ confirm: true }),
+    })
+    if (!response.ok) throw new Error("request_failed")
+  }
+
+  const retryUpload = async (item: QueueItem) => {
+    try {
+      if (item.assetId) await discardIntent(item.assetId)
+      await runUpload({ ...item, assetId: undefined })
+    } catch {
+      updateItem(item.id, { status: "failed", failureReason: "upload_failed" })
+    }
+  }
+
+  const removeFailedUpload = async (item: QueueItem) => {
+    try {
+      if (item.assetId) await discardIntent(item.assetId)
+      setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))
     } catch {
       updateItem(item.id, { status: "failed", failureReason: "upload_failed" })
     }
@@ -182,7 +206,7 @@ export function AssetUploadQueue({
                       size="compact"
                       variant="secondary"
                       aria-label={t.retryUpload}
-                      onClick={() => void runUpload(item)}
+                      onClick={() => void retryUpload(item)}
                     >
                       <ArrowClockwise aria-hidden size={16} weight="bold" />
                     </Button>
@@ -191,7 +215,7 @@ export function AssetUploadQueue({
                     size="compact"
                     variant="secondary"
                     aria-label={t.removeFailedUpload}
-                    onClick={() => setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))}
+                    onClick={() => void removeFailedUpload(item)}
                   >
                     <Trash aria-hidden size={16} weight="bold" />
                   </Button>

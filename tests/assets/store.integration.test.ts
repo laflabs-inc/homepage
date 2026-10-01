@@ -204,6 +204,26 @@ describe("media asset store integration", () => {
     }
   })
 
+  it("lets an administrator cancel an orphaned pending upload", async () => {
+    const { database, store } = await setup()
+    try {
+      await store.createPending({
+        id,
+        familyId: id,
+        originalFilename: "Interrupted.PNG",
+        declaredMediaType: "image/png",
+        stagingPathname: `staging/${id}/${nonce}`,
+      }, actor)
+
+      expect(await store.acquireDeletion(id, actor)).toMatchObject({
+        status: "acquired",
+        asset: { id, status: "deleting" },
+      })
+    } finally {
+      await database.close()
+    }
+  })
+
   it("normalizes tags and supports case-insensitive filename search", async () => {
     const { database, store } = await setup()
     try {

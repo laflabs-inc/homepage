@@ -54,9 +54,11 @@ boundary: unverified browser uploads must never be readable from a public URL.
   stable path available. Restore makes it selectable again.
 - **Create a new version** uploads a new immutable asset ID in the same family.
   The old file, path, metadata, and document references are never rewritten.
-- **Delete permanently** is available only for archived or failed assets and
-  remains blocked with `409 asset_referenced` while any saved revision uses the
-  asset. Open Document usage and update or delete those revisions first.
+- **Delete permanently** is available for archived or failed assets. A pending
+  upload can also be cancelled and deleted so interrupted uploads do not remain
+  in the library. Deletion remains blocked with `409 asset_referenced` while
+  any saved revision uses the asset. Open Document usage and update or delete
+  those revisions first.
 - A failed replacement does not affect the previous version. Retry the new
   pending/failed asset or start another replacement; do not mutate the old
   public object.
@@ -119,7 +121,10 @@ health, then invoke the job again. Never edit a `deleting` row back to `ready`.
   public/private boundary.
 - Upload completed but finalization cannot find it: inspect the asset's expected
   staging pathname and the private store. Do not paste a provider URL into the
-  database or retry with a client-chosen pathname.
+  database or retry with a client-chosen pathname. The Admin client retries a
+  short `invalid_state` window while the asynchronous completion callback is
+  being recorded; a row that remains pending can be cancelled and deleted from
+  the asset library.
 - A row remains `processing`: retry after the provider recovers, or allow the
   one-hour timeout to settle it safely.
 

@@ -184,6 +184,25 @@ describe("asset lifecycle service", () => {
     })
   })
 
+  it("removes the private staging object when a pending upload is cancelled", async () => {
+    const deps = dependencies()
+    vi.mocked(deps.repository.acquireDeletion).mockResolvedValueOnce({
+      status: "acquired",
+      asset: asset({ status: "deleting" }),
+    })
+    vi.mocked(deps.repository.markDeleted).mockResolvedValueOnce(asset({
+      status: "deleted",
+      stagingPathname: null,
+      stagingUrl: null,
+      deletedAt: new Date("2026-09-27T01:00:00Z"),
+    }))
+    const service = createAssetService(deps)
+
+    await expect(service.delete(id, actor)).resolves.toMatchObject({ status: "deleted" })
+    expect(deps.blobStore.deletePrivate).toHaveBeenCalledWith(stagingPathname)
+    expect(deps.repository.markDeleted).toHaveBeenCalledWith(id, actor)
+  })
+
   it("warns about a ready checksum duplicate without replacing either asset", async () => {
     const deps = dependencies()
     vi.mocked(deps.repository.findDuplicate).mockResolvedValueOnce(asset({
