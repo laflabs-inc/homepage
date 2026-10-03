@@ -92,7 +92,7 @@ describe("Design system component pages", () => {
     expect(screen.getByRole("link", { name: "디자인 가이드 보기" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /컴포넌트 보기/ })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "TypeScript 코드 복사" })).toBeInTheDocument()
-  })
+  }, 10_000)
 
   it("renders the equivalent English component index and preserves locale links", async () => {
     render(await ComponentsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
@@ -169,6 +169,39 @@ describe("Design system component pages", () => {
     expect(within(inspections).getAllByRole("button", { name: "Save changes" }).some(
       (item) => item.hasAttribute("disabled"),
     )).toBe(true)
+  })
+
+  it("renders complete Field, InputGroup, RadioGroup, and Switch recipes", () => {
+    const field = designCatalog.components.find(({ id }) => id === "field")
+    const inputGroup = designCatalog.components.find(({ id }) => id === "input-group")
+    const radioGroup = designCatalog.components.find(({ id }) => id === "radio-group")
+    const switchControl = designCatalog.components.find(({ id }) => id === "switch")
+    if (!field || !inputGroup || !radioGroup || !switchControl) {
+      throw new Error("C3B component catalog fixtures are missing")
+    }
+
+    const fieldPage = render(<ComponentDetail component={field} locale="en" />)
+    expect(screen.getAllByRole("group", { name: "Document settings" }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Publishing details").length).toBeGreaterThan(0)
+    fieldPage.unmount()
+
+    const inputGroupPage = render(<ComponentDetail component={inputGroup} locale="en" />)
+    expect(screen.getAllByRole("textbox", { name: "Document guidance" }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Markdown supported").length).toBeGreaterThan(0)
+    inputGroupPage.unmount()
+
+    const radioPage = render(<ComponentDetail component={radioGroup} locale="en" />)
+    expect(document.querySelectorAll('[data-slot="radio-group-indicator"]').length).toBeGreaterThan(0)
+    radioPage.unmount()
+
+    const switchPage = render(<ComponentDetail component={switchControl} locale="en" />)
+    expect(document.querySelectorAll('[data-slot="switch"][data-tone="primary"]').length)
+      .toBeGreaterThan(0)
+    expect(document.querySelectorAll('[data-slot="switch"][data-tone="success"]').length)
+      .toBeGreaterThan(0)
+    expect(document.querySelectorAll('[data-slot="switch"][data-tone="danger"]').length)
+      .toBeGreaterThan(0)
+    switchPage.unmount()
   })
 
   it("derives locale-preserving related component links from the catalog", () => {

@@ -61,6 +61,26 @@ describe("RadioGroup", () => {
     expect(screen.getByRole("radio", { name: "日本語" })).toBeDisabled()
   })
 
+  it("pairs each native radio with a dedicated square indicator and stable slots", () => {
+    const { container } = render(
+      <RadioGroup legend="언어" name="locale" options={options} defaultValue="ko" />,
+    )
+
+    expect(screen.getByRole("group", { name: "언어" })).toHaveAttribute(
+      "data-slot",
+      "radio-group",
+    )
+    expect(container.querySelectorAll('[data-slot="radio-group-option"]')).toHaveLength(3)
+    expect(container.querySelectorAll('[data-slot="radio-group-input"]')).toHaveLength(3)
+    expect(container.querySelectorAll('[data-slot="radio-group-indicator"]')).toHaveLength(3)
+    expect(container.querySelectorAll('[data-slot="radio-group-label"]')).toHaveLength(3)
+    expect(container.querySelectorAll('[data-slot="radio-group-description"]')).toHaveLength(2)
+
+    const korean = screen.getByRole("radio", { name: "한국어" })
+    expect(korean.nextElementSibling).toHaveAttribute("data-slot", "radio-group-indicator")
+    expect(korean.nextElementSibling).toHaveAttribute("aria-hidden", "true")
+  })
+
   it("forwards its ref to the native fieldset", () => {
     const ref = createRef<HTMLFieldSetElement>()
     render(<RadioGroup ref={ref} legend="언어" name="locale" options={options} />)
@@ -111,5 +131,44 @@ describe("Switch", () => {
       "external-help",
       description.id,
     ])
+  })
+
+  it.each(["primary", "success", "warning", "danger", "neutral"] as const)(
+    "exposes the %s checked tone without changing native form behavior",
+    (tone) => {
+      render(
+        <Switch
+          defaultChecked
+          disabled={tone === "danger"}
+          label={`${tone} notifications`}
+          name="notifications"
+          tone={tone}
+          value={tone}
+        />,
+      )
+
+      const control = screen.getByRole("switch", { name: `${tone} notifications` })
+      expect(control).toBeChecked()
+      expect(control).toHaveAttribute("name", "notifications")
+      expect(control).toHaveAttribute("value", tone)
+      expect(control.closest("label")).toHaveAttribute("data-tone", tone)
+      expect(control.closest("label")).toHaveAttribute("data-slot", "switch")
+      if (tone === "danger") expect(control).toBeDisabled()
+    },
+  )
+
+  it("defaults to primary while keeping an unchecked tone to one interactive control", () => {
+    const { container } = render(<Switch label="Email updates" tone="success" />)
+    const control = screen.getByRole("switch", { name: "Email updates" })
+
+    expect(control).not.toBeChecked()
+    expect(control.closest("label")).toHaveAttribute("data-tone", "success")
+    expect(screen.getAllByRole("switch")).toHaveLength(1)
+    expect(container.querySelectorAll("button")).toHaveLength(0)
+
+    const { container: defaultContainer } = render(<Switch label="Default updates" />)
+    expect(screen.getByRole("switch", { name: "Default updates" }).closest("label"))
+      .toHaveAttribute("data-tone", "primary")
+    expect(defaultContainer.querySelectorAll('[data-tone="primary"]')).toHaveLength(1)
   })
 })

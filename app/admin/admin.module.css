@@ -85,9 +85,7 @@
   letter-spacing: -0.05em;
 }
 
-.primaryLink,
-.editorActions button,
-.editorActions a {
+.primaryLink {
   min-height: 46px;
   padding: 0 18px;
   display: inline-grid;
@@ -117,11 +115,6 @@
   color: var(--muted);
   font: 600 11px var(--font-geist-mono), monospace;
   font-variant-numeric: tabular-nums;
-}
-
-.editorActions .secondaryButton {
-  color: var(--ink);
-  background: var(--paper);
 }
 
 .documentListWorkspace [aria-busy="true"] {
@@ -210,8 +203,7 @@
   border: 1px solid var(--ink);
 }
 
-.editorSource label,
-.scheduleField {
+.editorLead label {
   display: grid;
   gap: 8px;
   color: var(--muted);
@@ -219,10 +211,7 @@
   text-transform: uppercase;
 }
 
-.editorSource input,
-.editorSource select,
-.editorSource textarea,
-.scheduleField input {
+.editorLead input {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -232,11 +221,6 @@
   border-radius: 0;
   font: 400 14px var(--font-geist-sans), sans-serif;
   text-transform: none;
-}
-
-.editorSource textarea {
-  resize: vertical;
-  line-height: 1.55;
 }
 
 .editorLead {
@@ -278,28 +262,6 @@
   gap: 10px;
 }
 
-.editorSummaryAction {
-  min-height: 40px;
-  padding: 0 14px;
-  color: var(--blue);
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 0;
-  font: 650 10px var(--font-geist-mono), monospace;
-  cursor: pointer;
-}
-
-.editorSummaryAction:hover:not(:disabled) {
-  color: white;
-  background: var(--blue);
-  border-color: var(--blue);
-}
-
-.editorSummaryAction:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
 .editorSummaryGuidance {
   margin: 0;
   color: var(--muted);
@@ -313,14 +275,6 @@
   background: var(--paper);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-}
-
-.editorProperties h2 {
-  margin: 0 0 13px;
-  color: var(--ink);
-  font: 650 10px var(--font-geist-mono), monospace;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .markdownField {
@@ -563,18 +517,11 @@
   grid-area: date;
 }
 
-.checkboxField {
+.editorPropertyPinned {
   grid-area: pinned;
-  grid-template-columns: auto 1fr;
-  align-items: center;
   align-self: end;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 8px;
-}
-
-.checkboxField input {
-  width: 18px;
-  min-height: 18px;
 }
 
 .editorActions {
@@ -592,16 +539,6 @@
 .editorSource > .formNotice,
 .editorSource > .editorGuidance {
   margin: 16px 48px 0;
-}
-
-.editorActions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.editorActions .dangerButton {
-  color: #9b1c1c;
-  background: white;
 }
 
 .editorGuidance {
@@ -1609,7 +1546,7 @@
   }
 
   .editorActions,
-  .editorActions button,
+  .editorActions > *,
   .scheduleField {
     width: 100%;
   }
@@ -1639,8 +1576,7 @@
   .rangeNav a,
   .adminNav a,
   .documentList a,
-  .primaryLink,
-  .editorActions button {
+  .primaryLink {
     transition: none;
   }
 }

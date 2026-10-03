@@ -66,6 +66,14 @@ describe("design-system serializers", () => {
     expect(guide).toContain("### Button (`button`)")
     expect(guide).toContain("### Field (`field`)")
     expect(guide).toContain("### Switch (`switch`)")
+    expect(guide).toContain("FieldGroup")
+    const componentsReference = serializeSkillFiles().get(
+      "laflabs-web-design/references/components.md",
+    )
+    expect(componentsReference).toContain("InputGroupTextarea")
+    expect(componentsReference).toContain(
+      '| `tone` | `"primary" \\| "success" \\| "warning" \\| "danger" \\| "neutral"` |',
+    )
     expect(guide).toContain("### Empty State (`empty-state`)")
     expect(guide).toContain("Related components: `button-link`, `button-group`")
     expect(guide).toContain("Dependencies: `@phosphor-icons/react`")

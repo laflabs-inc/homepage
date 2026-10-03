@@ -22,12 +22,14 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
+  InputGroupTextarea,
 } from "@/components/ui/input-group"
 import {
   Popover,
@@ -124,12 +126,28 @@ function ComboboxDemo({ locale, state }: ComponentDemoProps) {
 
 function InputGroupDemo({ locale }: ComponentDemoProps) {
   return (
-    <div className={styles.demoCompositeWide}>
-      <InputGroup>
-        <InputGroupAddon><InputGroupText>https://</InputGroupText></InputGroupAddon>
-        <InputGroupInput aria-label={locale === "ko" ? "프로젝트 도메인" : "Project domain"} defaultValue="laflabs.co" />
-        <InputGroupAddon placement="end"><InputGroupButton>{locale === "ko" ? "확인" : "Verify"}</InputGroupButton></InputGroupAddon>
-      </InputGroup>
+    <div className={styles.demoFormRecipe}>
+      <Field>
+        <FieldLabel>{locale === "ko" ? "프로젝트 도메인" : "Project domain"}</FieldLabel>
+        <InputGroup>
+          <InputGroupAddon placement="inline-start"><InputGroupText>https://</InputGroupText></InputGroupAddon>
+          <InputGroupInput defaultValue="laflabs.co" />
+          <InputGroupAddon placement="inline-end"><InputGroupButton>{locale === "ko" ? "확인" : "Verify"}</InputGroupButton></InputGroupAddon>
+        </InputGroup>
+      </Field>
+      <Field>
+        <FieldLabel>{locale === "ko" ? "문서 안내" : "Document guidance"}</FieldLabel>
+        <InputGroup>
+          <InputGroupAddon placement="block-start">
+            <InputGroupText>{locale === "ko" ? "마크다운 지원" : "Markdown supported"}</InputGroupText>
+          </InputGroupAddon>
+          <InputGroupTextarea defaultValue={locale === "ko" ? "변경 내용을 간결하게 적습니다." : "Describe the change concisely."} rows={4} />
+          <InputGroupAddon placement="block-end"><InputGroupText>34 / 240</InputGroupText></InputGroupAddon>
+        </InputGroup>
+        <FieldDescription>
+          {locale === "ko" ? "목록에서 먼저 읽히는 안내입니다." : "Shown first in document lists."}
+        </FieldDescription>
+      </Field>
     </div>
   )
 }

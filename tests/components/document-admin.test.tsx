@@ -282,6 +282,45 @@ describe("document admin", () => {
     expect(within(settings).getByRole("textbox", { name: "Slug" })).toBeInTheDocument()
   })
 
+  it("uses the shared native settings fieldset and preserves document action semantics", async () => {
+    const user = userEvent.setup()
+    const { container } = render(<DocumentEditor revision={revision} categories={categories} />)
+    const settings = screen.getByRole("group", { name: "Document settings" })
+
+    expect(settings.tagName).toBe("FIELDSET")
+    expect(settings).toHaveAttribute("data-slot", "field-set")
+    expect(settings.querySelector("form")).not.toBeInTheDocument()
+    expect(container.querySelectorAll("form")).toHaveLength(1)
+
+    expect(within(settings).getByRole("combobox", { name: "Kind" })).toHaveValue("notice")
+    expect(within(settings).getByRole("combobox", { name: "Locale" })).toHaveValue("ko")
+    expect(within(settings).getByRole("combobox", { name: "Locale" })).toBeDisabled()
+    expect(within(settings).getByRole("combobox", { name: "Category" })).toHaveValue("service")
+    expect(within(settings).getByRole("textbox", { name: "Slug" })).toHaveValue("service-update")
+    expect(within(settings).getByLabelText("Effective date")).toHaveValue("")
+    expect(within(settings).getByRole("checkbox", { name: "Pinned" })).not.toBeChecked()
+
+    await user.selectOptions(within(settings).getByRole("combobox", { name: "Category" }), "general")
+    await user.click(within(settings).getByRole("checkbox", { name: "Pinned" }))
+    fireEvent.change(within(settings).getByLabelText("Effective date"), {
+      target: { value: "2026-10-03" },
+    })
+    expect(within(settings).getByRole("combobox", { name: "Category" })).toHaveValue("general")
+    expect(within(settings).getByRole("checkbox", { name: "Pinned" })).toBeChecked()
+    expect(within(settings).getByLabelText("Effective date")).toHaveValue("2026-10-03")
+    expect(screen.getAllByText("Save the draft before generating a summary, scheduling, or publishing."))
+      .toHaveLength(1)
+
+    expect(screen.getByRole("button", { name: "Save draft" })).toHaveAttribute("type", "submit")
+    expect(screen.getByRole("button", { name: "Schedule" })).toHaveAttribute("type", "button")
+    expect(screen.getByRole("button", { name: "Publish now" })).toHaveAttribute("type", "button")
+    expect(screen.getByRole("button", { name: "Delete draft" })).toHaveAttribute("type", "button")
+    expect(screen.getByRole("link", { name: "Create English revision" })).toHaveAttribute(
+      "href",
+      `/admin/documents/new?seriesId=${revision.seriesId}&sourceRevisionId=${revision.id}`,
+    )
+  })
+
   it("shows server-managed localized category labels while preserving canonical option values", () => {
     const { unmount } = render(
       <LocaleProvider initialLocale="ko"><DocumentEditor categories={categories} /></LocaleProvider>,

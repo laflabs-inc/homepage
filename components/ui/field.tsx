@@ -4,9 +4,14 @@ import {
   Children,
   createContext,
   isValidElement,
+  useCallback,
   useContext,
+  useEffect,
   useId,
+  useMemo,
+  useState,
   type AriaAttributes,
+  type ComponentPropsWithRef,
   type HTMLAttributes,
   type LabelHTMLAttributes,
   type ReactNode,
@@ -16,11 +21,13 @@ import styles from "./field.module.css"
 
 type FieldContextValue = Readonly<{
   controlId: string
-  descriptionId: string
-  errorId: string
-  hasDescription: boolean
-  hasError: boolean
+  defaultDescriptionId: string
+  defaultErrorId: string
+  descriptionIds: readonly string[]
+  errorIds: readonly string[]
   invalid: boolean
+  registerDescription: (id: string) => () => void
+  registerError: (id: string) => () => void
   required: boolean
 }>
 
@@ -48,11 +55,11 @@ function hasPart(
   children: ReactNode,
   part: typeof FieldDescription | typeof FieldError,
 ): boolean {
-  return Children.toArray(children).some((child) =>
-    isValidElement<{ children?: ReactNode }>(child)
-      && child.type === part
-      && hasContent(child.props.children),
-  )
+  return Children.toArray(children).some((child) => {
+    if (!isValidElement<{ children?: ReactNode }>(child)) return false
+    if (child.type === part) return hasContent(child.props.children)
+    return hasPart(child.props.children, part)
+  })
 }
 
 function getPartId(
@@ -60,8 +67,10 @@ function getPartId(
   part: typeof FieldDescription | typeof FieldError,
 ): string | undefined {
   for (const child of Children.toArray(children)) {
-    if (!isValidElement<{ id?: string }>(child) || child.type !== part) continue
-    if (child.props.id?.trim()) return child.props.id
+    if (!isValidElement<{ children?: ReactNode; id?: string }>(child)) continue
+    if (child.type === part && child.props.id?.trim()) return child.props.id
+    const nestedId = getPartId(child.props.children, part)
+    if (nestedId) return nestedId
   }
   return undefined
 }
@@ -91,14 +100,17 @@ export function useFieldControlProps<T extends FieldControlAttributes>(props: T)
     "aria-invalid": props["aria-invalid"] ?? (field.invalid || undefined),
     "aria-describedby": mergeIds(
       props["aria-describedby"],
-      field.hasDescription ? field.descriptionId : undefined,
-      field.hasError ? field.errorId : undefined,
+      ...field.descriptionIds,
+      ...field.errorIds,
     ),
   }
 }
 
+export type FieldOrientation = "vertical" | "horizontal" | "responsive"
+
 export type FieldProps = HTMLAttributes<HTMLDivElement> & {
   invalid?: boolean
+  orientation?: FieldOrientation
   required?: boolean
 }
 
@@ -106,19 +118,61 @@ export function Field({
   children,
   className,
   invalid = false,
+  orientation = "vertical",
   required = false,
   ...props
 }: FieldProps) {
   const prefix = useId()
-  const value: FieldContextValue = {
+  const defaultDescriptionId = `${prefix}-description`
+  const defaultErrorId = `${prefix}-error`
+  const staticDescriptionId = hasPart(children, FieldDescription)
+    ? getPartId(children, FieldDescription) ?? defaultDescriptionId
+    : undefined
+  const staticErrorId = hasPart(children, FieldError)
+    ? getPartId(children, FieldError) ?? defaultErrorId
+    : undefined
+  const [registeredDescriptionIds, setRegisteredDescriptionIds] = useState<string[]>([])
+  const [registeredErrorIds, setRegisteredErrorIds] = useState<string[]>([])
+
+  const registerDescription = useCallback((id: string) => {
+    setRegisteredDescriptionIds((current) => current.includes(id) ? current : [...current, id])
+    return () => setRegisteredDescriptionIds((current) => current.filter((value) => value !== id))
+  }, [])
+  const registerError = useCallback((id: string) => {
+    setRegisteredErrorIds((current) => current.includes(id) ? current : [...current, id])
+    return () => setRegisteredErrorIds((current) => current.filter((value) => value !== id))
+  }, [])
+
+  const value = useMemo<FieldContextValue>(() => ({
     controlId: getControlId(children) ?? `${prefix}-control`,
-    descriptionId: getPartId(children, FieldDescription) ?? `${prefix}-description`,
-    errorId: getPartId(children, FieldError) ?? `${prefix}-error`,
-    hasDescription: hasPart(children, FieldDescription),
-    hasError: hasPart(children, FieldError),
+    defaultDescriptionId,
+    defaultErrorId,
+    descriptionIds: [...new Set([
+      ...(staticDescriptionId ? [staticDescriptionId] : []),
+      ...registeredDescriptionIds,
+    ])],
+    errorIds: [...new Set([
+      ...(staticErrorId ? [staticErrorId] : []),
+      ...registeredErrorIds,
+    ])],
     invalid,
+    registerDescription,
+    registerError,
     required,
-  }
+  }), [
+    children,
+    defaultDescriptionId,
+    defaultErrorId,
+    invalid,
+    prefix,
+    registerDescription,
+    registerError,
+    registeredDescriptionIds,
+    registeredErrorIds,
+    required,
+    staticDescriptionId,
+    staticErrorId,
+  ])
 
   return (
     <FieldContext.Provider value={value}>
@@ -126,10 +180,85 @@ export function Field({
         {...props}
         className={[styles.field, className].filter(Boolean).join(" ")}
         data-invalid={invalid || undefined}
+        data-orientation={orientation}
+        data-slot="field"
       >
         {children}
       </div>
     </FieldContext.Provider>
+  )
+}
+
+export type FieldGroupProps = HTMLAttributes<HTMLDivElement>
+
+export function FieldGroup({ className, ...props }: FieldGroupProps) {
+  return (
+    <div
+      {...props}
+      className={[styles.group, className].filter(Boolean).join(" ")}
+      data-slot="field-group"
+    />
+  )
+}
+
+export type FieldSetProps = ComponentPropsWithRef<"fieldset">
+
+export function FieldSet({ className, ...props }: FieldSetProps) {
+  return (
+    <fieldset
+      {...props}
+      className={[styles.fieldSet, className].filter(Boolean).join(" ")}
+      data-slot="field-set"
+    />
+  )
+}
+
+export type FieldLegendProps = ComponentPropsWithRef<"legend">
+
+export function FieldLegend({ className, ...props }: FieldLegendProps) {
+  return (
+    <legend
+      {...props}
+      className={[styles.legend, className].filter(Boolean).join(" ")}
+      data-slot="field-legend"
+    />
+  )
+}
+
+export type FieldContentProps = HTMLAttributes<HTMLDivElement>
+
+export function FieldContent({ className, ...props }: FieldContentProps) {
+  return (
+    <div
+      {...props}
+      className={[styles.content, className].filter(Boolean).join(" ")}
+      data-slot="field-content"
+    />
+  )
+}
+
+export type FieldTitleProps = HTMLAttributes<HTMLDivElement>
+
+export function FieldTitle({ className, ...props }: FieldTitleProps) {
+  return (
+    <div
+      {...props}
+      className={[styles.title, className].filter(Boolean).join(" ")}
+      data-slot="field-title"
+    />
+  )
+}
+
+export type FieldSeparatorProps = HTMLAttributes<HTMLDivElement>
+
+export function FieldSeparator({ className, ...props }: FieldSeparatorProps) {
+  return (
+    <div
+      {...props}
+      className={[styles.separator, className].filter(Boolean).join(" ")}
+      data-slot="field-separator"
+      role={props.role ?? "separator"}
+    />
   )
 }
 
@@ -144,6 +273,7 @@ export function FieldLabel({ className, children, ...props }: LabelHTMLAttribute
       {...props}
       className={className}
       data-required={field?.required || undefined}
+      data-slot="field-label"
       htmlFor={props.htmlFor ?? field?.controlId}
     >
       {children}
@@ -157,13 +287,23 @@ export function FieldDescription({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   const field = useContext(FieldContext)
-  if (!hasContent(children)) return null
+  const visible = hasContent(children)
+  const id = props.id ?? field?.defaultDescriptionId
+  const registerDescription = field?.registerDescription
+
+  useEffect(() => {
+    if (!registerDescription || !visible || !id) return
+    return registerDescription(id)
+  }, [id, registerDescription, visible])
+
+  if (!visible) return null
 
   return (
     <p
       {...props}
       className={[styles.description, className].filter(Boolean).join(" ")}
-      id={props.id ?? field?.descriptionId}
+      data-slot="field-description"
+      id={id}
     >
       {children}
     </p>
@@ -176,13 +316,23 @@ export function FieldError({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   const field = useContext(FieldContext)
-  if (!hasContent(children)) return null
+  const visible = hasContent(children)
+  const id = props.id ?? field?.defaultErrorId
+  const registerError = field?.registerError
+
+  useEffect(() => {
+    if (!registerError || !visible || !id) return
+    return registerError(id)
+  }, [id, registerError, visible])
+
+  if (!visible) return null
 
   return (
     <p
       {...props}
       className={[styles.error, className].filter(Boolean).join(" ")}
-      id={props.id ?? field?.errorId}
+      data-slot="field-error"
+      id={id}
       role={props.role ?? "alert"}
     >
       {children}

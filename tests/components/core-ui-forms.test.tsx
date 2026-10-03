@@ -1,12 +1,18 @@
 import { createRef } from "react"
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldError,
+  FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+  FieldTitle,
   Label,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -14,6 +20,100 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 
 describe("Field", () => {
+  function OpaqueFieldContent() {
+    return (
+      <FieldContent>
+        <FieldLabel>Deployment</FieldLabel>
+        <FieldDescription>Choose the target environment.</FieldDescription>
+        <FieldError>Select an available environment.</FieldError>
+      </FieldContent>
+    )
+  }
+
+  it("composes native field sections without adding interactive wrappers", () => {
+    render(
+      <FieldSet>
+        <FieldLegend>Document settings</FieldLegend>
+        <FieldGroup data-testid="field-group">
+          <Field orientation="horizontal">
+            <FieldContent data-testid="field-content">
+              <FieldTitle>Visibility</FieldTitle>
+              <FieldDescription>Choose who can read this document.</FieldDescription>
+            </FieldContent>
+            <Input aria-label="Visibility" />
+          </Field>
+          <FieldSeparator data-testid="field-separator">Publishing</FieldSeparator>
+        </FieldGroup>
+      </FieldSet>,
+    )
+
+    expect(screen.getByRole("group", { name: "Document settings" })).toHaveAttribute(
+      "data-slot",
+      "field-set",
+    )
+    expect(screen.getByText("Document settings")).toHaveAttribute("data-slot", "field-legend")
+    expect(screen.getByTestId("field-group")).toMatchObject({ tagName: "DIV" })
+    expect(screen.getByTestId("field-group")).toHaveAttribute("data-slot", "field-group")
+    expect(screen.getByTestId("field-content")).toMatchObject({ tagName: "DIV" })
+    expect(screen.getByTestId("field-content")).toHaveAttribute("data-slot", "field-content")
+    expect(screen.getByText("Visibility")).toHaveAttribute("data-slot", "field-title")
+    expect(screen.getByTestId("field-separator")).toHaveAttribute("role", "separator")
+    expect(screen.getByTestId("field-separator")).toHaveAttribute("data-slot", "field-separator")
+  })
+
+  it("exposes deterministic vertical, horizontal, and responsive orientations", () => {
+    render(
+      <>
+        <Field data-testid="vertical"><Input aria-label="Vertical" /></Field>
+        <Field data-testid="horizontal" orientation="horizontal">
+          <Input aria-label="Horizontal" />
+        </Field>
+        <Field data-testid="responsive" orientation="responsive">
+          <Input aria-label="Responsive" />
+        </Field>
+      </>,
+    )
+
+    expect(screen.getByTestId("vertical")).toHaveAttribute("data-orientation", "vertical")
+    expect(screen.getByTestId("horizontal")).toHaveAttribute("data-orientation", "horizontal")
+    expect(screen.getByTestId("responsive")).toHaveAttribute("data-orientation", "responsive")
+  })
+
+  it("connects nested content descriptions and errors to a sibling control", () => {
+    render(
+      <Field invalid required>
+        <FieldContent>
+          <FieldLabel>Repository</FieldLabel>
+          <FieldDescription id="repository-help">Use the full Git URL.</FieldDescription>
+          <FieldError id="repository-error">The repository is unavailable.</FieldError>
+        </FieldContent>
+        <Input id="repository-control" />
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: /Repository/ })
+    expect(input).toHaveAttribute("id", "repository-control")
+    expect(input).toHaveAttribute("aria-describedby", "repository-help repository-error")
+    expect(input).toHaveAttribute("aria-invalid", "true")
+    expect(input).toBeRequired()
+  })
+
+  it("connects relationships when compound parts render through an opaque boundary", async () => {
+    render(
+      <Field invalid>
+        <OpaqueFieldContent />
+        <Input />
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: "Deployment" })
+    await waitFor(() => {
+      const relationships = input.getAttribute("aria-describedby")?.split(" ") ?? []
+      expect(relationships).toHaveLength(2)
+      expect(relationships.every((id) => Boolean(document.getElementById(id)))).toBe(true)
+    })
+  })
+
   it("connects the label, required state, description, and error to its control", () => {
     render(
       <Field invalid required>

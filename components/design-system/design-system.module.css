@@ -787,6 +787,18 @@
   width: min(100%, 620px);
 }
 
+.demoFormRecipe {
+  width: min(100%, 680px);
+  display: grid;
+  gap: 24px;
+}
+
+.demoSwitchTones {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 12px;
+}
+
 .demoCluster {
   width: 100%;
   display: flex;
