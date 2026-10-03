@@ -8,6 +8,18 @@ import styles from "@/app/admin/admin.module.css"
 import { DocumentPreview } from "@/components/admin/document-preview"
 import { MarkdownLiveEditor } from "@/components/admin/markdown-live-editor"
 import { useDirtyNavigationGuard } from "@/components/admin/use-dirty-navigation-guard"
+import { Button } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button-link"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
 import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
@@ -446,47 +458,51 @@ export function DocumentEditor({
         <div className={styles.editorActions}>
           {revision.status === "scheduled" ? (
             <>
-              <button disabled={pending} type="button" onClick={() => confirmedAction(
+              <Button disabled={pending} variant="secondary" type="button" onClick={() => confirmedAction(
                 t.confirmations.unschedule,
                 "unschedule",
                 {},
                 t.notices.scheduleRemoved,
-              )}>{t.returnToDraft}</button>
-              <button disabled={pending} type="button" onClick={() => confirmedAction(
+              )}>{t.returnToDraft}</Button>
+              <Button disabled={pending} type="button" onClick={() => confirmedAction(
                 revision.locale === "en"
                   ? t.confirmations.publishEnglish
                   : t.confirmations.publish,
                 "publish",
                 {},
                 t.notices.documentPublished,
-              )}>{t.publishNow}</button>
+              )}>{t.publishNow}</Button>
             </>
           ) : null}
           {revision.status === "published" ? (
-            <button disabled={pending} type="button" onClick={() => confirmedAction(
+            <Button disabled={pending} variant="secondary" type="button" onClick={() => confirmedAction(
               t.confirmations.archive,
               "archive",
               {},
               t.notices.documentArchived,
-            )}>{t.archive}</button>
+            )}>{t.archive}</Button>
           ) : null}
           {revision.status === "published" || revision.status === "archived" ? (
-            <button disabled={pending} type="button" onClick={() => confirmedAction(
+            <Button disabled={pending} type="button" onClick={() => confirmedAction(
               t.confirmations.createRevision,
               "new-revision",
               {},
               t.notices.revisionCreated,
-            )}>{t.createRevision}</button>
+            )}>{t.createRevision}</Button>
           ) : null}
           {revision.status === "archived" ? (
-            <button
-              className={styles.dangerButton}
+            <Button
               disabled={pending}
               type="button"
+              variant="danger"
               onClick={() => void deleteArchived()}
-            >{t.deletePermanently}</button>
+            >{t.deletePermanently}</Button>
           ) : null}
-          {englishCreationLink ? <Link href={englishCreationLink}>{t.createEnglishRevision}</Link> : null}
+          {englishCreationLink ? (
+            <ButtonLink href={englishCreationLink} variant="secondary">
+              {t.createEnglishRevision}
+            </ButtonLink>
+          ) : null}
         </div>
       </section>
     )
@@ -514,15 +530,16 @@ export function DocumentEditor({
                   />
                 </label>
                 {revision ? (
-                  <button
-                    className={styles.editorSummaryAction}
-                    aria-busy={summaryPending}
+                  <Button
                     disabled={pending || dirty}
+                    loading={summaryPending}
+                    size="compact"
                     type="button"
+                    variant="secondary"
                     onClick={() => void generateSummary()}
                   >
                     {summaryPending ? t.generatingSummary : t.generateSummary}
-                  </button>
+                  </Button>
                 ) : null}
               </div>
               <p id="summary-requirements" className={styles.editorSummaryGuidance}>
@@ -530,53 +547,62 @@ export function DocumentEditor({
               </p>
             </div>
           </div>
-          <section className={styles.editorProperties} role="group" aria-labelledby="document-settings-title">
-            <h2 id="document-settings-title">{t.documentSettings}</h2>
-          <div className={styles.editorFieldGrid}>
-            <label className={styles.editorPropertyKind}>{t.kind}
-              <select disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
-                const kind = event.target.value as DocumentKind
-                const next = {
-                  ...valuesRef.current,
-                  kind,
-                  category: categories.find((category) => category.kind === kind && category.active)?.slug ?? "",
-                }
-                valuesRef.current = next
-                setValues(next)
-                setDirty(true)
-              }}>
-                <option value="notice">{adminCopy[locale].documents.notice}</option>
-                <option value="legal">{adminCopy[locale].documents.legal}</option>
-                <option value="disclosure">{adminCopy[locale].documents.disclosure}</option>
-              </select>
-            </label>
-            <label className={styles.editorPropertyLocale}>{t.locale}
-              <select disabled value={values.locale} onChange={(event) => update("locale", event.target.value as Locale)}>
-                <option value={values.locale}>{values.locale === "ko" ? adminCopy[locale].documents.korean : adminCopy[locale].documents.english}</option>
-              </select>
-            </label>
-            <label className={styles.editorPropertyCategory}>{t.category}
-              <select disabled={englishSeriesFieldsLocked} value={values.category} onChange={(event) => update("category", event.target.value)}>
-                {categoryOptions.length === 0 ? <option value="">—</option> : null}
-                {categoryOptions.map((category) => (
-                  <option key={category.id} value={category.slug} disabled={!category.active}>
-                    {locale === "ko" ? category.labelKo : category.labelEn}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={styles.editorPropertySlug}>{t.slug}
-              <input disabled={englishSeriesFieldsLocked} required value={values.slug} onChange={(event) => update("slug", event.target.value)} />
-            </label>
-            <label className={styles.editorPropertyDate}>{t.effectiveDate}
-              <input type="date" value={values.effectiveAt} onChange={(event) => update("effectiveAt", event.target.value)} />
-            </label>
-            <label className={styles.checkboxField}>
-              <input disabled={englishSeriesFieldsLocked} type="checkbox" checked={values.pinned} onChange={(event) => update("pinned", event.target.checked)} />
-              {t.pinned}
-            </label>
-          </div>
-          </section>
+          <FieldSet className={styles.editorProperties}>
+            <FieldLegend>{t.documentSettings}</FieldLegend>
+            <FieldGroup className={styles.editorFieldGrid}>
+              <Field className={styles.editorPropertyKind}>
+                <FieldLabel>{t.kind}</FieldLabel>
+                <NativeSelect disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
+                  const kind = event.target.value as DocumentKind
+                  const next = {
+                    ...valuesRef.current,
+                    kind,
+                    category: categories.find((category) => category.kind === kind && category.active)?.slug ?? "",
+                  }
+                  valuesRef.current = next
+                  setValues(next)
+                  setDirty(true)
+                }}>
+                  <option value="notice">{adminCopy[locale].documents.notice}</option>
+                  <option value="legal">{adminCopy[locale].documents.legal}</option>
+                  <option value="disclosure">{adminCopy[locale].documents.disclosure}</option>
+                </NativeSelect>
+              </Field>
+              <Field className={styles.editorPropertyLocale}>
+                <FieldLabel>{t.locale}</FieldLabel>
+                <NativeSelect disabled value={values.locale} onChange={(event) => update("locale", event.target.value as Locale)}>
+                  <option value={values.locale}>{values.locale === "ko" ? adminCopy[locale].documents.korean : adminCopy[locale].documents.english}</option>
+                </NativeSelect>
+              </Field>
+              <Field className={styles.editorPropertyCategory}>
+                <FieldLabel>{t.category}</FieldLabel>
+                <NativeSelect disabled={englishSeriesFieldsLocked} value={values.category} onChange={(event) => update("category", event.target.value)}>
+                  {categoryOptions.length === 0 ? <option value="">—</option> : null}
+                  {categoryOptions.map((category) => (
+                    <option key={category.id} value={category.slug} disabled={!category.active}>
+                      {locale === "ko" ? category.labelKo : category.labelEn}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field className={styles.editorPropertySlug} required>
+                <FieldLabel>{t.slug}</FieldLabel>
+                <Input disabled={englishSeriesFieldsLocked} value={values.slug} onChange={(event) => update("slug", event.target.value)} />
+              </Field>
+              <Field className={styles.editorPropertyDate}>
+                <FieldLabel>{t.effectiveDate}</FieldLabel>
+                <Input type="date" value={values.effectiveAt} onChange={(event) => update("effectiveAt", event.target.value)} />
+              </Field>
+              <div className={styles.editorPropertyPinned}>
+                <Checkbox
+                  checked={values.pinned}
+                  disabled={englishSeriesFieldsLocked}
+                  label={t.pinned}
+                  onChange={(event) => update("pinned", event.target.checked)}
+                />
+              </div>
+            </FieldGroup>
+          </FieldSet>
           <div className={styles.markdownField}>
             <div className={styles.markdownFieldHeader}>
               <span>{t.markdownBody}</span>
@@ -602,30 +628,35 @@ export function DocumentEditor({
             <p className={styles.editorGuidance}>{t.dirtyGuidance}</p>
           ) : null}
           <div className={styles.editorActions}>
-            <button disabled={pending} type="submit">{t.saveDraft}</button>
+            <Button disabled={pending} type="submit">{t.saveDraft}</Button>
             {revision ? (
               <>
-                <label className={styles.scheduleField}>{t.scheduleTime}
-                  <input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
-                </label>
-                <button disabled={pending || dirty || !scheduledAt} type="button" onClick={() => confirmedAction(
+                <Field className={styles.scheduleField}>
+                  <FieldLabel>{t.scheduleTime}</FieldLabel>
+                  <Input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
+                </Field>
+                <Button disabled={pending || dirty || !scheduledAt} variant="secondary" type="button" onClick={() => confirmedAction(
                   t.confirmations.schedule,
                   "schedule",
                   { scheduledAt: new Date(scheduledAt).toISOString() },
                   t.notices.documentScheduled,
-                )}>{t.schedule}</button>
-                <button disabled={pending || dirty} type="button" onClick={() => confirmedAction(
+                )}>{t.schedule}</Button>
+                <Button disabled={pending || dirty} type="button" onClick={() => confirmedAction(
                   revision.locale === "en"
                     ? t.confirmations.publishEnglish
                     : t.confirmations.publish,
                   "publish",
                   {},
                   t.notices.documentPublished,
-                )}>{t.publishNow}</button>
-                <button className={styles.dangerButton} disabled={pending} type="button" onClick={() => void deleteDraft()}>
+                )}>{t.publishNow}</Button>
+                <Button disabled={pending} type="button" variant="danger" onClick={() => void deleteDraft()}>
                   {t.deleteDraft}
-                </button>
-                {englishCreationLink ? <Link href={englishCreationLink}>{t.createEnglishRevision}</Link> : null}
+                </Button>
+                {englishCreationLink ? (
+                  <ButtonLink href={englishCreationLink} variant="secondary">
+                    {t.createEnglishRevision}
+                  </ButtonLink>
+                ) : null}
               </>
             ) : null}
           </div>
