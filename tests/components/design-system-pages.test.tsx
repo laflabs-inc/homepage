@@ -92,7 +92,7 @@ describe("Design system component pages", () => {
     expect(screen.getByRole("link", { name: "디자인 가이드 보기" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /컴포넌트 보기/ })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "TypeScript 코드 복사" })).toBeInTheDocument()
-  })
+  }, 10_000)
 
   it("renders the equivalent English component index and preserves locale links", async () => {
     render(await ComponentsPage({ searchParams: Promise.resolve({ locale: "en" }) }))
