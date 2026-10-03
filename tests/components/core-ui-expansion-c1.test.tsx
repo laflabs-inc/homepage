@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
+import { MagnifyingGlass } from "@phosphor-icons/react"
 import { describe, expect, it, vi } from "vitest"
 
 import {
@@ -30,7 +31,14 @@ import {
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
+  InputGroupTextarea,
 } from "@/components/ui/input-group"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field"
 import {
   Popover,
   PopoverContent,
@@ -161,6 +169,102 @@ describe("InputGroup", () => {
     await user.click(screen.getByRole("button", { name: "Verify" }))
     expect(onSubmit).toHaveBeenCalledOnce()
     expect(screen.getByText("https://")).toHaveAttribute("aria-hidden", "true")
+  })
+
+  it("composes block guidance and a counter around one native textarea", () => {
+    render(
+      <InputGroup data-testid="multiline-group">
+        <InputGroupAddon placement="block-start">
+          <InputGroupText>Markdown supported</InputGroupText>
+        </InputGroupAddon>
+        <InputGroupTextarea aria-label="Document summary" defaultValue="A short summary" rows={4} />
+        <InputGroupAddon placement="block-end">
+          <InputGroupText>15 / 240</InputGroupText>
+        </InputGroupAddon>
+      </InputGroup>,
+    )
+
+    const textarea = screen.getByRole("textbox", { name: "Document summary" })
+    expect(textarea).toHaveValue("A short summary")
+    expect(textarea).toHaveAttribute("rows", "4")
+    expect(screen.getAllByRole("textbox")).toHaveLength(1)
+    expect(screen.getByText("Markdown supported").parentElement).toHaveAttribute(
+      "data-placement",
+      "block-start",
+    )
+    expect(screen.getByText("15 / 240").parentElement).toHaveAttribute(
+      "data-placement",
+      "block-end",
+    )
+  })
+
+  it("normalizes compatibility placements to the four canonical values", () => {
+    render(
+      <InputGroup>
+        <InputGroupAddon data-testid="start" placement="start" />
+        <InputGroupAddon data-testid="inline-start" placement="inline-start" />
+        <InputGroupAddon data-testid="end" placement="end" />
+        <InputGroupAddon data-testid="inline-end" placement="inline-end" />
+        <InputGroupAddon data-testid="block-start" placement="block-start" />
+        <InputGroupAddon data-testid="block-end" placement="block-end" />
+        <InputGroupInput aria-label="Placement sample" />
+      </InputGroup>,
+    )
+
+    expect(screen.getByTestId("start")).toHaveAttribute("data-placement", "inline-start")
+    expect(screen.getByTestId("inline-start")).toHaveAttribute("data-placement", "inline-start")
+    expect(screen.getByTestId("end")).toHaveAttribute("data-placement", "inline-end")
+    expect(screen.getByTestId("inline-end")).toHaveAttribute("data-placement", "inline-end")
+    expect(screen.getByTestId("block-start")).toHaveAttribute("data-placement", "block-start")
+    expect(screen.getByTestId("block-end")).toHaveAttribute("data-placement", "block-end")
+  })
+
+  it("inherits Field accessibility state for both input and textarea controls", () => {
+    const { rerender } = render(
+      <Field invalid required>
+        <FieldLabel>Repository URL</FieldLabel>
+        <InputGroup><InputGroupInput /></InputGroup>
+        <FieldDescription id="repository-help">Paste a public URL.</FieldDescription>
+        <FieldError id="repository-error">The URL is not reachable.</FieldError>
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: /Repository URL/ })
+    expect(input).toBeRequired()
+    expect(input).toHaveAttribute("aria-invalid", "true")
+    expect(input).toHaveAttribute("aria-describedby", "repository-help repository-error")
+
+    rerender(
+      <Field invalid required>
+        <FieldLabel>Release notes</FieldLabel>
+        <InputGroup><InputGroupTextarea /></InputGroup>
+        <FieldDescription id="release-help">Markdown is supported.</FieldDescription>
+        <FieldError id="release-error">Add release notes.</FieldError>
+      </Field>,
+    )
+
+    const textarea = screen.getByRole("textbox", { name: /Release notes/ })
+    expect(textarea).toBeRequired()
+    expect(textarea).toHaveAttribute("aria-invalid", "true")
+    expect(textarea).toHaveAttribute("aria-describedby", "release-help release-error")
+  })
+
+  it("uses the shared icon Button contract and a safe default type", () => {
+    render(
+      <InputGroup>
+        <InputGroupInput aria-label="Search documents" />
+        <InputGroupAddon placement="inline-end">
+          <InputGroupButton aria-label="Submit search" size="icon">
+            <MagnifyingGlass aria-hidden />
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>,
+    )
+
+    const button = screen.getByRole("button", { name: "Submit search" })
+    expect(button).toHaveAttribute("type", "button")
+    expect(button).toHaveAttribute("data-size", "icon")
+    expect(button).toHaveAttribute("data-variant", "ghost")
   })
 })
 
