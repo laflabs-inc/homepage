@@ -83,12 +83,54 @@
 }
 
 .radioInput {
-  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 0;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(-50%);
 }
 
-.radioInput:checked:not([aria-checked="mixed"]) {
+.radioIndicator {
+  position: relative;
+  display: inline-grid;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  place-items: center;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  pointer-events: none;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.radioIndicator::after {
+  width: 8px;
+  height: 8px;
+  background: var(--paper);
+  content: "";
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 120ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.radioInput:checked + .radioIndicator {
+  border-color: var(--blue);
   background: var(--blue);
-  box-shadow: inset 0 0 0 4px var(--paper);
+}
+
+.radioInput:checked + .radioIndicator::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.radioInput:focus-visible + .radioIndicator {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.choice:hover .radioIndicator {
+  border-color: var(--blue);
 }
 
 .choice:hover .checkboxIndicator {
@@ -165,9 +207,29 @@
   transition: transform 180ms ease, background-color 180ms ease;
 }
 
-.switchControl input:checked + .switchTrack {
+.switchRow[data-tone="primary"] .switchControl input:checked + .switchTrack {
   border-color: var(--blue);
   background: var(--blue);
+}
+
+.switchRow[data-tone="success"] .switchControl input:checked + .switchTrack {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.switchRow[data-tone="warning"] .switchControl input:checked + .switchTrack {
+  border-color: var(--warning);
+  background: var(--warning);
+}
+
+.switchRow[data-tone="danger"] .switchControl input:checked + .switchTrack {
+  border-color: var(--error-deep);
+  background: var(--error-deep);
+}
+
+.switchRow[data-tone="neutral"] .switchControl input:checked + .switchTrack {
+  border-color: var(--ink);
+  background: var(--ink);
 }
 
 .switchControl input:checked + .switchTrack .switchThumb {
@@ -178,6 +240,8 @@
 @media (prefers-reduced-motion: reduce) {
   .checkboxIndicator,
   .checkboxGlyph,
+  .radioIndicator,
+  .radioIndicator::after,
   .switchTrack,
   .switchThumb {
     transition: none;

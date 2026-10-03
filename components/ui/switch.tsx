@@ -7,27 +7,36 @@ import styles from "./selection-control.module.css"
 export type SwitchProps = Omit<ComponentPropsWithRef<"input">, "type" | "role"> & {
   label: ReactNode
   description?: ReactNode
+  tone?: SwitchTone
 }
+
+export type SwitchTone = "primary" | "success" | "warning" | "danger" | "neutral"
 
 function mergeIds(...values: Array<string | undefined>): string | undefined {
   const ids = [...new Set(values.flatMap((value) => value?.split(/\s+/).filter(Boolean) ?? []))]
   return ids.length > 0 ? ids.join(" ") : undefined
 }
 
-export function Switch({ label, description, ref, ...props }: SwitchProps) {
+export function Switch({ label, description, ref, tone = "primary", ...props }: SwitchProps) {
   const prefix = useId()
   const labelId = `${prefix}-label`
   const descriptionId = `${prefix}-description`
 
   return (
-    <label className={styles.switchRow}>
+    <label className={styles.switchRow} data-slot="switch" data-tone={tone}>
       <span className={styles.choiceCopy}>
-        <span className={styles.choiceLabel} id={labelId}>{label}</span>
+        <span className={styles.choiceLabel} data-slot="switch-label" id={labelId}>{label}</span>
         {description ? (
-          <span className={styles.choiceDescription} id={descriptionId}>{description}</span>
+          <span
+            className={styles.choiceDescription}
+            data-slot="switch-description"
+            id={descriptionId}
+          >
+            {description}
+          </span>
         ) : null}
       </span>
-      <span className={styles.switchControl}>
+      <span className={styles.switchControl} data-slot="switch-control">
         <input
           {...props}
           ref={ref}
@@ -36,11 +45,12 @@ export function Switch({ label, description, ref, ...props }: SwitchProps) {
             description ? descriptionId : undefined,
           )}
           aria-labelledby={labelId}
+          data-slot="switch-input"
           role="switch"
           type="checkbox"
         />
-        <span aria-hidden className={styles.switchTrack}>
-          <span className={styles.switchThumb} />
+        <span aria-hidden className={styles.switchTrack} data-slot="switch-track">
+          <span className={styles.switchThumb} data-slot="switch-thumb" />
         </span>
       </span>
     </label>
