@@ -355,6 +355,39 @@ describe("production design catalog", () => {
     }
   })
 
+  it("publishes the complete C3B form composition contracts", () => {
+    const field = getComponentEntry("field")
+    const inputGroup = getComponentEntry("input-group")
+    const radioGroup = getComponentEntry("radio-group")
+    const switchControl = getComponentEntry("switch")
+
+    expect(field?.importExample).toContain("FieldGroup")
+    expect(field?.importExample).toContain("FieldSet")
+    expect(field?.importExample).toContain("FieldLegend")
+    expect(field?.importExample).toContain("FieldContent")
+    expect(field?.props).toContainEqual(expect.objectContaining({
+      name: "orientation",
+      type: '"vertical" | "horizontal" | "responsive"',
+    }))
+
+    expect(inputGroup?.importExample).toContain("InputGroupTextarea")
+    expect(inputGroup?.usageExample).toContain('placement="block-start"')
+    expect(inputGroup?.props).toContainEqual(expect.objectContaining({
+      name: "placement",
+      type: '"inline-start" | "inline-end" | "block-start" | "block-end"',
+    }))
+    expect(inputGroup?.accessibility.en).toContain("start and end aliases")
+
+    expect(radioGroup?.accessibility.en).toContain("square")
+    expect(radioGroup?.accessibility.ko).toContain("사각")
+    expect(switchControl?.props).toContainEqual(expect.objectContaining({
+      name: "tone",
+      type: '"primary" | "success" | "warning" | "danger" | "neutral"',
+    }))
+    expect(switchControl?.accessibility.en).toContain("checked")
+    expect(switchControl?.accessibility.ko).toContain("켜진")
+  })
+
   it("publishes semantic status colors for reusable feedback components", () => {
     expect(
       designCatalog.tokens

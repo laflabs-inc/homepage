@@ -112,11 +112,11 @@ export const coreExpansionComponents = [
     summary: { ko: "입력과 단위, 접두어, 짧은 동작을 하나의 컨트롤로 묶습니다.", en: "Groups an input with a unit, prefix, or compact action." },
     whenToUse: { ko: "URL 접두어, 단위, 검증 버튼처럼 입력과 직접 연결된 요소에 씁니다.", en: "Use it for prefixes, units, or actions directly tied to an input." },
     whenNotToUse: { ko: "서로 독립적인 입력이나 여러 주요 행동을 한 경계 안에 넣지 않습니다.", en: "Do not place independent fields or several primary actions inside one boundary." },
-    accessibility: { ko: "실제 입력은 하나만 두고 장식 텍스트는 중복 읽히지 않게 처리합니다.", en: "Keeps one native input and prevents decorative text from being announced twice." },
+    accessibility: { ko: "실제 입력은 하나만 두고 DOM 순서를 유지합니다. 기존 start와 end 별칭은 inline 위치로 정규화됩니다.", en: "Keeps one native control in DOM order; the start and end aliases normalize to inline placements." },
     sourcePath: "components/ui/input-group.tsx",
     demoKey: "input-group",
-    importExample: 'import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupButton, InputGroupText } from "@/components/ui/input-group"',
-    usageExample: '<InputGroup><InputGroupAddon><InputGroupText>https://</InputGroupText></InputGroupAddon><InputGroupInput aria-label="Domain" /><InputGroupAddon placement="end"><InputGroupButton>Verify</InputGroupButton></InputGroupAddon></InputGroup>',
+    importExample: 'import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "@/components/ui/input-group"',
+    usageExample: '<InputGroup><InputGroupAddon placement="block-start"><InputGroupText>Markdown supported</InputGroupText></InputGroupAddon><InputGroupTextarea aria-label="Guidance" /><InputGroupAddon placement="block-end"><InputGroupText>0 / 240</InputGroupText></InputGroupAddon></InputGroup>',
     relatedComponents: ["field", "input", "button"],
     dependencies: [],
     states: [
@@ -125,8 +125,8 @@ export const coreExpansionComponents = [
       { id: "invalid", guidance: { ko: "Field 오류와 그룹 경계가 같은 상태를 전달하는지 확인합니다.", en: "Confirm Field error copy and group border communicate the same state." } },
     ],
     props: [
-      { name: "placement", type: '"start" | "end"', required: false, description: { ko: "Addon이 입력 앞이나 뒤에 배치되는지 정합니다.", en: "Places an addon before or after the input." } },
-      { name: "children", type: "ReactNode", required: false, description: { ko: "Input, Addon, Text, Button 조합입니다.", en: "A composition of Input, Addon, Text, and Button parts." } },
+      { name: "placement", type: '"inline-start" | "inline-end" | "block-start" | "block-end"', required: false, description: { ko: "Addon의 논리적 위치입니다. start와 end는 호환 별칭입니다.", en: "The logical addon position. start and end remain compatibility aliases." } },
+      { name: "children", type: "ReactNode", required: false, description: { ko: "Input 또는 Textarea와 Addon, Text, Button 조합입니다.", en: "A composition of Input or Textarea with Addon, Text, and Button parts." } },
     ],
   },
   {

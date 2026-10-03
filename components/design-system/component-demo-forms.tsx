@@ -2,9 +2,14 @@ import type { ComponentType } from "react"
 
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldError,
+  FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
   Label,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -17,16 +22,36 @@ import styles from "./design-system.module.css"
 function FieldDemo({ locale, state }: ComponentDemoProps) {
   const invalid = state === "invalid"
   return (
-    <Field className={styles.demoField} invalid={invalid} required={state === "required"}>
-      <FieldLabel>{locale === "ko" ? "연락처" : "Contact"}</FieldLabel>
-      <Input placeholder="contact@laflabs.co" />
-      <FieldDescription>
-        {locale === "ko" ? "답변을 받을 이메일 주소입니다." : "The email address for a reply."}
-      </FieldDescription>
-      {invalid ? (
-        <FieldError>{locale === "ko" ? "주소를 확인해 주세요." : "Check the address."}</FieldError>
-      ) : null}
-    </Field>
+    <FieldSet className={styles.demoFormRecipe}>
+      <FieldLegend>{locale === "ko" ? "문서 설정" : "Document settings"}</FieldLegend>
+      <FieldGroup>
+        <Field orientation="responsive">
+          <FieldContent>
+            <FieldTitle>{locale === "ko" ? "발행 정보" : "Publishing details"}</FieldTitle>
+            <FieldLabel>{locale === "ko" ? "문서 종류" : "Document type"}</FieldLabel>
+            <FieldDescription>
+              {locale === "ko" ? "목록과 주소에 사용할 분류입니다." : "Used for listing and routing."}
+            </FieldDescription>
+          </FieldContent>
+          <NativeSelect defaultValue="notice">
+            <option value="notice">{locale === "ko" ? "공지사항" : "Notice"}</option>
+            <option value="disclosure">{locale === "ko" ? "공시" : "Disclosure"}</option>
+          </NativeSelect>
+        </Field>
+        <Field invalid={invalid} orientation="responsive" required={state === "required"}>
+          <FieldContent>
+            <FieldLabel>{locale === "ko" ? "슬러그" : "Slug"}</FieldLabel>
+            <FieldDescription>
+              {locale === "ko" ? "공개 주소에 쓰는 짧은 식별자입니다." : "A short public URL identifier."}
+            </FieldDescription>
+            {invalid ? (
+              <FieldError>{locale === "ko" ? "영문 소문자와 하이픈만 사용하세요." : "Use lowercase letters and hyphens."}</FieldError>
+            ) : null}
+          </FieldContent>
+          <Input defaultValue="platform-update" />
+        </Field>
+      </FieldGroup>
+    </FieldSet>
   )
 }
 

@@ -343,11 +343,11 @@ Explains why no content is present and what can happen next.
 
 Maturity: **candidate** · Category: **form**
 
-Connects a label, control, description, and error as one field.
+Composes labels, controls, descriptions, and errors into complete form sections with FieldGroup and FieldSet.
 
-- Use: Use it for a form item where a person enters or selects a value.
-- Avoid: Do not use it for read-only content or unrelated controls under one label.
-- Accessibility: Links direct description and error children to the nested control.
+- Use: Use Field for one control and FieldGroup with FieldSet for related form sections.
+- Avoid: Do not group read-only content or unrelated controls under one label.
+- Accessibility: Links nested FieldContent descriptions and errors to the control and names groups with FieldLegend.
 - States: `default`, `required`, `invalid`
 - Related components: `label`, `input`, `textarea`, `native-select`
 
@@ -371,7 +371,7 @@ Groups an input with a unit, prefix, or compact action.
 
 - Use: Use it for prefixes, units, or actions directly tied to an input.
 - Avoid: Do not place independent fields or several primary actions inside one boundary.
-- Accessibility: Keeps one native input and prevents decorative text from being announced twice.
+- Accessibility: Keeps one native control in DOM order; the start and end aliases normalize to inline placements.
 - States: `default`, `focus-visible`, `invalid`
 - Related components: `field`, `input`, `button`
 
@@ -495,7 +495,7 @@ Selects exactly one value from a named group.
 
 - Use: Use it when a short list of options should stay visible for comparison.
 - Avoid: Use Native Select when space is tight or the list is long.
-- Accessibility: Name the native radio set with a fieldset and visible legend.
+- Accessibility: Keeps a named native radio set and communicates selection with square outer and inner indicators.
 - States: `default`, `selected`, `controlled`, `disabled`
 - Related components: `checkbox`, `native-select`
 
@@ -595,7 +595,7 @@ Turns one immediately applied setting on or off.
 
 - Use: Use it for a binary setting that takes effect immediately.
 - Avoid: Use Checkbox when consent is only committed on form submission.
-- Accessibility: Preserve native checkbox behavior with role switch and a stable label.
+- Accessibility: Preserves native checkbox behavior and a stable label; tone applies only to the checked surface.
 - States: `off`, `on`, `focus-visible`, `disabled`
 - Related components: `checkbox`, `segmented-control`
 

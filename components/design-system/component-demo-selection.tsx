@@ -5,6 +5,7 @@ import { RadioGroup } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { ComponentDemoProps } from "./component-demo-registry"
+import styles from "./design-system.module.css"
 
 function CheckboxDemo({ locale, state }: ComponentDemoProps) {
   return (
@@ -33,12 +34,29 @@ function RadioGroupDemo({ locale, state }: ComponentDemoProps) {
 }
 
 function SwitchDemo({ locale, state }: ComponentDemoProps) {
+  const checked = state === "on"
+  const disabled = state === "disabled"
   return (
-    <Switch
-      defaultChecked={state === "on"}
-      disabled={state === "disabled"}
-      label={locale === "ko" ? "분석 쿠키 허용" : "Allow analytics cookies"}
-    />
+    <div className={styles.demoSwitchTones}>
+      <Switch
+        defaultChecked={checked}
+        disabled={disabled}
+        label={locale === "ko" ? "기본 알림" : "Default notifications"}
+        tone="primary"
+      />
+      <Switch
+        defaultChecked={checked}
+        disabled={disabled}
+        label={locale === "ko" ? "동기화 알림" : "Sync notifications"}
+        tone="success"
+      />
+      <Switch
+        defaultChecked={checked}
+        disabled={disabled}
+        label={locale === "ko" ? "위험 작업 알림" : "Dangerous action notices"}
+        tone="danger"
+      />
+    </div>
   )
 }
 
