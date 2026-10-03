@@ -1,7 +1,7 @@
 # LafLabs Website and Admin Platform Roadmap
 
 Status: Active
-Last updated: 2026-10-01
+Last updated: 2026-10-03
 
 ## Objective
 
@@ -35,7 +35,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | --- | --- | --- |
 | Public document index polish | Shipped | The three public indexes share the Navbar shell and compact masthead. |
 | Document editor workspace | Shipped | Authors switch explicitly between a persistent Markdown source editor and the rendered preview. |
-| Design system foundation | Shipped; Core UI v2 in progress | Tokens and guidance are public. C3A actions and selection navigation are complete; C3B form composition is next. |
+| Design system foundation | Shipped; Core UI v2 in progress | Tokens and guidance are public. C3A actions and selection navigation plus C3B form composition are complete; C3C overlays, navigation, and feedback is next. |
 | Logo motion | Shipped | The public header reveals the official mark once per session and supports restrained hover or focus replay. |
 | Media platform foundation | Shipped | Separate private staging and public delivery stores, protected uploads, validation, recovery, and the Admin asset library are operational. |
 | Media authoring integration | Shipped | Authors can select, upload, version, insert, validate, and inspect stable media references without rewriting published paths. |
@@ -45,8 +45,8 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | Delivery | Status | Boundary |
 | --- | --- | --- |
 | C3A: actions and selection navigation | Shipped | Button and ButtonLink share one visual contract; ButtonGroup is composable; SegmentedControl supports variable-width multi-option selection; deprecated aliases remain for one compatibility release. |
-| C3B: form composition | Next | Expand Field and InputGroup composition, square RadioGroup indicators, Switch checked-tone variants, form recipes, and representative Admin adoption. |
-| C3C: overlays, navigation, and feedback | Planned | Redesign Pagination, Dialog, AlertDialog, Spinner, Toast, Alert, and StatusLabel. |
+| C3B: form composition | Shipped | Field and InputGroup provide compound composition, RadioGroup uses square indicators, Switch supports checked-tone variants, public form recipes are published, and the Admin document editor adopts the shared contracts. |
+| C3C: overlays, navigation, and feedback | Next | Redesign Pagination, Dialog, AlertDialog, Spinner, Toast, Alert, and StatusLabel. |
 | C3D: system publication | Planned | Publish cross-component recipes, state matrices, migration guidance, and representative application adoption. |
 
 ## Delivery sequence

@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import {
@@ -20,6 +20,16 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 
 describe("Field", () => {
+  function OpaqueFieldContent() {
+    return (
+      <FieldContent>
+        <FieldLabel>Deployment</FieldLabel>
+        <FieldDescription>Choose the target environment.</FieldDescription>
+        <FieldError>Select an available environment.</FieldError>
+      </FieldContent>
+    )
+  }
+
   it("composes native field sections without adding interactive wrappers", () => {
     render(
       <FieldSet>
@@ -86,6 +96,22 @@ describe("Field", () => {
     expect(input).toHaveAttribute("aria-describedby", "repository-help repository-error")
     expect(input).toHaveAttribute("aria-invalid", "true")
     expect(input).toBeRequired()
+  })
+
+  it("connects relationships when compound parts render through an opaque boundary", async () => {
+    render(
+      <Field invalid>
+        <OpaqueFieldContent />
+        <Input />
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: "Deployment" })
+    await waitFor(() => {
+      const relationships = input.getAttribute("aria-describedby")?.split(" ") ?? []
+      expect(relationships).toHaveLength(2)
+      expect(relationships.every((id) => Boolean(document.getElementById(id)))).toBe(true)
+    })
   })
 
   it("connects the label, required state, description, and error to its control", () => {

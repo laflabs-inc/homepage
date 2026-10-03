@@ -87,7 +87,7 @@
 - Adds: `FieldContentProps`, `FieldContent`.
 - Types: FieldGroup and FieldContent extend `HTMLAttributes<HTMLDivElement>`, FieldSet extends `ComponentPropsWithRef<"fieldset">`, and FieldLegend extends `ComponentPropsWithRef<"legend">`.
 
-- [ ] **Step 1: Write failing Field composition tests**
+- [x] **Step 1: Write failing Field composition tests**
 
 Add tests that assert:
 
@@ -97,7 +97,7 @@ Add tests that assert:
 - a nested `FieldContent` containing `FieldLabel`, `FieldDescription`, and `FieldError` still connects the generated IDs to an `Input` sibling.
 - caller-provided IDs and existing direct-child Field usage remain unchanged.
 
-- [ ] **Step 2: Run focused tests and confirm the API is missing**
+- [x] **Step 2: Run focused tests and confirm the API is missing**
 
 Run:
 
@@ -105,15 +105,15 @@ Run:
 
 Expected: failure because FieldGroup, FieldSet, FieldLegend, FieldContent, and orientation are not implemented.
 
-- [ ] **Step 3: Implement the Field compound structure**
+- [x] **Step 3: Implement the Field compound structure**
 
 Add the interfaces above. Recursively inspect presentational compound children when deriving description and error relationships, but do not clone controls or depend on their concrete component type. Emit `data-slot="field"`, `field-group`, `field-set`, `field-legend`, and `field-content`.
 
-- [ ] **Step 4: Implement Field layout states**
+- [x] **Step 4: Implement Field layout states**
 
 Keep vertical as the compatibility default. Horizontal aligns label content and control without fixed widths; responsive uses horizontal layout only above 720px and collapses to a single column below it. FieldGroup provides one shared vertical rhythm, and FieldSet resets native browser margins and borders without removing the legend.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run:
 
@@ -142,7 +142,7 @@ Commit:
 - Adds: `InputGroupTextarea(props: ComponentPropsWithRef<"textarea">)`.
 - Changes: `InputGroupButton` shares the public Button variant, size, focus, disabled, and icon-only accessibility contract while retaining native button props and default `type="button"`; its connected rendering removes Button's standalone outer frame so the group keeps one boundary.
 
-- [ ] **Step 1: Write failing InputGroup composition tests**
+- [x] **Step 1: Write failing InputGroup composition tests**
 
 Add tests for:
 
@@ -152,7 +152,7 @@ Add tests for:
 - Field invalid, required, and described-by propagation into InputGroupInput and InputGroupTextarea;
 - icon action accessible naming and default button type.
 
-- [ ] **Step 2: Run the focused test and confirm failure**
+- [x] **Step 2: Run the focused test and confirm failure**
 
 Run:
 
@@ -160,15 +160,15 @@ Run:
 
 Expected: failure because block placements and InputGroupTextarea are missing.
 
-- [ ] **Step 3: Implement the expanded compound API**
+- [x] **Step 3: Implement the expanded compound API**
 
 Use CSS Grid for placement rather than flex order or child cloning. The input or textarea owns the flexible center cell; block add-ons span the full group width. Map start and end aliases at the component boundary and emit only canonical placement data values.
 
-- [ ] **Step 4: Implement connected visual behavior**
+- [x] **Step 4: Implement connected visual behavior**
 
 The group owns its single outer border, focus ring, and invalid border. Add-ons create one-pixel internal rules only at their boundary. Multiline controls keep block add-ons readable, horizontal controls may shrink without clipping, and buttons reuse the shared Button contract without adding a second outer frame.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run:
 
@@ -198,7 +198,7 @@ Commit:
 - Adds: `SwitchProps.tone?: SwitchTone` with `primary` as the default.
 - Preserves: Switch native input props, label, description, checked, defaultChecked, disabled, name, value, and ref behavior.
 
-- [ ] **Step 1: Write failing RadioGroup and Switch tests**
+- [x] **Step 1: Write failing RadioGroup and Switch tests**
 
 Add tests that assert:
 
@@ -208,7 +208,7 @@ Add tests that assert:
 - each checked tone preserves `role="switch"`, checked state, form name and value, disabled state, label, and described-by relationships.
 - tone does not add a second interactive element or change the unchecked surface.
 
-- [ ] **Step 2: Run the focused test and confirm failure**
+- [x] **Step 2: Run the focused test and confirm failure**
 
 Run:
 
@@ -216,15 +216,15 @@ Run:
 
 Expected: failure because the radio indicator and Switch tone API are missing.
 
-- [ ] **Step 3: Implement the square RadioGroup indicator**
+- [x] **Step 3: Implement the square RadioGroup indicator**
 
 Keep the native input in the accessibility tree and add a hidden-input plus visible-indicator structure parallel to Checkbox. Selected state uses a blue outer square and a smaller inner square; focus is drawn outside the visible indicator. No circular geometry remains.
 
-- [ ] **Step 4: Implement Switch checked tones**
+- [x] **Step 4: Implement Switch checked tones**
 
 Set `data-tone` on the Switch root. Map checked surfaces to existing semantic tokens: primary uses `--blue`, success `--success`, warning `--warning`, danger `--error-deep`, and neutral `--ink`. Off-state, focus, disabled, thumb travel, and reduced-motion behavior remain shared.
 
-- [ ] **Step 5: Run tests and commit**
+- [x] **Step 5: Run tests and commit**
 
 Run:
 
@@ -259,7 +259,7 @@ Commit:
 - Produces: copyable recipes for document settings, URL verification, multiline annotated input, visible radio comparison, and semantic immediate settings.
 - Produces: deterministic public Markdown, JSON, Skill references, and component pages using the same recommended interfaces.
 
-- [ ] **Step 1: Write failing catalog and page tests**
+- [x] **Step 1: Write failing catalog and page tests**
 
 Assert that:
 
@@ -269,7 +269,7 @@ Assert that:
 - Switch documentation lists every checked tone and explains that tone applies only when checked.
 - rendered demos include a full document-settings composition, a multiline InputGroup, square radios, and at least three Switch tones.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 Run:
 
@@ -277,15 +277,15 @@ Run:
 
 Expected: failure because C3B APIs and recipes are absent.
 
-- [ ] **Step 3: Build realistic demos**
+- [x] **Step 3: Build realistic demos**
 
 Use real Core UI components only. Keep examples compact enough for 320px, use Korean and English labels already supported by the catalog, and avoid raw controls in the recommended compositions.
 
-- [ ] **Step 4: Update catalog metadata**
+- [x] **Step 4: Update catalog metadata**
 
 Document anatomy, when-to-use boundaries, state guidance, accessibility, source paths, exact props, compatibility behavior, and related components. Do not add a separate Form wrapper or validation library.
 
-- [ ] **Step 5: Regenerate and verify public resources**
+- [x] **Step 5: Regenerate and verify public resources**
 
 Run:
 
@@ -294,7 +294,7 @@ Run:
 
 Expected: generated resources are deterministic and recommend only the C3B interfaces.
 
-- [ ] **Step 6: Run tests and commit**
+- [x] **Step 6: Run tests and commit**
 
 Run:
 
@@ -321,7 +321,7 @@ Commit:
 - Preserves: every existing document value, callback, disabled condition, validation attribute, route, visible label, analytics behavior, and save or publication lifecycle.
 - Produces: one representative production Admin settings composition without raw input, select, checkbox, or button styling inside the migrated boundary.
 
-- [ ] **Step 1: Write failing Admin proof tests**
+- [x] **Step 1: Write failing Admin proof tests**
 
 Extend DocumentEditor tests to assert:
 
@@ -331,7 +331,7 @@ Extend DocumentEditor tests to assert:
 - save, schedule, publish, delete, and English-revision actions keep their current labels, types, disabled states, and callbacks;
 - no nested form or duplicate interactive wrapper is introduced.
 
-- [ ] **Step 2: Run the focused test and verify the proof is absent**
+- [x] **Step 2: Run the focused test and verify the proof is absent**
 
 Run:
 
@@ -339,15 +339,15 @@ Run:
 
 Expected: new fieldset and shared-component assertions fail against the raw controls.
 
-- [ ] **Step 3: Migrate the document settings boundary**
+- [x] **Step 3: Migrate the document settings boundary**
 
 Replace raw label, input, select, and checkbox markup in the document properties section with the shared compounds. Replace action buttons with Button or ButtonLink according to semantics. Keep the Markdown editor, title and summary workflow, confirmation logic, server calls, and copy unchanged.
 
-- [ ] **Step 4: Remove superseded page-specific control styling**
+- [x] **Step 4: Remove superseded page-specific control styling**
 
 Retain grid placement and page layout classes only. Delete raw input, select, checkbox, button, focus, and disabled styles now owned by Core UI. Add no descendant selector that restyles shared component internals.
 
-- [ ] **Step 5: Run Admin and regression tests, then commit**
+- [x] **Step 5: Run Admin and regression tests, then commit**
 
 Run:
 
@@ -374,7 +374,7 @@ Commit:
 - Consumes: all prior tasks.
 - Produces: verified Delivery C3B and records C3C overlays, navigation, and feedback as next.
 
-- [ ] **Step 1: Run the complete static and unit suite**
+- [x] **Step 1: Run the complete static and unit suite**
 
 Run:
 
@@ -385,7 +385,7 @@ Run:
 
 Expected: all commands pass and every unit test succeeds.
 
-- [ ] **Step 2: Run the production build**
+- [x] **Step 2: Run the production build**
 
 Run:
 
@@ -393,7 +393,7 @@ Run:
 
 Expected: Next.js production build completes without route, serialization, server-component, or hydration errors.
 
-- [ ] **Step 3: Review representative pages in a browser**
+- [x] **Step 3: Review representative pages in a browser**
 
 Review:
 
@@ -405,7 +405,7 @@ Review:
 
 Check desktop and 320px widths, 200% zoom, Korean and English labels, keyboard focus, native radio arrow keys, disabled controls, every Switch tone, reduced motion, connected borders, and error relationships. If Admin authentication is unavailable locally, record the environment limitation and rely on the focused behavior test instead of weakening the route.
 
-- [ ] **Step 4: Run the Impeccable detector once**
+- [x] **Step 4: Run the Impeccable detector once**
 
 Run:
 
@@ -413,16 +413,16 @@ Run:
 
 Review each finding and fix only actual violations. Record intentional exceptions in the PR verification notes.
 
-- [ ] **Step 5: Update roadmap and plan status**
+- [x] **Step 5: Update roadmap and plan status**
 
 Mark C3B shipped in `docs/platform-roadmap.md`, identify C3C overlays, navigation, and feedback as next, and check every completed plan item.
 
-- [ ] **Step 6: Commit verification fixes**
+- [x] **Step 6: Commit verification fixes**
 
     git add components app docs DESIGN.md
     git commit -m "chore(design): verify core ui form composition"
 
-- [ ] **Step 7: Push and open the pull request**
+- [x] **Step 7: Push and open the pull request**
 
     git push -u origin codex/design-system-v2-forms
     gh pr create --base main --head codex/design-system-v2-forms --title "Expand LafLabs Core UI form composition" --fill

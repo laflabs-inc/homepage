@@ -4,8 +4,12 @@ import {
   Children,
   createContext,
   isValidElement,
+  useCallback,
   useContext,
+  useEffect,
   useId,
+  useMemo,
+  useState,
   type AriaAttributes,
   type ComponentPropsWithRef,
   type HTMLAttributes,
@@ -17,11 +21,13 @@ import styles from "./field.module.css"
 
 type FieldContextValue = Readonly<{
   controlId: string
-  descriptionId: string
-  errorId: string
-  hasDescription: boolean
-  hasError: boolean
+  defaultDescriptionId: string
+  defaultErrorId: string
+  descriptionIds: readonly string[]
+  errorIds: readonly string[]
   invalid: boolean
+  registerDescription: (id: string) => () => void
+  registerError: (id: string) => () => void
   required: boolean
 }>
 
@@ -94,8 +100,8 @@ export function useFieldControlProps<T extends FieldControlAttributes>(props: T)
     "aria-invalid": props["aria-invalid"] ?? (field.invalid || undefined),
     "aria-describedby": mergeIds(
       props["aria-describedby"],
-      field.hasDescription ? field.descriptionId : undefined,
-      field.hasError ? field.errorId : undefined,
+      ...field.descriptionIds,
+      ...field.errorIds,
     ),
   }
 }
@@ -117,15 +123,56 @@ export function Field({
   ...props
 }: FieldProps) {
   const prefix = useId()
-  const value: FieldContextValue = {
+  const defaultDescriptionId = `${prefix}-description`
+  const defaultErrorId = `${prefix}-error`
+  const staticDescriptionId = hasPart(children, FieldDescription)
+    ? getPartId(children, FieldDescription) ?? defaultDescriptionId
+    : undefined
+  const staticErrorId = hasPart(children, FieldError)
+    ? getPartId(children, FieldError) ?? defaultErrorId
+    : undefined
+  const [registeredDescriptionIds, setRegisteredDescriptionIds] = useState<string[]>([])
+  const [registeredErrorIds, setRegisteredErrorIds] = useState<string[]>([])
+
+  const registerDescription = useCallback((id: string) => {
+    setRegisteredDescriptionIds((current) => current.includes(id) ? current : [...current, id])
+    return () => setRegisteredDescriptionIds((current) => current.filter((value) => value !== id))
+  }, [])
+  const registerError = useCallback((id: string) => {
+    setRegisteredErrorIds((current) => current.includes(id) ? current : [...current, id])
+    return () => setRegisteredErrorIds((current) => current.filter((value) => value !== id))
+  }, [])
+
+  const value = useMemo<FieldContextValue>(() => ({
     controlId: getControlId(children) ?? `${prefix}-control`,
-    descriptionId: getPartId(children, FieldDescription) ?? `${prefix}-description`,
-    errorId: getPartId(children, FieldError) ?? `${prefix}-error`,
-    hasDescription: hasPart(children, FieldDescription),
-    hasError: hasPart(children, FieldError),
+    defaultDescriptionId,
+    defaultErrorId,
+    descriptionIds: [...new Set([
+      ...(staticDescriptionId ? [staticDescriptionId] : []),
+      ...registeredDescriptionIds,
+    ])],
+    errorIds: [...new Set([
+      ...(staticErrorId ? [staticErrorId] : []),
+      ...registeredErrorIds,
+    ])],
     invalid,
+    registerDescription,
+    registerError,
     required,
-  }
+  }), [
+    children,
+    defaultDescriptionId,
+    defaultErrorId,
+    invalid,
+    prefix,
+    registerDescription,
+    registerError,
+    registeredDescriptionIds,
+    registeredErrorIds,
+    required,
+    staticDescriptionId,
+    staticErrorId,
+  ])
 
   return (
     <FieldContext.Provider value={value}>
@@ -240,14 +287,23 @@ export function FieldDescription({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   const field = useContext(FieldContext)
-  if (!hasContent(children)) return null
+  const visible = hasContent(children)
+  const id = props.id ?? field?.defaultDescriptionId
+  const registerDescription = field?.registerDescription
+
+  useEffect(() => {
+    if (!registerDescription || !visible || !id) return
+    return registerDescription(id)
+  }, [id, registerDescription, visible])
+
+  if (!visible) return null
 
   return (
     <p
       {...props}
       className={[styles.description, className].filter(Boolean).join(" ")}
       data-slot="field-description"
-      id={props.id ?? field?.descriptionId}
+      id={id}
     >
       {children}
     </p>
@@ -260,14 +316,23 @@ export function FieldError({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) {
   const field = useContext(FieldContext)
-  if (!hasContent(children)) return null
+  const visible = hasContent(children)
+  const id = props.id ?? field?.defaultErrorId
+  const registerError = field?.registerError
+
+  useEffect(() => {
+    if (!registerError || !visible || !id) return
+    return registerError(id)
+  }, [id, registerError, visible])
+
+  if (!visible) return null
 
   return (
     <p
       {...props}
       className={[styles.error, className].filter(Boolean).join(" ")}
       data-slot="field-error"
-      id={props.id ?? field?.errorId}
+      id={id}
       role={props.role ?? "alert"}
     >
       {children}
