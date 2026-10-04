@@ -2,32 +2,6 @@ import type { ComponentEntry } from "../schema"
 
 export const coreExpansionComponents = [
   {
-    id: "alert-dialog",
-    name: "Alert Dialog",
-    category: "overlay",
-    maturity: "candidate",
-    summary: { ko: "되돌리기 어려운 행동 전에 명시적인 결정을 받습니다.", en: "Requests an explicit decision before a consequential action." },
-    whenToUse: { ko: "삭제나 권한 변경처럼 결과가 크고 즉시 실행되는 행동에 씁니다.", en: "Use it for immediate, consequential actions such as deletion or permission changes." },
-    whenNotToUse: { ko: "일반 안내나 쉽게 되돌릴 수 있는 행동에는 Dialog나 Alert를 씁니다.", en: "Use Dialog or Alert for general information or easily reversible actions." },
-    accessibility: { ko: "alertdialog 의미, 제목, 설명, 확인과 취소 동작을 제공하고 초점을 복귀합니다.", en: "Provides alertdialog semantics, title, description, explicit actions, and focus restoration." },
-    sourcePath: "components/ui/alert-dialog.tsx",
-    demoKey: "alert-dialog",
-    importExample: 'import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"',
-    usageExample: '<AlertDialog><AlertDialogTrigger>Delete</AlertDialogTrigger><AlertDialogContent><AlertDialogTitle>Delete?</AlertDialogTitle><AlertDialogDescription>This cannot be undone.</AlertDialogDescription><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction variant="destructive">Delete</AlertDialogAction></AlertDialogContent></AlertDialog>',
-    relatedComponents: ["dialog", "alert", "button"],
-    dependencies: ["radix-ui"],
-    states: [
-      { id: "closed", guidance: { ko: "트리거가 결과를 구체적으로 설명하는지 확인합니다.", en: "Confirm the trigger names the consequence clearly." } },
-      { id: "open", guidance: { ko: "취소와 실행의 차이, 초기 초점과 초점 복귀를 확인합니다.", en: "Inspect action hierarchy, initial focus, and focus restoration." } },
-      { id: "destructive", guidance: { ko: "Error Deep과 흰색 전경을 쓰고 문구로 결과를 설명합니다.", en: "Use Error Deep with a white foreground and explain the consequence in text." } },
-    ],
-    props: [
-      { name: "open", type: "boolean", required: false, description: { ko: "제어되는 열림 상태입니다.", en: "The controlled open state." } },
-      { name: "onOpenChange", type: "(open: boolean) => void", required: false, description: { ko: "열림 상태가 바뀔 때 호출됩니다.", en: "Called when open state changes." } },
-      { name: "variant", type: '"primary" | "destructive"', required: false, description: { ko: "확인 동작의 의미 색상입니다.", en: "The semantic treatment of the confirmation action." } },
-    ],
-  },
-  {
     id: "popover",
     name: "Popover",
     category: "overlay",

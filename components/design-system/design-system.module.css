@@ -888,6 +888,14 @@
   margin: 0;
 }
 
+.demoC3cActions,
+.demoC3cStatuses {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
 .componentMasthead h1 {
   max-width: 16ch;
 }

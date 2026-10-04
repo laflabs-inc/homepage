@@ -2,34 +2,6 @@ import type { ComponentEntry } from "../schema"
 
 export const feedbackComponents = [
   {
-    id: "alert",
-    name: "Alert",
-    category: "feedback",
-    maturity: "candidate",
-    summary: { ko: "중요한 상태와 다음 행동을 명확하게 알립니다.", en: "Communicates an important state and the next action." },
-    whenToUse: { ko: "정보, 성공, 주의, 오류를 본문 흐름 안에서 설명할 때 씁니다.", en: "Use it for inline information, success, warning, or error feedback." },
-    whenNotToUse: { ko: "모든 안내를 실시간 경고로 발표하거나 장식 강조에 쓰지 않습니다.", en: "Do not announce every note live or use it as decorative emphasis." },
-    accessibility: { ko: "상태는 아이콘과 제목으로 함께 알리고 새 오류만 live alert로 발표합니다.", en: "Pair icon and visible title, and announce only new urgent feedback live." },
-    sourcePath: "components/ui/alert.tsx",
-    demoKey: "alert",
-    importExample: 'import { Alert } from "@/components/ui/alert"',
-    usageExample: '<Alert title="Save failed" variant="error" live>Try again.</Alert>',
-    relatedComponents: ["button", "empty-state"],
-    dependencies: ["@phosphor-icons/react"],
-    states: [
-      { id: "info", guidance: { ko: "정보 상태가 Info 색과 제목으로 구분되는지 확인합니다.", en: "Confirm informational feedback uses its icon, color, and title." } },
-      { id: "success", guidance: { ko: "완료 결과를 짧고 구체적으로 설명하는지 확인합니다.", en: "Confirm successful outcomes are concise and concrete." } },
-      { id: "warning", guidance: { ko: "주의 상태가 오류로 오인되지 않는지 확인합니다.", en: "Confirm warning feedback is not mistaken for an error." } },
-      { id: "error", guidance: { ko: "오류 원인과 가능한 다음 행동을 확인합니다.", en: "Confirm the error and available next action are clear." } },
-      { id: "live", guidance: { ko: "새로 발생한 긴급 상태만 alert로 발표되는지 확인합니다.", en: "Confirm only newly triggered urgent feedback uses role alert." } },
-    ],
-    props: [
-      { name: "title", type: "ReactNode", required: true, description: { ko: "상태를 요약하는 보이는 제목입니다.", en: "A visible title that summarizes the state." } },
-      { name: "variant", type: '"info" | "success" | "warning" | "error"', required: false, description: { ko: "상태의 의미론적 종류입니다.", en: "The semantic feedback variant." } },
-      { name: "live", type: "boolean", required: false, description: { ko: "새 상태를 즉시 발표할지 정합니다.", en: "Whether to announce newly rendered feedback immediately." } },
-    ],
-  },
-  {
     id: "skeleton",
     name: "Skeleton",
     category: "feedback",

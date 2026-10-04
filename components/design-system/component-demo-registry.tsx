@@ -9,6 +9,7 @@ import { actionDemos } from "./component-demo-actions"
 import { compositeDemos } from "./component-demo-composites"
 import { coreExpansionDemos } from "./component-demo-core-expansion"
 import { coreExpansionC2Demos } from "./component-demo-core-expansion-c2"
+import { coreUiC3CDemos } from "./component-demo-c3c"
 import { feedbackDemos } from "./component-demo-feedback"
 import { formDemos } from "./component-demo-forms"
 import { selectionDemos } from "./component-demo-selection"
@@ -78,6 +79,7 @@ export const componentDemos = {
   ...compositeDemos,
   ...coreExpansionDemos,
   ...coreExpansionC2Demos,
+  ...coreUiC3CDemos,
   ...feedbackDemos,
   ...structureDemos,
 } satisfies Record<DemoKey, ComponentType<ComponentDemoProps>>

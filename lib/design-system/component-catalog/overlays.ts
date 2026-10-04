@@ -2,31 +2,6 @@ import type { ComponentEntry } from "../schema"
 
 export const overlayComponents = [
   {
-    id: "dialog",
-    name: "Dialog",
-    category: "overlay",
-    maturity: "candidate",
-    summary: { ko: "현재 흐름 위에서 집중이 필요한 작업을 엽니다.", en: "Opens a focused task above the current flow." },
-    whenToUse: { ko: "짧은 확인, 설정, 폼을 현재 맥락을 유지한 채 처리할 때 씁니다.", en: "Use it for a short confirmation, setting, or form without leaving context." },
-    whenNotToUse: { ko: "긴 문서나 복잡한 다단계 작업을 작은 창에 가두지 않습니다.", en: "Do not confine long documents or complex multi-step work to a modal." },
-    accessibility: { ko: "제목과 설명을 제공하고 초점 가두기, Escape 닫기, 초점 복귀를 유지합니다.", en: "Provide title and description and preserve focus trap, Escape dismissal, and focus restoration." },
-    sourcePath: "components/ui/dialog.tsx",
-    demoKey: "dialog",
-    importExample: 'import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"',
-    usageExample: '<Dialog><DialogTrigger>Open</DialogTrigger><DialogContent closeLabel="Close"><DialogTitle>Title</DialogTitle><DialogDescription>Description</DialogDescription></DialogContent></Dialog>',
-    relatedComponents: ["button", "dropdown-menu", "field"],
-    dependencies: ["@phosphor-icons/react", "radix-ui"],
-    states: [
-      { id: "closed", guidance: { ko: "트리거만으로 열릴 작업을 알 수 있는지 확인합니다.", en: "Confirm the trigger describes the task it opens." } },
-      { id: "open", guidance: { ko: "제목, 닫기 동작, 내부 스크롤과 초점 경계를 확인합니다.", en: "Inspect title, close action, internal scroll, and focus boundary." } },
-    ],
-    props: [
-      { name: "open", type: "boolean", required: false, description: { ko: "제어되는 열림 상태입니다.", en: "The controlled open state." } },
-      { name: "onOpenChange", type: "(open: boolean) => void", required: false, description: { ko: "열림 상태가 바뀔 때 호출됩니다.", en: "Called when open state changes." } },
-      { name: "closeLabel", type: "string", required: true, description: { ko: "보이는 닫기 버튼의 접근 가능한 이름입니다.", en: "The accessible name for the visible close control." } },
-    ],
-  },
-  {
     id: "tooltip",
     name: "Tooltip",
     category: "overlay",

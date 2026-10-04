@@ -1,17 +1,6 @@
 import type { ComponentType } from "react"
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import {
   Breadcrumb,
   BreadcrumbEllipsis,
   BreadcrumbItem,
@@ -51,30 +40,6 @@ import {
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { ComponentDemoProps } from "./component-demo-registry"
 import styles from "./design-system.module.css"
-
-function AlertDialogDemo({ locale, state }: ComponentDemoProps) {
-  return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant={state === "destructive" ? "danger" : "secondary"}>
-          {locale === "ko" ? "문서 삭제" : "Delete document"}
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{locale === "ko" ? "문서를 삭제할까요?" : "Delete this document?"}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {locale === "ko" ? "삭제한 문서는 복구할 수 없습니다." : "A deleted document cannot be restored."}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{locale === "ko" ? "취소" : "Cancel"}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive">{locale === "ko" ? "삭제" : "Delete"}</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  )
-}
 
 function PopoverDemo({ locale }: ComponentDemoProps) {
   return (
@@ -173,7 +138,6 @@ function BreadcrumbDemo({ locale, state }: ComponentDemoProps) {
 }
 
 export const coreExpansionDemos = {
-  "alert-dialog": AlertDialogDemo,
   popover: PopoverDemo,
   "side-panel": SidePanelDemo,
   combobox: ComboboxDemo,

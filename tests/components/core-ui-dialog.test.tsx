@@ -98,8 +98,7 @@ describe("Dialog", () => {
     expect(screen.getByText("꼬리말").parentElement).toBe(dialog)
   })
 
-  it("renders one legacy close control only when closeLabel is supplied", async () => {
-    const user = userEvent.setup()
+  it("renders one legacy close control only when closeLabel is supplied", () => {
     const { rerender } = render(
       <Dialog open>
         <DialogContent closeLabel="레거시 닫기">
