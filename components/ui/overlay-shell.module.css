@@ -1,6 +1,6 @@
 .overlay {
   position: fixed;
-  z-index: 130;
+  z-index: var(--layer-overlay);
   inset: 0;
   background: rgb(15 23 42 / 58%);
 }
@@ -15,18 +15,58 @@
 
 .content {
   position: fixed;
-  z-index: 131;
+  z-index: var(--layer-dialog);
   top: 50%;
   left: 50%;
-  width: min(620px, calc(100vw - 32px));
+  width: min(var(--overlay-width, 620px), calc(100vw - 32px));
   max-height: min(760px, calc(100dvh - 32px));
-  padding: clamp(28px, 5vw, 48px);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--ink);
   border-radius: 0;
   background: var(--paper);
   color: var(--ink);
   transform: translate(-50%, -50%);
+}
+
+.content[data-size="small"] { --overlay-width: 440px; }
+.content[data-size="medium"] { --overlay-width: 620px; }
+.content[data-size="large"] { --overlay-width: 860px; }
+.content[data-size="full"] {
+  width: calc(100vw - 32px);
+  height: calc(100dvh - 32px);
+  max-height: none;
+}
+
+.content[data-scroll="content"] {
+  padding: clamp(28px, 5vw, 48px);
+  overflow: auto;
+}
+
+.content[data-scroll="body"] {
+  overflow: hidden;
+}
+
+.content[data-scroll="body"] > .header,
+.content[data-scroll="body"] > .footer {
+  flex: none;
+  padding-inline: clamp(20px, 5vw, 48px);
+}
+
+.content[data-scroll="body"] > .header {
+  padding-block: clamp(24px, 4vw, 40px) 20px;
+}
+
+.content[data-scroll="body"] > .body {
+  min-height: 0;
+  padding: 0 clamp(20px, 5vw, 48px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.content[data-scroll="body"] > .footer {
+  margin-top: 0;
+  padding-block: 20px clamp(24px, 4vw, 40px);
 }
 
 .content[data-state="open"] {
@@ -57,7 +97,7 @@
 .close:hover {
   border-color: var(--blue);
   background: var(--blue);
-  color: var(--paper);
+  color: var(--pure-white);
 }
 
 .close:focus-visible {
@@ -69,6 +109,10 @@
   padding-inline-end: 52px;
   display: grid;
   gap: 10px;
+}
+
+.body {
+  min-width: 0;
 }
 
 .footer {
@@ -84,6 +128,7 @@
   margin: 0;
   font: 720 clamp(28px, 4vw, 42px) / 1.08 var(--font-geist-sans), "Pretendard", sans-serif;
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .description {
@@ -91,6 +136,7 @@
   margin: 12px 0 28px;
   color: var(--muted);
   font: 400 15px / 1.65 var(--font-geist-sans), "Pretendard", sans-serif;
+  overflow-wrap: anywhere;
 }
 
 @keyframes overlay-in {
@@ -114,9 +160,17 @@
 }
 
 @media (max-width: 480px) {
-  .content {
+  .content,
+  .content[data-size="full"] {
     width: calc(100vw - 20px);
     max-height: calc(100dvh - 20px);
+  }
+
+  .content[data-size="full"] {
+    height: calc(100dvh - 20px);
+  }
+
+  .content[data-scroll="content"] {
     padding: 28px 20px;
   }
 
