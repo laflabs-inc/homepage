@@ -1,5 +1,6 @@
 import { createRef } from "react"
 import { render, screen } from "@testing-library/react"
+import { CheckCircle } from "@phosphor-icons/react/dist/ssr"
 import { describe, expect, it } from "vitest"
 
 import {
@@ -53,11 +54,29 @@ describe("Panel", () => {
 })
 
 describe("StatusLabel", () => {
-  it("shows semantic status text without creating a live region", () => {
+  it("uses text and a semantic edge without a decorative marker", () => {
     render(<StatusLabel variant="success">Published</StatusLabel>)
 
     const label = screen.getByText("Published")
-    expect(label).toHaveAttribute("data-variant", "success")
+    expect(label).toHaveAttribute("data-tone", "success")
+    expect(label.querySelector("[data-status-marker]")).not.toBeInTheDocument()
+    expect(label).not.toHaveAttribute("role")
+    expect(label).not.toHaveAttribute("aria-live")
+  })
+
+  it("accepts a composed Phosphor icon without relying on it for the name", () => {
+    render(<StatusLabel><CheckCircle aria-hidden />Ready</StatusLabel>)
+
+    const label = screen.getByText("Ready")
+    expect(label).toHaveTextContent("Ready")
+    expect(label.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
+  })
+
+  it("lets tone override the legacy variant without creating a live region", () => {
+    render(<StatusLabel tone="warning" variant="success">Needs review</StatusLabel>)
+
+    const label = screen.getByText("Needs review")
+    expect(label).toHaveAttribute("data-tone", "warning")
     expect(label).not.toHaveAttribute("role")
     expect(label).not.toHaveAttribute("aria-live")
   })
@@ -69,6 +88,6 @@ describe("StatusLabel", () => {
 
     expect(ref.current).toBe(screen.getByText("Draft"))
     expect(screen.getByText("Draft")).toHaveAttribute("title", "Current state")
-    expect(screen.getByText("Draft")).toHaveAttribute("data-variant", "neutral")
+    expect(screen.getByText("Draft")).toHaveAttribute("data-tone", "neutral")
   })
 })

@@ -97,8 +97,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.10.0",
-      updatedAt: "2026-10-01",
+      version: "2026.10.1",
+      updatedAt: "2026-10-04",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
@@ -302,9 +302,7 @@ describe("production design catalog", () => {
       "dropdown-menu",
       "tabs",
       "accordion",
-      "dialog",
       "tooltip",
-      "alert-dialog",
       "popover",
       "side-panel",
       "combobox",
@@ -312,17 +310,19 @@ describe("production design catalog", () => {
       "breadcrumb",
       "table",
       "data-table",
-      "pagination",
       "item",
-      "spinner",
       "progress",
-      "notice-toast",
+      "dialog",
+      "alert-dialog",
+      "pagination",
+      "spinner",
+      "toast",
       "alert",
+      "status-label",
       "skeleton",
       "empty-state",
       "separator",
       "panel",
-      "status-label",
       "code-block",
     ])
     expect(designCatalog.patterns.map(({ id }) => id)).toEqual([
@@ -346,6 +346,27 @@ describe("production design catalog", () => {
         expect(state.guidance.en.trim()).not.toBe("")
       }
     }
+  })
+
+  it("publishes the C3C compound, compatibility, and feedback contracts", () => {
+    const dialog = getComponentEntry("dialog")
+    const alertDialog = getComponentEntry("alert-dialog")
+    const spinner = getComponentEntry("spinner")
+    const toast = getComponentEntry("toast")
+    const alert = getComponentEntry("alert")
+    const statusLabel = getComponentEntry("status-label")
+
+    expect(dialog?.importExample).toContain("DialogBody")
+    expect(dialog?.props).toContainEqual(expect.objectContaining({ name: "scroll" }))
+    expect(alertDialog?.importExample).toContain("AlertDialogBody")
+    expect(spinner?.dependencies).toEqual([])
+    expect(spinner?.accessibility.en).toContain("stationary square")
+    expect(toast?.sourcePath).toBe("components/ui/toast.tsx")
+    expect(toast?.importExample).toContain("useToast")
+    expect(toast?.states.map(({ id }) => id)).toEqual(expect.arrayContaining(["queued", "persistent", "error"]))
+    expect(alert?.importExample).toContain("AlertAction")
+    expect(statusLabel?.props).toContainEqual(expect.objectContaining({ name: "tone" }))
+    expect(getComponentEntry("notice-toast")).toBeUndefined()
   })
 
   it("publishes component relationships and install dependencies as explicit arrays", () => {
@@ -580,8 +601,7 @@ describe("production design catalog", () => {
       breadcrumb: ["@phosphor-icons/react"],
       "data-table": ["@phosphor-icons/react"],
       pagination: ["@phosphor-icons/react"],
-      spinner: ["@phosphor-icons/react"],
-      "notice-toast": ["@phosphor-icons/react"],
+      toast: ["radix-ui"],
       alert: ["@phosphor-icons/react"],
     })
   })

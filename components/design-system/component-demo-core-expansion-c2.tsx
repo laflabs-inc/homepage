@@ -9,17 +9,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@/components/ui/item"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
 import { Progress } from "@/components/ui/progress"
-import { Spinner } from "@/components/ui/spinner"
 import { StatusLabel } from "@/components/ui/status-label"
 import {
   Table,
@@ -31,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { DemoKey } from "@/lib/design-system/schema"
-import { DataTableDemo, NoticeToastDemo } from "./component-demo-core-expansion-c2-client"
+import { DataTableDemo } from "./component-demo-core-expansion-c2-client"
 import type { ComponentDemoProps } from "./component-demo-registry"
 import styles from "./design-system.module.css"
 
@@ -47,20 +37,6 @@ function TableDemo({ locale }: ComponentDemoProps) {
         </TableBody>
       </Table>
     </div>
-  )
-}
-
-function PaginationDemo({ locale, state }: ComponentDemoProps) {
-  return (
-    <Pagination aria-label={locale === "ko" ? "공지 페이지" : "Notice pages"}>
-      <PaginationContent>
-        <PaginationItem><PaginationPrevious href="#page-1" label={locale === "ko" ? "이전 페이지" : "Previous page"}>{locale === "ko" ? "이전" : "Previous"}</PaginationPrevious></PaginationItem>
-        <PaginationItem><PaginationLink href="#page-1">1</PaginationLink></PaginationItem>
-        <PaginationItem><PaginationLink href="#page-2" isCurrent={state !== "default"}>2</PaginationLink></PaginationItem>
-        {state === "collapsed" ? <PaginationItem><PaginationEllipsis label={locale === "ko" ? "더 많은 페이지" : "More pages"} /></PaginationItem> : null}
-        <PaginationItem><PaginationNext href="#page-3" label={locale === "ko" ? "다음 페이지" : "Next page"}>{locale === "ko" ? "다음" : "Next"}</PaginationNext></PaginationItem>
-      </PaginationContent>
-    </Pagination>
   )
 }
 
@@ -81,11 +57,6 @@ function ItemDemo({ locale, state }: ComponentDemoProps) {
   )
 }
 
-function SpinnerDemo({ locale, state }: ComponentDemoProps) {
-  const size = state === "compact" || state === "large" ? state : "default"
-  return <Spinner label={locale === "ko" ? "문서 저장 중" : "Saving document"} size={size} />
-}
-
 function ProgressDemo({ locale, state }: ComponentDemoProps) {
   return (
     <div className={styles.demoCompositeWide}>
@@ -101,9 +72,6 @@ function ProgressDemo({ locale, state }: ComponentDemoProps) {
 export const coreExpansionC2Demos = {
   table: TableDemo,
   "data-table": DataTableDemo,
-  pagination: PaginationDemo,
   item: ItemDemo,
-  spinner: SpinnerDemo,
   progress: ProgressDemo,
-  "notice-toast": NoticeToastDemo,
 } satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>

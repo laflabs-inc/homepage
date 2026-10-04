@@ -1,21 +1,27 @@
-import type { ComponentPropsWithRef } from "react"
+import { forwardRef, type ComponentPropsWithoutRef } from "react"
 
 import styles from "./status-label.module.css"
 
-export type StatusLabelProps = ComponentPropsWithRef<"span"> & {
+export type StatusLabelTone = "neutral" | "info" | "success" | "warning" | "error"
+
+export type StatusLabelProps = ComponentPropsWithoutRef<"span"> & {
+  tone?: StatusLabelTone
   variant?: "neutral" | "info" | "success" | "warning" | "error"
 }
 
-export function StatusLabel({
+export const StatusLabel = forwardRef<HTMLSpanElement, StatusLabelProps>(function StatusLabel({
   className,
-  variant = "neutral",
+  tone,
+  variant,
   ...props
-}: StatusLabelProps) {
+}, ref) {
+  const resolvedTone = tone ?? variant ?? "neutral"
   return (
     <span
       {...props}
+      ref={ref}
       className={[styles.label, className].filter(Boolean).join(" ")}
-      data-variant={variant}
+      data-tone={resolvedTone}
     />
   )
-}
+})

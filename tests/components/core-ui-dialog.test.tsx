@@ -5,9 +5,14 @@ import { describe, expect, it, vi } from "vitest"
 
 import {
   Dialog,
+  DialogBody,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
@@ -27,6 +32,113 @@ function ExampleDialog({ onOpenChange = vi.fn() }: { onOpenChange?: (open: boole
 }
 
 describe("Dialog", () => {
+  it("composes portal overlay body footer and an explicit close control", async () => {
+    const user = userEvent.setup()
+    render(
+      <Dialog>
+        <DialogTrigger>구성 열기</DialogTrigger>
+        <DialogPortal>
+          <DialogOverlay data-testid="dialog-overlay" />
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>구성형 대화상자</DialogTitle>
+            </DialogHeader>
+            <DialogBody>본문</DialogBody>
+            <DialogFooter>
+              <DialogClose>완료</DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </DialogPortal>
+      </Dialog>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "구성 열기" }))
+    expect(screen.getByTestId("dialog-overlay")).toBeInTheDocument()
+    expect(screen.getByText("본문")).toHaveAttribute("data-dialog-body", "")
+    await user.click(screen.getByRole("button", { name: "완료" }))
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+  })
+
+  it.each(["small", "medium", "large", "full"] as const)(
+    "supports the %s content size",
+    async (size) => {
+      const user = userEvent.setup()
+      render(
+        <Dialog>
+          <DialogTrigger>{size} 열기</DialogTrigger>
+          <DialogContent size={size}>
+            <DialogTitle>{size} 대화상자</DialogTitle>
+          </DialogContent>
+        </Dialog>,
+      )
+
+      await user.click(screen.getByRole("button", { name: `${size} 열기` }))
+      expect(screen.getByRole("dialog")).toHaveAttribute("data-size", size)
+    },
+  )
+
+  it("keeps header and footer outside a body scrolling boundary", async () => {
+    const user = userEvent.setup()
+    render(
+      <Dialog>
+        <DialogTrigger>스크롤 열기</DialogTrigger>
+        <DialogContent scroll="body">
+          <DialogHeader>머리말</DialogHeader>
+          <DialogBody>긴 본문</DialogBody>
+          <DialogFooter>꼬리말</DialogFooter>
+        </DialogContent>
+      </Dialog>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "스크롤 열기" }))
+    const dialog = screen.getByRole("dialog")
+    expect(dialog).toHaveAttribute("data-scroll", "body")
+    expect(screen.getByText("긴 본문")).toHaveAttribute("data-dialog-body", "")
+    expect(screen.getByText("머리말").parentElement).toBe(dialog)
+    expect(screen.getByText("꼬리말").parentElement).toBe(dialog)
+  })
+
+  it("renders one legacy close control only when closeLabel is supplied", () => {
+    const { rerender } = render(
+      <Dialog open>
+        <DialogContent closeLabel="레거시 닫기">
+          <DialogTitle>레거시</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+    )
+
+    expect(screen.getAllByRole("button", { name: "레거시 닫기" })).toHaveLength(1)
+
+    rerender(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>구성형</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+    )
+    expect(screen.queryByRole("button", { name: "레거시 닫기" })).not.toBeInTheDocument()
+  })
+
+  it("keeps long localized content and actions inside the dialog viewport", async () => {
+    const user = userEvent.setup()
+    render(
+      <Dialog>
+        <DialogTrigger>긴 내용 열기</DialogTrigger>
+        <DialogContent size="large" scroll="content">
+          <DialogTitle>긴 현지화 콘텐츠</DialogTitle>
+          <DialogBody>{"아주 긴 한국어 본문 ".repeat(80)}</DialogBody>
+          <DialogFooter><button type="button">변경 사항 저장하기</button></DialogFooter>
+        </DialogContent>
+      </Dialog>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "긴 내용 열기" }))
+    const dialog = screen.getByRole("dialog")
+    expect(dialog).toHaveAttribute("data-size", "large")
+    expect(dialog).toHaveAttribute("data-scroll", "content")
+    expect(screen.getByRole("button", { name: "변경 사항 저장하기" })).toBeInTheDocument()
+  })
+
   it("exposes its title and description, traps focus, and closes from its visible control", async () => {
     const user = userEvent.setup()
     render(<ExampleDialog />)

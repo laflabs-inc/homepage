@@ -162,12 +162,13 @@ describe("Item", () => {
 })
 
 describe("Spinner", () => {
-  it("announces compact loading without exposing its icon", () => {
+  it("announces compact loading without exposing decorative geometry", () => {
     render(<Spinner label="Saving document" size="compact" />)
 
     const spinner = screen.getByRole("status", { name: "Saving document" })
     expect(spinner).toHaveAttribute("data-size", "compact")
-    expect(spinner.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
+    expect(spinner.querySelector("svg")).not.toBeInTheDocument()
+    expect(spinner.querySelectorAll("[data-spinner-segment]")).toHaveLength(4)
   })
 })
 

@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers"
 
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
+import { LocalizedToastProvider } from "@/components/ui/localized-toast-provider"
 import {
   CONSENT_COOKIE,
   VISITOR_COOKIE,
@@ -105,9 +106,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={initialLocale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <LocaleProvider initialLocale={initialLocale}>
-          <ConsentProvider initialState={initialState} dnt={dnt}>
-            {children}
-          </ConsentProvider>
+          <LocalizedToastProvider>
+            <ConsentProvider initialState={initialState} dnt={dnt}>
+              {children}
+            </ConsentProvider>
+          </LocalizedToastProvider>
         </LocaleProvider>
       </body>
     </html>

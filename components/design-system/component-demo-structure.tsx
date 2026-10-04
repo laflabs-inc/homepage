@@ -45,27 +45,6 @@ function PanelDemo({ locale, state }: ComponentDemoProps) {
   )
 }
 
-function StatusLabelDemo({ locale, state }: ComponentDemoProps) {
-  const variants = ["neutral", "info", "success", "warning", "error"] as const
-  const variant = variants.includes(state as (typeof variants)[number])
-    ? state as (typeof variants)[number]
-    : "neutral"
-  const labels = locale === "ko"
-    ? { neutral: "초안", info: "검토 중", success: "발행됨", warning: "확인 필요", error: "발행 실패" }
-    : { neutral: "Draft", info: "In review", success: "Published", warning: "Needs review", error: "Publish failed" }
-
-  return (
-    <div className={styles.demoStatusLabels}>
-      {state ? (
-        <StatusLabel variant={variant}>{labels[variant]}</StatusLabel>
-      ) : variants.map((item) => (
-        <StatusLabel key={item} variant={item}>{labels[item]}</StatusLabel>
-      ))}
-    </div>
-  )
-}
-
 export const structureDemos = {
   panel: PanelDemo,
-  "status-label": StatusLabelDemo,
 } satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>

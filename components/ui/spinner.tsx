@@ -1,23 +1,28 @@
-import { CircleNotch } from "@phosphor-icons/react/dist/ssr"
-import type { HTMLAttributes } from "react"
+import { forwardRef, type ComponentPropsWithoutRef } from "react"
 
 import styles from "./spinner.module.css"
 
-export type SpinnerProps = Omit<HTMLAttributes<HTMLSpanElement>, "aria-label"> & {
+export type SpinnerProps = Omit<ComponentPropsWithoutRef<"span">, "aria-label"> & {
   label: string
   size?: "compact" | "default" | "large"
 }
 
-export function Spinner({ className, label, size = "default", ...props }: SpinnerProps) {
+export const Spinner = forwardRef<HTMLSpanElement, SpinnerProps>(function Spinner(
+  { className, label, size = "default", ...props },
+  ref,
+) {
   return (
     <span
+      {...props}
+      ref={ref}
       aria-label={label}
       className={[styles.spinner, className].filter(Boolean).join(" ")}
       data-size={size}
       role="status"
-      {...props}
     >
-      <CircleNotch aria-hidden size="1em" weight="bold" />
+      {["top", "right", "bottom", "left"].map((side) => (
+        <span aria-hidden="true" data-side={side} data-spinner-segment="" key={side} />
+      ))}
     </span>
   )
-}
+})

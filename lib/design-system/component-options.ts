@@ -52,7 +52,7 @@ export const componentDemoKeys = [
   "item",
   "spinner",
   "progress",
-  "notice-toast",
+  "toast",
   "code-block",
 ] as const
 

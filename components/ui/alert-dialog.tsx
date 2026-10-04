@@ -8,7 +8,8 @@ import {
   type HTMLAttributes,
 } from "react"
 
-import styles from "./alert-dialog.module.css"
+import { getButtonClassName } from "./button-contract"
+import styles from "./overlay-shell.module.css"
 
 function classes(...values: Array<string | undefined>) {
   return values.filter(Boolean).join(" ")
@@ -16,20 +17,28 @@ function classes(...values: Array<string | undefined>) {
 
 export const AlertDialog = AlertDialogPrimitive.Root
 export const AlertDialogTrigger = AlertDialogPrimitive.Trigger
+export const AlertDialogPortal = AlertDialogPrimitive.Portal
+
+export const AlertDialogOverlay = forwardRef<
+  ComponentRef<typeof AlertDialogPrimitive.Overlay>,
+  ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
+>(function AlertDialogOverlay({ className, ...props }, ref) {
+  return <AlertDialogPrimitive.Overlay ref={ref} className={classes(styles.overlay, className)} {...props} />
+})
 
 export const AlertDialogContent = forwardRef<
   ComponentRef<typeof AlertDialogPrimitive.Content>,
   Omit<ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>, "asChild">
 >(function AlertDialogContent({ className, ...props }, ref) {
   return (
-    <AlertDialogPrimitive.Portal>
-      <AlertDialogPrimitive.Overlay className={styles.overlay} />
+    <AlertDialogPortal>
+      <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         ref={ref}
-        className={classes(styles.content, className)}
+        className={classes(styles.content, styles.alertContent, className)}
         {...props}
       />
-    </AlertDialogPrimitive.Portal>
+    </AlertDialogPortal>
   )
 })
 
@@ -48,18 +57,30 @@ export const AlertDialogDescription = forwardRef<
 })
 
 export function AlertDialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.header, className)} {...props} />
+  return <div className={classes(styles.header, styles.alertHeader, className)} {...props} />
 }
 
+export const AlertDialogBody = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  function AlertDialogBody({ className, ...props }, ref) {
+    return <div ref={ref} className={classes(styles.body, className)} data-alert-dialog-body="" {...props} />
+  },
+)
+
 export function AlertDialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.footer, className)} {...props} />
+  return <div className={classes(styles.footer, styles.alertFooter, className)} {...props} />
 }
 
 export const AlertDialogCancel = forwardRef<
   ComponentRef<typeof AlertDialogPrimitive.Cancel>,
   Omit<ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel>, "asChild">
 >(function AlertDialogCancel({ className, ...props }, ref) {
-  return <AlertDialogPrimitive.Cancel ref={ref} className={classes(styles.cancel, className)} {...props} />
+  return (
+    <AlertDialogPrimitive.Cancel
+      ref={ref}
+      className={getButtonClassName({ className, variant: "secondary" })}
+      {...props}
+    />
+  )
 })
 
 type AlertDialogActionProps = Omit<
@@ -76,7 +97,7 @@ export const AlertDialogAction = forwardRef<
   return (
     <AlertDialogPrimitive.Action
       ref={ref}
-      className={classes(styles.action, className)}
+      className={getButtonClassName({ className, variant: variant === "destructive" ? "danger" : "primary" })}
       data-variant={variant}
       {...props}
     />

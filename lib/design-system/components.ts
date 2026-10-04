@@ -1,6 +1,7 @@
 import { actionComponents } from "./component-catalog/actions"
 import { coreExpansionComponents } from "./component-catalog/core-expansion"
 import { coreExpansionC2Components } from "./component-catalog/core-expansion-c2"
+import { coreUiC3CComponents } from "./component-catalog/c3c"
 import { existingComponents } from "./component-catalog/existing"
 import { feedbackComponents } from "./component-catalog/feedback"
 import { formComponents } from "./component-catalog/forms"
@@ -28,6 +29,7 @@ export const components = [
   ...overlayComponents,
   ...coreExpansionComponents,
   ...coreExpansionC2Components,
+  ...coreUiC3CComponents,
   ...feedbackComponents,
   ...structureComponents,
   existing("code-block"),

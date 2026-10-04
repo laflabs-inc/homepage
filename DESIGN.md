@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.0 · Updated: 2026-10-01
+System version: 2026.10.1 · Updated: 2026-10-04
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -180,13 +180,13 @@ Expands and collapses longer content by heading.
 
 Maturity: **candidate** · Category: **feedback**
 
-Communicates an important state and the next action.
+Explains a persistent inline state and its next action.
 
-- Use: Use it for inline information, success, warning, or error feedback.
-- Avoid: Do not announce every note live or use it as decorative emphasis.
-- Accessibility: Pair icon and visible title, and announce only new urgent feedback live.
-- States: `info`, `success`, `warning`, `error`, `live`
-- Related components: `button`, `empty-state`
+- Use: Use it when information, success, warning, or error must remain with the task.
+- Avoid: Use Toast for brief outcomes and Alert Dialog for decisions.
+- Accessibility: Labels the region from a visible title and reserves live for new urgent errors.
+- States: `info`, `warning`, `error`, `live`
+- Related components: `toast`, `alert-dialog`, `button`
 - Dependencies: `@phosphor-icons/react`
 
 ### Alert Dialog (`alert-dialog`)
@@ -195,9 +195,9 @@ Maturity: **candidate** · Category: **overlay**
 
 Requests an explicit decision before a consequential action.
 
-- Use: Use it for immediate, consequential actions such as deletion or permission changes.
-- Avoid: Use Dialog or Alert for general information or easily reversible actions.
-- Accessibility: Provides alertdialog semantics, title, description, explicit actions, and focus restoration.
+- Use: Use it for immediate actions such as deletion or permission changes.
+- Avoid: Use Dialog or Alert for general information or reversible actions.
+- Accessibility: Requires cancel or action, ignores outside dismissal, and restores focus.
 - States: `closed`, `open`, `destructive`
 - Related components: `dialog`, `alert`, `button`
 - Dependencies: `radix-ui`
@@ -305,13 +305,13 @@ Displays structured data with sorting and an explicit empty state.
 
 Maturity: **candidate** · Category: **overlay**
 
-Opens a focused task above the current flow.
+Opens a focused, short task above the current flow.
 
-- Use: Use it for a short confirmation, setting, or form without leaving context.
-- Avoid: Do not confine long documents or complex multi-step work to a modal.
-- Accessibility: Provide title and description and preserve focus trap, Escape dismissal, and focus restoration.
-- States: `closed`, `open`
-- Related components: `button`, `dropdown-menu`, `field`
+- Use: Use it for settings or a short form without leaving context.
+- Avoid: Do not use it for long documents or consequential decisions.
+- Accessibility: Preserves naming, focus trapping, Escape dismissal, and trigger focus restoration.
+- States: `closed`, `open`, `body-scroll`
+- Related components: `alert-dialog`, `button`, `field`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
 ### Dropdown Menu (`dropdown-menu`)
@@ -424,29 +424,16 @@ A select that preserves native browser selection behavior.
 - Related components: `field`, `label`, `input`
 - Dependencies: `@phosphor-icons/react`
 
-### Notice Toast (`notice-toast`)
-
-Maturity: **candidate** · Category: **feedback**
-
-Announces a brief result without blocking the current task.
-
-- Use: Use it for brief outcomes of completed actions such as save, publish, or copy.
-- Avoid: Use Alert for form errors, recoverable failures, or information that must remain visible.
-- Accessibility: Uses status for routine notices, alert for errors, and always provides dismissal.
-- States: `info`, `success`, `warning`, `error`
-- Related components: `alert`, `status-label`, `spinner`
-- Dependencies: `@phosphor-icons/react`
-
 ### Pagination (`pagination`)
 
 Maturity: **candidate** · Category: **navigation**
 
-Navigates to previous, next, or specific pages in a large collection.
+Navigates a collection from one connected page rail.
 
-- Use: Use it when a collection is split across URL-addressable pages.
-- Avoid: Do not use it for slides or in-page tab switching.
-- Accessibility: Uses a named nav, real links, aria-current, and a named ellipsis.
-- States: `default`, `current`, `collapsed`
+- Use: Use it when a collection has multiple URL-addressable pages.
+- Avoid: Do not use it for slides or in-page tabs.
+- Accessibility: Uses a named nav, real links, aria-current, and disabled boundaries.
+- States: `default`, `current`, `boundary`, `collapsed`
 - Related components: `data-table`, `breadcrumb`, `text-link`
 - Dependencies: `@phosphor-icons/react`
 
@@ -566,26 +553,25 @@ Reserves content structure while data is loading.
 
 Maturity: **candidate** · Category: **feedback**
 
-Signals indeterminate progress in a compact area.
+Signals indeterminate progress with a stationary square perimeter.
 
-- Use: Use it inside a button or compact inline task where Skeleton is unsuitable.
-- Avoid: Use Skeleton for page loading and Progress when completion can be measured.
-- Accessibility: Provides a named status and hides the rotating icon from assistive technology.
+- Use: Use it inside a button or compact inline task.
+- Avoid: Use Progress for measurable work and Skeleton for page loading.
+- Accessibility: Provides a named status and hides the stationary square segments as presentation.
 - States: `compact`, `default`, `reduced-motion`
-- Related components: `progress`, `skeleton`, `button`
-- Dependencies: `@phosphor-icons/react`
+- Related components: `button`, `progress`, `skeleton`
 
 ### Status Label (`status-label`)
 
 Maturity: **candidate** · Category: **feedback**
 
-Shows a current state with concise text and a square marker.
+Shows a real entity state with a square semantic edge and concise text.
 
-- Use: Use it for static metadata such as publication or connection state that should scan in one or two words.
-- Avoid: Do not use it as an action, category filter, long explanation, or live error announcement.
-- Accessibility: Never rely on color alone; always pair the marker with explicit status text.
+- Use: Use it for static document or media lifecycle metadata.
+- Avoid: Do not use it as an action, filter, long explanation, or live error.
+- Accessibility: Always provide explicit status text that remains clear without color.
 - States: `neutral`, `info`, `success`, `warning`, `error`
-- Related components: `alert`, `panel`
+- Related components: `alert`, `panel`, `toast`
 
 ### Switch (`switch`)
 
@@ -648,6 +634,19 @@ Accepts longer multiline text.
 - Accessibility: Associate a visible label and expose length guidance as a description when needed.
 - States: `default`, `focus-visible`, `invalid`
 - Related components: `field`, `label`, `input`
+
+### Toast (`toast`)
+
+Maturity: **candidate** · Category: **feedback**
+
+Reports a brief result through one application-wide queue.
+
+- Use: Use it for brief save, upload, or undo outcomes.
+- Avoid: Use Alert or Alert Dialog for persistent errors or required decisions.
+- Accessibility: Announces routine results as status, errors as alert, and localizes dismissal.
+- States: `success`, `error`, `action`, `queued`, `persistent`
+- Related components: `alert`, `status-label`, `spinner`
+- Dependencies: `radix-ui`
 
 ### Tooltip (`tooltip`)
 

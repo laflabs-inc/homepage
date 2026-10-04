@@ -47,43 +47,4 @@ export const structureComponents = [
       { name: "PanelTitle as", type: '"h2" | "h3" | "h4"', required: false, description: { ko: "주변 문서 구조에 맞는 제목 단계입니다. 기본값은 h3입니다.", en: "The heading level that matches the surrounding document. Defaults to h3." } },
     ],
   },
-  {
-    id: "status-label",
-    name: "Status Label",
-    category: "feedback",
-    maturity: "candidate",
-    summary: {
-      ko: "짧은 텍스트와 사각 표시로 현재 상태를 나타냅니다.",
-      en: "Shows a current state with concise text and a square marker.",
-    },
-    whenToUse: {
-      ko: "발행 상태, 연결 상태처럼 한두 단어로 확인해야 하는 정적 메타데이터에 씁니다.",
-      en: "Use it for static metadata such as publication or connection state that should scan in one or two words.",
-    },
-    whenNotToUse: {
-      ko: "클릭 동작, 카테고리 필터, 긴 설명 또는 새 오류 알림을 대신하지 않습니다.",
-      en: "Do not use it as an action, category filter, long explanation, or live error announcement.",
-    },
-    accessibility: {
-      ko: "상태를 색으로만 구분하지 않고 항상 뜻이 분명한 텍스트를 함께 제공합니다.",
-      en: "Never rely on color alone; always pair the marker with explicit status text.",
-    },
-    sourcePath: "components/ui/status-label.tsx",
-    demoKey: "status-label",
-    importExample: 'import { StatusLabel } from "@/components/ui/status-label"',
-    usageExample: '<StatusLabel variant="success">Published</StatusLabel>',
-    relatedComponents: ["alert", "panel"],
-    dependencies: [],
-    states: [
-      { id: "neutral", guidance: { ko: "초안처럼 중립적인 상태가 Muted 사각 표시와 텍스트로 읽히는지 확인합니다.", en: "Confirm a neutral state such as Draft reads through both its Muted square and text." } },
-      { id: "info", guidance: { ko: "진행 중인 정보 상태가 Info 색과 텍스트로 함께 구분되는지 확인합니다.", en: "Confirm an informational state is distinguished by both its Info marker and text." } },
-      { id: "success", guidance: { ko: "완료 상태가 Success 색과 구체적인 텍스트로 표시되는지 확인합니다.", en: "Confirm completion uses the Success marker and explicit text." } },
-      { id: "warning", guidance: { ko: "주의 상태가 Warning 색과 구체적인 텍스트로 표시되는지 확인합니다.", en: "Confirm caution uses the Warning marker and explicit text." } },
-      { id: "error", guidance: { ko: "오류 상태가 Error 색과 구체적인 텍스트로 표시되는지 확인합니다.", en: "Confirm failure uses the Error marker and explicit text." } },
-    ],
-    props: [
-      { name: "variant", type: '"neutral" | "info" | "success" | "warning" | "error"', required: false, description: { ko: "상태의 의미론적 종류입니다. 기본값은 neutral입니다.", en: "The semantic status variant. Defaults to neutral." } },
-      { name: "children", type: "ReactNode", required: true, description: { ko: "색상 없이도 의미가 분명한 짧은 상태 문구입니다.", en: "Concise status text that remains clear without color." } },
-    ],
-  },
 ] as const satisfies readonly ComponentEntry[]

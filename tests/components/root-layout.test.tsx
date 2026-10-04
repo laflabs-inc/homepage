@@ -26,6 +26,7 @@ vi.mock("@/components/analytics/consent-provider", () => ({
 
 vi.mock("@/components/i18n/locale-provider", () => ({
   LocaleProvider: ({ children }: { children: React.ReactNode }) => children,
+  useLocale: () => "ko",
 }))
 
 import RootLayout, { metadata } from "@/app/layout"

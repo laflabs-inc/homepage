@@ -204,6 +204,17 @@ describe("Design system component pages", () => {
     switchPage.unmount()
   })
 
+  it("renders the C3C Toast route and its localized interactive demo", async () => {
+    render(await ComponentDetailPage({
+      params: Promise.resolve({ slug: "toast" }),
+      searchParams: Promise.resolve({}),
+    }))
+
+    expect(screen.getByRole("heading", { level: 1, name: "Toast" })).toBeInTheDocument()
+    expect(screen.getAllByRole("button", { name: "저장 알림" }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole("heading", { level: 1, name: "Notice Toast" })).not.toBeInTheDocument()
+  })
+
   it("derives locale-preserving related component links from the catalog", () => {
     const button = designCatalog.components.find(({ id }) => id === "button")
     if (!button) throw new Error("Button catalog fixture is missing")

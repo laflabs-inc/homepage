@@ -8,33 +8,35 @@
   align-items: center;
   gap: 7px;
   border: 1px solid var(--line);
+  border-block-start: 2px solid var(--status-color);
   border-radius: 0;
   background: var(--paper);
   color: var(--ink);
   font: 650 10px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.label::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  flex: 0 0 auto;
-  background: var(--status-color);
-}
-
-.label[data-variant="info"] {
+.label[data-tone="info"] {
   --status-color: var(--info);
 }
 
-.label[data-variant="success"] {
+.label[data-tone="success"] {
   --status-color: var(--success);
 }
 
-.label[data-variant="warning"] {
+.label[data-tone="warning"] {
   --status-color: var(--warning);
 }
 
-.label[data-variant="error"] {
+.label[data-tone="error"] {
   --status-color: var(--error);
+}
+
+.label > svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--status-color);
 }

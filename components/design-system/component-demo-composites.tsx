@@ -3,7 +3,6 @@ import type { ComponentType } from "react"
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -89,25 +88,6 @@ function AccordionDemo({ locale, state }: ComponentDemoProps) {
   )
 }
 
-function DialogDemo({ locale }: ComponentDemoProps) {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button>{locale === "ko" ? "문의 작성" : "Write inquiry"}</Button>
-      </DialogTrigger>
-      <DialogContent closeLabel={locale === "ko" ? "문의 닫기" : "Close inquiry"}>
-        <DialogHeader>
-          <DialogTitle>{locale === "ko" ? "프로젝트 문의" : "Project inquiry"}</DialogTitle>
-          <DialogDescription>{locale === "ko" ? "필요한 내용과 연락처를 남겨 주세요." : "Leave the project context and a way to reach you."}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button>{locale === "ko" ? "보내기" : "Send"}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 function TooltipDemo({ locale }: ComponentDemoProps) {
   return (
     <TooltipProvider delayDuration={120}>
@@ -128,6 +108,5 @@ export const compositeDemos = {
   "dropdown-menu": DropdownMenuDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,
-  dialog: DialogDemo,
   tooltip: TooltipDemo,
 } satisfies Partial<Record<DemoKey, ComponentType<ComponentDemoProps>>>

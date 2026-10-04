@@ -1,6 +1,5 @@
 import type { ComponentType } from "react"
 
-import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Separator } from "@/components/ui/separator"
@@ -8,19 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { DemoKey } from "@/lib/design-system/schema"
 import type { ComponentDemoProps } from "./component-demo-registry"
 import styles from "./design-system.module.css"
-
-function AlertDemo({ locale, state }: ComponentDemoProps) {
-  const variant = state === "success" || state === "warning" || state === "error" ? state : "info"
-  return (
-    <Alert
-      live={state === "live"}
-      title={locale === "ko" ? "상태를 확인해 주세요" : "Check this status"}
-      variant={variant}
-    >
-      {locale === "ko" ? "다음 동작을 짧고 분명하게 안내합니다." : "Explain the next action briefly and clearly."}
-    </Alert>
-  )
-}
 
 function SkeletonDemo({ locale }: ComponentDemoProps) {
   return (
@@ -54,7 +40,6 @@ function SeparatorDemo({ state }: ComponentDemoProps) {
 }
 
 export const feedbackDemos = {
-  alert: AlertDemo,
   skeleton: SkeletonDemo,
   "empty-state": EmptyStateDemo,
   separator: SeparatorDemo,
