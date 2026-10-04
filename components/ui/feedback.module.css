@@ -1,11 +1,12 @@
 .alert {
   --alert-color: var(--info);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
   padding: 16px;
   border: 1px solid var(--line);
-  border-block-start-color: var(--alert-color);
+  border-inline-start: 4px solid var(--alert-color);
   background: var(--paper);
   color: var(--ink);
 }
@@ -23,7 +24,11 @@
 }
 
 .alertIcon {
-  margin-block-start: 1px;
+  width: 38px;
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--alert-color) 45%, var(--line));
   color: var(--ink);
 }
 
@@ -32,20 +37,35 @@
   gap: 6px;
 }
 
-.alertContent h3,
-.alertContent div,
+.alertTitle,
+.alertDescription,
 .emptyState h3,
 .emptyState p {
   margin: 0;
 }
 
-.alertContent h3 {
+.alertTitle {
   font: 700 15px / 1.35 var(--font-geist-sans), "Pretendard", sans-serif;
 }
 
-.alertContent div {
+.alertDescription {
   color: var(--muted);
   font: 400 14px / 1.6 var(--font-geist-sans), "Pretendard", sans-serif;
+}
+
+.alertAction {
+  align-self: center;
+}
+
+@media (max-width: 560px) {
+  .alert {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .alertAction {
+    grid-column: 2;
+    width: 100%;
+  }
 }
 
 .skeleton {

@@ -6,7 +6,15 @@ import {
   Warning,
   WarningCircle,
 } from "@phosphor-icons/react/dist/ssr"
-import { useId, type HTMLAttributes, type ReactNode } from "react"
+import {
+  createContext,
+  forwardRef,
+  useContext,
+  useId,
+  type ComponentPropsWithoutRef,
+  type HTMLAttributes,
+  type ReactNode,
+} from "react"
 
 import styles from "./feedback.module.css"
 
@@ -17,36 +25,92 @@ const alertIcons = {
   error: WarningCircle,
 } as const
 
-export type AlertProps = Omit<HTMLAttributes<HTMLElement>, "title"> & {
-  title: ReactNode
-  variant?: keyof typeof alertIcons
-  live?: boolean
+type AlertVariant = keyof typeof alertIcons
+
+type AlertContextValue = Readonly<{
+  titleId: string
+  variant: AlertVariant
+}>
+
+const AlertContext = createContext<AlertContextValue | null>(null)
+
+function classes(...values: Array<string | undefined>) {
+  return values.filter(Boolean).join(" ")
 }
 
-export function Alert({
-  children,
-  className,
-  live = false,
-  title,
-  variant = "info",
-  ...props
-}: AlertProps) {
+export type AlertProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
+  live?: boolean
+  title?: ReactNode
+  variant?: AlertVariant
+}
+
+export const Alert = forwardRef<HTMLElement, AlertProps>(function Alert(
+  { children, className, live = false, title, variant = "info", ...props },
+  ref,
+) {
   const titleId = useId()
-  const AlertIcon = alertIcons[variant]
+  const DefaultIcon = alertIcons[variant]
 
   return (
-    <section
-      {...props}
-      aria-labelledby={titleId}
-      className={[styles.alert, className].filter(Boolean).join(" ")}
-      data-variant={variant}
-      role={live ? "alert" : undefined}
-    >
-      <AlertIcon aria-hidden className={styles.alertIcon} size={20} weight="bold" />
-      <div className={styles.alertContent}>
-        <h3 id={titleId}>{title}</h3>
-        <div>{children}</div>
-      </div>
-    </section>
+    <AlertContext.Provider value={{ titleId, variant }}>
+      <section
+        {...props}
+        ref={ref}
+        aria-labelledby={titleId}
+        className={classes(styles.alert, className)}
+        data-variant={variant}
+        role={live ? "alert" : undefined}
+      >
+        {title !== undefined ? (
+          <>
+            <AlertIcon><DefaultIcon size={20} weight="bold" /></AlertIcon>
+            <AlertContent>
+              <AlertTitle>{title}</AlertTitle>
+              {children !== undefined && children !== null ? (
+                <AlertDescription>{children}</AlertDescription>
+              ) : null}
+            </AlertContent>
+          </>
+        ) : children}
+      </section>
+    </AlertContext.Provider>
   )
-}
+})
+
+export const AlertIcon = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  function AlertIcon({ className, ...props }, ref) {
+    return <div {...props} ref={ref} aria-hidden="true" className={classes(styles.alertIcon, className)} />
+  },
+)
+
+export const AlertContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  function AlertContent({ className, ...props }, ref) {
+    return <div {...props} ref={ref} className={classes(styles.alertContent, className)} />
+  },
+)
+
+export const AlertTitle = forwardRef<HTMLHeadingElement, ComponentPropsWithoutRef<"h3">>(
+  function AlertTitle({ className, id, ...props }, ref) {
+    const context = useContext(AlertContext)
+    return (
+      <h3
+        {...props}
+        ref={ref}
+        className={classes(styles.alertTitle, className)}
+        id={id ?? context?.titleId}
+      />
+    )
+  },
+)
+
+export const AlertDescription = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  function AlertDescription({ className, ...props }, ref) {
+    return <div {...props} ref={ref} className={classes(styles.alertDescription, className)} />
+  },
+)
+
+export const AlertAction = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
+  function AlertAction({ className, ...props }, ref) {
+    return <div {...props} ref={ref} className={classes(styles.alertAction, className)} />
+  },
+)
