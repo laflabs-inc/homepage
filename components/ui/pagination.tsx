@@ -45,13 +45,7 @@ export function PaginationPrevious({ children, className, disabled = false, href
       className={classes(styles.direction, className)}
       data-disabled={disabled || undefined}
       href={disabled ? undefined : href}
-      onClick={(event) => {
-        if (disabled) {
-          event.preventDefault()
-          return
-        }
-        onClick?.(event)
-      }}
+      onClick={disabled ? undefined : onClick}
     >
       <CaretLeft aria-hidden size={14} weight="bold" />
       <span>{children}</span>
@@ -68,13 +62,7 @@ export function PaginationNext({ children, className, disabled = false, href, la
       className={classes(styles.direction, className)}
       data-disabled={disabled || undefined}
       href={disabled ? undefined : href}
-      onClick={(event) => {
-        if (disabled) {
-          event.preventDefault()
-          return
-        }
-        onClick?.(event)
-      }}
+      onClick={disabled ? undefined : onClick}
     >
       <span>{children}</span>
       <CaretRight aria-hidden size={14} weight="bold" />

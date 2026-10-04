@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/pagination"
 
 describe("Pagination", () => {
+  it("does not synthesize event handlers for server-rendered direction links", () => {
+    const previous = PaginationPrevious({ href: "?page=1", label: "Previous page" })
+    const next = PaginationNext({ disabled: true, href: "?page=3", label: "Next page" })
+
+    expect(previous.props.onClick).toBeUndefined()
+    expect(next.props.onClick).toBeUndefined()
+  })
+
   it("renders a connected current-page rail with real navigation links", () => {
     render(
       <Pagination aria-label="Notice pages">
