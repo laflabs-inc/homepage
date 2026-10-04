@@ -12,7 +12,7 @@ export function Pagination({ "aria-label": ariaLabel = "Pagination", className, 
 }
 
 export function PaginationContent({ className, ...props }: ComponentPropsWithRef<"ul">) {
-  return <ul className={classes(styles.content, className)} {...props} />
+  return <ul className={classes(styles.content, className)} data-pagination-rail {...props} />
 }
 
 export function PaginationItem({ className, ...props }: ComponentPropsWithRef<"li">) {
@@ -31,20 +31,51 @@ export function PaginationLink({ className, isCurrent = false, ...props }: Pagin
   )
 }
 
-type DirectionLinkProps = ComponentPropsWithRef<"a"> & { label: string }
+type PaginationDirectionProps = ComponentPropsWithRef<"a"> & {
+  disabled?: boolean
+  label: string
+}
 
-export function PaginationPrevious({ children, className, label, ...props }: DirectionLinkProps) {
+export function PaginationPrevious({ children, className, disabled = false, href, label, onClick, ...props }: PaginationDirectionProps) {
   return (
-    <a aria-label={label} className={classes(styles.direction, className)} {...props}>
+    <a
+      {...props}
+      aria-disabled={disabled || undefined}
+      aria-label={label}
+      className={classes(styles.direction, className)}
+      data-disabled={disabled || undefined}
+      href={disabled ? undefined : href}
+      onClick={(event) => {
+        if (disabled) {
+          event.preventDefault()
+          return
+        }
+        onClick?.(event)
+      }}
+    >
       <CaretLeft aria-hidden size={14} weight="bold" />
       <span>{children}</span>
     </a>
   )
 }
 
-export function PaginationNext({ children, className, label, ...props }: DirectionLinkProps) {
+export function PaginationNext({ children, className, disabled = false, href, label, onClick, ...props }: PaginationDirectionProps) {
   return (
-    <a aria-label={label} className={classes(styles.direction, className)} {...props}>
+    <a
+      {...props}
+      aria-disabled={disabled || undefined}
+      aria-label={label}
+      className={classes(styles.direction, className)}
+      data-disabled={disabled || undefined}
+      href={disabled ? undefined : href}
+      onClick={(event) => {
+        if (disabled) {
+          event.preventDefault()
+          return
+        }
+        onClick?.(event)
+      }}
+    >
       <span>{children}</span>
       <CaretRight aria-hidden size={14} weight="bold" />
     </a>
