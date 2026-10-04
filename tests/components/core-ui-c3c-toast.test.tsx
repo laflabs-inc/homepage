@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { LocaleProvider, useSetLocale } from "@/components/i18n/locale-provider"
+import { LocalizedToastProvider } from "@/components/ui/localized-toast-provider"
 import { ToastProvider, useToast } from "@/components/ui/toast"
 
 function ToastControls({ action = vi.fn() }: { action?: () => void }) {
@@ -120,5 +122,31 @@ describe("Toast C3C", () => {
 
     const viewport = screen.getByRole("region", { name: "알림 목록" })
     expect(within(viewport).getByRole("button", { name: "알림 닫기" })).toBeInTheDocument()
+  })
+
+  it("updates global toast labels when the client locale changes", async () => {
+    const user = userEvent.setup()
+
+    function LocaleControls() {
+      const setLocale = useSetLocale()
+      return <button type="button" onClick={() => setLocale("en")}>English</button>
+    }
+
+    render(
+      <LocaleProvider initialLocale="ko">
+        <LocalizedToastProvider>
+          <LocaleControls />
+          <ToastControls />
+        </LocalizedToastProvider>
+      </LocaleProvider>,
+    )
+
+    await user.click(screen.getByRole("button", { name: "성공" }))
+    expect(screen.getByRole("region", { name: "알림" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "알림 닫기" })).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "English" }))
+    expect(screen.getByRole("region", { name: "Notifications" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Dismiss notification" })).toBeInTheDocument()
   })
 })

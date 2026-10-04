@@ -13,7 +13,9 @@
   background: var(--paper);
   color: var(--ink);
   font: 650 10px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .label[data-tone="info"] {

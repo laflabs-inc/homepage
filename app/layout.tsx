@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers"
 
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
-import { ToastProvider } from "@/components/ui/toast"
+import { LocalizedToastProvider } from "@/components/ui/localized-toast-provider"
 import {
   CONSENT_COOKIE,
   VISITOR_COOKIE,
@@ -106,14 +106,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={initialLocale}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <LocaleProvider initialLocale={initialLocale}>
-          <ToastProvider
-            closeLabel={initialLocale === "ko" ? "알림 닫기" : "Dismiss notification"}
-            viewportLabel={initialLocale === "ko" ? "알림" : "Notifications"}
-          >
+          <LocalizedToastProvider>
             <ConsentProvider initialState={initialState} dnt={dnt}>
               {children}
             </ConsentProvider>
-          </ToastProvider>
+          </LocalizedToastProvider>
         </LocaleProvider>
       </body>
     </html>
