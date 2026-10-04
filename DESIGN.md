@@ -553,11 +553,11 @@ Reserves content structure while data is loading.
 
 Maturity: **candidate** · Category: **feedback**
 
-Signals indeterminate progress with a stationary square perimeter.
+Signals indeterminate progress as one gap travels around a stationary square perimeter.
 
 - Use: Use it inside a button or compact inline task.
 - Avoid: Use Progress for measurable work and Skeleton for page loading.
-- Accessibility: Provides a named status and hides the stationary square segments as presentation.
+- Accessibility: Provides a named status and hides the stationary square track as presentation.
 - States: `compact`, `default`, `reduced-motion`
 - Related components: `button`, `progress`, `skeleton`
 

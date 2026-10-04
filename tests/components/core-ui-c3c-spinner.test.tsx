@@ -11,15 +11,14 @@ describe("Spinner C3C", () => {
     expect(screen.getByRole("status", { name: "문서를 저장하는 중" })).toBeInTheDocument()
   })
 
-  it("renders a square perimeter without a rotating svg", () => {
+  it("renders one hidden square track without rotating the geometry", () => {
     render(<Spinner label="업로드 중" />)
 
     const spinner = screen.getByRole("status", { name: "업로드 중" })
     expect(spinner.querySelector("svg")).not.toBeInTheDocument()
-    expect(spinner.querySelectorAll("[data-spinner-segment]")).toHaveLength(4)
-    spinner.querySelectorAll("[data-spinner-segment]").forEach((segment) => {
-      expect(segment).toHaveAttribute("aria-hidden", "true")
-    })
+    expect(spinner.querySelectorAll("[data-spinner-track]")).toHaveLength(1)
+    expect(spinner.querySelector("[data-spinner-track]")).toHaveAttribute("aria-hidden", "true")
+    expect(spinner.querySelector("[data-spinner-segment]")).not.toBeInTheDocument()
   })
 
   it.each(["compact", "default", "large"] as const)(

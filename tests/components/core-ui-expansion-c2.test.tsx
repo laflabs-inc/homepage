@@ -168,7 +168,7 @@ describe("Spinner", () => {
     const spinner = screen.getByRole("status", { name: "Saving document" })
     expect(spinner).toHaveAttribute("data-size", "compact")
     expect(spinner.querySelector("svg")).not.toBeInTheDocument()
-    expect(spinner.querySelectorAll("[data-spinner-segment]")).toHaveLength(4)
+    expect(spinner.querySelectorAll("[data-spinner-track]")).toHaveLength(1)
   })
 })
 

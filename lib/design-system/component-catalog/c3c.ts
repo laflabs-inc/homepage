@@ -84,10 +84,10 @@ export const coreUiC3CComponents = [
     name: "Spinner",
     category: "feedback",
     maturity: "candidate",
-    summary: { ko: "고정된 사각 테두리로 완료 시점을 알 수 없는 진행을 알립니다.", en: "Signals indeterminate progress with a stationary square perimeter." },
+    summary: { ko: "고정된 사각 테두리를 따라 열린 구간이 흐르며 완료 시점을 알 수 없는 진행을 알립니다.", en: "Signals indeterminate progress as one gap travels around a stationary square perimeter." },
     whenToUse: { ko: "버튼이나 짧은 인라인 작업에서 잠시 기다릴 때 씁니다.", en: "Use it inside a button or compact inline task." },
     whenNotToUse: { ko: "진행률을 알 수 있거나 넓은 페이지 로딩에는 Progress나 Skeleton을 씁니다.", en: "Use Progress for measurable work and Skeleton for page loading." },
-    accessibility: { ko: "이름 있는 status를 제공하고 정지된 사각의 네 변은 장식으로 숨깁니다.", en: "Provides a named status and hides the stationary square segments as presentation." },
+    accessibility: { ko: "이름 있는 status를 제공하고 하나의 사각 궤적은 장식으로 숨깁니다.", en: "Provides a named status and hides the stationary square track as presentation." },
     sourcePath: "components/ui/spinner.tsx",
     demoKey: "spinner",
     importExample: 'import { Spinner } from "@/components/ui/spinner"',
@@ -96,7 +96,7 @@ export const coreUiC3CComponents = [
     dependencies: [],
     states: [
       { id: "compact", guidance: { ko: "버튼 안에서도 작업 이름이 구체적인지 확인합니다.", en: "Confirm the task name remains specific inside a button." } },
-      { id: "default", guidance: { ko: "사각형 전체가 회전하지 않는지 확인합니다.", en: "Confirm the full square never rotates." } },
+      { id: "default", guidance: { ko: "사각형은 고정된 채 열린 구간만 테두리를 따라 흐르는지 확인합니다.", en: "Confirm the square remains fixed while its gap travels around the perimeter." } },
       { id: "reduced-motion", guidance: { ko: "움직임 없이도 하나의 열린 변으로 대기 상태가 보이는지 확인합니다.", en: "Confirm one quiet gap communicates pending state without motion." } },
     ],
     props: [

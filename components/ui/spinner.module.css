@@ -1,3 +1,9 @@
+@property --spinner-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .spinner {
   --spinner-size: 22px;
   --spinner-stroke: 2px;
@@ -20,42 +26,36 @@
   --spinner-stroke: 3px;
 }
 
-.spinner [data-spinner-segment] {
+.spinner [data-spinner-track] {
   position: absolute;
-  display: block;
-  background: currentColor;
-  animation: spinner-gap 960ms steps(1, end) infinite;
+  inset: 0;
+  box-sizing: border-box;
+  padding: var(--spinner-stroke);
+  background: conic-gradient(
+    from var(--spinner-angle),
+    transparent 0deg 68deg,
+    currentColor 68deg 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: spinner-perimeter 1.1s linear infinite;
 }
 
-.spinner [data-side="top"],
-.spinner [data-side="bottom"] {
-  inset-inline: 0;
-  height: var(--spinner-stroke);
-}
-
-.spinner [data-side="left"],
-.spinner [data-side="right"] {
-  inset-block: 0;
-  width: var(--spinner-stroke);
-}
-
-.spinner [data-side="top"] { top: 0; animation-delay: 0ms; }
-.spinner [data-side="right"] { right: 0; animation-delay: 240ms; }
-.spinner [data-side="bottom"] { bottom: 0; animation-delay: 480ms; }
-.spinner [data-side="left"] { left: 0; animation-delay: 720ms; }
-
-@keyframes spinner-gap {
-  0%, 24.99% { opacity: 0.18; }
-  25%, 100% { opacity: 1; }
+@keyframes spinner-perimeter {
+  to {
+    --spinner-angle: 360deg;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spinner [data-spinner-segment] {
+  .spinner [data-spinner-track] {
+    --spinner-angle: 315deg;
     animation: none;
-    opacity: 1;
-  }
-
-  .spinner [data-side="top"] {
-    opacity: 0.18;
   }
 }
