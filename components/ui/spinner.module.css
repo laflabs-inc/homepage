@@ -1,15 +1,11 @@
-@property --spinner-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
 .spinner {
   --spinner-size: 22px;
-  --spinner-stroke: 2px;
+  --spinner-cell: 10px;
+  --spinner-near: 1.2px;
+  --spinner-far: 8.8px;
   position: relative;
   width: var(--spinner-size);
-  height: var(--spinner-size);
+  aspect-ratio: 1;
   display: inline-block;
   flex: none;
   color: currentColor;
@@ -18,44 +14,54 @@
 
 .spinner[data-size="compact"] {
   --spinner-size: 16px;
-  --spinner-stroke: 1.5px;
+  --spinner-cell: 7.25px;
+  --spinner-near: 0.9px;
+  --spinner-far: 6.4px;
 }
 
 .spinner[data-size="large"] {
   --spinner-size: 32px;
-  --spinner-stroke: 3px;
+  --spinner-cell: 14.5px;
+  --spinner-near: 1.75px;
+  --spinner-far: 12.8px;
 }
 
 .spinner [data-spinner-track] {
+  --spinner-forward: conic-gradient(
+    from 90deg at var(--spinner-near) var(--spinner-near),
+    transparent 90deg,
+    currentColor 0
+  );
+  --spinner-reverse: conic-gradient(
+    from -90deg at var(--spinner-far) var(--spinner-far),
+    transparent 90deg,
+    currentColor 0
+  );
   position: absolute;
   inset: 0;
-  box-sizing: border-box;
-  padding: var(--spinner-stroke);
-  background: conic-gradient(
-    from var(--spinner-angle),
-    transparent 0deg 68deg,
-    currentColor 68deg 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  animation: spinner-perimeter 1.1s linear infinite;
+  background:
+    var(--spinner-forward),
+    var(--spinner-forward),
+    var(--spinner-forward),
+    var(--spinner-reverse),
+    var(--spinner-reverse),
+    var(--spinner-reverse);
+  background-repeat: no-repeat;
+  background-size: var(--spinner-cell) var(--spinner-cell);
+  animation: spinner-square-path 1.5s infinite;
 }
 
-@keyframes spinner-perimeter {
-  to {
-    --spinner-angle: 360deg;
-  }
+@keyframes spinner-square-path {
+  0% { background-position: 0 0, 0 100%, 100% 100%; }
+  25% { background-position: 100% 0, 0 100%, 100% 100%; }
+  50% { background-position: 100% 0, 0 0, 100% 100%; }
+  75% { background-position: 100% 0, 0 0, 0 100%; }
+  100% { background-position: 100% 100%, 0 0, 0 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .spinner [data-spinner-track] {
-    --spinner-angle: 315deg;
     animation: none;
+    background-position: 100% 100%, 0 0, 0 100%;
   }
 }

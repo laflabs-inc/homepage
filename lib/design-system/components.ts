@@ -10,6 +10,10 @@ import { navigationComponents } from "./component-catalog/navigation"
 import { overlayComponents } from "./component-catalog/overlays"
 import { selectionComponents } from "./component-catalog/selection"
 import { structureComponents } from "./component-catalog/structure"
+import {
+  formatComponentImportExample,
+  formatComponentUsageExample,
+} from "./format-code-example"
 import type { ComponentEntry } from "./schema"
 
 function existing(id: string): ComponentEntry {
@@ -18,7 +22,7 @@ function existing(id: string): ComponentEntry {
   return component
 }
 
-export const components = [
+const componentEntries = [
   existing("logo"),
   ...actionComponents,
   ...formComponents,
@@ -34,3 +38,11 @@ export const components = [
   ...structureComponents,
   existing("code-block"),
 ] as const satisfies readonly ComponentEntry[]
+
+export const components = componentEntries.map((component) => ({
+  ...component,
+  importExample: component.importExample
+    ? formatComponentImportExample(component.importExample)
+    : undefined,
+  usageExample: formatComponentUsageExample(component.usageExample),
+})) satisfies readonly ComponentEntry[]

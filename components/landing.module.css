@@ -520,7 +520,7 @@
   }
 
   .methodPanel {
-    width: 84vw;
+    width: calc(100% - clamp(56px, 15vw, 104px));
     min-height: 540px;
     flex: 0 0 auto;
     border: 1px solid var(--ink);

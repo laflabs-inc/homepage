@@ -896,6 +896,10 @@
   gap: 10px;
 }
 
+.demoSpinner {
+  gap: 10px;
+}
+
 .componentMasthead h1 {
   max-width: 16ch;
 }
@@ -1110,6 +1114,7 @@
 
 .componentImport code {
   font-size: 12px;
+  white-space: pre;
 }
 
 .componentCode {
