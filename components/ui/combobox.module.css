@@ -1,5 +1,5 @@
 .root { position: relative; width: 100%; color: var(--ink); }
-.control { position: relative; display: flex; min-height: 48px; border: 1px solid var(--ink); background: var(--paper); }
+.control { position: relative; display: flex; min-height: 48px; border: 1px solid var(--line); background: var(--paper); }
 .root[data-open] .control { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
 .input { width: 100%; min-width: 0; padding: 0 44px 0 14px; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
 .input::placeholder { color: var(--muted); }

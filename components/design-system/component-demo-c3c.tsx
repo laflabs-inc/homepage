@@ -113,7 +113,7 @@ function AlertDialogDemo({ locale }: ComponentDemoProps) {
 function SpinnerDemo({ locale, state }: ComponentDemoProps) {
   const size = state === "compact" || state === "large" ? state : "default"
   return (
-    <Button disabled>
+    <Button className={styles.demoSpinner} disabled>
       <Spinner label={locale === "ko" ? "문서 저장 중" : "Saving document"} size={size} />
       {locale === "ko" ? "저장 중" : "Saving"}
     </Button>
