@@ -1,10 +1,17 @@
 "use client"
 
+import { WarningCircle } from "@phosphor-icons/react"
 import { useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
-import { Alert } from "@/components/ui/alert"
+import {
+  Alert,
+  AlertContent,
+  AlertDescription,
+  AlertIcon,
+  AlertTitle,
+} from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -370,20 +377,26 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
       </div>
 
       {error ? (
-        <Alert className={styles.formAlert} live title={error} variant="error">
-          {diagnostic ? (
-            <details>
-              <summary>{t.diagnosticDetails}</summary>
-              {diagnostic.statusCode !== null ? <p>{t.diagnosticStatus}: {diagnostic.statusCode}</p> : null}
-              {diagnostic.providerCode ? <p>{t.diagnosticProviderCode}: {diagnostic.providerCode}</p> : null}
-              {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
-              {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
-              {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
-              {diagnostic.providerMessage ? (
-                <p>{t.diagnosticProviderMessage}: {diagnostic.providerMessage}</p>
-              ) : null}
-            </details>
-          ) : null}
+        <Alert className={styles.formAlert} live variant="error">
+          <AlertIcon><WarningCircle size={20} weight="bold" /></AlertIcon>
+          <AlertContent>
+            <AlertTitle>{error}</AlertTitle>
+            {diagnostic ? (
+              <AlertDescription>
+                <details>
+                  <summary>{t.diagnosticDetails}</summary>
+                  {diagnostic.statusCode !== null ? <p>{t.diagnosticStatus}: {diagnostic.statusCode}</p> : null}
+                  {diagnostic.providerCode ? <p>{t.diagnosticProviderCode}: {diagnostic.providerCode}</p> : null}
+                  {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
+                  {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
+                  {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
+                  {diagnostic.providerMessage ? (
+                    <p>{t.diagnosticProviderMessage}: {diagnostic.providerMessage}</p>
+                  ) : null}
+                </details>
+              </AlertDescription>
+            ) : null}
+          </AlertContent>
         </Alert>
       ) : null}
       {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
@@ -396,12 +409,15 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         <div className={styles.agentSectionBody}>
           <StatusLabel
             className={styles.connectionStatus}
-            variant={credential.verificationStatus === "verified" ? "success" : "neutral"}
+            tone={credential.verificationStatus === "verified" ? "success" : "neutral"}
           >
             {credentialStatus}
           </StatusLabel>
           {legacyModel ? (
-            <Alert className={styles.formAlert} live title={t.legacyModel(legacyModel)} variant="error" />
+            <Alert className={styles.formAlert} live variant="error">
+              <AlertIcon><WarningCircle size={20} weight="bold" /></AlertIcon>
+              <AlertContent><AlertTitle>{t.legacyModel(legacyModel)}</AlertTitle></AlertContent>
+            </Alert>
           ) : null}
           <form className={styles.agentSetupForm} onSubmit={configureCredential}>
             <Field>

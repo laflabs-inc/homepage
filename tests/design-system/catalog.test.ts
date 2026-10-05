@@ -76,6 +76,31 @@ const validCatalog = {
       relatedComponents: ["logo"],
     },
   ],
+  recipes: [
+    {
+      id: "document-publishing",
+      title: copy,
+      summary: copy,
+      steps: [copy],
+      relatedComponents: ["logo"],
+      states: [{
+        id: "idle",
+        condition: copy,
+        presentation: copy,
+        nextAction: copy,
+      }],
+    },
+  ],
+  migrations: [
+    {
+      id: "legacy-example",
+      legacyApi: "Legacy",
+      recommendedApi: "Recommended",
+      summary: copy,
+      guidance: [copy],
+      replacementComponents: ["logo"],
+    },
+  ],
   assets: [
     {
       id: "logo-mark",
@@ -97,8 +122,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.10.1",
-      updatedAt: "2026-10-04",
+      version: "2026.10.2",
+      updatedAt: "2026-10-05",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
@@ -257,6 +282,102 @@ describe("design catalog schema", () => {
 })
 
 describe("production design catalog", () => {
+  it("publishes the C3D recipe and migration inventories", () => {
+    const recipes = Reflect.get(designCatalog, "recipes") as ReadonlyArray<{
+      id: string
+      relatedComponents: readonly string[]
+      states: ReadonlyArray<{
+        id: string
+        condition: Readonly<{ ko: string; en: string }>
+        presentation: Readonly<{ ko: string; en: string }>
+        nextAction: Readonly<{ ko: string; en: string }>
+      }>
+    }> | undefined
+    const migrations = Reflect.get(designCatalog, "migrations") as ReadonlyArray<{
+      id: string
+      replacementComponents: readonly string[]
+    }> | undefined
+
+    expect(recipes?.map(({ id }) => id)).toEqual([
+      "document-publishing",
+      "searchable-collection",
+      "consequential-action",
+    ])
+    expect(migrations?.map(({ id }) => id)).toEqual([
+      "action-to-button",
+      "icon-control-to-button",
+      "segmented-toggle-to-segmented-control",
+      "status-label-tone",
+      "alert-compound-anatomy",
+      "notice-toast-to-toast",
+      "dialog-compound-body",
+    ])
+
+    const componentIds = new Set(designCatalog.components.map(({ id }) => id))
+    for (const recipe of recipes ?? []) {
+      expect(recipe.states.length).toBeGreaterThan(0)
+      expect(recipe.relatedComponents.every((id) => componentIds.has(id))).toBe(true)
+      for (const state of recipe.states) {
+        expect(state.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+        expect(state.condition.ko.trim()).not.toBe("")
+        expect(state.condition.en.trim()).not.toBe("")
+        expect(state.presentation.ko.trim()).not.toBe("")
+        expect(state.presentation.en.trim()).not.toBe("")
+        expect(state.nextAction.ko.trim()).not.toBe("")
+        expect(state.nextAction.en.trim()).not.toBe("")
+      }
+    }
+    for (const migration of migrations ?? []) {
+      expect(migration.replacementComponents.every((id) => componentIds.has(id))).toBe(true)
+    }
+  })
+
+  it("rejects incomplete recipe state copy and unknown migration components", () => {
+    const malformed = {
+      ...validCatalog,
+      recipes: [{
+        id: "document-publishing",
+        title: copy,
+        summary: copy,
+        steps: [copy],
+        relatedComponents: ["logo"],
+        states: [{
+          id: "idle",
+          condition: copy,
+          presentation: { ko: "", en: "" },
+          nextAction: copy,
+        }],
+      }],
+      migrations: [{
+        id: "legacy-example",
+        legacyApi: "Legacy",
+        recommendedApi: "Recommended",
+        summary: copy,
+        guidance: [copy],
+        replacementComponents: ["missing-component"],
+      }],
+    } as unknown as DesignCatalog
+
+    expect(() => assertDesignCatalog(malformed)).toThrow(
+      "recipes document-publishing state idle: missing localized copy",
+    )
+
+    const unknownComponent = {
+      ...malformed,
+      recipes: [{
+        ...malformed.recipes[0],
+        states: [{
+          ...malformed.recipes[0].states[0],
+          presentation: copy,
+        }],
+      }],
+    } as unknown as DesignCatalog
+
+    expect(() => assertDesignCatalog(unknownComponent)).toThrow(
+      "migrations legacy-example: unknown replacement component missing-component",
+    )
+  })
+
   it("keeps the composite demo collection server-readable for Next component pages", () => {
     const source = readFileSync(
       join(process.cwd(), "components/design-system/component-demo-composites.tsx"),

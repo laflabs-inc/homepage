@@ -84,6 +84,31 @@ export type PatternEntry = Readonly<{
   relatedComponents: readonly string[]
 }>
 
+export type RecipeStateEntry = Readonly<{
+  id: string
+  condition: LocaleText
+  presentation: LocaleText
+  nextAction: LocaleText
+}>
+
+export type RecipeEntry = Readonly<{
+  id: string
+  title: LocaleText
+  summary: LocaleText
+  steps: readonly LocaleText[]
+  relatedComponents: readonly string[]
+  states: readonly RecipeStateEntry[]
+}>
+
+export type MigrationEntry = Readonly<{
+  id: string
+  legacyApi: string
+  recommendedApi: string
+  summary: LocaleText
+  guidance: readonly LocaleText[]
+  replacementComponents: readonly string[]
+}>
+
 export type AssetEntry = Readonly<{
   id: string
   name: string
@@ -100,6 +125,8 @@ export type DesignCatalog = Readonly<{
   foundations: readonly FoundationEntry[]
   components: readonly ComponentEntry[]
   patterns: readonly PatternEntry[]
+  recipes: readonly RecipeEntry[]
+  migrations: readonly MigrationEntry[]
   assets: readonly AssetEntry[]
 }>
 
@@ -205,6 +232,8 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
   assertUniqueIds(catalog.foundations, "foundations")
   assertUniqueIds(catalog.components, "components")
   assertUniqueIds(catalog.patterns, "patterns")
+  assertUniqueIds(catalog.recipes, "recipes")
+  assertUniqueIds(catalog.migrations, "migrations")
   assertUniqueIds(catalog.assets, "assets")
 
   for (const token of catalog.tokens) {
@@ -274,6 +303,43 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
     for (const componentId of pattern.relatedComponents) {
       if (!componentIds.has(componentId)) {
         fail("patterns", pattern.id, `unknown related component ${componentId}`)
+      }
+    }
+  }
+
+  for (const recipe of catalog.recipes) {
+    assertLocaleText(recipe.title, "recipes", recipe.id)
+    assertLocaleText(recipe.summary, "recipes", recipe.id)
+    recipe.steps.forEach((step) => assertLocaleText(step, "recipes", recipe.id))
+    if (recipe.states.length === 0) fail("recipes", recipe.id, "requires at least one state")
+
+    const stateIds = new Set<string>()
+    for (const state of recipe.states) {
+      const stateId = `${recipe.id} state ${displayId(state.id)}`
+      if (!componentIdPattern.test(state.id)) fail("recipes", stateId, "invalid state id")
+      if (stateIds.has(state.id)) fail("recipes", stateId, "duplicate state id")
+      stateIds.add(state.id)
+      assertLocaleText(state.condition, "recipes", stateId)
+      assertLocaleText(state.presentation, "recipes", stateId)
+      assertLocaleText(state.nextAction, "recipes", stateId)
+    }
+
+    for (const componentId of recipe.relatedComponents) {
+      if (!componentIds.has(componentId)) {
+        fail("recipes", recipe.id, `unknown related component ${componentId}`)
+      }
+    }
+  }
+
+  for (const migration of catalog.migrations) {
+    if (!migration.legacyApi.trim() || !migration.recommendedApi.trim()) {
+      fail("migrations", migration.id, "missing API name")
+    }
+    assertLocaleText(migration.summary, "migrations", migration.id)
+    migration.guidance.forEach((guidance) => assertLocaleText(guidance, "migrations", migration.id))
+    for (const componentId of migration.replacementComponents) {
+      if (!componentIds.has(componentId)) {
+        fail("migrations", migration.id, `unknown replacement component ${componentId}`)
       }
     }
   }

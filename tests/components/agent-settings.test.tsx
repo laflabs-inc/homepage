@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { render as renderWithTestingLibrary, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -76,6 +79,20 @@ beforeEach(() => {
 })
 
 describe("Agent settings", () => {
+  it("uses the recommended compound Alert anatomy and StatusLabel tone API", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/admin/agent-settings.tsx"),
+      "utf8",
+    )
+
+    expect(source).toContain("AlertIcon")
+    expect(source).toContain("AlertContent")
+    expect(source).toContain("AlertTitle")
+    expect(source).toContain("AlertDescription")
+    expect(source).not.toMatch(/<Alert[^>]*\btitle=/)
+    expect(source).not.toMatch(/<StatusLabel[\s\S]{0,180}\bvariant=/)
+  })
+
   it("uses the Admin locale for the Agent page title", async () => {
     pageMocks.getAdminLocale.mockResolvedValue("ko")
 

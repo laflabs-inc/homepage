@@ -88,6 +88,41 @@ function serializePatternSummary(): string[] {
   ])
 }
 
+function serializeRecipeSummary(): string[] {
+  return [...designCatalog.recipes].sort(compareIds).flatMap((recipe) => [
+    `### ${recipe.title.en} (\`${recipe.id}\`)`,
+    "",
+    recipe.summary.en,
+    "",
+    "Composition:",
+    ...recipe.steps.map(({ en }, index) => `${index + 1}. ${en}`),
+    "",
+    "| State | Condition | Interface | Next action |",
+    "| --- | --- | --- | --- |",
+    ...recipe.states.map((state) => [
+      `\`${escapeTableCell(state.id)}\``,
+      escapeTableCell(state.condition.en),
+      escapeTableCell(state.presentation.en),
+      escapeTableCell(state.nextAction.en),
+    ].join(" | ").replace(/^/, "| ").replace(/$/, " |")),
+    "",
+    `Related components: ${recipe.relatedComponents.map((id) => `\`${id}\``).join(", ")}`,
+    "",
+  ])
+}
+
+function serializeMigrationSummary(): string[] {
+  return [...designCatalog.migrations].sort(compareIds).flatMap((migration) => [
+    `### \`${migration.legacyApi}\` → \`${migration.recommendedApi}\``,
+    "",
+    migration.summary.en,
+    "",
+    ...migration.guidance.map(({ en }) => `- ${en}`),
+    `- Replacement components: ${migration.replacementComponents.map((id) => `\`${id}\``).join(", ")}`,
+    "",
+  ])
+}
+
 function serializeMachineResources(): string[] {
   const path = designCatalog.meta.canonicalPath
 
@@ -164,6 +199,12 @@ export function serializeDesignGuide(): string {
     "## Composition and responsive patterns",
     "",
     ...serializePatternSummary(),
+    "## Cross-component recipes and state matrices",
+    "",
+    ...serializeRecipeSummary(),
+    "## Migration reference",
+    "",
+    ...serializeMigrationSummary(),
     "## Public machine resources",
     "",
     ...serializeMachineResources(),
@@ -290,6 +331,39 @@ function serializePatternsReference(): string {
       "",
       ...pattern.guidance.map(({ en, ko }) => `- ${en} / ${ko}`),
       `- Related components: ${pattern.relatedComponents.map((id) => `\`${id}\``).join(", ")}`,
+      "",
+    ]),
+    "## Cross-component recipes and state matrices",
+    "",
+    ...[...designCatalog.recipes].sort(compareIds).flatMap((recipe) => [
+      `### ${recipe.title.en} (\`${recipe.id}\`)`,
+      "",
+      `${recipe.summary.en} / ${recipe.summary.ko}`,
+      "",
+      "Composition / 구성:",
+      ...recipe.steps.map(({ en, ko }, index) => `${index + 1}. ${en} / ${ko}`),
+      "",
+      "| State | Condition / 조건 | Interface / 화면 | Next action / 다음 동작 |",
+      "| --- | --- | --- | --- |",
+      ...recipe.states.map((state) => [
+        `\`${escapeTableCell(state.id)}\``,
+        `${escapeTableCell(state.condition.en)} / ${escapeTableCell(state.condition.ko)}`,
+        `${escapeTableCell(state.presentation.en)} / ${escapeTableCell(state.presentation.ko)}`,
+        `${escapeTableCell(state.nextAction.en)} / ${escapeTableCell(state.nextAction.ko)}`,
+      ].join(" | ").replace(/^/, "| ").replace(/$/, " |")),
+      "",
+      `Related components: ${recipe.relatedComponents.map((id) => `\`${id}\``).join(", ")}`,
+      "",
+    ]),
+    "## Migration reference",
+    "",
+    ...[...designCatalog.migrations].sort(compareIds).flatMap((migration) => [
+      `### \`${migration.legacyApi}\` → \`${migration.recommendedApi}\``,
+      "",
+      `${migration.summary.en} / ${migration.summary.ko}`,
+      "",
+      ...migration.guidance.map(({ en, ko }) => `- ${en} / ${ko}`),
+      `- Replacement components: ${migration.replacementComponents.map((id) => `\`${id}\``).join(", ")}`,
       "",
     ]),
   ])

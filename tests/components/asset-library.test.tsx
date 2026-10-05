@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -143,6 +146,10 @@ describe("AssetLibrary", () => {
     )
 
     await user.click(screen.getByRole("button", { name: "Edit brand.png" }))
+    const metadataDialog = screen.getByRole("dialog", { name: "Edit metadata" })
+    expect(metadataDialog.querySelector("[data-dialog-body]")).toContainElement(
+      screen.getByRole("textbox", { name: "Korean alternative text" }),
+    )
     const koreanAlt = screen.getByRole("textbox", { name: "Korean alternative text" })
     await user.clear(koreanAlt)
     await user.type(koreanAlt, "새 한국어 설명")
@@ -161,6 +168,16 @@ describe("AssetLibrary", () => {
       tags: ["brand", "hero"],
     })
     expect(await screen.findByText("Metadata saved.")).toBeInTheDocument()
+  })
+
+  it("uses the recommended StatusLabel tone API", () => {
+    const source = readFileSync(
+      join(process.cwd(), "components/admin/asset-library.tsx"),
+      "utf8",
+    )
+
+    expect(source).not.toContain('StatusLabelProps["variant"]')
+    expect(source).not.toMatch(/<StatusLabel[\s\S]{0,180}\bvariant=/)
   })
 
   it("shows linked document usage in a focused dialog", async () => {

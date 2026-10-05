@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { designCatalog, designPageEntries, getComponentEntry } from "@/lib/design-system/catalog"
-import type { PatternEntry } from "@/lib/design-system/schema"
+import type { MigrationEntry, PatternEntry, RecipeEntry } from "@/lib/design-system/schema"
 import type { Locale } from "@/lib/i18n"
 import { getDesignPageHref } from "./design-shell"
 import styles from "./design-system.module.css"
@@ -31,6 +31,16 @@ const copy = {
     siteFooter: "기존 Footer",
     documentLabel: "FOUNDATIONS / COLOR",
     readDocument: "기초 원칙에서 이어서 읽기",
+    recipes: "작업 레시피",
+    recipesDescription: "여러 컴포넌트를 실제 흐름으로 연결하고 각 상태에서 무엇을 보여줄지 정합니다.",
+    steps: "구성 순서",
+    stateMatrix: (title: string) => `${title} 상태표`,
+    state: "상태",
+    condition: "조건",
+    presentation: "화면",
+    nextAction: "다음 동작",
+    migration: "마이그레이션 가이드",
+    migrationDescription: "호환 API는 유지하지만 새 화면은 오른쪽의 권장 계약을 사용합니다.",
   },
   en: {
     shellSpecimen: "Annotated page shell",
@@ -44,6 +54,16 @@ const copy = {
     siteFooter: "Existing Footer",
     documentLabel: "FOUNDATIONS / COLOR",
     readDocument: "Continue in Foundations",
+    recipes: "Workflow recipes",
+    recipesDescription: "Connect components into real workflows and define what each state communicates.",
+    steps: "Composition steps",
+    stateMatrix: (title: string) => `${title} state matrix`,
+    state: "State",
+    condition: "Condition",
+    presentation: "Interface",
+    nextAction: "Next action",
+    migration: "Migration reference",
+    migrationDescription: "Compatibility APIs remain available, but new surfaces should use the recommended contracts on the right.",
   },
 } as const
 
@@ -65,11 +85,21 @@ function PatternRules({ pattern, locale }: { pattern: PatternEntry; locale: Loca
 }
 
 function RelatedComponents({ pattern, locale }: { pattern: PatternEntry; locale: Locale }) {
+  return <ComponentLinks componentIds={pattern.relatedComponents} locale={locale} />
+}
+
+function ComponentLinks({
+  componentIds,
+  locale,
+}: {
+  componentIds: readonly string[]
+  locale: Locale
+}) {
   return (
     <div className={styles.patternRelated}>
       <h3>{copy[locale].related}</h3>
       <ul>
-        {pattern.relatedComponents.map((componentId) => {
+        {componentIds.map((componentId) => {
           const component = getComponentEntry(componentId)
           if (!component) return null
 
@@ -83,6 +113,70 @@ function RelatedComponents({ pattern, locale }: { pattern: PatternEntry; locale:
         })}
       </ul>
     </div>
+  )
+}
+
+function Recipe({ recipe, locale }: { recipe: RecipeEntry; locale: Locale }) {
+  const titleId = `recipe-${recipe.id}`
+  const text = copy[locale]
+
+  return (
+    <section className={styles.recipe} aria-labelledby={titleId}>
+      <header className={styles.recipeHeading}>
+        <h3 id={titleId}>{recipe.title[locale]}</h3>
+        <p>{recipe.summary[locale]}</p>
+      </header>
+      <div className={styles.recipeComposition}>
+        <div className={styles.recipeSteps}>
+          <h4>{text.steps}</h4>
+          <ol>
+            {recipe.steps.map((step) => <li key={step.en}>{step[locale]}</li>)}
+          </ol>
+        </div>
+        <ComponentLinks componentIds={recipe.relatedComponents} locale={locale} />
+      </div>
+      <div className={styles.stateMatrix} tabIndex={0}>
+        <table aria-label={text.stateMatrix(recipe.title[locale])}>
+          <thead>
+            <tr>
+              <th scope="col">{text.state}</th>
+              <th scope="col">{text.condition}</th>
+              <th scope="col">{text.presentation}</th>
+              <th scope="col">{text.nextAction}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recipe.states.map((state) => (
+              <tr key={state.id}>
+                <th scope="row"><code>{state.id}</code></th>
+                <td>{state.condition[locale]}</td>
+                <td>{state.presentation[locale]}</td>
+                <td>{state.nextAction[locale]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
+function Migration({ migration, locale }: { migration: MigrationEntry; locale: Locale }) {
+  return (
+    <li className={styles.migrationRow}>
+      <div className={styles.migrationRoute}>
+        <code>{migration.legacyApi}</code>
+        <span aria-hidden="true">→</span>
+        <code>{migration.recommendedApi}</code>
+      </div>
+      <div className={styles.migrationGuidance}>
+        <p>{migration.summary[locale]}</p>
+        <ul>
+          {migration.guidance.map((guidance) => <li key={guidance.en}>{guidance[locale]}</li>)}
+        </ul>
+      </div>
+      <ComponentLinks componentIds={migration.replacementComponents} locale={locale} />
+    </li>
   )
 }
 
@@ -201,6 +295,28 @@ export function PatternsGuide({ locale }: { locale: Locale }) {
 
       {documentSurface ? <DocumentPattern pattern={documentSurface} locale={locale} /> : null}
       {contrastBand ? <ContrastBandPattern pattern={contrastBand} locale={locale} /> : null}
+
+      <section className={styles.recipeCollection} aria-labelledby="workflow-recipes-title">
+        <header className={styles.guideSectionHeading}>
+          <h2 id="workflow-recipes-title">{copy[locale].recipes}</h2>
+          <p>{copy[locale].recipesDescription}</p>
+        </header>
+        {designCatalog.recipes.map((recipe) => (
+          <Recipe key={recipe.id} recipe={recipe} locale={locale} />
+        ))}
+      </section>
+
+      <section className={styles.migrationSection} aria-labelledby="migration-reference-title">
+        <header className={styles.guideSectionHeading}>
+          <h2 id="migration-reference-title">{copy[locale].migration}</h2>
+          <p>{copy[locale].migrationDescription}</p>
+        </header>
+        <ul className={styles.migrationList} aria-labelledby="migration-reference-title">
+          {designCatalog.migrations.map((migration) => (
+            <Migration key={migration.id} migration={migration} locale={locale} />
+          ))}
+        </ul>
+      </section>
     </article>
   )
 }

@@ -33,6 +33,7 @@ import {
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -44,7 +45,7 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { SegmentedControl } from "@/components/ui/segmented-control"
-import { StatusLabel, type StatusLabelProps } from "@/components/ui/status-label"
+import { StatusLabel, type StatusLabelTone } from "@/components/ui/status-label"
 import { Textarea } from "@/components/ui/textarea"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminAssetSummary } from "@/lib/assets/admin-summary"
@@ -76,7 +77,7 @@ type AssetLibraryProps = {
   limit?: number
 }
 
-const statusVariants: Record<MediaAssetStatus, StatusLabelProps["variant"]> = {
+const statusTones: Record<MediaAssetStatus, StatusLabelTone> = {
   pending: "info",
   processing: "info",
   ready: "success",
@@ -151,7 +152,7 @@ function AssetMetadataDialog({
           <DialogTitle>{t.editMetadata}</DialogTitle>
           <DialogDescription>{asset.originalFilename}</DialogDescription>
         </DialogHeader>
-        <div className={styles.metadataForm}>
+        <DialogBody className={styles.metadataForm}>
           <Field>
             <FieldLabel>{t.koreanAlt}</FieldLabel>
             <Textarea maxLength={500} rows={3} value={altKo} onChange={(event) => setAltKo(event.target.value)} />
@@ -166,7 +167,7 @@ function AssetMetadataDialog({
             <FieldDescription>{t.tagsDescription}</FieldDescription>
           </Field>
           {error ? <p className={styles.errorText} role="alert">{error}</p> : null}
-        </div>
+        </DialogBody>
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
           <Button loading={saving} onClick={save}>{saving ? t.saving : t.save}</Button>
@@ -407,7 +408,7 @@ export function AssetLibrary({
                 <div className={styles.assetBody}>
                   <div className={styles.assetTitleRow}>
                     <strong title={asset.originalFilename}>{asset.originalFilename}</strong>
-                    <StatusLabel variant={statusVariants[asset.status]}>{statusLabel(asset.status, t)}</StatusLabel>
+                    <StatusLabel tone={statusTones[asset.status]}>{statusLabel(asset.status, t)}</StatusLabel>
                   </div>
                   <div className={styles.assetFacts}>
                     <span>{formatBytes(asset.byteSize)}</span>
