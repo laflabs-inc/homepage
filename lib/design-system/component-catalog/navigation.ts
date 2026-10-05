@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { interactiveInspection } from "../state-inspection"
 
 export const navigationComponents = [
   {
@@ -18,7 +19,7 @@ export const navigationComponents = [
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "default", guidance: { ko: "트리거가 메뉴의 목적을 분명히 말하는지 확인합니다.", en: "Confirm the trigger clearly names the menu purpose." } },
-      { id: "open", guidance: { ko: "현재 항목과 키보드 초점이 명확한지 확인합니다.", en: "Confirm the current item and keyboard focus are clear." } },
+      { id: "open", guidance: { ko: "현재 항목과 키보드 초점이 명확한지 확인합니다.", en: "Confirm the current item and keyboard focus are clear." }, inspection: interactiveInspection },
       { id: "disabled", guidance: { ko: "비활성 명령을 건너뛰면서 상태는 전달하는지 확인합니다.", en: "Confirm disabled commands are skipped while their state remains clear." } },
     ],
     props: [

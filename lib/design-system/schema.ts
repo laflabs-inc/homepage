@@ -12,6 +12,12 @@ export type LocaleText = Readonly<{ ko: string; en: string }>
 
 export type TokenGroup = "color" | "typography" | "spacing" | "layout" | "shape" | "motion"
 export type ComponentMaturity = "stable" | "candidate"
+export type ComponentStateInspectionMode = "fixture" | "interactive" | "environment"
+
+export type ComponentStateInspection = Readonly<{
+  mode: ComponentStateInspectionMode
+  instruction?: LocaleText
+}>
 
 export type TypographySpecimen = Readonly<{
   fontFamily: "sans" | "mono"
@@ -67,6 +73,7 @@ export type ComponentEntry = Readonly<{
   states: readonly Readonly<{
     id: string
     guidance: LocaleText
+    inspection?: ComponentStateInspection
   }>[]
   props: readonly {
     name: string
@@ -108,6 +115,11 @@ const dependencyNamePattern = /^(?:@[a-z0-9-]+\/)?[a-z0-9-]+$/
 const tokenGroups = new Set<TokenGroup>(["color", "typography", "spacing", "layout", "shape", "motion"])
 const supportedComponentCategories = new Set<ComponentCategory>(componentCategories)
 const componentMaturities = new Set<ComponentMaturity>(["stable", "candidate"])
+const componentStateInspectionModes = new Set<ComponentStateInspectionMode>([
+  "fixture",
+  "interactive",
+  "environment",
+])
 const demoKeys = new Set<DemoKey>(componentDemoKeys)
 
 function fail(collection: string, id: string, reason: string): never {
@@ -250,6 +262,19 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
       }
       stateIds.add(state.id)
       assertLocaleText(state.guidance, "components", `${component.id} state ${state.id}`)
+      if (!state.inspection || !componentStateInspectionModes.has(state.inspection.mode)) {
+        fail("components", `${component.id} state ${state.id}`, "invalid inspection mode")
+      }
+      if (state.inspection.mode !== "fixture") {
+        if (!state.inspection.instruction) {
+          fail("components", `${component.id} state ${state.id}`, "missing inspection instruction")
+        }
+        assertLocaleText(
+          state.inspection.instruction,
+          "components",
+          `${component.id} state ${state.id} inspection`,
+        )
+      }
     }
     component.props.forEach((prop) => assertLocaleText(prop.description, "components", component.id))
     for (const dependency of component.dependencies) {

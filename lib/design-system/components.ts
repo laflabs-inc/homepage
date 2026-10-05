@@ -15,6 +15,7 @@ import {
   formatComponentUsageExample,
 } from "./format-code-example"
 import type { ComponentEntry } from "./schema"
+import { fixtureInspection } from "./state-inspection"
 
 function existing(id: string): ComponentEntry {
   const component = existingComponents.find((entry) => entry.id === id)
@@ -45,4 +46,8 @@ export const components = componentEntries.map((component) => ({
     ? formatComponentImportExample(component.importExample)
     : undefined,
   usageExample: formatComponentUsageExample(component.usageExample),
+  states: component.states.map((state) => ({
+    ...state,
+    inspection: (state as ComponentEntry["states"][number]).inspection ?? fixtureInspection,
+  })),
 })) satisfies readonly ComponentEntry[]

@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { environmentInspection, interactiveInspection } from "../state-inspection"
 
 export const coreExpansionC2Components = [
   {
@@ -18,7 +19,7 @@ export const coreExpansionC2Components = [
     dependencies: [],
     states: [
       { id: "default", guidance: { ko: "열 제목과 행의 대응 관계가 빠르게 읽히는지 확인합니다.", en: "Confirm column headers and row values scan as one relationship." } },
-      { id: "overflow", guidance: { ko: "작은 화면에서 표 의미를 유지한 채 가로 스크롤되는지 확인합니다.", en: "Confirm small screens scroll horizontally without breaking table semantics." } },
+      { id: "overflow", guidance: { ko: "작은 화면에서 표 의미를 유지한 채 가로 스크롤되는지 확인합니다.", en: "Confirm small screens scroll horizontally without breaking table semantics." }, inspection: environmentInspection },
     ],
     props: [
       { name: "aria-label", type: "string", required: false, description: { ko: "보이는 caption이 없을 때 표의 이름을 제공합니다.", en: "Names the table when no visible caption is present." } },
@@ -43,7 +44,7 @@ export const coreExpansionC2Components = [
     dependencies: ["@phosphor-icons/react"],
     states: [
       { id: "default", guidance: { ko: "정렬 가능한 열과 정적 열을 구분합니다.", en: "Distinguish sortable columns from static columns." } },
-      { id: "sorted", guidance: { ko: "현재 정렬 열과 방향이 아이콘과 접근성 트리에 함께 나타나는지 확인합니다.", en: "Confirm the active column and direction appear visually and in the accessibility tree." } },
+      { id: "sorted", guidance: { ko: "현재 정렬 열과 방향이 아이콘과 접근성 트리에 함께 나타나는지 확인합니다.", en: "Confirm the active column and direction appear visually and in the accessibility tree." }, inspection: interactiveInspection },
       { id: "empty", guidance: { ko: "빈 상태가 모든 열을 가로질러 짧게 설명되는지 확인합니다.", en: "Confirm the empty state spans the table with concise copy." } },
     ],
     props: [
@@ -96,7 +97,7 @@ export const coreExpansionC2Components = [
     states: [
       { id: "determinate", guidance: { ko: "현재 값, 최대값과 표시 백분율이 일치하는지 확인합니다.", en: "Confirm current value, maximum, and displayed percentage agree." } },
       { id: "indeterminate", guidance: { ko: "숫자 없이 진행 중 상태만 전달하는지 확인합니다.", en: "Confirm pending progress is communicated without a false number." } },
-      { id: "reduced-motion", guidance: { ko: "움직임 없이도 Primary Blue 구간으로 상태가 보이는지 확인합니다.", en: "Confirm a Primary Blue segment remains visible without motion." } },
+      { id: "reduced-motion", guidance: { ko: "움직임 없이도 Primary Blue 구간으로 상태가 보이는지 확인합니다.", en: "Confirm a Primary Blue segment remains visible without motion." }, inspection: environmentInspection },
     ],
     props: [
       { name: "label", type: "string", required: true, description: { ko: "진행 중인 작업의 보이는 이름입니다.", en: "The visible name of the task in progress." } },

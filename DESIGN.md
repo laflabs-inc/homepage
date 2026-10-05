@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.1 · Updated: 2026-10-04
+System version: 2026.10.2 · Updated: 2026-10-05
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -172,7 +172,7 @@ Expands and collapses longer content by heading.
 - Use: Use it for FAQs or supporting detail that need not be visible at once.
 - Avoid: Do not hide essential information or short primary copy by default.
 - Accessibility: Preserves real headings, buttons, aria-expanded, and arrow-key movement.
-- States: `closed`, `open`, `disabled`
+- States: `closed` (fixture), `open` (fixture), `disabled` (fixture)
 - Related components: `tabs`, `separator`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
@@ -185,7 +185,7 @@ Explains a persistent inline state and its next action.
 - Use: Use it when information, success, warning, or error must remain with the task.
 - Avoid: Use Toast for brief outcomes and Alert Dialog for decisions.
 - Accessibility: Labels the region from a visible title and reserves live for new urgent errors.
-- States: `info`, `warning`, `error`, `live`
+- States: `info` (fixture), `warning` (fixture), `error` (fixture), `live` (fixture)
 - Related components: `toast`, `alert-dialog`, `button`
 - Dependencies: `@phosphor-icons/react`
 
@@ -198,7 +198,7 @@ Requests an explicit decision before a consequential action.
 - Use: Use it for immediate actions such as deletion or permission changes.
 - Avoid: Use Dialog or Alert for general information or reversible actions.
 - Accessibility: Requires cancel or action, ignores outside dismissal, and restores focus.
-- States: `closed`, `open`, `destructive`
+- States: `closed` (fixture), `open` (interactive), `destructive` (interactive)
 - Related components: `dialog`, `alert`, `button`
 - Dependencies: `radix-ui`
 
@@ -211,7 +211,7 @@ Shows where the current page sits in the information hierarchy.
 - Use: Use it in documents or admin views more than one level deep.
 - Avoid: Do not use it on a single-level page or as a progress indicator.
 - Accessibility: Uses a named nav, ordered list, current-page state, and hidden separators.
-- States: `default`, `collapsed`
+- States: `default` (fixture), `collapsed` (fixture)
 - Related components: `text-link`, `dropdown-menu`
 - Dependencies: `@phosphor-icons/react`
 
@@ -224,7 +224,7 @@ Runs an action in the current interface.
 - Use: Use it for immediate actions such as save, submit, and confirm.
 - Avoid: Use Button Link or Text Link for navigation.
 - Accessibility: Keep an action-specific name, expose busy and disabled states, and name icon buttons with aria-label.
-- States: `primary`, `secondary`, `inverse`, `ghost`, `icon`, `disabled`, `loading`, `danger`
+- States: `primary` (fixture), `secondary` (fixture), `outline` (fixture), `inverse` (fixture), `ghost` (fixture), `icon` (fixture), `disabled` (fixture), `loading` (fixture), `danger` (fixture)
 - Related components: `button-link`, `button-group`
 
 ### Button Group (`button-group`)
@@ -236,7 +236,7 @@ Composes related actions and supporting parts in one connected frame.
 - Use: Use it for related actions, split actions, or an input paired with its action.
 - Avoid: Do not force unrelated actions or long explanations into one row.
 - Accessibility: Name the group while preserving a specific name for every control.
-- States: `horizontal`, `vertical`, `split`, `input`
+- States: `horizontal` (fixture), `vertical` (fixture), `split` (fixture), `input` (fixture)
 - Related components: `button`, `button-link`, `dropdown-menu`, `input-group`
 
 ### Button Link (`button-link`)
@@ -248,7 +248,7 @@ Uses Button's appearance while preserving a native anchor for navigation.
 - Use: Use it only when a prominent CTA navigates to another page or address.
 - Avoid: Use Button for in-place actions such as save, submit, or opening a dialog.
 - Accessibility: Do not replace it with Button; preserve native anchor semantics and a destination-specific name.
-- States: `primary`, `secondary`, `inverse`, `ghost`, `icon`
+- States: `primary` (fixture), `secondary` (fixture), `outline` (fixture), `inverse` (fixture), `ghost` (fixture), `icon` (fixture)
 - Related components: `button`, `text-link`
 
 ### Checkbox (`checkbox`)
@@ -260,7 +260,7 @@ Turns an independent selection on or off.
 - Use: Use it for independent consent, list, or multi-select values.
 - Avoid: Use Switch for a single setting that changes immediately.
 - Accessibility: Preserve the native checkbox and expose mixed state through aria-checked.
-- States: `unchecked`, `checked`, `indeterminate`, `disabled`
+- States: `unchecked` (fixture), `checked` (fixture), `indeterminate` (fixture), `disabled` (fixture)
 - Related components: `radio-group`, `switch`
 
 ### Code Block (`code-block`)
@@ -272,7 +272,7 @@ A readable code region with a language label and copy action.
 - Use: Use it to present multiline code or commands verbatim in documentation.
 - Avoid: Do not use it for short inline identifiers or as an executable editor.
 - Accessibility: The copy button names the language, and the source remains selectable after a copy failure.
-- States: `idle`, `copied`, `error`
+- States: `idle` (fixture), `copied` (interactive), `error` (environment)
 - Related components: `button`
 
 ### Combobox (`combobox`)
@@ -284,7 +284,7 @@ Selects one value from a searchable list.
 - Use: Use it when the option list is long or labels may be unfamiliar.
 - Avoid: Use Native Select or Select for short, fixed option lists.
 - Accessibility: Exposes combobox/listbox relationships, active option, selection, and arrow-key operation.
-- States: `closed`, `open`, `empty`
+- States: `closed` (fixture), `open` (interactive), `empty` (interactive)
 - Related components: `field`, `select`, `input`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
@@ -297,7 +297,7 @@ Displays structured data with sorting and an explicit empty state.
 - Use: Use it for operational lists that people need to reorder by column.
 - Avoid: Use Table for static comparison and Item for editorial browsing.
 - Accessibility: Connects sort buttons with aria-sort while preserving real Table semantics.
-- States: `default`, `sorted`, `empty`
+- States: `default` (fixture), `sorted` (interactive), `empty` (fixture)
 - Related components: `table`, `pagination`, `empty-state`
 - Dependencies: `@phosphor-icons/react`
 
@@ -310,7 +310,7 @@ Opens a focused, short task above the current flow.
 - Use: Use it for settings or a short form without leaving context.
 - Avoid: Do not use it for long documents or consequential decisions.
 - Accessibility: Preserves naming, focus trapping, Escape dismissal, and trigger focus restoration.
-- States: `closed`, `open`, `body-scroll`
+- States: `closed` (fixture), `open` (interactive), `body-scroll` (interactive)
 - Related components: `alert-dialog`, `button`, `field`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
@@ -323,7 +323,7 @@ Opens related commands and settings from one trigger.
 - Use: Use it to group related, secondary commands in one place.
 - Avoid: Do not hide primary actions or replace straightforward page navigation.
 - Accessibility: Preserves arrow keys, typeahead, Escape, submenus, and trigger focus restoration.
-- States: `default`, `open`, `disabled`
+- States: `default` (fixture), `open` (interactive), `disabled` (fixture)
 - Related components: `button`, `select`, `dialog`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
@@ -336,7 +336,7 @@ Explains why no content is present and what can happen next.
 - Use: Use it for a genuinely empty result, document, or collection.
 - Avoid: Do not invent example data or use it as a promotional card.
 - Accessibility: Make the state understandable from title and description, with recovery when available.
-- States: `default`, `action`
+- States: `default` (fixture), `action` (fixture)
 - Related components: `button`, `text-link`, `skeleton`
 
 ### Field (`field`)
@@ -348,7 +348,7 @@ Composes labels, controls, descriptions, and errors into complete form sections 
 - Use: Use Field for one control and FieldGroup with FieldSet for related form sections.
 - Avoid: Do not group read-only content or unrelated controls under one label.
 - Accessibility: Links nested FieldContent descriptions and errors to the control and names groups with FieldLegend.
-- States: `default`, `required`, `invalid`
+- States: `default` (fixture), `required` (fixture), `invalid` (fixture)
 - Related components: `label`, `input`, `textarea`, `native-select`
 
 ### Input (`input`)
@@ -360,7 +360,7 @@ A native input for single-line values.
 - Use: Use it for single-line values such as email, title, or search.
 - Avoid: Use Textarea for multiline copy and Native Select for fixed choices.
 - Accessibility: Provide a name through Field or Label and choose the correct native type.
-- States: `default`, `focus-visible`, `invalid`, `disabled`
+- States: `default` (fixture), `focus-visible` (interactive), `invalid` (fixture), `disabled` (fixture)
 - Related components: `field`, `label`, `textarea`, `native-select`
 
 ### Input Group (`input-group`)
@@ -372,7 +372,7 @@ Groups an input with a unit, prefix, or compact action.
 - Use: Use it for prefixes, units, or actions directly tied to an input.
 - Avoid: Do not place independent fields or several primary actions inside one boundary.
 - Accessibility: Keeps one native control in DOM order; the start and end aliases normalize to inline placements.
-- States: `default`, `focus-visible`, `invalid`
+- States: `default` (fixture), `focus-visible` (interactive), `invalid` (fixture)
 - Related components: `field`, `input`, `button`
 
 ### Item (`item`)
@@ -384,7 +384,7 @@ Composes media, copy, metadata, and actions into one row.
 - Use: Use it for repeated entities such as repositories, documents, or people without card grids.
 - Avoid: Use Table for column comparison and Panel for a standalone region.
 - Accessibility: Chooses article, div, or li for the surrounding structure and labels the item from its title.
-- States: `default`, `subtle`, `inverse`
+- States: `default` (fixture), `subtle` (fixture), `inverse` (fixture)
 - Related components: `panel`, `table`, `status-label`
 
 ### Label (`label`)
@@ -396,7 +396,7 @@ Provides a concise name for a form control.
 - Use: Use it to explicitly name a native control outside Field.
 - Avoid: Do not use a label element for help text or decoration.
 - Accessibility: Keep htmlFor equal to the target control ID.
-- States: `default`, `required`
+- States: `default` (fixture), `required` (fixture)
 - Related components: `field`, `input`, `textarea`, `native-select`
 
 ### Logo (`logo`)
@@ -408,7 +408,7 @@ Displays the official symbol with the LafLabs wordmark.
 - Use: Use it where the LafLabs identity must be explicit, such as the site header and footer.
 - Avoid: Do not use it as a decorative background or repeating motif.
 - Accessibility: The component exposes the LafLabs name; check that an enclosing link does not create a redundant label.
-- States: `default`, `compact`
+- States: `default` (fixture), `compact` (fixture)
 - Dependencies: `next`
 
 ### Native Select (`native-select`)
@@ -420,7 +420,7 @@ A select that preserves native browser selection behavior.
 - Use: Use it to choose one value from a short, fixed list.
 - Avoid: Do not use it for long searchable lists or multi-selection.
 - Accessibility: Keep the native select as the only interactive element and hide its decorative icon.
-- States: `default`, `focus-visible`, `disabled`
+- States: `default` (fixture), `focus-visible` (interactive), `disabled` (fixture)
 - Related components: `field`, `label`, `input`
 - Dependencies: `@phosphor-icons/react`
 
@@ -433,7 +433,7 @@ Navigates a collection from one connected page rail.
 - Use: Use it when a collection has multiple URL-addressable pages.
 - Avoid: Do not use it for slides or in-page tabs.
 - Accessibility: Uses a named nav, real links, aria-current, and disabled boundaries.
-- States: `default`, `current`, `boundary`, `collapsed`
+- States: `default` (fixture), `current` (fixture), `boundary` (fixture), `collapsed` (fixture)
 - Related components: `data-table`, `breadcrumb`, `text-link`
 - Dependencies: `@phosphor-icons/react`
 
@@ -446,7 +446,7 @@ Structures related information and actions within one clear boundary.
 - Use: Use it when a settings group or summary module needs a genuine independent boundary.
 - Avoid: Do not wrap every section or list row, and do not nest Panels inside Panels.
 - Accessibility: Name independent regions with aria-label or aria-labelledby and keep heading levels consistent with the document.
-- States: `default`, `subtle`, `inverse`, `action`
+- States: `default` (fixture), `subtle` (fixture), `inverse` (fixture), `action` (fixture)
 - Related components: `separator`, `button`, `status-label`
 
 ### Popover (`popover`)
@@ -458,7 +458,7 @@ Opens compact information or controls beside the current context.
 - Use: Use it for supporting tasks such as filters or compact settings.
 - Avoid: Use Dialog, Alert Dialog, or Dropdown Menu for long forms, confirmations, or command lists.
 - Accessibility: Names the supporting surface and preserves Escape dismissal and focus restoration.
-- States: `closed`, `open`
+- States: `closed` (fixture), `open` (interactive)
 - Related components: `dropdown-menu`, `dialog`, `tooltip`
 - Dependencies: `radix-ui`
 
@@ -471,7 +471,7 @@ Shows measurable completion or an indeterminate connection state.
 - Use: Use it for uploads, processing, or synchronization that takes time.
 - Avoid: Do not use it for instant actions or final success status.
 - Accessibility: Connects native progress with a visible label and never invents a numeric value.
-- States: `determinate`, `indeterminate`, `reduced-motion`
+- States: `determinate` (fixture), `indeterminate` (fixture), `reduced-motion` (environment)
 - Related components: `spinner`, `skeleton`, `status-label`
 
 ### Radio Group (`radio-group`)
@@ -483,7 +483,7 @@ Selects exactly one value from a named group.
 - Use: Use it when a short list of options should stay visible for comparison.
 - Avoid: Use Native Select when space is tight or the list is long.
 - Accessibility: Keeps a named native radio set and communicates selection with square outer and inner indicators.
-- States: `default`, `selected`, `controlled`, `disabled`
+- States: `default` (fixture), `selected` (fixture), `controlled` (interactive), `disabled` (fixture)
 - Related components: `checkbox`, `native-select`
 
 ### Segmented Control (`segmented-control`)
@@ -495,7 +495,7 @@ Selects one value from two or more short options.
 - Use: Use it to switch short peer values such as locale, view, or status.
 - Avoid: Use Radio Group or Select for verbose or numerous options.
 - Accessibility: Provides radiogroup and radio semantics, aria-checked, and arrow-key roving focus.
-- States: `default`, `three-options`, `focus-visible`, `selected`, `disabled`, `reduced-motion`
+- States: `default` (fixture), `three-options` (fixture), `focus-visible` (interactive), `selected` (fixture), `disabled` (fixture), `reduced-motion` (environment)
 - Related components: `radio-group`, `tabs`
 - Dependencies: `motion`
 
@@ -508,7 +508,7 @@ Navigates a longer option list by keyboard or pointer.
 - Use: Use it when options need richer states and controlled popup placement.
 - Avoid: Use Native Select for short lists or when the platform picker is preferable.
 - Accessibility: Provide a label and preserve arrow selection, disabled options, Escape dismissal, and focus return.
-- States: `default`, `open`, `disabled`
+- States: `default` (fixture), `open` (interactive), `disabled` (fixture)
 - Related components: `field`, `native-select`, `dropdown-menu`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
@@ -521,7 +521,7 @@ Creates a visual or semantic boundary between content.
 - Use: Use it when spacing alone cannot distinguish rows or sections.
 - Avoid: Do not box every element or repeat rules as decoration.
 - Accessibility: Hide it by default and expose a separator only when the boundary carries meaning.
-- States: `decorative`, `horizontal`, `vertical`
+- States: `decorative` (fixture), `horizontal` (fixture), `vertical` (fixture)
 - Related components: `empty-state`
 
 ### Side Panel (`side-panel`)
@@ -533,7 +533,7 @@ Opens a larger workspace from a viewport edge without leaving the page.
 - Use: Use it for settings, details, or editing that need more room than a Popover.
 - Avoid: Do not confine a primary page flow or complex multi-step task to a panel.
 - Accessibility: Preserves Dialog title, description, focus trap, Escape dismissal, and focus restoration.
-- States: `closed`, `open`
+- States: `closed` (fixture), `open` (interactive)
 - Related components: `dialog`, `popover`, `panel`
 - Dependencies: `@phosphor-icons/react`, `radix-ui`
 
@@ -546,7 +546,7 @@ Reserves content structure while data is loading.
 - Use: Use it for brief loading when the final layout shape is known.
 - Avoid: Do not replace progress feedback or an empty state with a skeleton.
 - Accessibility: Always hide it from assistive technology and announce loading separately.
-- States: `loading`, `reduced-motion`
+- States: `loading` (fixture), `reduced-motion` (environment)
 - Related components: `empty-state`
 
 ### Spinner (`spinner`)
@@ -558,7 +558,7 @@ Signals indeterminate progress as one gap travels around a stationary square per
 - Use: Use it inside a button or compact inline task.
 - Avoid: Use Progress for measurable work and Skeleton for page loading.
 - Accessibility: Provides a named status and hides the stationary square track as presentation.
-- States: `compact`, `default`, `reduced-motion`
+- States: `compact` (fixture), `default` (fixture), `reduced-motion` (environment)
 - Related components: `button`, `progress`, `skeleton`
 
 ### Status Label (`status-label`)
@@ -570,7 +570,7 @@ Shows a real entity state with a small color square and concise text.
 - Use: Use it for static document or media lifecycle metadata.
 - Avoid: Do not use it as an action, filter, long explanation, or live error.
 - Accessibility: Always provide explicit status text that remains clear without color.
-- States: `neutral`, `info`, `success`, `warning`, `error`
+- States: `neutral` (fixture), `info` (fixture), `success` (fixture), `warning` (fixture), `error` (fixture)
 - Related components: `alert`, `panel`, `toast`
 
 ### Switch (`switch`)
@@ -582,7 +582,7 @@ Turns one immediately applied setting on or off.
 - Use: Use it for a binary setting that takes effect immediately.
 - Avoid: Use Checkbox when consent is only committed on form submission.
 - Accessibility: Preserves native checkbox behavior and a stable label; tone applies only to the checked surface.
-- States: `off`, `on`, `focus-visible`, `disabled`
+- States: `off` (fixture), `on` (fixture), `focus-visible` (interactive), `disabled` (fixture)
 - Related components: `checkbox`, `segmented-control`
 
 ### Table (`table`)
@@ -594,7 +594,7 @@ Presents information that must be compared across native table rows and columns.
 - Use: Use it to compare the same attributes, such as status, name, or date, across records.
 - Avoid: Use Item for one record's details or a list whose sequence matters more than column comparison.
 - Accessibility: Preserves native caption, thead, tbody, and scoped header semantics.
-- States: `default`, `overflow`
+- States: `default` (fixture), `overflow` (environment)
 - Related components: `data-table`, `item`, `separator`
 
 ### Tabs (`tabs`)
@@ -606,7 +606,7 @@ Switches between peer panels within one context.
 - Use: Use it for quickly switching between a few peer views.
 - Avoid: Do not use it for sequential steps or independent page navigation.
 - Accessibility: Preserves tablist, tab, tabpanel relationships and arrow-key roving focus.
-- States: `default`, `selected`, `disabled`
+- States: `default` (fixture), `selected` (fixture), `disabled` (fixture)
 - Related components: `segmented-control`, `accordion`
 - Dependencies: `radix-ui`
 
@@ -619,7 +619,7 @@ A reusable link that pairs text with an arrow toward the next destination.
 - Use: Use it at the end of a section or row for lightweight onward navigation.
 - Avoid: Do not use it for primary submission actions or icon-only controls.
 - Accessibility: The link text must identify its destination; treat the arrow as decorative.
-- States: `default`, `hover`, `focus-visible`, `visited`
+- States: `default` (fixture), `hover` (interactive), `focus-visible` (interactive), `visited` (interactive)
 - Related components: `button-link`
 - Dependencies: `@phosphor-icons/react`
 
@@ -632,7 +632,7 @@ Accepts longer multiline text.
 - Use: Use it for values that need line breaks, such as inquiries or summaries.
 - Avoid: Do not use it as a code editor or for single-line values.
 - Accessibility: Associate a visible label and expose length guidance as a description when needed.
-- States: `default`, `focus-visible`, `invalid`
+- States: `default` (fixture), `focus-visible` (interactive), `invalid` (fixture)
 - Related components: `field`, `label`, `input`
 
 ### Toast (`toast`)
@@ -644,7 +644,7 @@ Reports a brief result through one application-wide queue.
 - Use: Use it for brief save, upload, or undo outcomes.
 - Avoid: Use Alert or Alert Dialog for persistent errors or required decisions.
 - Accessibility: Announces routine results as status, errors as alert, and localizes dismissal.
-- States: `success`, `error`, `action`, `queued`, `persistent`
+- States: `success` (interactive), `error` (interactive), `action` (interactive), `queued` (interactive), `persistent` (interactive)
 - Related components: `alert`, `status-label`, `spinner`
 - Dependencies: `radix-ui`
 
@@ -657,7 +657,7 @@ Provides a short supporting description on hover and focus.
 - Use: Use it to clarify controls whose visible name, such as an icon, is insufficient.
 - Avoid: Do not rely on it for essential information, long copy, or touch-only actions.
 - Accessibility: Opens on keyboard focus as well as hover and is associated as the trigger description.
-- States: `closed`, `open`
+- States: `closed` (fixture), `open` (interactive)
 - Related components: `button`
 - Dependencies: `radix-ui`
 

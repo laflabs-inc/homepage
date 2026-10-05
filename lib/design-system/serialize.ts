@@ -1,7 +1,7 @@
 import { strToU8, zipSync } from "fflate"
 
 import { designCatalog } from "./catalog"
-import type { DesignToken } from "./schema"
+import type { ComponentStateInspection, DesignToken } from "./schema"
 
 const publicOrigin = designCatalog.meta.publicOrigin
 const sourceRepository = "https://github.com/laflabs-inc/homepage"
@@ -65,7 +65,7 @@ function serializeComponentSummary(): string[] {
     `- Use: ${component.whenToUse.en}`,
     `- Avoid: ${component.whenNotToUse.en}`,
     `- Accessibility: ${component.accessibility.en}`,
-    `- States: ${component.states.map(({ id }) => `\`${id}\``).join(", ")}`,
+    `- States: ${component.states.map(({ id, inspection }) => `\`${id}\` (${inspection?.mode ?? "fixture"})`).join(", ")}`,
     ...(component.relatedComponents.length > 0
       ? [`- Related components: ${component.relatedComponents.map((id) => `\`${id}\``).join(", ")}`]
       : []),
@@ -259,7 +259,13 @@ function serializeComponentsReference(): string {
         ? [`- Dependencies: ${component.dependencies.map((dependency) => `\`${dependency}\``).join(", ")}`]
         : []),
       "- States and inspection:",
-      ...component.states.map(({ id, guidance }) => `  - \`${id}\`: ${guidance.en} / ${guidance.ko}`),
+      ...component.states.map(({ id, guidance, inspection }) => {
+        const resolvedInspection: ComponentStateInspection = inspection ?? { mode: "fixture" }
+        const instruction = resolvedInspection.instruction
+          ? ` Inspection: ${resolvedInspection.instruction.en} / ${resolvedInspection.instruction.ko}`
+          : ""
+        return `  - \`${id}\` [${resolvedInspection.mode}]: ${guidance.en} / ${guidance.ko}${instruction}`
+      }),
       "",
       "### Props",
       "",

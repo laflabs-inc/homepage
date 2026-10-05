@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
-import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
 import {
   InputGroup,
   InputGroupAddon,
@@ -89,7 +89,8 @@ function ComboboxDemo({ locale, state }: ComponentDemoProps) {
   )
 }
 
-function InputGroupDemo({ locale }: ComponentDemoProps) {
+function InputGroupDemo({ locale, state }: ComponentDemoProps) {
+  const invalid = state === "invalid"
   return (
     <div className={styles.demoFormRecipe}>
       <Field>
@@ -100,9 +101,9 @@ function InputGroupDemo({ locale }: ComponentDemoProps) {
           <InputGroupAddon placement="inline-end"><InputGroupButton>{locale === "ko" ? "확인" : "Verify"}</InputGroupButton></InputGroupAddon>
         </InputGroup>
       </Field>
-      <Field>
+      <Field invalid={invalid}>
         <FieldLabel>{locale === "ko" ? "문서 안내" : "Document guidance"}</FieldLabel>
-        <InputGroup>
+        <InputGroup aria-invalid={invalid || undefined}>
           <InputGroupAddon placement="block-start">
             <InputGroupText>{locale === "ko" ? "마크다운 지원" : "Markdown supported"}</InputGroupText>
           </InputGroupAddon>
@@ -112,6 +113,9 @@ function InputGroupDemo({ locale }: ComponentDemoProps) {
         <FieldDescription>
           {locale === "ko" ? "목록에서 먼저 읽히는 안내입니다." : "Shown first in document lists."}
         </FieldDescription>
+        {invalid ? (
+          <FieldError>{locale === "ko" ? "문서 안내를 확인해 주세요." : "Review the document guidance."}</FieldError>
+        ) : null}
       </Field>
     </div>
   )

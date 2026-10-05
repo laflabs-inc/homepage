@@ -121,12 +121,13 @@ function SpinnerDemo({ locale, state }: ComponentDemoProps) {
 }
 
 function AlertDemo({ locale, state }: ComponentDemoProps) {
-  const error = state === "error" || state === "live"
+  const variant = state === "warning" ? "warning" : state === "error" || state === "live" ? "error" : "info"
+  const urgent = variant === "error"
   return (
-    <Alert live={state === "live"} variant={error ? "error" : "success"}>
-      <AlertIcon>{error ? <WarningCircle size={20} weight="bold" /> : <CheckCircle size={20} weight="bold" />}</AlertIcon>
+    <Alert live={state === "live"} variant={variant}>
+      <AlertIcon>{urgent ? <WarningCircle size={20} weight="bold" /> : <CheckCircle size={20} weight="bold" />}</AlertIcon>
       <AlertContent>
-        <AlertTitle>{error ? (locale === "ko" ? "발행하지 못했습니다" : "Could not publish") : (locale === "ko" ? "발행 준비가 끝났습니다" : "Ready to publish")}</AlertTitle>
+        <AlertTitle>{urgent ? (locale === "ko" ? "발행하지 못했습니다" : "Could not publish") : state === "warning" ? (locale === "ko" ? "확인이 필요합니다" : "Review required") : (locale === "ko" ? "발행 정보를 확인합니다" : "Review publishing details")}</AlertTitle>
         <AlertDescription>{locale === "ko" ? "제목과 공개 날짜를 한 번 더 확인해 주세요." : "Check the title and publication date once more."}</AlertDescription>
       </AlertContent>
       <AlertAction><Button size="compact" variant="secondary">{locale === "ko" ? "검토" : "Review"}</Button></AlertAction>

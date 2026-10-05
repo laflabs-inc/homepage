@@ -73,6 +73,18 @@
   color: var(--blue);
 }
 
+.outline {
+  border-color: var(--ink);
+  background: transparent;
+  color: var(--ink);
+}
+
+.outline:hover:not(:disabled) {
+  border-color: var(--blue);
+  background: #eff6ff;
+  color: var(--blue);
+}
+
 .inverse {
   border-color: var(--paper);
   background: var(--ink);

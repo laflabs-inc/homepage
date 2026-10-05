@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { environmentInspection, interactiveInspection } from "../state-inspection"
 
 export const coreUiC3CComponents = [
   {
@@ -18,8 +19,8 @@ export const coreUiC3CComponents = [
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거가 열릴 작업을 구체적으로 설명하는지 확인합니다.", en: "Confirm the trigger names the task it opens." } },
-      { id: "open", guidance: { ko: "제목, 본문, 동작과 닫기 경계가 분명한지 확인합니다.", en: "Inspect the title, body, actions, and close boundary." } },
-      { id: "body-scroll", guidance: { ko: "긴 본문만 스크롤되고 제목과 동작은 접근 가능한지 확인합니다.", en: "Confirm only the long body scrolls while title and actions remain reachable." } },
+      { id: "open", guidance: { ko: "제목, 본문, 동작과 닫기 경계가 분명한지 확인합니다.", en: "Inspect the title, body, actions, and close boundary." }, inspection: interactiveInspection },
+      { id: "body-scroll", guidance: { ko: "긴 본문만 스크롤되고 제목과 동작은 접근 가능한지 확인합니다.", en: "Confirm only the long body scrolls while title and actions remain reachable." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "size", type: '"small" | "medium" | "large" | "full"', required: false, description: { ko: "작업에 맞는 대화상자 너비입니다.", en: "Sets the dialog width for the task." } },
@@ -44,8 +45,8 @@ export const coreUiC3CComponents = [
     dependencies: ["radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거가 결과를 구체적으로 설명하는지 확인합니다.", en: "Confirm the trigger names the consequence." } },
-      { id: "open", guidance: { ko: "취소와 실행의 위계, 초기 초점과 초점 복귀를 확인합니다.", en: "Inspect action hierarchy, initial focus, and focus restoration." } },
-      { id: "destructive", guidance: { ko: "위험 동작은 Error Deep 면과 흰색 글자를 사용합니다.", en: "Use the Error Deep surface and white text for a destructive action." } },
+      { id: "open", guidance: { ko: "취소와 실행의 위계, 초기 초점과 초점 복귀를 확인합니다.", en: "Inspect action hierarchy, initial focus, and focus restoration." }, inspection: interactiveInspection },
+      { id: "destructive", guidance: { ko: "위험 동작은 Error Deep 면과 흰색 글자를 사용합니다.", en: "Use Error Deep with a white foreground for a destructive action." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "variant", type: '"primary" | "destructive"', required: false, description: { ko: "확인 동작의 의미입니다.", en: "Sets the confirmation action intent." } },
@@ -97,7 +98,7 @@ export const coreUiC3CComponents = [
     states: [
       { id: "compact", guidance: { ko: "버튼 안에서도 작업 이름이 구체적인지 확인합니다.", en: "Confirm the task name remains specific inside a button." } },
       { id: "default", guidance: { ko: "사각형은 고정된 채 열린 구간만 테두리를 따라 흐르는지 확인합니다.", en: "Confirm the square remains fixed while its gap travels around the perimeter." } },
-      { id: "reduced-motion", guidance: { ko: "움직임 없이도 하나의 열린 변으로 대기 상태가 보이는지 확인합니다.", en: "Confirm one quiet gap communicates pending state without motion." } },
+      { id: "reduced-motion", guidance: { ko: "움직임 없이도 하나의 열린 변으로 대기 상태가 보이는지 확인합니다.", en: "Confirm one quiet gap communicates pending state without motion." }, inspection: environmentInspection },
     ],
     props: [
       { name: "label", type: "string", required: true, description: { ko: "진행 중인 작업의 접근 가능한 이름입니다.", en: "Names the pending task." } },
@@ -120,11 +121,11 @@ export const coreUiC3CComponents = [
     relatedComponents: ["alert", "status-label", "spinner"],
     dependencies: ["radix-ui"],
     states: [
-      { id: "success", guidance: { ko: "완료 결과를 한 문장으로 설명합니다.", en: "Describe the completed outcome in one sentence." } },
-      { id: "error", guidance: { ko: "오류는 더 오래 표시하고 복구 설명은 짧게 유지합니다.", en: "Keep errors visible longer and recovery copy concise." } },
-      { id: "action", guidance: { ko: "되돌리기 같은 한 가지 보조 동작만 제공합니다.", en: "Offer one supporting action such as Undo." } },
-      { id: "queued", guidance: { ko: "세 개를 넘는 알림은 앞선 알림이 닫힐 때까지 대기합니다.", en: "Queue notifications beyond the three visible items." } },
-      { id: "persistent", guidance: { ko: "duration 0은 사용자가 직접 닫을 때까지 유지합니다.", en: "Use duration zero only for deliberate persistence." } },
+      { id: "success", guidance: { ko: "완료 결과를 한 문장으로 설명합니다.", en: "Describe the completed outcome in one sentence." }, inspection: interactiveInspection },
+      { id: "error", guidance: { ko: "오류는 더 오래 표시하고 복구 설명은 짧게 유지합니다.", en: "Keep errors visible longer and recovery copy concise." }, inspection: interactiveInspection },
+      { id: "action", guidance: { ko: "되돌리기 같은 한 가지 보조 동작만 제공합니다.", en: "Offer one supporting action such as Undo." }, inspection: interactiveInspection },
+      { id: "queued", guidance: { ko: "세 개를 넘는 알림은 앞선 알림이 닫힐 때까지 대기합니다.", en: "Queue notifications beyond the three visible items." }, inspection: interactiveInspection },
+      { id: "persistent", guidance: { ko: "duration 0은 사용자가 직접 닫을 때까지 유지합니다.", en: "Use duration zero only for deliberate persistence." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "show", type: "(options: ToastOptions) => string", required: true, description: { ko: "알림을 표시하거나 같은 ID를 갱신합니다.", en: "Shows a toast or updates a matching stable ID." } },

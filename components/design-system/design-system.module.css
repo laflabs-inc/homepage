@@ -1005,12 +1005,46 @@
   font-size: 12px;
 }
 
+.stateHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.stateHeading > span {
+  min-height: 24px;
+  padding: 4px 7px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font: 650 9px / 1.35 var(--font-geist-mono), "Pretendard", monospace;
+  letter-spacing: 0.02em;
+}
+
+.stateHeading > span[data-inspection-mode="interactive"] {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.stateHeading > span[data-inspection-mode="environment"] {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
 .stateGuidance p {
   max-width: 48ch;
   margin: 12px 0 0;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
+}
+
+.stateGuidance .stateInstruction {
+  margin-top: 8px;
+  color: var(--ink);
+  font-size: 12px;
 }
 
 .stateList .componentPreview {

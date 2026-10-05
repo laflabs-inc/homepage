@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { interactiveInspection } from "../state-inspection"
 
 export const formComponents = [
   {
@@ -69,7 +70,7 @@ export const formComponents = [
     dependencies: [],
     states: [
       { id: "default", guidance: { ko: "Paper 바탕, Ink 텍스트, Line 경계를 확인합니다.", en: "Inspect Paper surface, Ink text, and Line border." } },
-      { id: "focus-visible", guidance: { ko: "2px Primary 초점선을 확인합니다.", en: "Inspect the two-pixel Primary focus outline." } },
+      { id: "focus-visible", guidance: { ko: "2px Primary 초점선을 확인합니다.", en: "Inspect the two-pixel Primary focus outline." }, inspection: interactiveInspection },
       { id: "invalid", guidance: { ko: "Error 경계와 연결된 오류 문구를 확인합니다.", en: "Inspect the Error border and associated error copy." } },
       { id: "disabled", guidance: { ko: "입력이 막히고 커서와 불투명도가 바뀌는지 확인합니다.", en: "Confirm input is blocked with disabled cursor and opacity." } },
     ],
@@ -96,7 +97,7 @@ export const formComponents = [
     dependencies: [],
     states: [
       { id: "default", guidance: { ko: "132px 최소 높이와 세로 크기 조절을 확인합니다.", en: "Inspect the 132px minimum height and vertical resize." } },
-      { id: "focus-visible", guidance: { ko: "긴 글을 입력해도 초점선과 너비가 유지되는지 확인합니다.", en: "Confirm focus and width remain stable with long content." } },
+      { id: "focus-visible", guidance: { ko: "긴 글을 입력해도 초점선과 너비가 유지되는지 확인합니다.", en: "Confirm focus and width remain stable with long content." }, inspection: interactiveInspection },
       { id: "invalid", guidance: { ko: "오류 문구가 입력 내용과 함께 읽히는지 확인합니다.", en: "Confirm error copy is associated with the entered content." } },
     ],
     props: [
@@ -121,7 +122,7 @@ export const formComponents = [
     dependencies: ["@phosphor-icons/react"],
     states: [
       { id: "default", guidance: { ko: "현재 선택값과 장식 화살표를 확인합니다.", en: "Inspect the current value and decorative caret." } },
-      { id: "focus-visible", guidance: { ko: "키보드로 선택 목록을 열고 초점선을 확인합니다.", en: "Open the native list by keyboard and inspect focus." } },
+      { id: "focus-visible", guidance: { ko: "키보드로 선택 목록을 열고 초점선을 확인합니다.", en: "Open the native list by keyboard and inspect focus." }, inspection: interactiveInspection },
       { id: "disabled", guidance: { ko: "선택이 막히고 값은 읽을 수 있는지 확인합니다.", en: "Confirm selection is blocked while the value remains readable." } },
     ],
     props: [
@@ -146,7 +147,7 @@ export const formComponents = [
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "default", guidance: { ko: "현재 값과 목록 열기 단서가 함께 보이는지 확인합니다.", en: "Confirm the current value and opening affordance are both visible." } },
-      { id: "open", guidance: { ko: "목록 너비와 화면 충돌 처리가 자연스러운지 확인합니다.", en: "Inspect trigger-width sizing and viewport collision handling." } },
+      { id: "open", guidance: { ko: "목록 너비와 화면 충돌 처리가 자연스러운지 확인합니다.", en: "Inspect trigger-width sizing and viewport collision handling." }, inspection: interactiveInspection },
       { id: "disabled", guidance: { ko: "비활성 항목을 건너뛰면서도 읽을 수 있는지 확인합니다.", en: "Confirm disabled options remain readable and are skipped by navigation." } },
     ],
     props: [
