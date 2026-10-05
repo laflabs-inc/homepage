@@ -10,6 +10,7 @@ export type StatusLabelProps = ComponentPropsWithoutRef<"span"> & {
 }
 
 export const StatusLabel = forwardRef<HTMLSpanElement, StatusLabelProps>(function StatusLabel({
+  children,
   className,
   tone,
   variant,
@@ -22,6 +23,9 @@ export const StatusLabel = forwardRef<HTMLSpanElement, StatusLabelProps>(functio
       ref={ref}
       className={[styles.label, className].filter(Boolean).join(" ")}
       data-tone={resolvedTone}
-    />
+    >
+      <span aria-hidden="true" className={styles.marker} data-status-marker />
+      {children}
+    </span>
   )
 })

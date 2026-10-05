@@ -54,12 +54,12 @@ describe("Panel", () => {
 })
 
 describe("StatusLabel", () => {
-  it("uses text and a semantic edge without a decorative marker", () => {
+  it("pairs explicit text with one square semantic marker", () => {
     render(<StatusLabel variant="success">Published</StatusLabel>)
 
     const label = screen.getByText("Published")
     expect(label).toHaveAttribute("data-tone", "success")
-    expect(label.querySelector("[data-status-marker]")).not.toBeInTheDocument()
+    expect(label.querySelector("[data-status-marker]")).toHaveAttribute("aria-hidden", "true")
     expect(label).not.toHaveAttribute("role")
     expect(label).not.toHaveAttribute("aria-live")
   })

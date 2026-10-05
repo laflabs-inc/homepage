@@ -243,11 +243,11 @@ Composes related actions and supporting parts in one connected frame.
 
 Maturity: **stable** · Category: **action**
 
-Navigates to another address using Button's visual contract.
+Uses Button's appearance while preserving a native anchor for navigation.
 
-- Use: Use it for navigation that needs strong CTA hierarchy.
-- Avoid: Use Button for actions that change the current interface.
-- Accessibility: Preserve native anchor semantics and name the destination.
+- Use: Use it only when a prominent CTA navigates to another page or address.
+- Avoid: Use Button for in-place actions such as save, submit, or opening a dialog.
+- Accessibility: Do not replace it with Button; preserve native anchor semantics and a destination-specific name.
 - States: `primary`, `secondary`, `inverse`, `ghost`, `icon`
 - Related components: `button`, `text-link`
 
@@ -565,7 +565,7 @@ Signals indeterminate progress as one gap travels around a stationary square per
 
 Maturity: **candidate** · Category: **feedback**
 
-Shows a real entity state with a square semantic edge and concise text.
+Shows a real entity state with a small color square and concise text.
 
 - Use: Use it for static document or media lifecycle metadata.
 - Avoid: Do not use it as an action, filter, long explanation, or live error.

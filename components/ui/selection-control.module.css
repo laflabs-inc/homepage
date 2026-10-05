@@ -43,11 +43,23 @@
   pointer-events: none;
 }
 
-.checkboxGlyph {
+.checkboxSelection,
+.checkboxMixed {
   position: absolute;
+  background: var(--paper);
   opacity: 0;
-  transform: scale(0.55) rotate(-8deg);
+  transform: scale(0.5);
   transform-origin: center;
+}
+
+.checkboxSelection {
+  width: 8px;
+  height: 8px;
+}
+
+.checkboxMixed {
+  width: 10px;
+  height: 2px;
 }
 
 .checkboxInput:checked:not([aria-checked="mixed"]) + .checkboxIndicator,
@@ -58,10 +70,10 @@
 
 .checkboxInput:checked:not([aria-checked="mixed"])
   + .checkboxIndicator
-  .checkboxCheckedGlyph,
-.checkboxInput[aria-checked="mixed"] + .checkboxIndicator .checkboxMixedGlyph {
+  .checkboxSelection,
+.checkboxInput[aria-checked="mixed"] + .checkboxIndicator .checkboxMixed {
   opacity: 1;
-  transform: scale(1) rotate(0);
+  transform: scale(1);
 }
 
 .checkboxInput:active + .checkboxIndicator {
@@ -239,7 +251,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .checkboxIndicator,
-  .checkboxGlyph,
+  .checkboxSelection,
+  .checkboxMixed,
   .radioIndicator,
   .radioIndicator::after,
   .switchTrack,
@@ -256,7 +269,8 @@
       background-color 180ms ease;
   }
 
-  .checkboxGlyph {
+  .checkboxSelection,
+  .checkboxMixed {
     transition:
       opacity 120ms ease,
       transform 180ms cubic-bezier(0.16, 1, 0.3, 1);

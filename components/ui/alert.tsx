@@ -61,6 +61,7 @@ export const Alert = forwardRef<HTMLElement, AlertProps>(function Alert(
         data-variant={variant}
         role={live ? "alert" : undefined}
       >
+        <span aria-hidden="true" className={styles.alertSignal} data-alert-signal />
         {title !== undefined ? (
           <>
             <AlertIcon><DefaultIcon size={20} weight="bold" /></AlertIcon>

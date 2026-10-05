@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs"
-import { join } from "node:path"
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
@@ -10,9 +8,12 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 
 describe("Alert", () => {
-  it("uses an Ink icon foreground while semantic color remains structural", () => {
-    const stylesheet = readFileSync(join(process.cwd(), "components/ui/feedback.module.css"), "utf8")
-    expect(stylesheet).toMatch(/\.alertIcon\s*\{[^}]*color:\s*var\(--ink\);/s)
+  it("keeps one semantic signal inside every persistent alert", () => {
+    render(<Alert title="안내" variant="info">변경 사항을 확인해 주세요.</Alert>)
+
+    const alert = screen.getByRole("region", { name: "안내" })
+    expect(alert.querySelectorAll("[data-alert-signal]")).toHaveLength(1)
+    expect(alert.querySelector("[data-alert-signal]")).toHaveAttribute("aria-hidden", "true")
   })
 
   it("announces live errors and exposes their semantic variant", () => {

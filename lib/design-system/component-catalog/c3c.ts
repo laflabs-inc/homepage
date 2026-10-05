@@ -149,7 +149,7 @@ export const coreUiC3CComponents = [
     relatedComponents: ["toast", "alert-dialog", "button"],
     dependencies: ["@phosphor-icons/react"],
     states: [
-      { id: "info", guidance: { ko: "구조적 가장자리와 제목으로 정보를 구분합니다.", en: "Distinguish information with the structural edge and title." } },
+      { id: "info", guidance: { ko: "왼쪽 상태 신호와 제목으로 정보를 구분합니다.", en: "Distinguish information with the left status signal and title." } },
       { id: "warning", guidance: { ko: "주의 상태와 다음 행동을 구체적으로 적습니다.", en: "State the caution and next action concretely." } },
       { id: "error", guidance: { ko: "오류 원인과 가능한 복구 동작을 함께 제공합니다.", en: "Provide the error reason and an available recovery action." } },
       { id: "live", guidance: { ko: "새 긴급 상태만 alert로 발표합니다.", en: "Announce only a newly created urgent state as an alert." } },
@@ -165,7 +165,7 @@ export const coreUiC3CComponents = [
     name: "Status Label",
     category: "feedback",
     maturity: "candidate",
-    summary: { ko: "사각 의미 경계와 짧은 텍스트로 실제 개체 상태를 나타냅니다.", en: "Shows a real entity state with a square semantic edge and concise text." },
+    summary: { ko: "작은 색상 사각형과 짧은 텍스트로 실제 개체 상태를 나타냅니다.", en: "Shows a real entity state with a small color square and concise text." },
     whenToUse: { ko: "문서나 미디어의 발행·처리 상태처럼 정적인 메타데이터에 씁니다.", en: "Use it for static document or media lifecycle metadata." },
     whenNotToUse: { ko: "클릭 동작, 필터, 긴 설명이나 실시간 오류를 대신하지 않습니다.", en: "Do not use it as an action, filter, long explanation, or live error." },
     accessibility: { ko: "색이 없어도 뜻이 분명한 텍스트를 반드시 제공합니다.", en: "Always provide explicit status text that remains clear without color." },
@@ -183,7 +183,7 @@ export const coreUiC3CComponents = [
       { id: "error", guidance: { ko: "실패 상태를 오류 원인과 혼동하지 않게 짧게 표시합니다.", en: "Label the failed state without replacing the error explanation." } },
     ],
     props: [
-      { name: "tone", type: '"neutral" | "info" | "success" | "warning" | "error"', required: false, description: { ko: "의미 경계 색입니다.", en: "Sets the semantic edge color." } },
+      { name: "tone", type: '"neutral" | "info" | "success" | "warning" | "error"', required: false, description: { ko: "상태 사각형의 의미 색상입니다.", en: "Sets the semantic color of the status square." } },
       { name: "variant", type: '"neutral" | "info" | "success" | "warning" | "error"', required: false, description: { ko: "한 번의 호환 기간 동안 유지되는 별칭입니다.", en: "Compatibility alias retained for one release." } },
       { name: "children", type: "ReactNode", required: true, description: { ko: "상태를 직접 설명하는 짧은 문구입니다.", en: "Concise text that names the state." } },
     ],

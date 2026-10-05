@@ -37,7 +37,7 @@ export const structureComponents = [
     states: [
       { id: "default", guidance: { ko: "Paper 면과 1px 경계가 주변 콘텐츠와 구분되는지 확인합니다.", en: "Confirm the Paper surface and one-pixel boundary separate the module from surrounding content." } },
       { id: "subtle", guidance: { ko: "옅은 파란 면이 내용보다 먼저 튀지 않는지 확인합니다.", en: "Confirm the quiet blue surface does not compete with the content." } },
-      { id: "inverse", guidance: { ko: "Ink 면에서 제목, 설명, 구분선의 대비를 확인합니다.", en: "Confirm title, description, and rules retain sufficient contrast on Ink." } },
+      { id: "inverse", guidance: { ko: "Ink 면에서 제목, 설명, 상태의 대비를 확인합니다.", en: "Confirm title, description, and status retain sufficient contrast on Ink." } },
       { id: "action", guidance: { ko: "좁은 화면에서 제목과 동작이 한 열로 자연스럽게 쌓이는지 확인합니다.", en: "Confirm the title and action stack naturally into one column on narrow screens." } },
     ],
     props: [

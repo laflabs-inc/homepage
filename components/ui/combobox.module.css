@@ -1,6 +1,12 @@
 .root { position: relative; width: 100%; color: var(--ink); }
-.control { position: relative; display: flex; min-height: 48px; border: 1px solid var(--line); background: var(--paper); }
-.root[data-open] .control { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+.control { position: relative; display: flex; min-height: 48px; border: 1px solid var(--line); background: var(--paper); transition: border-color 160ms ease, outline-color 160ms ease; }
+.root[data-open] .control,
+.control:has(.input:focus-visible) {
+  border-color: var(--blue);
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.control:has(.input[aria-invalid="true"]) { border-color: var(--error); }
 .input { width: 100%; min-width: 0; padding: 0 44px 0 14px; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
 .input::placeholder { color: var(--muted); }
 .input:disabled { cursor: not-allowed; opacity: .5; }
@@ -14,4 +20,4 @@
 .option[data-disabled][data-active] { background: transparent; color: var(--muted); }
 .empty { margin: 0; padding: 18px 12px; color: var(--muted); font-size: 12px; }
 @keyframes combobox-in { from { opacity: 0; transform: translateY(-4px); } }
-@media (prefers-reduced-motion: reduce) { .listbox { animation: none; } .icon { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .control, .listbox { animation: none; transition: none; } .icon { transition: none; } }
