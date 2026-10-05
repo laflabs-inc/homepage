@@ -86,4 +86,4 @@
 - [x] Verify `/design/patterns` at desktop and mobile widths in Korean and English, including matrix overflow and component links.
 - [x] Verify keyboard reading order, focus visibility, and reduced-motion behavior.
 - [x] Run the design detector once on changed UI files and complete a bounded self-review because delegation is not authorized for this run.
-- [ ] Push `codex/core-ui-c3d` and open a stacked pull request against `codex/core-ui-c3c` while PR #58 remains open; otherwise retarget to `main`.
+- [x] Push `codex/core-ui-c3d` and open a stacked pull request against `codex/core-ui-c3c` while PR #58 remains open; otherwise retarget to `main`.
