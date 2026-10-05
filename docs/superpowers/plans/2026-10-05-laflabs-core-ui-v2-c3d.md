@@ -75,10 +75,10 @@
 - Modify: `components/admin/asset-library.tsx`
 - Modify: relevant existing component tests under `tests/components/`
 
-- [ ] Add or tighten tests proving the Agent error uses compound Alert anatomy and Asset metadata uses DialogBody.
-- [ ] Migrate Agent settings to `AlertIcon`, `AlertContent`, `AlertTitle`, and `AlertDescription`, and replace StatusLabel `variant` with `tone`.
-- [ ] Migrate the Asset metadata form to `DialogBody` and StatusLabel `tone` while preserving current mutations, labels, and compatibility behavior elsewhere.
-- [ ] Run focused Admin tests and commit representative adoption.
+- [x] Add or tighten tests proving the Agent error uses compound Alert anatomy and Asset metadata uses DialogBody.
+- [x] Migrate Agent settings to `AlertIcon`, `AlertContent`, `AlertTitle`, and `AlertDescription`, and replace StatusLabel `variant` with `tone`.
+- [x] Migrate the Asset metadata form to `DialogBody` and StatusLabel `tone` while preserving current mutations, labels, and compatibility behavior elsewhere.
+- [x] Run focused Admin tests and commit representative adoption.
 
 ### Task 5: Release verification and pull request
 
