@@ -20,9 +20,7 @@ export const Spinner = forwardRef<HTMLSpanElement, SpinnerProps>(function Spinne
       data-size={size}
       role="status"
     >
-      {["top", "right", "bottom", "left"].map((side) => (
-        <span aria-hidden="true" data-side={side} data-spinner-segment="" key={side} />
-      ))}
+      <span aria-hidden="true" data-spinner-track="" />
     </span>
   )
 })
