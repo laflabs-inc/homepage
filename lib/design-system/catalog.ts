@@ -1,8 +1,10 @@
 import { assets } from "./assets"
 import { components } from "./components"
 import { foundations } from "./foundations"
+import { migrations } from "./migrations"
 import { designSystemMeta } from "./meta"
 import { patterns } from "./patterns"
+import { recipes } from "./recipes"
 import {
   assertDesignCatalog,
   type ComponentEntry,
@@ -17,6 +19,8 @@ export const designCatalog = {
   foundations,
   components,
   patterns,
+  recipes,
+  migrations,
   assets,
 } satisfies DesignCatalog
 
