@@ -14,17 +14,22 @@
   font: 400 16px / 1.5 var(--font-geist-sans), "Pretendard", sans-serif;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, color 160ms ease;
+  transition: border-color 160ms ease, outline-color 160ms ease;
 }
 
 .trigger:hover:not([data-disabled]) {
   border-color: var(--ink);
 }
 
-.trigger:focus-visible {
+.trigger:focus-visible,
+.trigger[data-state="open"] {
   border-color: var(--blue);
   outline: 2px solid var(--blue);
   outline-offset: 2px;
+}
+
+.trigger[aria-invalid="true"] {
+  border-color: var(--error);
 }
 
 .trigger[data-placeholder] {

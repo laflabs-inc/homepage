@@ -18,7 +18,7 @@ export const selectionComponents = [
     dependencies: [],
     states: [
       { id: "unchecked", guidance: { ko: "이름과 선택되지 않은 사각 컨트롤을 확인합니다.", en: "Inspect the label and unchecked square control." } },
-      { id: "checked", guidance: { ko: "선택 상태가 색에만 의존하지 않는지 확인합니다.", en: "Confirm selected state is not communicated by color alone." } },
+      { id: "checked", guidance: { ko: "Radio Group과 같은 안쪽 사각형으로 선택 상태가 함께 드러나는지 확인합니다.", en: "Confirm the inner square shared with Radio Group communicates selection alongside color." } },
       { id: "indeterminate", guidance: { ko: "부분 선택이 mixed 상태로 전달되는지 확인합니다.", en: "Confirm partial selection is exposed as mixed." } },
       { id: "disabled", guidance: { ko: "비활성 컨트롤이 실행되지 않는지 확인합니다.", en: "Confirm the disabled control cannot change." } },
     ],

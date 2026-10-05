@@ -8,13 +8,14 @@ import { RadioGroup } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
 
 describe("Checkbox", () => {
-  it("renders dedicated checked and mixed glyphs instead of drawing them on the input background", () => {
+  it("uses the same square selection mark as Radio Group and reserves a bar for mixed state", () => {
     const ref = createRef<HTMLInputElement>()
     const { container } = render(<Checkbox label="선택" ref={ref} />)
     expect(ref.current).toBe(screen.getByRole("checkbox", { name: "선택" }))
     expect(container.querySelector("[data-checkbox-indicator]")).toBeInTheDocument()
-    expect(container.querySelector('[data-checkbox-glyph="checked"]')).toBeInTheDocument()
-    expect(container.querySelector('[data-checkbox-glyph="mixed"]')).toBeInTheDocument()
+    expect(container.querySelector("[data-checkbox-selection]")).toBeInTheDocument()
+    expect(container.querySelector("[data-checkbox-mixed]")).toBeInTheDocument()
+    expect(container.querySelector("[data-checkbox-indicator] svg")).not.toBeInTheDocument()
   })
 
   it("updates its native indeterminate and checked states", () => {

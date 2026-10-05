@@ -25,7 +25,6 @@
   column-gap: 24px;
   row-gap: 9px;
   align-items: start;
-  border-bottom: 1px solid var(--panel-line);
 }
 
 .title,
@@ -76,7 +75,6 @@
 .footer {
   min-width: 0;
   padding: 16px clamp(20px, 3vw, 28px);
-  border-top: 1px solid var(--panel-line);
   color: var(--muted);
   font: 600 11px / 1.5 var(--font-geist-mono), "Pretendard", monospace;
 }

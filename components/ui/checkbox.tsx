@@ -1,6 +1,5 @@
 "use client"
 
-import { Check, Minus } from "@phosphor-icons/react"
 import {
   useCallback,
   useEffect,
@@ -69,18 +68,8 @@ export function Checkbox({
         type="checkbox"
       />
       <span aria-hidden className={styles.checkboxIndicator} data-checkbox-indicator>
-        <Check
-          className={`${styles.checkboxGlyph} ${styles.checkboxCheckedGlyph}`}
-          data-checkbox-glyph="checked"
-          size={14}
-          weight="bold"
-        />
-        <Minus
-          className={`${styles.checkboxGlyph} ${styles.checkboxMixedGlyph}`}
-          data-checkbox-glyph="mixed"
-          size={13}
-          weight="bold"
-        />
+        <span className={styles.checkboxSelection} data-checkbox-selection />
+        <span className={styles.checkboxMixed} data-checkbox-mixed />
       </span>
       <span className={styles.choiceCopy}>
         <span className={styles.choiceLabel} id={labelId}>{label}</span>

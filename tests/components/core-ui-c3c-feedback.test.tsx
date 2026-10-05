@@ -27,6 +27,7 @@ describe("Alert C3C", () => {
     const alert = screen.getByTestId("alert")
     const title = screen.getByRole("heading", { name: "배포 준비 완료" })
     expect(alert).toHaveAttribute("aria-labelledby", title.id)
+    expect(alert.querySelector("[data-alert-signal]")).toHaveAttribute("aria-hidden", "true")
     expect(screen.getByRole("button", { name: "검토하기" })).toBeInTheDocument()
     expect(screen.getAllByRole("heading", { name: "배포 준비 완료" })).toHaveLength(1)
   })
