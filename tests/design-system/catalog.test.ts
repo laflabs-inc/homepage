@@ -563,12 +563,56 @@ describe("production design catalog", () => {
       'import { CodeBlock } from "@/components/content/code-block"',
     )
     expect(getComponentEntry("panel")?.importExample).toBe(
-      'import { Panel, PanelContent, PanelDescription, PanelHeader, PanelTitle } from "@/components/ui/panel"',
+      `import {
+  Panel,
+  PanelContent,
+  PanelDescription,
+  PanelHeader,
+  PanelTitle,
+} from "@/components/ui/panel"`,
     )
     expect(getComponentEntry("status-label")?.importExample).toBe(
       'import { StatusLabel } from "@/components/ui/status-label"',
     )
     expect(getComponentEntry("missing")).toBeUndefined()
+  })
+
+  it("publishes readable multiline imports and nested TSX examples", () => {
+    expect(getComponentEntry("field")?.importExample).toBe(`import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+  FieldTitle,
+} from "@/components/ui/field"`)
+    expect(getComponentEntry("field")?.usageExample).toBe(`<FieldSet>
+  <FieldLegend>Document settings</FieldLegend>
+  <FieldGroup>
+    <Field orientation="responsive">
+      <FieldContent>
+        <FieldTitle>Publishing</FieldTitle>
+        <FieldLabel>Slug</FieldLabel>
+        <FieldDescription>Public identifier</FieldDescription>
+      </FieldContent>
+      <Input />
+    </Field>
+  </FieldGroup>
+</FieldSet>`)
+
+    for (const component of designCatalog.components) {
+      for (const example of [component.importExample, component.usageExample]) {
+        if (!example) continue
+        expect(
+          example.split("\n").every((line) => line.length <= 80),
+          `${component.id} contains a code line longer than 80 characters`,
+        ).toBe(true)
+      }
+    }
   })
 
   it("keeps every component demo key aligned with a real source file", () => {

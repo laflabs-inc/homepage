@@ -1114,6 +1114,7 @@
 
 .componentImport code {
   font-size: 12px;
+  white-space: pre;
 }
 
 .componentCode {
