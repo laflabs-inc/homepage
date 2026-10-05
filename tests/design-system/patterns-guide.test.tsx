@@ -27,7 +27,8 @@ describe("PatternsGuide C3D publication", () => {
     render(<PatternsGuide locale="en" />)
 
     expect(screen.getByRole("heading", { name: "Migration reference" })).toBeInTheDocument()
-    const migration = screen.getByRole("group", { name: "Action to Button / ButtonLink" })
+    const migrationList = screen.getByRole("list", { name: "Migration reference" })
+    const migration = within(migrationList).getAllByRole("listitem")[0]
     expect(within(migration).getByText("Action")).toBeInTheDocument()
     expect(within(migration).getByText("Button / ButtonLink")).toBeInTheDocument()
     expect(within(migration).getByRole("link", { name: "Button" })).toHaveAttribute(

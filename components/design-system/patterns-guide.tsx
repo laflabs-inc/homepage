@@ -163,11 +163,7 @@ function Recipe({ recipe, locale }: { recipe: RecipeEntry; locale: Locale }) {
 
 function Migration({ migration, locale }: { migration: MigrationEntry; locale: Locale }) {
   return (
-    <li
-      className={styles.migrationRow}
-      role="group"
-      aria-label={`${migration.legacyApi} to ${migration.recommendedApi}`}
-    >
+    <li className={styles.migrationRow}>
       <div className={styles.migrationRoute}>
         <code>{migration.legacyApi}</code>
         <span aria-hidden="true">→</span>
@@ -315,7 +311,7 @@ export function PatternsGuide({ locale }: { locale: Locale }) {
           <h2 id="migration-reference-title">{copy[locale].migration}</h2>
           <p>{copy[locale].migrationDescription}</p>
         </header>
-        <ul className={styles.migrationList}>
+        <ul className={styles.migrationList} aria-labelledby="migration-reference-title">
           {designCatalog.migrations.map((migration) => (
             <Migration key={migration.id} migration={migration} locale={locale} />
           ))}
