@@ -62,11 +62,11 @@
 - Modify: `docs/platform-roadmap.md`
 - Regenerate: `DESIGN.md`
 
-- [ ] Add failing serializer tests for recipe state matrices and migration guidance in the provider-neutral guide and Skill pattern reference.
-- [ ] Serialize recipes and migrations into `guide.md`, `context.json`, `SKILL.md` references, and the deterministic Skill archive without adding another reference file.
-- [ ] Bump the catalog to `2026.10.2` dated `2026-10-05`.
-- [ ] Mark C3D shipped in the roadmap while keeping the next product milestones unchanged.
-- [ ] Run `npm run design:generate`, `npm run design:check`, and focused serializer tests; commit the publication delivery.
+- [x] Add failing serializer tests for recipe state matrices and migration guidance in the provider-neutral guide and Skill pattern reference.
+- [x] Serialize recipes and migrations into `guide.md`, `context.json`, `SKILL.md` references, and the deterministic Skill archive without adding another reference file.
+- [x] Bump the catalog to `2026.10.2` dated `2026-10-05`.
+- [x] Mark C3D shipped in the roadmap while keeping the next product milestones unchanged.
+- [x] Run `npm run design:generate`, `npm run design:check`, and focused serializer tests; commit the publication delivery.
 
 ### Task 4: Representative application adoption
 

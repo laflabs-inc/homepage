@@ -122,8 +122,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.10.1",
-      updatedAt: "2026-10-04",
+      version: "2026.10.2",
+      updatedAt: "2026-10-05",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],

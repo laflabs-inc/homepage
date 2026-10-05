@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.1 · Updated: 2026-10-04
+System version: 2026.10.2 · Updated: 2026-10-05
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -734,6 +734,123 @@ Loading, empty, and error states share one visual and verbal grammar.
 - Provide a retry action for errors when recovery is available.
 - Do not fill empty states with invented example data.
 - Related components: `alert`, `button`, `empty-state`, `panel`, `skeleton`, `status-label`, `text-link`
+
+## Cross-component recipes and state matrices
+
+### Consequential action (`consequential-action`)
+
+Separate confirmation, progress, and outcome for deletion or permission changes.
+
+Composition:
+1. Name the target and consequence in the initiating Button.
+2. Require an explicit Cancel or Action decision in Alert Dialog.
+3. Keep failure in an inline Alert; confirm success through updated state and Toast.
+
+| State | Condition | Interface | Next action |
+| --- | --- | --- | --- |
+| `ready` | Action is available | Show the action with its target and consequence. | Open the confirmation dialog. |
+| `confirming` | Waiting for a decision | Show consequence, Cancel, and Action in Alert Dialog. | Cancel or confirm the action. |
+| `submitting` | Action is in progress | Keep the Action loading and block duplicate input. | Wait for the outcome. |
+| `success` | Action completed | Update the visible state first, then confirm completion with Toast. | Continue from the updated state. |
+| `error` | Action failed | Keep the cause and recovery in the dialog or originating inline Alert. | Resolve the problem and retry. |
+
+Related components: `button`, `alert-dialog`, `alert`, `status-label`, `toast`
+
+### Document publishing (`document-publishing`)
+
+Compose metadata, validation, saving, and publishing as one continuous workflow.
+
+Composition:
+1. Separate document metadata from body settings with FieldSet and Field.
+2. Group save and publish actions while keeping their priority explicit.
+3. Show validation errors beside the field and in Alert, then announce completion with Toast.
+
+| State | Condition | Interface | Next action |
+| --- | --- | --- | --- |
+| `draft` | Editable draft | Show editable fields and draft status with Save available. | Save the current changes. |
+| `saving` | Save request in progress | Lock submission and keep the Button in its loading state. | Prevent duplicate submission until completion. |
+| `validation-error` | Required information is missing or invalid | Name the problem and recovery in FieldError and Alert. | Move to and correct the first invalid field. |
+| `published` | Publication completed | Update the publication status and confirm it briefly with Toast. | Open the public document or continue editing. |
+
+Related components: `field`, `input-group`, `switch`, `button-group`, `alert`, `status-label`, `toast`
+
+### Searchable collection (`searchable-collection`)
+
+Combine search, filters, results, and pagination into one predictable collection flow.
+
+Composition:
+1. Place search and filters in one Field region before the collection.
+2. Choose Item, Data Table, and Pagination according to the result structure.
+3. Render loading, empty, and error states exclusively in the collection region.
+
+| State | Condition | Interface | Next action |
+| --- | --- | --- | --- |
+| `idle` | Ready for a query or filter | Keep the current criteria and existing results visible. | Change the query or filters. |
+| `loading` | New results are loading | Show a collection-shaped Skeleton while preserving the query controls. | Hold the result region until the request completes. |
+| `results` | Matching entries are available | Show results and the current page, enabling only valid Pagination destinations. | Open an item or move to another result page. |
+| `empty` | No entries match | Use Empty State to name the active criteria and a way to reset them. | Clear the query or filters. |
+| `error` | Collection request failed | Use Alert to explain the failure and provide Retry. | Retry with the same criteria. |
+
+Related components: `field`, `input-group`, `combobox`, `item`, `data-table`, `pagination`, `skeleton`, `empty-state`, `alert`
+
+## Migration reference
+
+### `Action` → `Button / ButtonLink`
+
+Separate actions from navigation to preserve native semantics and interaction.
+
+- Use Button for an action in the current interface.
+- Use ButtonLink when the result is navigation.
+- Replacement components: `button`, `button-link`
+
+### `Alert title prop` → `Alert compound anatomy`
+
+Compose icon, title, description, and action explicitly as needed.
+
+- Use AlertIcon, AlertContent, AlertTitle, and AlertDescription.
+- The title prop remains for compatibility with existing surfaces.
+- Replacement components: `alert`
+
+### `DialogContent closeLabel-only composition` → `DialogBody / DialogClose composition`
+
+Separate long content from actions and let the surface place its close control.
+
+- Place scrollable content inside DialogBody.
+- Compose an explicit close action with DialogClose.
+- Keep closeLabel only for the compatible legacy X control.
+- Replacement components: `dialog`, `button`
+
+### `IconControl` → `Button size="icon"`
+
+Icon-only actions now share Button states and accessibility contracts.
+
+- Provide aria-label when no visible label is present.
+- Hide the decorative icon from assistive technology.
+- Replacement components: `button`
+
+### `NoticeToastProvider / useNoticeToast` → `ToastProvider / useToast`
+
+Unify transient outcomes under one Toast queue and state contract.
+
+- Legacy names remain compatible; new code uses the Toast API.
+- Use Alert for persistent errors or recovery actions.
+- Replacement components: `toast`, `alert`
+
+### `SegmentedToggle` → `SegmentedControl`
+
+Replace the two-option toggle with one selection contract that supports multiple values.
+
+- Use the same items structure for two or more options.
+- Always provide the current value and a group label.
+- Replacement components: `segmented-control`
+
+### `StatusLabel variant` → `StatusLabel tone`
+
+Express status meaning with semantic tone instead of a visual variant.
+
+- variant remains compatible; new code uses tone.
+- Pair tone with text instead of communicating through color alone.
+- Replacement components: `status-label`
 
 ## Public machine resources
 
