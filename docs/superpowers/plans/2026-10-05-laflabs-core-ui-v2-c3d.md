@@ -46,12 +46,12 @@
 - Modify: `components/design-system/design-system.module.css`
 - Create: `tests/design-system/patterns-guide.test.tsx`
 
-- [ ] Add failing render tests for bilingual recipe headings, semantic state tables, component links, and migration rows.
-- [ ] Add a recipe section after structural patterns, with concise steps and a state matrix per recipe.
-- [ ] Add a migration reference after recipes, using direct legacy-to-recommended rows rather than cards.
-- [ ] Keep table headers and component links accessible; use horizontal overflow only where the matrix cannot remain legible at 320px.
-- [ ] Match the existing Pattern page rhythm without adding decorative cards, duplicate section numbering, or new accent colors.
-- [ ] Run focused guide tests and commit the public documentation delivery.
+- [x] Add failing render tests for bilingual recipe headings, semantic state tables, component links, and migration rows.
+- [x] Add a recipe section after structural patterns, with concise steps and a state matrix per recipe.
+- [x] Add a migration reference after recipes, using direct legacy-to-recommended rows rather than cards.
+- [x] Keep table headers and component links accessible; use horizontal overflow only where the matrix cannot remain legible at 320px.
+- [x] Match the existing Pattern page rhythm without adding decorative cards, duplicate section numbering, or new accent colors.
+- [x] Run focused guide tests and commit the public documentation delivery.
 
 ### Task 3: AI-readable publication and generated artifact alignment
 
