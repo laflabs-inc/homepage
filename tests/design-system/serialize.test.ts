@@ -103,6 +103,7 @@ describe("design-system serializers", () => {
     expect(skill).toContain("Choose a published Recipe before composing a common documented task")
 
     for (const recipe of designCatalog.recipes) {
+      expect(recipe.usageExample).toContain("import ")
       expect(guide).toContain(`\`${recipe.id}\``)
       expect(guide).toContain(`Category: **${recipe.category}**`)
       expect(guide).toContain(recipe.components.map((id) => `\`${id}\``).join(", "))
@@ -116,6 +117,10 @@ describe("design-system serializers", () => {
       expect(patterns).toContain(recipe.usageExample)
       expect(patterns).toContain("```tsx")
     }
+
+    const searchRecipe = designCatalog.recipes.find(({ id }) => id === "search-filter-field")
+    expect(searchRecipe?.usageExample).toContain("emptyText=")
+    expect(searchRecipe?.usageExample).toContain("options=")
 
     expect(guide).toBe(serializeDesignGuide())
     expect(files).toEqual(serializeSkillFiles())

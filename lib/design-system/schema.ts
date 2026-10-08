@@ -11,6 +11,7 @@ import {
   type RecipeCategory,
   type RecipeDemoKey,
 } from "./recipe-options"
+import { formatComponentUsageExample } from "./format-code-example"
 
 export type { ComponentCategory, DemoKey } from "./component-options"
 
@@ -360,6 +361,9 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
     if (recipe.responsive.length === 0) fail("recipes", recipe.id, "requires responsive guidance")
     recipe.responsive.forEach((item) => assertLocaleText(item, "recipes", recipe.id))
     if (!recipe.usageExample.trim()) fail("recipes", recipe.id, "missing usage example")
+    if (formatComponentUsageExample(recipe.usageExample) !== recipe.usageExample) {
+      fail("recipes", recipe.id, "unformatted usage example")
+    }
 
     if (recipe.components.length === 0) fail("recipes", recipe.id, "requires components")
     for (const componentId of recipe.components) {

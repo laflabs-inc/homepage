@@ -32,10 +32,19 @@
 
 .searchField,
 .filterField,
+.searchFeedback,
 .settingsForm,
 .collectionSurface,
 .collectionContent {
   min-width: 0;
+}
+
+.searchFeedback {
+  grid-column: 1 / -1;
+}
+
+.mobileCollection {
+  display: none;
 }
 
 .settingsForm {
@@ -86,6 +95,14 @@
   .searchField,
   .filterField {
     width: 100%;
+  }
+
+  .collectionTable {
+    display: none;
+  }
+
+  .mobileCollection {
+    display: grid;
   }
 }
 

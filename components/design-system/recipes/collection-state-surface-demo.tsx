@@ -17,6 +17,13 @@ import {
   PanelTitle,
 } from "@/components/ui/panel"
 import { Alert, AlertAction } from "@/components/ui/alert"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@/components/ui/item"
 import { Skeleton } from "@/components/ui/skeleton"
 import { StatusLabel } from "@/components/ui/status-label"
 import {
@@ -42,9 +49,20 @@ function LoadingState({ locale }: Pick<RecipeDemoProps, "locale">) {
 }
 
 function PopulatedState({ locale }: Pick<RecipeDemoProps, "locale">) {
+  const rows = locale === "ko"
+    ? [
+        { title: "운영 정책", status: "발행됨", tone: "success" as const, updated: "2026-10-07" },
+        { title: "릴리스 안내", status: "초안", tone: "neutral" as const, updated: "2026-10-06" },
+      ]
+    : [
+        { title: "Operations policy", status: "Published", tone: "success" as const, updated: "2026-10-07" },
+        { title: "Release notes", status: "Draft", tone: "neutral" as const, updated: "2026-10-06" },
+      ]
+
   return (
     <>
-      <Table>
+      <div className={styles.collectionTable}>
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{locale === "ko" ? "문서" : "Document"}</TableHead>
@@ -64,7 +82,21 @@ function PopulatedState({ locale }: Pick<RecipeDemoProps, "locale">) {
             <TableCell>2026-10-06</TableCell>
           </TableRow>
         </TableBody>
-      </Table>
+        </Table>
+      </div>
+      <div className={styles.mobileCollection}>
+        {rows.map((row) => (
+          <Item key={row.title}>
+            <ItemContent>
+              <ItemTitle>{row.title}</ItemTitle>
+              <ItemDescription>{locale === "ko" ? `수정일 ${row.updated}` : `Updated ${row.updated}`}</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <StatusLabel tone={row.tone}>{row.status}</StatusLabel>
+            </ItemActions>
+          </Item>
+        ))}
+      </div>
       <Pagination aria-label={locale === "ko" ? "문서 목록 페이지" : "Document list pages"}>
         <PaginationContent>
           <PaginationItem><PaginationPrevious disabled href="#" label={locale === "ko" ? "이전 페이지" : "Previous page"}>{locale === "ko" ? "이전" : "Previous"}</PaginationPrevious></PaginationItem>
@@ -87,6 +119,7 @@ export function CollectionStateSurfaceDemo({ locale, state = "loading" }: Recipe
         errorTitle: "문서 목록을 불러오지 못했습니다.",
         errorDescription: "연결을 확인한 뒤 다시 시도해 주세요.",
         retry: "다시 시도",
+        stateNames: { loading: "불러오는 중", populated: "결과 있음", empty: "비어 있음", error: "오류" },
       }
     : {
         title: "Documents",
@@ -97,11 +130,12 @@ export function CollectionStateSurfaceDemo({ locale, state = "loading" }: Recipe
         errorTitle: "Could not load the document list.",
         errorDescription: "Check the connection and try again.",
         retry: "Try again",
+        stateNames: { loading: "loading", populated: "populated", empty: "empty", error: "error" },
       }
 
   return (
     <Panel
-      aria-label={`${state} document collection`}
+      aria-label={`${labels.stateNames[state as keyof typeof labels.stateNames]} ${locale === "ko" ? "문서 목록" : "document collection"}`}
       className={styles.collectionSurface}
     >
       <PanelHeader>

@@ -88,6 +88,25 @@ describe("design-system Recipe previews", () => {
     expect(screen.getByRole("combobox", { name: "Filter by document status" })).toBeEnabled()
   })
 
+  it("keeps the empty search query and offers a working next action", async () => {
+    const user = userEvent.setup()
+    render(
+      <RecipePreview
+        demoKey="search-filter-field"
+        label="Empty search recipe"
+        locale="en"
+        state="empty"
+      />,
+    )
+
+    const query = screen.getByRole("searchbox", { name: "Search documents" })
+    expect(query).toHaveValue("release archive")
+    expect(screen.getByText("No documents match this search.")).toBeVisible()
+    await user.click(screen.getByRole("button", { name: "Clear search" }))
+    expect(query).toHaveValue("")
+    expect(screen.queryByText("No documents match this search.")).not.toBeInTheDocument()
+  })
+
   it("renders named settings groups and stable disabled and saving fixtures", () => {
     const disabled = render(
       <RecipePreview
@@ -130,6 +149,19 @@ describe("design-system Recipe previews", () => {
     },
   )
 
+  it("localizes the Korean collection region name", () => {
+    render(
+      <RecipePreview
+        demoKey="collection-state-surface"
+        label="한국어 컬렉션"
+        locale="ko"
+        state="loading"
+      />,
+    )
+
+    expect(screen.getByRole("region", { name: "불러오는 중 문서 목록" })).toBeVisible()
+  })
+
   it("keeps focus overflow and popup layers visible above adjacent documentation", () => {
     const css = readFileSync(
       join(process.cwd(), "components/design-system/recipes/recipe-demos.module.css"),
@@ -140,6 +172,9 @@ describe("design-system Recipe previews", () => {
     expect(css).toMatch(/\.popupLayer\s*{[^}]*z-index:\s*[2-9]\d*/s)
     expect(css).toContain("@media (max-width: 720px)")
     expect(css).toMatch(/min-width:\s*0/)
+    expect(css).toMatch(/\.mobileCollection\s*{[^}]*display:\s*none/s)
+    expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*\.collectionTable\s*{[^}]*display:\s*none/s)
+    expect(css).toMatch(/@media \(max-width: 720px\)[\s\S]*\.mobileCollection\s*{[^}]*display:\s*grid/s)
   })
 })
 

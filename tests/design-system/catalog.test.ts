@@ -124,6 +124,16 @@ describe("design catalog schema", () => {
       .not.toThrow()
   })
 
+  it("rejects unformatted recipe usage examples", () => {
+    const recipe = {
+      ...validCatalog.recipes[0],
+      usageExample: "<Logo><span>Brand</span></Logo>",
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [recipe] }))
+      .toThrow("recipes site-header-recipe: unformatted usage example")
+  })
+
   it("rejects duplicate recipe ids and demo keys", () => {
     const secondRecipe = {
       ...validCatalog.recipes[0],

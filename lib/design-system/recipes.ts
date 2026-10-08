@@ -71,7 +71,33 @@ const recipeEntries = [
     sourcePaths: [
       "components/design-system/recipes/document-publishing-toolbar-demo.tsx",
     ],
-    usageExample: "<ButtonGroup label=\"Document publishing\"><StatusLabel tone=\"neutral\">Draft</StatusLabel><Button variant=\"secondary\">Save</Button><Button>Publish</Button><DropdownMenu><DropdownMenuTrigger asChild><Button aria-label=\"More publishing options\" size=\"icon\">...</Button></DropdownMenuTrigger></DropdownMenu></ButtonGroup>",
+    usageExample: `import { Button } from "@/components/ui/button"
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { StatusLabel } from "@/components/ui/status-label"
+
+<div>
+  <StatusLabel tone="neutral">Draft</StatusLabel>
+  <DropdownMenu>
+    <ButtonGroup label="Document publishing">
+      <Button variant="secondary">Save draft</Button>
+      <Button>Publish document</Button>
+      <ButtonGroupSeparator />
+      <DropdownMenuTrigger asChild>
+        <Button aria-label="Open publishing options" size="icon">...</Button>
+      </DropdownMenuTrigger>
+    </ButtonGroup>
+    <DropdownMenuContent align="end">
+      <DropdownMenuItem>Schedule publication</DropdownMenuItem>
+      <DropdownMenuItem>Copy preview link</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</div>`,
   },
   {
     id: "search-filter-field",
@@ -94,7 +120,7 @@ const recipeEntries = [
     },
     category: "form",
     demoKey: "search-filter-field",
-    components: ["field", "input-group", "combobox", "button"],
+    components: ["field", "input-group", "combobox", "alert", "button"],
     relatedPatterns: ["collection-row", "responsive-collapse"],
     anatomy: [
       { ko: "검색 필드 label", en: "Search field label" },
@@ -147,7 +173,39 @@ const recipeEntries = [
       },
     ],
     sourcePaths: ["components/design-system/recipes/search-filter-field-demo.tsx"],
-    usageExample: "<Field><FieldLabel>Search documents</FieldLabel><InputGroup><InputGroupInput type=\"search\" /><InputGroupAddon placement=\"inline-end\"><Combobox aria-label=\"Filter documents\" /></InputGroupAddon></InputGroup></Field>",
+    usageExample: `import { Alert, AlertAction } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Combobox } from "@/components/ui/combobox"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
+
+const statusOptions = [
+  { value: "all", label: "All statuses" },
+  { value: "draft", label: "Draft" },
+  { value: "published", label: "Published" },
+]
+
+<div>
+  <Field>
+    <FieldLabel>Search documents</FieldLabel>
+    <FieldDescription>Search titles and content.</FieldDescription>
+    <InputGroup>
+      <InputGroupInput type="search" />
+    </InputGroup>
+  </Field>
+  <Field>
+    <FieldLabel>Filter by document status</FieldLabel>
+    <Combobox
+      defaultValue="all"
+      emptyText="No matching status."
+      options={statusOptions}
+    />
+  </Field>
+  <Alert title="No documents match this search.">
+    Clear the query or adjust the status filter.
+    <AlertAction><Button variant="secondary">Clear search</Button></AlertAction>
+  </Alert>
+</div>`,
   },
   {
     id: "document-settings-form",
@@ -220,7 +278,36 @@ const recipeEntries = [
       },
     ],
     sourcePaths: ["components/design-system/recipes/document-settings-form-demo.tsx"],
-    usageExample: "<FieldSet><FieldLegend>Document settings</FieldLegend><FieldGroup><Field><FieldLabel>Title</FieldLabel><Input /></Field><Field><FieldLabel>Category</FieldLabel><NativeSelect /></Field><Checkbox>Pin document</Checkbox><Switch>Publish immediately</Switch></FieldGroup></FieldSet>",
+    usageExample: `import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { Switch } from "@/components/ui/switch"
+
+<FieldSet>
+  <FieldLegend>Document settings</FieldLegend>
+  <FieldGroup>
+    <Field>
+      <FieldLabel>Title</FieldLabel>
+      <Input />
+    </Field>
+    <Field>
+      <FieldLabel>Category</FieldLabel>
+      <NativeSelect defaultValue="notice">
+        <option value="notice">Notice</option>
+        <option value="disclosure">Disclosure</option>
+      </NativeSelect>
+    </Field>
+    <Checkbox label="Pin document" />
+    <Switch label="Publish immediately" />
+  </FieldGroup>
+</FieldSet>`,
   },
   {
     id: "collection-state-surface",
@@ -306,7 +393,44 @@ const recipeEntries = [
       },
     ],
     sourcePaths: ["components/design-system/recipes/collection-state-surface-demo.tsx"],
-    usageExample: "<Panel><PanelHeader><PanelTitle>Documents</PanelTitle></PanelHeader><PanelContent><Table /><Pagination aria-label=\"Document pages\" /></PanelContent></Panel>",
+    usageExample: `import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle,
+} from "@/components/ui/item"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination"
+import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel"
+import { StatusLabel } from "@/components/ui/status-label"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+
+<Panel aria-label="populated document collection">
+  <PanelHeader><PanelTitle>Documents</PanelTitle></PanelHeader>
+  <PanelContent>
+    <Table>
+      <TableBody>
+        <TableRow>
+          <TableCell>Operations policy</TableCell>
+          <TableCell><StatusLabel tone="success">Published</StatusLabel></TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+    <Item>
+      <ItemContent><ItemTitle>Operations policy</ItemTitle></ItemContent>
+      <ItemActions><StatusLabel tone="success">Published</StatusLabel></ItemActions>
+    </Item>
+    <Pagination aria-label="Document pages">
+      <PaginationContent>
+        <PaginationItem><PaginationLink href="#" isCurrent>1</PaginationLink></PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  </PanelContent>
+</Panel>`,
   },
 ] as const satisfies readonly RecipeEntry[]
 
