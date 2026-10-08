@@ -3,11 +3,13 @@ import { components } from "./components"
 import { foundations } from "./foundations"
 import { designSystemMeta } from "./meta"
 import { patterns } from "./patterns"
+import { recipes } from "./recipes"
 import {
   assertDesignCatalog,
   type ComponentEntry,
   type DesignCatalog,
   type LocaleText,
+  type RecipeEntry,
 } from "./schema"
 import { designTokens } from "./tokens"
 
@@ -17,6 +19,7 @@ export const designCatalog = {
   foundations,
   components,
   patterns,
+  recipes,
   assets,
 } satisfies DesignCatalog
 
@@ -24,6 +27,10 @@ assertDesignCatalog(designCatalog)
 
 export function getComponentEntry(slug: string): ComponentEntry | undefined {
   return designCatalog.components.find((entry) => entry.id === slug)
+}
+
+export function getRecipeEntry(slug: string): RecipeEntry | undefined {
+  return designCatalog.recipes.find((entry) => entry.id === slug)
 }
 
 export type DesignPageEntry = Readonly<{

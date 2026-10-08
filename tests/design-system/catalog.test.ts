@@ -77,6 +77,31 @@ const validCatalog = {
       relatedComponents: ["logo"],
     },
   ],
+  recipes: [
+    {
+      id: "site-header-recipe",
+      title: copy,
+      summary: copy,
+      whenToUse: copy,
+      whenNotToUse: copy,
+      accessibility: copy,
+      category: "action",
+      demoKey: "document-publishing-toolbar",
+      components: ["logo"],
+      relatedPatterns: ["site-chrome"],
+      anatomy: [copy],
+      states: [
+        {
+          id: "default",
+          guidance: copy,
+          inspection: { mode: "fixture" },
+        },
+      ],
+      responsive: [copy],
+      sourcePaths: ["components/layout/site-header.tsx"],
+      usageExample: "<Logo />",
+    },
+  ],
   assets: [
     {
       id: "logo-mark",
@@ -92,6 +117,66 @@ const validCatalog = {
 describe("design catalog schema", () => {
   it("accepts a complete bilingual catalog", () => {
     expect(() => assertDesignCatalog(validCatalog)).not.toThrow()
+  })
+
+  it("accepts a complete bilingual recipe catalog", () => {
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: validCatalog.recipes }))
+      .not.toThrow()
+  })
+
+  it("rejects duplicate recipe ids and demo keys", () => {
+    const secondRecipe = {
+      ...validCatalog.recipes[0],
+      id: "secondary-recipe",
+    }
+
+    expect(() => assertDesignCatalog({
+      ...validCatalog,
+      recipes: [validCatalog.recipes[0], validCatalog.recipes[0]],
+    })).toThrow("recipes site-header-recipe: duplicate recipe id")
+    expect(() => assertDesignCatalog({
+      ...validCatalog,
+      recipes: [validCatalog.recipes[0], secondRecipe],
+    })).toThrow("recipes secondary-recipe: duplicate recipe demoKey")
+  })
+
+  it("rejects recipes that reference unknown components or patterns", () => {
+    const unknownComponent = {
+      ...validCatalog.recipes[0],
+      components: ["missing-component"],
+    }
+    const unknownPattern = {
+      ...validCatalog.recipes[0],
+      relatedPatterns: ["missing-pattern"],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [unknownComponent] }))
+      .toThrow("recipes site-header-recipe: unknown component missing-component")
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [unknownPattern] }))
+      .toThrow("recipes site-header-recipe: unknown pattern missing-pattern")
+  })
+
+  it("rejects unsafe recipe source paths", () => {
+    const recipe = {
+      ...validCatalog.recipes[0],
+      sourcePaths: ["../private.tsx"],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [recipe] }))
+      .toThrow("recipes site-header-recipe: invalid source path ../private.tsx")
+  })
+
+  it("requires localized instructions for interactive recipe states", () => {
+    const recipe = {
+      ...validCatalog.recipes[0],
+      states: [{
+        ...validCatalog.recipes[0].states[0],
+        inspection: { mode: "interactive" },
+      }],
+    }
+
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [recipe] } as unknown as DesignCatalog))
+      .toThrow("recipes site-header-recipe state default: missing inspection instruction")
   })
 
   it("publishes the fixed system metadata", () => {
@@ -286,6 +371,30 @@ describe("design catalog schema", () => {
 })
 
 describe("production design catalog", () => {
+  it("publishes the four approved production recipes", () => {
+    expect(designCatalog.recipes.map(({ id }) => id)).toEqual([
+      "document-publishing-toolbar",
+      "search-filter-field",
+      "document-settings-form",
+      "collection-state-surface",
+    ])
+
+    const componentIds = new Set(designCatalog.components.map(({ id }) => id))
+    const patternIds = new Set(designCatalog.patterns.map(({ id }) => id))
+    for (const recipe of designCatalog.recipes) {
+      recipe.components.forEach((id) => expect(componentIds.has(id), id).toBe(true))
+      recipe.relatedPatterns.forEach((id) => expect(patternIds.has(id), id).toBe(true))
+      for (const state of recipe.states) {
+        expect(state.guidance.ko.trim()).not.toBe("")
+        expect(state.guidance.en.trim()).not.toBe("")
+        if (state.inspection.mode !== "fixture") {
+          expect(state.inspection.instruction?.ko.trim()).not.toBe("")
+          expect(state.inspection.instruction?.en.trim()).not.toBe("")
+        }
+      }
+    }
+  })
+
   it("keeps the composite demo collection server-readable for Next component pages", () => {
     const source = readFileSync(
       join(process.cwd(), "components/design-system/component-demo-composites.tsx"),
