@@ -1,0 +1,105 @@
+.preview {
+  min-width: 0;
+  padding: clamp(20px, 4vw, 40px);
+  overflow: visible;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+}
+
+.toolbarActions {
+  min-width: 0;
+}
+
+.popupLayer {
+  z-index: 80;
+}
+
+.searchRecipe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.38fr);
+  align-items: end;
+  gap: 20px;
+  min-width: 0;
+}
+
+.searchField,
+.filterField,
+.settingsForm,
+.collectionSurface,
+.collectionContent {
+  min-width: 0;
+}
+
+.settingsForm {
+  max-width: 760px;
+}
+
+.loadingRows {
+  display: grid;
+  gap: 12px;
+}
+
+.loadingRows > :nth-child(1) {
+  min-height: 48px;
+}
+
+.loadingRows > :nth-child(2),
+.loadingRows > :nth-child(3) {
+  min-height: 64px;
+}
+
+.collectionContent {
+  display: grid;
+  gap: 24px;
+}
+
+@media (max-width: 720px) {
+  .toolbar,
+  .searchRecipe {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .toolbar {
+    display: grid;
+  }
+
+  .toolbarActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 1px 44px;
+    width: 100%;
+  }
+
+  .toolbarActions > button:not([data-size="icon"]) {
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .searchField,
+  .filterField {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .preview {
+    padding: 20px;
+  }
+
+  .toolbarActions {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .toolbarActions > button:not([data-size="icon"]) {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
