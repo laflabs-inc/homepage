@@ -30,6 +30,11 @@ describe("analytics normalization", () => {
     "/design/components/segmented-control",
     "/design/components/text-link",
     "/design/components/code-block",
+    "/design/recipes",
+    "/design/recipes/document-publishing-toolbar",
+    "/design/recipes/search-filter-field",
+    "/design/recipes/document-settings-form",
+    "/design/recipes/collection-state-surface",
   ])("keeps the exact public component-detail path %s", (pathname) => {
     expect(normalizePath(`${pathname}?locale=en#private`)).toBe(pathname)
   })
@@ -92,6 +97,7 @@ describe("analytics event schema", () => {
     ["search_result_click", "product"],
     ["work_navigate", "next:lafetch"],
     ["design_code_copy", "button"],
+    ["design_code_copy", "document-settings-form"],
   ])("accepts the allowlisted %s target %s", (type, targetId) => {
     expect(AnalyticsEventInputSchema.safeParse({ ...baseEvent, type, targetId }).success).toBe(true)
   })

@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { products, repositories } from "@/lib/content"
 import { designComponentSlugs } from "@/lib/design-system/component-slugs"
+import { designRecipeSlugs } from "@/lib/design-system/recipe-slugs"
 import { supportsPublicAnalytics } from "@/lib/analytics/public-paths"
 
 export const eventTypes = [
@@ -33,6 +34,10 @@ const searchResultGroups = new Set([
 const searchSubmitTarget = /^q(?:[2-9]|[1-9]\d|100):r(?:0|[1-9]\d{0,2})$/
 const workNavigateTarget = /^(?:next|previous):(laf-id|lafetch|lafwall)$/
 const designComponentIds = new Set<string>(designComponentSlugs)
+const designCodeTargets = new Set<string>([
+  ...designComponentIds,
+  ...designRecipeSlugs,
+])
 
 const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): boolean => {
   switch (type) {
@@ -57,7 +62,7 @@ const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): bool
     case "work_navigate":
       return targetId !== null && workNavigateTarget.test(targetId)
     case "design_code_copy":
-      return targetId !== null && designComponentIds.has(targetId)
+      return targetId !== null && designCodeTargets.has(targetId)
   }
 }
 

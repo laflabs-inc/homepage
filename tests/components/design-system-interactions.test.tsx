@@ -9,11 +9,14 @@ vi.mock("@/components/analytics/consent-provider", () => ({
 }))
 
 import { ComponentCode } from "@/components/design-system/component-code"
+import { RecipeCode } from "@/components/design-system/recipe-code"
 import { designCatalog } from "@/lib/design-system/catalog"
 
 const actionEntry = designCatalog.components.find((component) => component.id === "button")
 
 if (!actionEntry) throw new Error("Button component fixture is missing")
+const recipeEntry = designCatalog.recipes.find((recipe) => recipe.id === "document-settings-form")
+if (!recipeEntry) throw new Error("Document settings Recipe fixture is missing")
 
 describe("Design system component code", () => {
   beforeEach(() => {
@@ -109,5 +112,23 @@ describe("Design system component code", () => {
 
     expect(track).not.toHaveBeenCalled()
     expect(vi.getTimerCount()).toBe(0)
+  })
+})
+
+describe("Design system Recipe code", () => {
+  beforeEach(() => {
+    track.mockReset()
+  })
+
+  it("copies the exact Recipe source, reports feedback, and tracks the allowlisted Recipe id", async () => {
+    const user = userEvent.setup()
+    const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue(undefined)
+
+    render(<RecipeCode locale="en" recipe={recipeEntry} />)
+    await user.click(screen.getByRole("button", { name: "Copy usage code" }))
+
+    expect(writeText).toHaveBeenCalledWith(recipeEntry.usageExample)
+    expect(screen.getByRole("status")).toHaveTextContent("Copied")
+    expect(track).toHaveBeenCalledWith("design_code_copy", "document-settings-form")
   })
 })

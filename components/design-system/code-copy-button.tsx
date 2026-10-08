@@ -29,11 +29,11 @@ type CopyStatus = "idle" | "copied" | "error"
 
 export function CodeCopyButton({
   source,
-  componentSlug,
+  targetId,
   locale,
 }: {
   source: string
-  componentSlug: string
+  targetId: string
   locale: Locale
 }) {
   const { track } = useAnalytics()
@@ -65,7 +65,7 @@ export function CodeCopyButton({
       await navigator.clipboard.writeText(source)
       if (!mountedRef.current) return
       setStatus("copied")
-      track("design_code_copy", componentSlug)
+      track("design_code_copy", targetId)
     } catch {
       if (!mountedRef.current) return
       setStatus("error")

@@ -34,7 +34,7 @@ export function getRecipeEntry(slug: string): RecipeEntry | undefined {
 }
 
 export type DesignPageEntry = Readonly<{
-  id: "overview" | "foundations" | "components" | "patterns" | "assets" | "ai"
+  id: "overview" | "foundations" | "components" | "recipes" | "patterns" | "assets" | "ai"
   title: LocaleText
   description: LocaleText
   href: string
@@ -81,6 +81,19 @@ export const designPageEntries = [
     keywords: {
       ko: ["컴포넌트", "UI", "API", "상태", "사용법"],
       en: ["components", "UI", "API", "states", "usage"],
+    },
+  },
+  {
+    id: "recipes",
+    title: { ko: "레시피", en: "Recipes" },
+    description: {
+      ko: "반복되는 인터페이스 작업을 위한 운영형 컴포넌트 조합입니다.",
+      en: "Production compositions for recurring interface tasks.",
+    },
+    href: "/design/recipes",
+    keywords: {
+      ko: ["레시피", "UI 조합", "작업 흐름", "컴포넌트 구성"],
+      en: ["recipes", "UI composition", "workflow", "component composition"],
     },
   },
   {
@@ -134,6 +147,26 @@ export const designDiscoveryEntries: readonly DesignDiscoveryEntry[] = [
     keywords: {
       ko: [component.id, component.name, component.category, ...component.states.map(({ id }) => id)],
       en: [component.id, component.name, component.category, ...component.states.map(({ id }) => id)],
+    },
+  })),
+  ...designCatalog.recipes.map((recipe) => ({
+    id: `recipe-${recipe.id}`,
+    title: recipe.title,
+    description: recipe.summary,
+    href: `/design/recipes/${recipe.id}`,
+    keywords: {
+      ko: [
+        recipe.id,
+        recipe.category,
+        ...recipe.components,
+        ...recipe.states.map(({ id }) => id),
+      ],
+      en: [
+        recipe.id,
+        recipe.category,
+        ...recipe.components,
+        ...recipe.states.map(({ id }) => id),
+      ],
     },
   })),
 ]

@@ -7,6 +7,7 @@ import { ComponentCode } from "./component-code"
 import { getComponentMaturityLabel } from "./component-maturity"
 import { ComponentPreview } from "./component-preview"
 import { getDesignPageHref } from "./design-shell"
+import { stateInspectionCopy } from "./state-inspection-copy"
 import styles from "./design-system.module.css"
 
 const githubSourceRoot = "https://github.com/laflabs-inc/homepage/blob/main/"
@@ -24,11 +25,6 @@ const copy = {
     avoid: "사용하지 않을 때",
     states: "변형과 상태",
     stateInspections: "상태 살펴보기",
-    stateModes: {
-      fixture: "고정 예시",
-      interactive: "직접 조작",
-      environment: "환경에서 확인",
-    },
     accessibility: "접근성",
     api: "API",
     prop: "속성",
@@ -56,11 +52,6 @@ const copy = {
     avoid: "Avoid when",
     states: "Variants and states",
     stateInspections: "state inspections",
-    stateModes: {
-      fixture: "Fixed example",
-      interactive: "Interact to inspect",
-      environment: "Change the environment to inspect",
-    },
     accessibility: "Accessibility",
     api: "API",
     prop: "Prop",
@@ -165,7 +156,7 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
                   <div className={styles.stateHeading}>
                     <code>{state.id}</code>
                     <span data-inspection-mode={inspection.mode}>
-                      {text.stateModes[inspection.mode]}
+                      {stateInspectionCopy[locale][inspection.mode]}
                     </span>
                   </div>
                   <p>{state.guidance[locale]}</p>
