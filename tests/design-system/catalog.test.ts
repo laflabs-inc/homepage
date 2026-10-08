@@ -125,12 +125,18 @@ describe("design catalog schema", () => {
   })
 
   it("rejects unformatted recipe usage examples", () => {
-    const recipe = {
+    const inlineRecipe = {
       ...validCatalog.recipes[0],
       usageExample: "<Logo><span>Brand</span></Logo>",
     }
+    const multilineRecipe = {
+      ...validCatalog.recipes[0],
+      usageExample: "<Logo>\n<span>Brand</span>\n</Logo>",
+    }
 
-    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [recipe] }))
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [inlineRecipe] }))
+      .toThrow("recipes site-header-recipe: unformatted usage example")
+    expect(() => assertDesignCatalog({ ...validCatalog, recipes: [multilineRecipe] }))
       .toThrow("recipes site-header-recipe: unformatted usage example")
   })
 

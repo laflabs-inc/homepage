@@ -697,23 +697,33 @@ import { StatusLabel } from "@/components/ui/status-label"
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
 
 <Panel aria-label="populated document collection">
-  <PanelHeader><PanelTitle>Documents</PanelTitle></PanelHeader>
+  <PanelHeader>
+    <PanelTitle>Documents</PanelTitle>
+  </PanelHeader>
   <PanelContent>
     <Table>
       <TableBody>
         <TableRow>
           <TableCell>Operations policy</TableCell>
-          <TableCell><StatusLabel tone="success">Published</StatusLabel></TableCell>
+          <TableCell>
+            <StatusLabel tone="success">Published</StatusLabel>
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>
     <Item>
-      <ItemContent><ItemTitle>Operations policy</ItemTitle></ItemContent>
-      <ItemActions><StatusLabel tone="success">Published</StatusLabel></ItemActions>
+      <ItemContent>
+        <ItemTitle>Operations policy</ItemTitle>
+      </ItemContent>
+      <ItemActions>
+        <StatusLabel tone="success">Published</StatusLabel>
+      </ItemActions>
     </Item>
     <Pagination aria-label="Document pages">
       <PaginationContent>
-        <PaginationItem><PaginationLink href="#" isCurrent>1</PaginationLink></PaginationItem>
+        <PaginationItem>
+          <PaginationLink href="#" isCurrent>1</PaginationLink>
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   </PanelContent>
@@ -848,9 +858,7 @@ const statusOptions = [
   <Field>
     <FieldLabel>Search documents</FieldLabel>
     <FieldDescription>Search titles and content.</FieldDescription>
-    <InputGroup>
-      <InputGroupInput type="search" />
-    </InputGroup>
+    <InputGroup><InputGroupInput type="search" /></InputGroup>
   </Field>
   <Field>
     <FieldLabel>Filter by document status</FieldLabel>
@@ -862,9 +870,11 @@ const statusOptions = [
   </Field>
   <Alert title="No documents match this search.">
     Clear the query or adjust the status filter.
-    <AlertAction><Button variant="secondary">Clear search</Button></AlertAction>
-  </Alert>
-</div>
+      <AlertAction>
+        <Button variant="secondary">Clear search</Button>
+      </AlertAction>
+    </Alert>
+  </div>
 ```
 
 ## Composition and responsive patterns
