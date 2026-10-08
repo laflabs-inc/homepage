@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.2 · Updated: 2026-10-05
+System version: 2026.10.3 · Updated: 2026-10-07
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -660,6 +660,127 @@ Provides a short supporting description on hover and focus.
 - States: `closed` (fixture), `open` (interactive)
 - Related components: `button`
 - Dependencies: `radix-ui`
+
+## Recipes
+
+### Collection state surface (`collection-state-surface`)
+
+Category: **system-state**
+
+Explains loading, results, empty, and error states consistently in one collection surface.
+
+- Use: Use when a table or list waits for asynchronous data and has multiple outcomes.
+- Avoid: Do not use for immediate static content or one form-submission result.
+- Accessibility: Name the state and next action in text without announcing loading or errors twice.
+- Components: `panel`, `table`, `item`, `pagination`, `skeleton`, `empty-state`, `alert`, `status-label`, `button`
+- Related Patterns: `collection-row`, `system-states`, `responsive-collapse`
+- States: `loading` (fixture), `populated` (fixture), `empty` (fixture), `error` (fixture)
+- Responsive behavior:
+  - On small screens, keep essential comparisons and reflow the rest into Item rows.
+  - Never hide the state title or retry action behind horizontal overflow.
+
+```tsx
+<Panel>
+  <PanelHeader>
+    <PanelTitle>Documents</PanelTitle>
+  </PanelHeader>
+  <PanelContent>
+    <Table />
+    <Pagination aria-label="Document pages" />
+  </PanelContent>
+</Panel>
+```
+
+### Document publishing toolbar (`document-publishing-toolbar`)
+
+Category: **action**
+
+Combines document status, saving, and publishing into one predictable workflow.
+
+- Use: Use for document work with a clear order and priority, such as saving and publishing.
+- Avoid: Do not use for unrelated actions or a form with one simple submit action.
+- Accessibility: Expose status in text and preserve keyboard order across save, publish, and more options.
+- Components: `button-group`, `button`, `dropdown-menu`, `status-label`
+- Related Patterns: `document-surface`, `responsive-collapse`
+- States: `draft` (fixture), `publish-options` (interactive), `publishing` (fixture)
+- Responsive behavior:
+  - On small screens, place status above a full-width action group.
+  - Keep save, publish, and more-options order at every viewport size.
+
+```tsx
+<ButtonGroup label="Document publishing">
+  <StatusLabel tone="neutral">Draft</StatusLabel>
+  <Button variant="secondary">Save</Button>
+  <Button>Publish</Button>
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button aria-label="More publishing options" size="icon">...</Button>
+    </DropdownMenuTrigger>
+  </DropdownMenu>
+</ButtonGroup>
+```
+
+### Document settings form (`document-settings-form`)
+
+Category: **form**
+
+Connects document metadata and publishing settings in one meaningful form structure.
+
+- Use: Use when editing related fields and immediately applied settings as one task.
+- Avoid: Do not group unrelated settings or use it as a read-only summary.
+- Accessibility: Name the task with fieldset and legend, and connect all guidance and errors to their fields.
+- Components: `field`, `input`, `native-select`, `checkbox`, `switch`, `alert`
+- Related Patterns: `document-surface`, `responsive-collapse`
+- States: `default` (fixture), `invalid` (fixture), `disabled` (fixture), `saving` (fixture)
+- Responsive behavior:
+  - On small screens, collapse horizontal fields into one label-then-input column.
+  - Keep descriptions and errors immediately below their related input.
+
+```tsx
+<FieldSet>
+  <FieldLegend>Document settings</FieldLegend>
+  <FieldGroup>
+    <Field>
+      <FieldLabel>Title</FieldLabel>
+      <Input />
+    </Field>
+    <Field>
+      <FieldLabel>Category</FieldLabel>
+      <NativeSelect />
+    </Field>
+    <Checkbox>Pin document</Checkbox>
+    <Switch>Publish immediately</Switch>
+  </FieldGroup>
+</FieldSet>
+```
+
+### Search and filter field (`search-filter-field`)
+
+Category: **form**
+
+Combines a query and structured filters into one named discovery task.
+
+- Use: Use to search a document or record collection and narrow it with a small filter set.
+- Avoid: Do not use for a form field that selects one fixed value without search.
+- Accessibility: Connect label, description, and error to the query while preserving popup keyboard navigation.
+- Components: `field`, `input-group`, `combobox`, `button`
+- Related Patterns: `collection-row`, `responsive-collapse`
+- States: `default` (fixture), `filters-open` (interactive), `empty` (fixture), `invalid` (fixture)
+- Responsive behavior:
+  - On small screens, move filters below the query as a full-width row.
+  - Keep the label and error associated with the same input after reflow.
+
+```tsx
+<Field>
+  <FieldLabel>Search documents</FieldLabel>
+  <InputGroup>
+    <InputGroupInput type="search" />
+    <InputGroupAddon placement="inline-end">
+      <Combobox aria-label="Filter documents" />
+    </InputGroupAddon>
+  </InputGroup>
+</Field>
+```
 
 ## Composition and responsive patterns
 

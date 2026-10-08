@@ -88,6 +88,30 @@ function serializePatternSummary(): string[] {
   ])
 }
 
+function serializeRecipeSummary(): string[] {
+  return [...designCatalog.recipes].sort(compareIds).flatMap((recipe) => [
+    `### ${recipe.title.en} (\`${recipe.id}\`)`,
+    "",
+    `Category: **${recipe.category}**`,
+    "",
+    recipe.summary.en,
+    "",
+    `- Use: ${recipe.whenToUse.en}`,
+    `- Avoid: ${recipe.whenNotToUse.en}`,
+    `- Accessibility: ${recipe.accessibility.en}`,
+    `- Components: ${recipe.components.map((id) => `\`${id}\``).join(", ")}`,
+    `- Related Patterns: ${recipe.relatedPatterns.map((id) => `\`${id}\``).join(", ")}`,
+    `- States: ${recipe.states.map(({ id, inspection }) => `\`${id}\` (${inspection.mode})`).join(", ")}`,
+    "- Responsive behavior:",
+    ...recipe.responsive.map(({ en }) => `  - ${en}`),
+    "",
+    "```tsx",
+    recipe.usageExample,
+    "```",
+    "",
+  ])
+}
+
 function serializeMachineResources(): string[] {
   const path = designCatalog.meta.canonicalPath
 
@@ -161,6 +185,9 @@ export function serializeDesignGuide(): string {
     "## Components",
     "",
     ...serializeComponentSummary(),
+    "## Recipes",
+    "",
+    ...serializeRecipeSummary(),
     "## Composition and responsive patterns",
     "",
     ...serializePatternSummary(),
@@ -194,8 +221,9 @@ function serializeSkillEntry(): string {
     "",
     "1. Inspect the target repository, its real components, official assets, and factual product content.",
     "2. Read only the references relevant to the requested work.",
-    "3. Reuse supported components and tokens when available; preserve the target repository's established architecture.",
-    "4. Verify desktop and mobile layout, visible copy, keyboard access, focus, and reduced motion before completion.",
+    "3. Choose a published Recipe before composing a common documented task; preserve its declared component semantics and task order.",
+    "4. Reuse supported components and tokens when available; preserve the target repository's established architecture.",
+    "5. Verify desktop and mobile layout, visible copy, keyboard access, focus, and reduced motion before completion.",
     "",
     "## References",
     "",
@@ -296,6 +324,41 @@ function serializePatternsReference(): string {
       "",
       ...pattern.guidance.map(({ en, ko }) => `- ${en} / ${ko}`),
       `- Related components: ${pattern.relatedComponents.map((id) => `\`${id}\``).join(", ")}`,
+      "",
+    ]),
+    "# Recipes",
+    "",
+    "Use a published Recipe before assembling a recurring documented task. Preserve the declared component semantics, state behavior, and task order instead of inventing a replacement abstraction.",
+    "",
+    ...[...designCatalog.recipes].sort(compareIds).flatMap((recipe) => [
+      `## ${recipe.title.en} (\`${recipe.id}\`)`,
+      "",
+      `${recipe.summary.en} / ${recipe.summary.ko}`,
+      "",
+      `- Category: **${recipe.category}**`,
+      `- Components: ${recipe.components.map((id) => `\`${id}\``).join(", ")}`,
+      `- Related Patterns: ${recipe.relatedPatterns.map((id) => `\`${id}\``).join(", ")}`,
+      `- Use: ${recipe.whenToUse.en} / ${recipe.whenToUse.ko}`,
+      `- Avoid: ${recipe.whenNotToUse.en} / ${recipe.whenNotToUse.ko}`,
+      `- Accessibility: ${recipe.accessibility.en} / ${recipe.accessibility.ko}`,
+      "- Anatomy:",
+      ...recipe.anatomy.map(({ en, ko }, index) => `  ${index + 1}. ${en} / ${ko}`),
+      "- States and inspection:",
+      ...recipe.states.map(({ id, guidance, inspection }) => {
+        const instruction = "instruction" in inspection
+          ? ` Inspection: ${inspection.instruction.en} / ${inspection.instruction.ko}`
+          : ""
+        return `  - \`${id}\` [${inspection.mode}]: ${guidance.en} / ${guidance.ko}${instruction}`
+      }),
+      "- Responsive behavior:",
+      ...recipe.responsive.map(({ en, ko }) => `  - ${en} / ${ko}`),
+      `- Source paths: ${recipe.sourcePaths.map((path) => `\`${path}\``).join(", ")}`,
+      "",
+      "### Usage shape",
+      "",
+      "```tsx",
+      recipe.usageExample,
+      "```",
       "",
     ]),
   ])

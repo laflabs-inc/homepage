@@ -15,7 +15,7 @@ describe("Design system overview", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "LafLabs 디자인 시스템" }),
     ).toBeInTheDocument()
-    expect(screen.getByText("2026.10.2")).toBeInTheDocument()
+    expect(screen.getByText("2026.10.3")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "기초 원칙" })).toHaveAttribute(
       "href",
       "/design/foundations",
@@ -23,6 +23,10 @@ describe("Design system overview", () => {
     expect(screen.getByRole("link", { name: "컴포넌트" })).toHaveAttribute(
       "href",
       "/design/components",
+    )
+    expect(screen.getByRole("link", { name: "레시피" })).toHaveAttribute(
+      "href",
+      "/design/recipes",
     )
     expect(screen.getByRole("link", { name: "AI에서 사용하기" })).toHaveAttribute(
       "href",
@@ -45,6 +49,10 @@ describe("Design system overview", () => {
     expect(screen.getByRole("link", { name: "Components" })).toHaveAttribute(
       "href",
       "/design/components?locale=en",
+    )
+    expect(screen.getByRole("link", { name: "Recipes" })).toHaveAttribute(
+      "href",
+      "/design/recipes?locale=en",
     )
     expect(screen.getByRole("link", { name: "Use with AI" })).toHaveAttribute(
       "href",
