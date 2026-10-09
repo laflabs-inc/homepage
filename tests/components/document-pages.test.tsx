@@ -85,6 +85,7 @@ const designSitemapUrls = [
   `${siteUrl}/design`,
   `${siteUrl}/design/foundations`,
   `${siteUrl}/design/components`,
+  `${siteUrl}/design/recipes`,
   `${siteUrl}/design/patterns`,
   `${siteUrl}/design/assets`,
   `${siteUrl}/design/ai`,
@@ -128,6 +129,10 @@ const designSitemapUrls = [
   `${siteUrl}/design/components/separator`,
   `${siteUrl}/design/components/panel`,
   `${siteUrl}/design/components/code-block`,
+  `${siteUrl}/design/recipes/document-publishing-toolbar`,
+  `${siteUrl}/design/recipes/search-filter-field`,
+  `${siteUrl}/design/recipes/document-settings-form`,
+  `${siteUrl}/design/recipes/collection-state-surface`,
 ]
 
 function repository(overrides: Partial<Pick<DocumentRepository, "listPublished" | "getPublished">> = {}) {
@@ -641,7 +646,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(98)
+    expect(entries).toHaveLength(103)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

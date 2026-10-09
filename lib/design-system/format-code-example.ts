@@ -193,7 +193,24 @@ export function formatComponentImportExample(source: string) {
 
 export function formatComponentUsageExample(source: string) {
   const trimmed = source.trim()
-  if (trimmed.includes("\n")) return trimmed
+  if (trimmed.includes("\n")) {
+    const normalized = trimmed
+      .split("\n")
+      .map((line) => line.trimEnd())
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+    const lines = normalized.split("\n")
+    const jsxStart = lines.findIndex((line) => line.trimStart().startsWith("<"))
+
+    if (jsxStart >= 0) {
+      return [
+        ...lines.slice(0, jsxStart),
+        formatJsxExample(lines.slice(jsxStart).join("\n")),
+      ].join("\n")
+    }
+
+    return normalized
+  }
   if (trimmed.startsWith("<")) return formatJsxExample(trimmed)
   return formatStatements(trimmed)
 }

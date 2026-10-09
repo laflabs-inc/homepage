@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.2 · Updated: 2026-10-05
+System version: 2026.10.3 · Updated: 2026-10-07
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -660,6 +660,222 @@ Provides a short supporting description on hover and focus.
 - States: `closed` (fixture), `open` (interactive)
 - Related components: `button`
 - Dependencies: `radix-ui`
+
+## Recipes
+
+### Collection state surface (`collection-state-surface`)
+
+Category: **system-state**
+
+Explains loading, results, empty, and error states consistently in one collection surface.
+
+- Use: Use when a table or list waits for asynchronous data and has multiple outcomes.
+- Avoid: Do not use for immediate static content or one form-submission result.
+- Accessibility: Name the state and next action in text without announcing loading or errors twice.
+- Components: `panel`, `table`, `item`, `pagination`, `skeleton`, `empty-state`, `alert`, `status-label`, `button`
+- Related Patterns: `collection-row`, `system-states`, `responsive-collapse`
+- States: `loading` (fixture), `populated` (fixture), `empty` (fixture), `error` (fixture)
+- Responsive behavior:
+  - On small screens, keep essential comparisons and reflow the rest into Item rows.
+  - Never hide the state title or retry action behind horizontal overflow.
+
+```tsx
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle,
+} from "@/components/ui/item"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination"
+import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel"
+import { StatusLabel } from "@/components/ui/status-label"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+
+<Panel aria-label="populated document collection">
+  <PanelHeader>
+    <PanelTitle>Documents</PanelTitle>
+  </PanelHeader>
+  <PanelContent>
+    <Table>
+      <TableBody>
+        <TableRow>
+          <TableCell>Operations policy</TableCell>
+          <TableCell>
+            <StatusLabel tone="success">Published</StatusLabel>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+    <Item>
+      <ItemContent>
+        <ItemTitle>Operations policy</ItemTitle>
+      </ItemContent>
+      <ItemActions>
+        <StatusLabel tone="success">Published</StatusLabel>
+      </ItemActions>
+    </Item>
+    <Pagination aria-label="Document pages">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationLink href="#" isCurrent>1</PaginationLink>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  </PanelContent>
+</Panel>
+```
+
+### Document publishing toolbar (`document-publishing-toolbar`)
+
+Category: **action**
+
+Combines document status, saving, and publishing into one predictable workflow.
+
+- Use: Use for document work with a clear order and priority, such as saving and publishing.
+- Avoid: Do not use for unrelated actions or a form with one simple submit action.
+- Accessibility: Expose status in text and preserve keyboard order across save, publish, and more options.
+- Components: `button-group`, `button`, `dropdown-menu`, `status-label`
+- Related Patterns: `document-surface`, `responsive-collapse`
+- States: `draft` (fixture), `publish-options` (interactive), `publishing` (fixture)
+- Responsive behavior:
+  - On small screens, place status above a full-width action group.
+  - Keep save, publish, and more-options order at every viewport size.
+
+```tsx
+import { Button } from "@/components/ui/button"
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { StatusLabel } from "@/components/ui/status-label"
+
+<div>
+  <StatusLabel tone="neutral">Draft</StatusLabel>
+  <DropdownMenu>
+    <ButtonGroup label="Document publishing">
+      <Button variant="secondary">Save draft</Button>
+      <Button>Publish document</Button>
+      <ButtonGroupSeparator />
+      <DropdownMenuTrigger asChild>
+        <Button aria-label="Open publishing options" size="icon">...</Button>
+      </DropdownMenuTrigger>
+    </ButtonGroup>
+    <DropdownMenuContent align="end">
+      <DropdownMenuItem>Schedule publication</DropdownMenuItem>
+      <DropdownMenuItem>Copy preview link</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</div>
+```
+
+### Document settings form (`document-settings-form`)
+
+Category: **form**
+
+Connects document metadata and publishing settings in one meaningful form structure.
+
+- Use: Use when editing related fields and immediately applied settings as one task.
+- Avoid: Do not group unrelated settings or use it as a read-only summary.
+- Accessibility: Name the task with fieldset and legend, and connect all guidance and errors to their fields.
+- Components: `field`, `input`, `native-select`, `checkbox`, `switch`, `alert`
+- Related Patterns: `document-surface`, `responsive-collapse`
+- States: `default` (fixture), `invalid` (fixture), `disabled` (fixture), `saving` (fixture)
+- Responsive behavior:
+  - On small screens, collapse horizontal fields into one label-then-input column.
+  - Keep descriptions and errors immediately below their related input.
+
+```tsx
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { Switch } from "@/components/ui/switch"
+
+<FieldSet>
+  <FieldLegend>Document settings</FieldLegend>
+  <FieldGroup>
+    <Field>
+      <FieldLabel>Title</FieldLabel>
+      <Input />
+    </Field>
+    <Field>
+      <FieldLabel>Category</FieldLabel>
+      <NativeSelect defaultValue="notice">
+        <option value="notice">Notice</option>
+        <option value="disclosure">Disclosure</option>
+      </NativeSelect>
+    </Field>
+    <Checkbox label="Pin document" />
+    <Switch label="Publish immediately" />
+  </FieldGroup>
+</FieldSet>
+```
+
+### Search and filter field (`search-filter-field`)
+
+Category: **form**
+
+Combines a query and structured filters into one named discovery task.
+
+- Use: Use to search a document or record collection and narrow it with a small filter set.
+- Avoid: Do not use for a form field that selects one fixed value without search.
+- Accessibility: Connect label, description, and error to the query while preserving popup keyboard navigation.
+- Components: `field`, `input-group`, `combobox`, `alert`, `button`
+- Related Patterns: `collection-row`, `responsive-collapse`
+- States: `default` (fixture), `filters-open` (interactive), `empty` (fixture), `invalid` (fixture)
+- Responsive behavior:
+  - On small screens, move filters below the query as a full-width row.
+  - Keep the label and error associated with the same input after reflow.
+
+```tsx
+import { Alert, AlertAction } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Combobox } from "@/components/ui/combobox"
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { InputGroup, InputGroupInput } from "@/components/ui/input-group"
+
+const statusOptions = [
+  { value: "all", label: "All statuses" },
+  { value: "draft", label: "Draft" },
+  { value: "published", label: "Published" },
+]
+
+<div>
+  <Field>
+    <FieldLabel>Search documents</FieldLabel>
+    <FieldDescription>Search titles and content.</FieldDescription>
+    <InputGroup><InputGroupInput type="search" /></InputGroup>
+  </Field>
+  <Field>
+    <FieldLabel>Filter by document status</FieldLabel>
+    <Combobox
+      defaultValue="all"
+      emptyText="No matching status."
+      options={statusOptions}
+    />
+  </Field>
+  <Alert title="No documents match this search.">
+    Clear the query or adjust the status filter.
+      <AlertAction>
+        <Button variant="secondary">Clear search</Button>
+      </AlertAction>
+    </Alert>
+  </div>
+```
 
 ## Composition and responsive patterns
 

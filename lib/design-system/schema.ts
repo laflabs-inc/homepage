@@ -5,6 +5,13 @@ import {
   type ComponentCategory,
   type DemoKey,
 } from "./component-options"
+import {
+  recipeCategories,
+  recipeDemoKeys,
+  type RecipeCategory,
+  type RecipeDemoKey,
+} from "./recipe-options"
+import { formatComponentUsageExample } from "./format-code-example"
 
 export type { ComponentCategory, DemoKey } from "./component-options"
 
@@ -83,6 +90,28 @@ export type ComponentEntry = Readonly<{
   }[]
 }>
 
+export type RecipeEntry = Readonly<{
+  id: string
+  title: LocaleText
+  summary: LocaleText
+  whenToUse: LocaleText
+  whenNotToUse: LocaleText
+  accessibility: LocaleText
+  category: RecipeCategory
+  demoKey: RecipeDemoKey
+  components: readonly string[]
+  relatedPatterns: readonly string[]
+  anatomy: readonly LocaleText[]
+  states: readonly Readonly<{
+    id: string
+    guidance: LocaleText
+    inspection: ComponentStateInspection
+  }>[]
+  responsive: readonly LocaleText[]
+  sourcePaths: readonly string[]
+  usageExample: string
+}>
+
 export type PatternEntry = Readonly<{
   id: string
   title: LocaleText
@@ -107,6 +136,7 @@ export type DesignCatalog = Readonly<{
   foundations: readonly FoundationEntry[]
   components: readonly ComponentEntry[]
   patterns: readonly PatternEntry[]
+  recipes: readonly RecipeEntry[]
   assets: readonly AssetEntry[]
 }>
 
@@ -121,6 +151,8 @@ const componentStateInspectionModes = new Set<ComponentStateInspectionMode>([
   "environment",
 ])
 const demoKeys = new Set<DemoKey>(componentDemoKeys)
+const supportedRecipeCategories = new Set<RecipeCategory>(recipeCategories)
+const supportedRecipeDemoKeys = new Set<RecipeDemoKey>(recipeDemoKeys)
 
 function fail(collection: string, id: string, reason: string): never {
   throw new Error(`${collection} ${id}: ${reason}`)
@@ -217,6 +249,7 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
   assertUniqueIds(catalog.foundations, "foundations")
   assertUniqueIds(catalog.components, "components")
   assertUniqueIds(catalog.patterns, "patterns")
+  assertUniqueIds(catalog.recipes, "recipes")
   assertUniqueIds(catalog.assets, "assets")
 
   for (const token of catalog.tokens) {
@@ -299,6 +332,80 @@ export function assertDesignCatalog(catalog: DesignCatalog): void {
     for (const componentId of pattern.relatedComponents) {
       if (!componentIds.has(componentId)) {
         fail("patterns", pattern.id, `unknown related component ${componentId}`)
+      }
+    }
+  }
+
+  const patternIds = new Set(catalog.patterns.map(({ id }) => id))
+  const registeredRecipeDemoKeys = new Set<RecipeDemoKey>()
+  for (const recipe of catalog.recipes) {
+    if (!componentIdPattern.test(recipe.id)) fail("recipes", recipe.id, "invalid recipe id")
+    if (!supportedRecipeCategories.has(recipe.category)) {
+      fail("recipes", recipe.id, "invalid recipe category")
+    }
+    if (!supportedRecipeDemoKeys.has(recipe.demoKey)) {
+      fail("recipes", recipe.id, "missing recipe demoKey")
+    }
+    if (registeredRecipeDemoKeys.has(recipe.demoKey)) {
+      fail("recipes", recipe.id, "duplicate recipe demoKey")
+    }
+    registeredRecipeDemoKeys.add(recipe.demoKey)
+
+    assertLocaleText(recipe.title, "recipes", recipe.id)
+    assertLocaleText(recipe.summary, "recipes", recipe.id)
+    assertLocaleText(recipe.whenToUse, "recipes", recipe.id)
+    assertLocaleText(recipe.whenNotToUse, "recipes", recipe.id)
+    assertLocaleText(recipe.accessibility, "recipes", recipe.id)
+    if (recipe.anatomy.length === 0) fail("recipes", recipe.id, "requires anatomy")
+    recipe.anatomy.forEach((item) => assertLocaleText(item, "recipes", recipe.id))
+    if (recipe.responsive.length === 0) fail("recipes", recipe.id, "requires responsive guidance")
+    recipe.responsive.forEach((item) => assertLocaleText(item, "recipes", recipe.id))
+    if (!recipe.usageExample.trim()) fail("recipes", recipe.id, "missing usage example")
+    if (formatComponentUsageExample(recipe.usageExample) !== recipe.usageExample) {
+      fail("recipes", recipe.id, "unformatted usage example")
+    }
+
+    if (recipe.components.length === 0) fail("recipes", recipe.id, "requires components")
+    for (const componentId of recipe.components) {
+      if (!componentIds.has(componentId)) {
+        fail("recipes", recipe.id, `unknown component ${componentId}`)
+      }
+    }
+    for (const patternId of recipe.relatedPatterns) {
+      if (!patternIds.has(patternId)) {
+        fail("recipes", recipe.id, `unknown pattern ${patternId}`)
+      }
+    }
+    if (recipe.sourcePaths.length === 0) fail("recipes", recipe.id, "requires source paths")
+    for (const sourcePath of recipe.sourcePaths) {
+      if (!isSafeSourcePath(sourcePath)) {
+        fail("recipes", recipe.id, `invalid source path ${sourcePath}`)
+      }
+    }
+
+    if (recipe.states.length === 0) fail("recipes", recipe.id, "requires at least one state")
+    const stateIds = new Set<string>()
+    for (const state of recipe.states) {
+      if (!componentIdPattern.test(state.id)) {
+        fail("recipes", `${recipe.id} state ${displayId(state.id)}`, "invalid state id")
+      }
+      if (stateIds.has(state.id)) {
+        fail("recipes", `${recipe.id} state ${state.id}`, "duplicate state id")
+      }
+      stateIds.add(state.id)
+      assertLocaleText(state.guidance, "recipes", `${recipe.id} state ${state.id}`)
+      if (!componentStateInspectionModes.has(state.inspection.mode)) {
+        fail("recipes", `${recipe.id} state ${state.id}`, "invalid inspection mode")
+      }
+      if (state.inspection.mode !== "fixture") {
+        if (!state.inspection.instruction) {
+          fail("recipes", `${recipe.id} state ${state.id}`, "missing inspection instruction")
+        }
+        assertLocaleText(
+          state.inspection.instruction,
+          "recipes",
+          `${recipe.id} state ${state.id} inspection`,
+        )
       }
     }
   }
