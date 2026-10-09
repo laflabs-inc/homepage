@@ -1,6 +1,6 @@
 import styles from "./button.module.css"
 
-export type ButtonVariant = "primary" | "secondary" | "inverse" | "danger" | "ghost"
+export type ButtonVariant = "primary" | "secondary" | "outline" | "inverse" | "danger" | "ghost"
 export type ButtonSize = "compact" | "default" | "icon"
 
 export function getButtonClassName({

@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { environmentInspection } from "../state-inspection"
 
 export const feedbackComponents = [
   {
@@ -18,7 +19,7 @@ export const feedbackComponents = [
     dependencies: [],
     states: [
       { id: "loading", guidance: { ko: "최종 콘텐츠와 비슷한 크기로 배치되는지 확인합니다.", en: "Confirm the placeholder matches the final content shape." } },
-      { id: "reduced-motion", guidance: { ko: "동작 줄이기에서 정적인 면으로 남는지 확인합니다.", en: "Confirm it remains static when reduced motion is requested." } },
+      { id: "reduced-motion", guidance: { ko: "동작 줄이기에서 정적인 면으로 남는지 확인합니다.", en: "Confirm it remains static when reduced motion is requested." }, inspection: environmentInspection },
     ],
     props: [
       { name: "className", type: "string", required: false, description: { ko: "구체적인 플레이스홀더 크기와 배치에 씁니다.", en: "Provides layout-specific size and placement." } },

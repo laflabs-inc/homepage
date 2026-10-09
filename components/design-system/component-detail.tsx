@@ -24,6 +24,11 @@ const copy = {
     avoid: "사용하지 않을 때",
     states: "변형과 상태",
     stateInspections: "상태 살펴보기",
+    stateModes: {
+      fixture: "고정 예시",
+      interactive: "직접 조작",
+      environment: "환경에서 확인",
+    },
     accessibility: "접근성",
     api: "API",
     prop: "속성",
@@ -51,6 +56,11 @@ const copy = {
     avoid: "Avoid when",
     states: "Variants and states",
     stateInspections: "state inspections",
+    stateModes: {
+      fixture: "Fixed example",
+      interactive: "Interact to inspect",
+      environment: "Change the environment to inspect",
+    },
     accessibility: "Accessibility",
     api: "API",
     prop: "Prop",
@@ -147,20 +157,32 @@ export function ComponentDetail({ component, locale }: { component: ComponentEnt
           className={styles.stateList}
           aria-label={`${component.name} ${text.stateInspections}`}
         >
-          {component.states.map((state) => (
-            <li key={state.id}>
-              <div className={styles.stateGuidance}>
-                <code>{state.id}</code>
-                <p>{state.guidance[locale]}</p>
-              </div>
-              <ComponentPreview
-                demoKey={component.demoKey}
-                label={`${component.name} ${state.id} ${locale === "ko" ? "상태 미리보기" : "state preview"}`}
-                locale={locale}
-                state={state.id}
-              />
-            </li>
-          ))}
+          {component.states.map((state) => {
+            const inspection = state.inspection ?? { mode: "fixture" as const }
+            return (
+              <li key={state.id}>
+                <div className={styles.stateGuidance}>
+                  <div className={styles.stateHeading}>
+                    <code>{state.id}</code>
+                    <span data-inspection-mode={inspection.mode}>
+                      {text.stateModes[inspection.mode]}
+                    </span>
+                  </div>
+                  <p>{state.guidance[locale]}</p>
+                  {inspection.instruction ? (
+                    <p className={styles.stateInstruction}>{inspection.instruction[locale]}</p>
+                  ) : null}
+                </div>
+                <ComponentPreview
+                  demoKey={component.demoKey}
+                  label={`${component.name} ${state.id} ${locale === "ko" ? "상태 미리보기" : "state preview"}`}
+                  locale={locale}
+                  state={state.id}
+                  inspectionMode={inspection.mode}
+                />
+              </li>
+            )
+          })}
         </ul>
       </section>
 

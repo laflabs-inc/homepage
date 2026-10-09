@@ -55,6 +55,7 @@ const validCatalog = {
         {
           id: "default",
           guidance: copy,
+          inspection: { mode: "fixture" },
         },
       ],
       props: [
@@ -97,8 +98,8 @@ describe("design catalog schema", () => {
     expect(designSystemMeta).toEqual({
       name: "LafLabs Web Design",
       skillName: "laflabs-web-design",
-      version: "2026.10.1",
-      updatedAt: "2026-10-04",
+      version: "2026.10.2",
+      updatedAt: "2026-10-05",
       canonicalPath: "/design",
       publicOrigin: "https://www.laflabs.co",
       locales: ["ko", "en"],
@@ -195,6 +196,34 @@ describe("design catalog schema", () => {
 
     expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
       "components logo state default: missing localized copy",
+    )
+  })
+
+  it("rejects an unsupported state inspection mode", () => {
+    const component = {
+      ...validCatalog.components[0],
+      states: [{
+        ...validCatalog.components[0].states[0],
+        inspection: { mode: "snapshot" },
+      }],
+    } as unknown as DesignCatalog["components"][number]
+
+    expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
+      "components logo state default: invalid inspection mode",
+    )
+  })
+
+  it("requires localized instructions for non-fixture state inspections", () => {
+    const component = {
+      ...validCatalog.components[0],
+      states: [{
+        ...validCatalog.components[0].states[0],
+        inspection: { mode: "interactive" },
+      }],
+    } as unknown as DesignCatalog["components"][number]
+
+    expect(() => assertDesignCatalog({ ...validCatalog, components: [component] })).toThrow(
+      "components logo state default: missing inspection instruction",
     )
   })
 
@@ -341,11 +370,40 @@ describe("production design catalog", () => {
     for (const component of designCatalog.components) {
       expect(component.states.length).toBeGreaterThan(0)
       for (const state of component.states) {
+        const inspection = (state as typeof state & {
+          inspection?: {
+            mode: "fixture" | "interactive" | "environment"
+            instruction?: typeof copy
+          }
+        }).inspection
         expect(state.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
         expect(state.guidance.ko.trim()).not.toBe("")
         expect(state.guidance.en.trim()).not.toBe("")
+        expect(inspection, `${component.id}:${state.id}`).toBeDefined()
+        expect(["fixture", "interactive", "environment"]).toContain(inspection?.mode)
+        if (inspection?.mode !== "fixture") {
+          expect(inspection?.instruction?.ko.trim()).not.toBe("")
+          expect(inspection?.instruction?.en.trim()).not.toBe("")
+        }
       }
     }
+  })
+
+  it("marks interaction and environment-dependent states without pretending they are fixed snapshots", () => {
+    const dialogOpen = getComponentEntry("dialog")?.states.find(({ id }) => id === "open")
+    const textLinkHover = getComponentEntry("text-link")?.states.find(({ id }) => id === "hover")
+    const spinnerReducedMotion = getComponentEntry("spinner")?.states.find(
+      ({ id }) => id === "reduced-motion",
+    )
+
+    expect(dialogOpen).toMatchObject({ inspection: { mode: "interactive" } })
+    expect(textLinkHover).toMatchObject({ inspection: { mode: "interactive" } })
+    expect(spinnerReducedMotion).toMatchObject({ inspection: { mode: "environment" } })
+  })
+
+  it("publishes Outline as a supported Button and Button Link state", () => {
+    expect(getComponentEntry("button")?.states.map(({ id }) => id)).toContain("outline")
+    expect(getComponentEntry("button-link")?.states.map(({ id }) => id)).toContain("outline")
   })
 
   it("publishes the C3C compound, compatibility, and feedback contracts", () => {

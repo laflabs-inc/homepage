@@ -171,6 +171,25 @@ describe("Design system component pages", () => {
     )).toBe(true)
   })
 
+  it("labels interaction-driven and environment-driven inspections honestly", () => {
+    const dialog = designCatalog.components.find(({ id }) => id === "dialog")
+    const spinner = designCatalog.components.find(({ id }) => id === "spinner")
+    if (!dialog || !spinner) throw new Error("State inspection fixtures are missing")
+
+    const dialogPage = render(<ComponentDetail component={dialog} locale="en" />)
+    const openPreview = screen.getByRole("region", { name: "Dialog open state preview" })
+    expect(openPreview).toHaveAttribute("data-inspection-mode", "interactive")
+    expect(screen.getAllByText("Interact to inspect").length).toBeGreaterThan(0)
+    dialogPage.unmount()
+
+    render(<ComponentDetail component={spinner} locale="en" />)
+    const reducedMotionPreview = screen.getByRole("region", {
+      name: "Spinner reduced-motion state preview",
+    })
+    expect(reducedMotionPreview).toHaveAttribute("data-inspection-mode", "environment")
+    expect(screen.getByText("Change the environment to inspect")).toBeInTheDocument()
+  })
+
   it("renders complete Field, InputGroup, RadioGroup, and Switch recipes", () => {
     const field = designCatalog.components.find(({ id }) => id === "field")
     const inputGroup = designCatalog.components.find(({ id }) => id === "input-group")

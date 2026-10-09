@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { environmentInspection, interactiveInspection } from "../state-inspection"
 
 export const actionComponents = [
   {
@@ -19,6 +20,7 @@ export const actionComponents = [
     states: [
       { id: "primary", guidance: { ko: "한 화면의 가장 중요한 동작에만 파란 면을 씁니다.", en: "Reserve the blue surface for the most important action in a view." } },
       { id: "secondary", guidance: { ko: "보조 동작은 Paper 면과 1px 선으로 표시합니다.", en: "Render secondary actions with a Paper surface and one-pixel rule." } },
+      { id: "outline", guidance: { ko: "채운 면 없이 Ink 경계로 동작을 분명히 구분합니다.", en: "Use an Ink outline to distinguish an action without a filled surface." } },
       { id: "inverse", guidance: { ko: "어두운 면 위에서 경계와 이름이 선명한지 확인합니다.", en: "Confirm the boundary and label remain clear on dark surfaces." } },
       { id: "ghost", guidance: { ko: "시각적 무게가 낮아도 조작 영역과 초점 표시는 유지합니다.", en: "Keep the target and focus indicator even at low visual emphasis." } },
       { id: "icon", guidance: { ko: "아이콘만 보일 때 접근성 이름과 모바일 44px 조작 영역을 확인합니다.", en: "For icon-only controls, verify the accessible name and 44px mobile target." } },
@@ -27,7 +29,7 @@ export const actionComponents = [
       { id: "danger", guidance: { ko: "파괴적 동작에만 Error Deep과 흰색 전경을 씁니다.", en: "Use Error Deep with a white foreground only for destructive actions." } },
     ],
     props: [
-      { name: "variant", type: '"primary" | "secondary" | "inverse" | "danger" | "ghost"', required: false, description: { ko: "동작의 위계와 의미를 정합니다.", en: "Sets action hierarchy and semantics." } },
+      { name: "variant", type: '"primary" | "secondary" | "outline" | "inverse" | "danger" | "ghost"', required: false, description: { ko: "동작의 위계와 의미를 정합니다.", en: "Sets action hierarchy and semantics." } },
       { name: "size", type: '"compact" | "default" | "icon"', required: false, description: { ko: "컨트롤 밀도와 아이콘 전용 크기를 정합니다.", en: "Sets control density, including the icon-only size." } },
       { name: "loading", type: "boolean", required: false, description: { ko: "중복 실행을 막고 busy 상태를 알립니다.", en: "Prevents duplicate activation and exposes busy state." } },
       { name: "type", type: '"button" | "submit" | "reset"', required: false, description: { ko: "기본값은 button입니다.", en: "Defaults to button." } },
@@ -52,13 +54,14 @@ export const actionComponents = [
     states: [
       { id: "primary", guidance: { ko: "주요 이동 목적지를 파란 면으로 표시합니다.", en: "Present the primary destination on a blue surface." } },
       { id: "secondary", guidance: { ko: "보조 이동은 Paper 면과 1px 선으로 표시합니다.", en: "Present supporting navigation with Paper and a one-pixel rule." } },
+      { id: "outline", guidance: { ko: "채운 면 없이 Ink 경계로 이동 동작을 구분합니다.", en: "Use an Ink outline for navigation that needs button emphasis without a fill." } },
       { id: "inverse", guidance: { ko: "어두운 면에서도 링크 목적지가 선명한지 확인합니다.", en: "Confirm the destination remains clear on dark surfaces." } },
       { id: "ghost", guidance: { ko: "낮은 위계의 이동에도 링크 초점 표시를 유지합니다.", en: "Keep link focus visible at low hierarchy." } },
       { id: "icon", guidance: { ko: "아이콘 링크에는 목적지를 설명하는 aria-label이 필요합니다.", en: "Icon links require an aria-label that names the destination." } },
     ],
     props: [
       { name: "href", type: "string", required: true, description: { ko: "이동할 주소입니다.", en: "The navigation destination." } },
-      { name: "variant", type: '"primary" | "secondary" | "inverse" | "danger" | "ghost"', required: false, description: { ko: "링크의 시각 위계를 정합니다.", en: "Sets the link's visual hierarchy." } },
+      { name: "variant", type: '"primary" | "secondary" | "outline" | "inverse" | "danger" | "ghost"', required: false, description: { ko: "링크의 시각 위계를 정합니다.", en: "Sets the link's visual hierarchy." } },
       { name: "size", type: '"compact" | "default" | "icon"', required: false, description: { ko: "컨트롤 밀도를 정합니다.", en: "Sets the control density." } },
       { name: "children", type: "ReactNode", required: true, description: { ko: "목적지를 설명하는 이름 또는 아이콘입니다.", en: "The destination label or icon." } },
     ],
@@ -108,10 +111,10 @@ export const actionComponents = [
     states: [
       { id: "default", guidance: { ko: "이름 있는 그룹과 모든 선택지가 한 구조로 읽히는지 확인합니다.", en: "Confirm the named group and all options read as one control." } },
       { id: "three-options", guidance: { ko: "폭이 다른 세 선택지에서도 선택 면이 정확히 맞는지 확인합니다.", en: "Confirm the selected surface fits three unequal labels." } },
-      { id: "focus-visible", guidance: { ko: "방향키가 다음 활성 선택지로 초점과 값을 함께 옮기는지 확인합니다.", en: "Confirm arrow keys move focus and value to the next enabled option." } },
+      { id: "focus-visible", guidance: { ko: "방향키가 다음 활성 선택지로 초점과 값을 함께 옮기는지 확인합니다.", en: "Confirm arrow keys move focus and value to the next enabled option." }, inspection: interactiveInspection },
       { id: "selected", guidance: { ko: "선택 면과 aria-checked가 함께 바뀌는지 확인합니다.", en: "Confirm the selected surface and aria-checked change together." } },
       { id: "disabled", guidance: { ko: "비활성 선택지를 클릭과 방향키가 건너뛰는지 확인합니다.", en: "Confirm pointer and keyboard navigation skip disabled options." } },
-      { id: "reduced-motion", guidance: { ko: "동작 줄이기에서도 선택 상태는 즉시 분명해야 합니다.", en: "Keep selection immediately clear under reduced motion." } },
+      { id: "reduced-motion", guidance: { ko: "동작 줄이기에서도 선택 상태는 즉시 분명해야 합니다.", en: "Keep selection immediately clear under reduced motion." }, inspection: environmentInspection },
     ],
     props: [
       { name: "label", type: "string", required: true, description: { ko: "선택지 그룹의 접근성 이름입니다.", en: "The accessible name for the option group." } },

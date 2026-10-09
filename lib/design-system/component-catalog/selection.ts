@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { interactiveInspection } from "../state-inspection"
 
 export const selectionComponents = [
   {
@@ -46,7 +47,7 @@ export const selectionComponents = [
     states: [
       { id: "default", guidance: { ko: "legend와 모든 선택지 이름을 확인합니다.", en: "Inspect the legend and every option name." } },
       { id: "selected", guidance: { ko: "한 번에 하나만 선택되는지 확인합니다.", en: "Confirm only one option is selected at a time." } },
-      { id: "controlled", guidance: { ko: "외부 value와 변경 콜백이 일치하는지 확인합니다.", en: "Confirm external value and change callback stay aligned." } },
+      { id: "controlled", guidance: { ko: "외부 value와 변경 콜백이 일치하는지 확인합니다.", en: "Confirm external value and change callback stay aligned." }, inspection: interactiveInspection },
       { id: "disabled", guidance: { ko: "개별 선택지와 전체 그룹 비활성 상태를 확인합니다.", en: "Inspect per-option and whole-group disabled states." } },
     ],
     props: [
@@ -74,7 +75,7 @@ export const selectionComponents = [
     states: [
       { id: "off", guidance: { ko: "꺼짐 상태에서도 설정 이름이 분명한지 확인합니다.", en: "Confirm the setting remains clear while off." } },
       { id: "on", guidance: { ko: "thumb 위치와 native checked 상태가 함께 바뀌는지 확인합니다.", en: "Confirm thumb position and native checked state change together." } },
-      { id: "focus-visible", guidance: { ko: "트랙 바깥의 키보드 초점선을 확인합니다.", en: "Inspect the keyboard focus outline around the track." } },
+      { id: "focus-visible", guidance: { ko: "트랙 바깥의 키보드 초점선을 확인합니다.", en: "Inspect the keyboard focus outline around the track." }, inspection: interactiveInspection },
       { id: "disabled", guidance: { ko: "현재 값은 보이지만 바꿀 수 없는지 확인합니다.", en: "Confirm the current value stays visible but cannot change." } },
     ],
     props: [

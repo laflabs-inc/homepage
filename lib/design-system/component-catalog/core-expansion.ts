@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { interactiveInspection } from "../state-inspection"
 
 export const coreExpansionComponents = [
   {
@@ -18,7 +19,7 @@ export const coreExpansionComponents = [
     dependencies: ["radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거 이름만으로 펼쳐질 내용을 예상할 수 있는지 확인합니다.", en: "Confirm the trigger name predicts the content it opens." } },
-      { id: "open", guidance: { ko: "화면 가장자리 충돌과 키보드 이동을 확인합니다.", en: "Inspect viewport collision and keyboard movement." } },
+      { id: "open", guidance: { ko: "화면 가장자리 충돌과 키보드 이동을 확인합니다.", en: "Inspect viewport collision and keyboard movement." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "open", type: "boolean", required: false, description: { ko: "제어되는 열림 상태입니다.", en: "The controlled open state." } },
@@ -43,7 +44,7 @@ export const coreExpansionComponents = [
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거가 보조 작업임을 분명히 하는지 확인합니다.", en: "Confirm the trigger clearly names the supporting task." } },
-      { id: "open", guidance: { ko: "본문과 패널의 경계, 내부 스크롤과 닫기 동작을 확인합니다.", en: "Inspect the page boundary, internal scroll, and close action." } },
+      { id: "open", guidance: { ko: "본문과 패널의 경계, 내부 스크롤과 닫기 동작을 확인합니다.", en: "Inspect the page boundary, internal scroll, and close action." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "side", type: '"top" | "right" | "bottom" | "left"', required: false, description: { ko: "패널이 들어오는 화면 가장자리입니다.", en: "The viewport edge the panel enters from." } },
@@ -68,8 +69,8 @@ export const coreExpansionComponents = [
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "선택값과 입력 목적이 함께 읽히는지 확인합니다.", en: "Confirm the selected value and input purpose are both readable." } },
-      { id: "open", guidance: { ko: "활성 항목, 선택 항목, 비활성 항목을 구분합니다.", en: "Distinguish active, selected, and disabled options." } },
-      { id: "empty", guidance: { ko: "검색 결과가 없음을 짧은 문장으로 알립니다.", en: "State an empty search result in concise text." } },
+      { id: "open", guidance: { ko: "활성 항목, 선택 항목, 비활성 항목을 구분합니다.", en: "Distinguish active, selected, and disabled options." }, inspection: interactiveInspection },
+      { id: "empty", guidance: { ko: "검색 결과가 없음을 짧은 문장으로 알립니다.", en: "State an empty search result in concise text." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "options", type: "readonly ComboboxOption[]", required: true, description: { ko: "검색하고 선택할 항목입니다.", en: "The options available for search and selection." } },
@@ -95,7 +96,7 @@ export const coreExpansionComponents = [
     dependencies: [],
     states: [
       { id: "default", guidance: { ko: "접두어와 동작이 입력값과 시각적으로 연결되는지 확인합니다.", en: "Confirm prefixes and actions remain visibly connected to the value." } },
-      { id: "focus-visible", guidance: { ko: "그룹 전체 경계가 초점 상태를 보여주는지 확인합니다.", en: "Confirm the shared boundary communicates focus." } },
+      { id: "focus-visible", guidance: { ko: "그룹 전체 경계가 초점 상태를 보여주는지 확인합니다.", en: "Confirm the shared boundary communicates focus." }, inspection: interactiveInspection },
       { id: "invalid", guidance: { ko: "Field 오류와 그룹 경계가 같은 상태를 전달하는지 확인합니다.", en: "Confirm Field error copy and group border communicate the same state." } },
     ],
     props: [

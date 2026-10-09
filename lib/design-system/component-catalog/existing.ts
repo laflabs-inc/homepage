@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { environmentInspection, interactiveInspection } from "../state-inspection"
 
 const imports = {
   logo: 'import { Logo } from "@/components/ui/logo"',
@@ -103,6 +104,7 @@ export const existingComponents = [
           ko: "실제 링크에 포인터를 올려 Blue 전환과 화살표 이동을 확인합니다.",
           en: "Hover the real link and inspect its Blue transition and arrow movement.",
         },
+        inspection: interactiveInspection,
       },
       {
         id: "focus-visible",
@@ -110,6 +112,7 @@ export const existingComponents = [
           ko: "Tab으로 실제 링크에 초점을 옮겨 외부 focus outline을 확인합니다.",
           en: "Tab to the real link and inspect its outside focus outline.",
         },
+        inspection: interactiveInspection,
       },
       {
         id: "visited",
@@ -117,6 +120,7 @@ export const existingComponents = [
           ko: "실제 링크를 연 뒤 돌아와 deep blue 방문 상태가 목적지 의미를 유지하는지 확인합니다.",
           en: "Open the real link and return to inspect the deep-blue visited state without losing its destination meaning.",
         },
+        inspection: interactiveInspection,
       },
     ],
     props: [
@@ -183,6 +187,7 @@ export const existingComponents = [
           ko: "실제 복사 버튼을 눌러 COPIED label과 polite 상태 안내를 확인합니다.",
           en: "Use the real copy action and inspect its COPIED label and polite status message.",
         },
+        inspection: interactiveInspection,
       },
       {
         id: "error",
@@ -190,6 +195,7 @@ export const existingComponents = [
           ko: "클립보드 권한을 거부한 뒤 실제 복사 버튼의 RETRY label과 선택 가능한 원문을 확인합니다.",
           en: "Deny clipboard access, then inspect the real RETRY label while the source remains selectable.",
         },
+        inspection: environmentInspection,
       },
     ],
     props: [

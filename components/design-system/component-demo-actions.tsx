@@ -33,7 +33,7 @@ function ButtonDemo({ locale, state }: ComponentDemoProps) {
     )
   }
 
-  const variant = state === "secondary" || state === "inverse" || state === "ghost" || state === "danger"
+  const variant = state === "secondary" || state === "outline" || state === "inverse" || state === "ghost" || state === "danger"
     ? state
     : "primary"
   const button = (
@@ -53,7 +53,7 @@ function ButtonDemo({ locale, state }: ComponentDemoProps) {
 
 function ButtonLinkDemo({ locale, state }: ComponentDemoProps) {
   const label = locale === "ko" ? "디자인 가이드 보기" : "View design guide"
-  const variant = state === "secondary" || state === "inverse" || state === "ghost"
+  const variant = state === "secondary" || state === "outline" || state === "inverse" || state === "ghost"
     ? state
     : "primary"
 
@@ -72,7 +72,7 @@ function ButtonLinkDemo({ locale, state }: ComponentDemoProps) {
 function ButtonGroupDemo({ locale, state }: ComponentDemoProps) {
   const vertical = state === "vertical"
 
-  if (state === "wrapped") {
+  if (state === "input") {
     return (
       <ButtonGroup
         aria-label={locale === "ko" ? "문서 검색" : "Document search"}
@@ -101,14 +101,8 @@ function ButtonGroupDemo({ locale, state }: ComponentDemoProps) {
     )
   }
 
-  return (
-    <div className={styles.demoCluster}>
-      <ButtonGroup label={locale === "ko" ? "문서 저장" : "Document save"}>
-        <ButtonGroupText>{locale === "ko" ? "초안" : "DRAFT"}</ButtonGroupText>
-        <Button variant="secondary">{locale === "ko" ? "저장" : "Save"}</Button>
-        <Button>{locale === "ko" ? "발행" : "Publish"}</Button>
-      </ButtonGroup>
-
+  if (state === "split") {
+    return (
       <DropdownMenu>
         <ButtonGroup label={locale === "ko" ? "발행 방식" : "Publish options"}>
           <Button>{locale === "ko" ? "지금 발행" : "Publish now"}</Button>
@@ -127,6 +121,17 @@ function ButtonGroupDemo({ locale, state }: ComponentDemoProps) {
           <DropdownMenuItem>{locale === "ko" ? "미리보기 링크 복사" : "Copy preview link"}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+    )
+  }
+
+  return (
+    <div className={styles.demoCluster}>
+      <ButtonGroup label={locale === "ko" ? "문서 저장" : "Document save"}>
+        <ButtonGroupText>{locale === "ko" ? "초안" : "DRAFT"}</ButtonGroupText>
+        <Button variant="secondary">{locale === "ko" ? "저장" : "Save"}</Button>
+        <Button>{locale === "ko" ? "발행" : "Publish"}</Button>
+      </ButtonGroup>
+
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import type { ComponentEntry } from "../schema"
+import { interactiveInspection } from "../state-inspection"
 
 export const overlayComponents = [
   {
@@ -18,7 +19,7 @@ export const overlayComponents = [
     dependencies: ["radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "툴팁 없이도 트리거 이름이 남는지 확인합니다.", en: "Confirm the trigger keeps an accessible name without the tooltip." } },
-      { id: "open", guidance: { ko: "짧은 문장이 화면 안에 배치되고 트리거를 가리지 않는지 확인합니다.", en: "Confirm concise copy stays in the viewport without obscuring the trigger." } },
+      { id: "open", guidance: { ko: "짧은 문장이 화면 안에 배치되고 트리거를 가리지 않는지 확인합니다.", en: "Confirm concise copy stays in the viewport without obscuring the trigger." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "delayDuration", type: "number", required: false, description: { ko: "Provider가 hover 열림 지연을 밀리초로 정합니다.", en: "Provider delay before opening on hover, in milliseconds." } },

@@ -48,6 +48,17 @@ describe("Button", () => {
     )
   })
 
+  it("renders a transparent outline action as a first-class variant", () => {
+    render(<Button variant={"outline" as never}>View details</Button>)
+
+    const button = screen.getByRole("button", { name: "View details" })
+    const stylesheet = readFileSync(join(process.cwd(), "components/ui/button.module.css"), "utf8")
+    expect(button).toHaveAttribute("data-variant", "outline")
+    expect(stylesheet).toMatch(
+      /\.outline\s*\{[^}]*border-color:\s*var\(--ink\);[^}]*background:\s*transparent;[^}]*color:\s*var\(--ink\);/s,
+    )
+  })
+
   it("renders an accessible icon-only action", () => {
     render(
       <Button size="icon" aria-label="Search">
@@ -118,6 +129,18 @@ describe("ButtonLink", () => {
     const link = screen.getByRole("link", { name: "Components" })
     expect(link).toHaveAttribute("data-variant", "secondary")
     expect(link).toHaveAttribute("data-size", "compact")
+  })
+
+  it("shares the transparent outline treatment", () => {
+    render(
+      <ButtonLink href="/design" variant={"outline" as never}>
+        Design guide
+      </ButtonLink>,
+    )
+
+    const link = screen.getByRole("link", { name: "Design guide" })
+    expect(link).toHaveAttribute("data-variant", "outline")
+    expect(link.className).toMatch(/outline/)
   })
 })
 
