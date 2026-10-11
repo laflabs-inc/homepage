@@ -1,7 +1,7 @@
 # LafLabs Website and Admin Platform Roadmap
 
 Status: Active
-Last updated: 2026-10-07
+Last updated: 2026-10-11
 
 ## Objective
 
@@ -35,7 +35,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | --- | --- | --- |
 | Public document index polish | Shipped | The three public indexes share the Navbar shell and compact masthead. |
 | Document editor workspace | Shipped | Authors switch explicitly between a persistent Markdown source editor and the rendered preview. |
-| Design system foundation | Shipped; Core UI v2 in progress | Tokens and guidance are public. C3A–C3C are complete; C3D has published production Recipes and next adopts them in representative application surfaces. |
+| Design system foundation | Shipped; Core UI v2 complete | Tokens, components, Recipes, human guidance, and AI references are public. The Admin document list and editor provide the representative production adoption. |
 | Logo motion | Shipped | The public header reveals the official mark once per session and supports restrained hover or focus replay. |
 | Media platform foundation | Shipped | Separate private staging and public delivery stores, protected uploads, validation, recovery, and the Admin asset library are operational. |
 | Media authoring integration | Shipped | Authors can select, upload, version, insert, validate, and inspect stable media references without rewriting published paths. |
@@ -47,7 +47,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | C3A: actions and selection navigation | Shipped | Button and ButtonLink share one visual contract; ButtonGroup is composable; SegmentedControl supports variable-width multi-option selection; deprecated aliases remain for one compatibility release. |
 | C3B: form composition | Shipped | Field and InputGroup provide compound composition, RadioGroup uses square indicators, Switch supports checked-tone variants, public form recipes are published, and the Admin document editor adopts the shared contracts. |
 | C3C: overlays, navigation, and feedback | Shipped | Pagination, Dialog, AlertDialog, Spinner, Toast, Alert, and StatusLabel now share documented compound, state, and accessibility contracts. |
-| C3D: system publication | In progress | This slice ships four cross-component Recipes, state matrices, human pages, and AI references. Representative application adoption remains next. |
+| C3D: system publication | Shipped | Four cross-component Recipes, state matrices, human and AI references, and representative Admin document-list and editor adoption are complete. |
 
 ## Delivery sequence
 
