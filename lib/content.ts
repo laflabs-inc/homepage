@@ -135,6 +135,7 @@ type Copy = {
     documents: string
     links: {
       principles: string
+      careers: string
       contact: string
       github: string
       notices: string
@@ -296,6 +297,7 @@ const ko: Copy = {
     documents: "문서",
     links: {
       principles: "일하는 방식",
+      careers: "채용",
       contact: "문의하기",
       github: "GitHub",
       notices: "공지사항",
@@ -457,6 +459,7 @@ const en: Copy = {
     documents: "Documents",
     links: {
       principles: "How we work",
+      careers: "Careers",
       contact: "Contact",
       github: "GitHub",
       notices: "Notices",
