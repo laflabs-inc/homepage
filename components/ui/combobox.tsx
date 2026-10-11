@@ -27,6 +27,7 @@ export type ComboboxProps = Omit<
 > & {
   defaultValue?: string
   emptyText: string
+  onValueCommit?: (value: string) => void
   onValueChange?: (value: string) => void
   options: readonly ComboboxOption[]
   value?: string
@@ -39,6 +40,7 @@ function optionText(option: ComboboxOption) {
 export function Combobox({
   defaultValue = "",
   emptyText,
+  onValueCommit,
   onValueChange,
   options,
   value,
@@ -69,6 +71,7 @@ export function Combobox({
     setOpen(false)
     setActiveIndex(-1)
     onValueChange?.(option.value)
+    onValueCommit?.(option.value)
     inputRef.current?.focus()
   }
 
@@ -105,7 +108,8 @@ export function Combobox({
     }
   }
 
-  const fieldProps = useFieldControlProps({ ...inputProps, id: inputProps.id ?? `${generatedId}-input` })
+  const fieldProps = useFieldControlProps(inputProps)
+  const inputId = fieldProps.id ?? `${generatedId}-input`
   const activeOption = activeIndex >= 0 ? filteredOptions[activeIndex] : undefined
 
   return (
@@ -125,6 +129,7 @@ export function Combobox({
             <input
               {...fieldProps}
               ref={inputRef}
+              id={inputId}
               aria-activedescendant={activeOption ? `${listboxId}-option-${activeIndex}` : undefined}
               aria-autocomplete="list"
               aria-controls={listboxId}

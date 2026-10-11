@@ -1,5 +1,6 @@
 "use client"
 
+import { CaretDown } from "@phosphor-icons/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -10,7 +11,14 @@ import { MarkdownLiveEditor } from "@/components/admin/markdown-live-editor"
 import { useDirtyNavigationGuard } from "@/components/admin/use-dirty-navigation-guard"
 import { Button } from "@/components/ui/button"
 import { ButtonLink } from "@/components/ui/button-link"
+import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Field,
   FieldGroup,
@@ -20,6 +28,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
+import { StatusLabel } from "@/components/ui/status-label"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
 import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
@@ -547,7 +556,7 @@ export function DocumentEditor({
               </p>
             </div>
           </div>
-          <FieldSet className={styles.editorProperties}>
+          <FieldSet className={styles.editorProperties} data-recipe="document-settings-form">
             <FieldLegend>{t.documentSettings}</FieldLegend>
             <FieldGroup className={styles.editorFieldGrid}>
               <Field className={styles.editorPropertyKind}>
@@ -627,38 +636,62 @@ export function DocumentEditor({
           {dirty && revision ? (
             <p className={styles.editorGuidance}>{t.dirtyGuidance}</p>
           ) : null}
-          <div className={styles.editorActions}>
-            <Button disabled={pending} type="submit">{t.saveDraft}</Button>
-            {revision ? (
-              <>
+          <div
+            className={styles.editorPublishingToolbar}
+            data-recipe="document-publishing-toolbar"
+          >
+            <StatusLabel tone={pending ? "info" : "neutral"}>
+              {adminCopy[locale].documents[revision?.status ?? "draft"]}
+            </StatusLabel>
+            <div className={styles.editorPublishingControls}>
+              {revision ? (
                 <Field className={styles.scheduleField}>
                   <FieldLabel>{t.scheduleTime}</FieldLabel>
                   <Input type="datetime-local" value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} />
                 </Field>
-                <Button disabled={pending || dirty || !scheduledAt} variant="secondary" type="button" onClick={() => confirmedAction(
-                  t.confirmations.schedule,
-                  "schedule",
-                  { scheduledAt: new Date(scheduledAt).toISOString() },
-                  t.notices.documentScheduled,
-                )}>{t.schedule}</Button>
-                <Button disabled={pending || dirty} type="button" onClick={() => confirmedAction(
-                  revision.locale === "en"
-                    ? t.confirmations.publishEnglish
-                    : t.confirmations.publish,
-                  "publish",
-                  {},
-                  t.notices.documentPublished,
-                )}>{t.publishNow}</Button>
-                <Button disabled={pending} type="button" variant="danger" onClick={() => void deleteDraft()}>
-                  {t.deleteDraft}
-                </Button>
-                {englishCreationLink ? (
-                  <ButtonLink href={englishCreationLink} variant="secondary">
-                    {t.createEnglishRevision}
-                  </ButtonLink>
+              ) : null}
+              <DropdownMenu>
+                <ButtonGroup className={styles.editorPublishingActions} label={t.publishingActions}>
+                  <Button disabled={pending} type="submit" variant="secondary">{t.saveDraft}</Button>
+                  {revision ? (
+                    <>
+                      <Button disabled={pending || dirty || !scheduledAt} variant="secondary" type="button" onClick={() => confirmedAction(
+                        t.confirmations.schedule,
+                        "schedule",
+                        { scheduledAt: new Date(scheduledAt).toISOString() },
+                        t.notices.documentScheduled,
+                      )}>{t.schedule}</Button>
+                      <Button disabled={pending || dirty} type="button" onClick={() => confirmedAction(
+                        revision.locale === "en"
+                          ? t.confirmations.publishEnglish
+                          : t.confirmations.publish,
+                        "publish",
+                        {},
+                        t.notices.documentPublished,
+                      )}>{t.publishNow}</Button>
+                      <ButtonGroupSeparator />
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-label={t.moreActions} disabled={pending} size="icon" variant="secondary">
+                          <CaretDown aria-hidden size={16} weight="bold" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </>
+                  ) : null}
+                </ButtonGroup>
+                {revision ? (
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem className={styles.editorDangerMenuItem} onSelect={() => void deleteDraft()}>
+                      {t.deleteDraft}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
                 ) : null}
-              </>
-            ) : null}
+              </DropdownMenu>
+              {englishCreationLink ? (
+                <ButtonLink href={englishCreationLink} variant="secondary">
+                  {t.createEnglishRevision}
+                </ButtonLink>
+              ) : null}
+            </div>
           </div>
       </form>
     </section>

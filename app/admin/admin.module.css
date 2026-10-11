@@ -104,10 +104,12 @@
 
 .documentListMeta {
   min-height: 46px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  border-bottom: 1px solid var(--line);
 }
 
 .documentListMeta p {
@@ -140,36 +142,52 @@
 .documentList {
   margin: 0;
   padding: 0;
-  border: 1px solid var(--ink);
   list-style: none;
 }
 
-.documentList li + li {
-  border-top: 1px solid var(--ink);
+.documentCollectionContent {
+  padding: 0;
 }
 
-.documentList a {
-  min-height: 88px;
+.documentListItem {
+  position: relative;
   padding: 18px 22px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) repeat(4, auto);
-  align-items: center;
-  gap: 24px;
-  color: var(--muted);
-  font-size: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  border: 0;
 }
 
-.documentList a:hover {
+.documentListItem + .documentListItem {
+  border-top: 1px solid var(--line);
+}
+
+.documentListItem:hover {
   background: #eff6ff;
 }
 
 .documentListTitle {
+  min-width: 0;
   overflow: hidden;
   color: var(--ink);
-  font-size: 18px;
-  font-weight: 680;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.documentListTitle a::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.documentListFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.documentCollectionFooter {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
 }
 
 .documentEmpty {
@@ -177,7 +195,6 @@
   padding: 40px;
   display: grid;
   align-content: center;
-  border: 1px solid var(--ink);
 }
 
 .documentEmpty h3,
@@ -533,6 +550,31 @@
 
 .editorSource > .editorActions {
   padding: 20px 48px 28px;
+}
+
+.editorPublishingToolbar {
+  padding: 20px 48px 28px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.editorPublishingControls {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.editorPublishingActions {
+  min-width: 0;
+}
+
+.editorDangerMenuItem {
+  color: var(--error);
 }
 
 .editorSource > .formAlert,
@@ -1472,11 +1514,6 @@
     flex-direction: column;
   }
 
-  .documentList a {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-  }
-
   .documentFilters {
     grid-template-columns: 1fr;
   }
@@ -1485,10 +1522,6 @@
   .documentFilterField:nth-child(4) {
     border-top: 1px solid var(--ink);
     border-left: 0;
-  }
-
-  .documentList a > span:nth-child(2) {
-    grid-column: 1 / -1;
   }
 
   .immutableMeta,
@@ -1537,6 +1570,51 @@
 
   .editorSource > .editorActions {
     padding: 18px 20px 22px;
+  }
+
+  .editorPublishingToolbar {
+    padding: 18px 20px 22px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editorPublishingControls,
+  .editorPublishingControls > *,
+  .editorPublishingActions,
+  .editorPublishingActions > * {
+    width: 100%;
+  }
+
+  .editorPublishingActions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) 1px 44px;
+  }
+
+  .editorPublishingActions > :nth-child(1) {
+    grid-column: 1 / 4;
+  }
+
+  .editorPublishingActions > :nth-child(2) {
+    grid-column: 4 / 7;
+  }
+
+  .editorPublishingActions > :nth-child(3) {
+    grid-column: 1 / 5;
+    grid-row: 2;
+  }
+
+  .editorPublishingActions > :nth-child(4) {
+    grid-column: 5;
+    grid-row: 2;
+  }
+
+  .editorPublishingActions > :nth-child(5) {
+    grid-column: 6;
+    grid-row: 2;
+  }
+
+  .editorPublishingActions > :only-child {
+    grid-column: 1 / -1;
   }
 
   .editorSource > .formAlert,

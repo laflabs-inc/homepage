@@ -1,16 +1,38 @@
 "use client"
 
 import Link from "next/link"
+import { MagnifyingGlass, X } from "@phosphor-icons/react"
 import { useCallback, useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
 import styles from "@/app/admin/admin.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { Button } from "@/components/ui/button"
+import { Combobox } from "@/components/ui/combobox"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Field, FieldLabel } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group"
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemFooter,
+  ItemHeader,
+  ItemTitle,
+} from "@/components/ui/item"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+} from "@/components/ui/pagination"
+import { Panel, PanelContent, PanelFooter } from "@/components/ui/panel"
 import { StatusLabel } from "@/components/ui/status-label"
 import { adminCopy } from "@/lib/admin/i18n"
 import type { AdminDocumentListRow } from "@/lib/documents/admin-list"
@@ -102,111 +124,169 @@ export function DocumentList({
 
   return (
     <div className={styles.documentListWorkspace}>
-      <div className={styles.documentFilters}>
+      <div className={styles.documentFilters} data-recipe="search-filter-field">
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.search}</FieldLabel>
-          <Input
-            type="search"
-            maxLength={160}
-            value={search}
-            onChange={(event) => setSearch(event.target.value.slice(0, 160))}
-          />
+          <InputGroup>
+            <InputGroupAddon placement="inline-start">
+              <MagnifyingGlass aria-hidden size={17} weight="bold" />
+            </InputGroupAddon>
+            <InputGroupInput
+              type="search"
+              maxLength={160}
+              value={search}
+              onChange={(event) => setSearch(event.target.value.slice(0, 160))}
+            />
+            {search ? (
+              <InputGroupAddon placement="inline-end">
+                <InputGroupButton aria-label={t.clearSearch} onClick={() => setSearch("")} size="icon">
+                  <X aria-hidden size={16} weight="bold" />
+                </InputGroupButton>
+              </InputGroupAddon>
+            ) : null}
+          </InputGroup>
         </Field>
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.kindFilter}</FieldLabel>
-          <NativeSelect value={kind} onChange={(event) => {
-            const nextKind = event.target.value
-            setKind(nextKind)
-            replaceFilters({
-              search: search.trim() || undefined,
-              kind: nextKind || undefined,
-              status: status || undefined,
-              locale: locale || undefined,
-            })
-          }}>
-            <option value="">{t.allKinds}</option>
-            <option value="notice">{t.notice}</option>
-            <option value="legal">{t.legal}</option>
-            <option value="disclosure">{t.disclosure}</option>
-          </NativeSelect>
+          <Combobox
+            aria-label={t.kindFilter}
+            emptyText={t.noFilterOptions}
+            options={[
+              { value: "", label: t.allKinds },
+              { value: "notice", label: t.notice },
+              { value: "legal", label: t.legal },
+              { value: "disclosure", label: t.disclosure },
+            ]}
+            value={kind}
+            onValueCommit={(nextKind) => {
+              setKind(nextKind)
+              replaceFilters({
+                search: search.trim() || undefined,
+                kind: nextKind || undefined,
+                status: status || undefined,
+                locale: locale || undefined,
+              })
+            }}
+          />
         </Field>
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.statusFilter}</FieldLabel>
-          <NativeSelect value={status} onChange={(event) => {
-            const nextStatus = event.target.value
-            setStatus(nextStatus)
-            replaceFilters({
-              search: search.trim() || undefined,
-              kind: kind || undefined,
-              status: nextStatus || undefined,
-              locale: locale || undefined,
-            })
-          }}>
-            <option value="">{t.allStatuses}</option>
-            <option value="draft">{t.draft}</option>
-            <option value="scheduled">{t.scheduled}</option>
-            <option value="published">{t.published}</option>
-            <option value="archived">{t.archived}</option>
-          </NativeSelect>
+          <Combobox
+            aria-label={t.statusFilter}
+            emptyText={t.noFilterOptions}
+            options={[
+              { value: "", label: t.allStatuses },
+              { value: "draft", label: t.draft },
+              { value: "scheduled", label: t.scheduled },
+              { value: "published", label: t.published },
+              { value: "archived", label: t.archived },
+            ]}
+            value={status}
+            onValueCommit={(nextStatus) => {
+              setStatus(nextStatus)
+              replaceFilters({
+                search: search.trim() || undefined,
+                kind: kind || undefined,
+                status: nextStatus || undefined,
+                locale: locale || undefined,
+              })
+            }}
+          />
         </Field>
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.localeFilter}</FieldLabel>
-          <NativeSelect value={locale} onChange={(event) => {
-            const nextLocale = event.target.value
-            setLocale(nextLocale)
-            replaceFilters({
-              search: search.trim() || undefined,
-              kind: kind || undefined,
-              status: status || undefined,
-              locale: nextLocale || undefined,
-            })
-          }}>
-            <option value="">{t.allLocales}</option>
-            <option value="ko">{t.korean}</option>
-            <option value="en">{t.english}</option>
-          </NativeSelect>
+          <Combobox
+            aria-label={t.localeFilter}
+            emptyText={t.noFilterOptions}
+            options={[
+              { value: "", label: t.allLocales },
+              { value: "ko", label: t.korean },
+              { value: "en", label: t.english },
+            ]}
+            value={locale}
+            onValueCommit={(nextLocale) => {
+              setLocale(nextLocale)
+              replaceFilters({
+                search: search.trim() || undefined,
+                kind: kind || undefined,
+                status: status || undefined,
+                locale: nextLocale || undefined,
+              })
+            }}
+          />
         </Field>
       </div>
-      <div className={styles.documentListMeta}>
-        <p aria-live="polite">{t.resultsCount(rows.length)}</p>
-        <div className={styles.editorActions}>
+      <Panel
+        aria-label={t.collectionLabel}
+        className={styles.documentCollection}
+        data-recipe="collection-state-surface"
+      >
+        <div className={styles.documentListMeta}>
+          <p aria-live="polite">{t.resultsCount(rows.length)}</p>
           {hasActiveFilters && rows.length > 0 ? (
             <Button size="compact" variant="secondary" onClick={clearFilters}>
               {t.clearFilters}
             </Button>
           ) : null}
-          {nextCursor ? <Link href={pageHref(initialFilters, nextCursor)}>{t.nextPage}</Link> : null}
         </div>
-      </div>
-      <div aria-busy={isPending}>
-        {rows.length === 0 ? (
-          <EmptyState
-            aria-label={hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}
-            className={styles.documentEmpty}
-            title={hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}
-            description={hasActiveFilters ? t.noMatchingDocumentsDescription : t.firstDocumentDescription}
-            action={hasActiveFilters ? (
-              <Button size="compact" variant="secondary" onClick={clearFilters}>
-                {t.clearFilters}
-              </Button>
-            ) : undefined}
-          />
-        ) : (
-          <ul className={styles.documentList}>
-            {rows.map((revision) => (
-              <li key={revision.id}>
-                <Link href={`/admin/documents/${revision.id}`}>
-                  <span className={styles.documentListTitle}>{revision.title}</span>
-                  <span>{t[revision.kind]} / {displayDocumentLocale(revision.locale, localePreference)} / r{revision.revision}</span>
-                  <span>{t.by} {revision.publisher}</span>
-                  <span>{t[revision.dateLabel === "Scheduled" ? "scheduledAt" : revision.dateLabel === "Published" ? "publishedAt" : "updatedAt"]} {formatDocumentDate(revision.relevantAt, localePreference)}</span>
-                  <StatusLabel variant={statusVariants[revision.status]}>{t[revision.status]}</StatusLabel>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        <PanelContent className={styles.documentCollectionContent} aria-busy={isPending}>
+          {rows.length === 0 ? (
+            <EmptyState
+              aria-label={hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}
+              className={styles.documentEmpty}
+              title={hasActiveFilters ? t.noMatchingDocuments : t.noDocumentsYet}
+              description={hasActiveFilters ? t.noMatchingDocumentsDescription : t.firstDocumentDescription}
+              action={hasActiveFilters ? (
+                <Button size="compact" variant="secondary" onClick={clearFilters}>
+                  {t.clearFilters}
+                </Button>
+              ) : undefined}
+            />
+          ) : (
+            <ul className={styles.documentList}>
+              {rows.map((revision) => (
+                <Item as="li" className={styles.documentListItem} key={revision.id}>
+                  <ItemContent>
+                    <ItemHeader>
+                      <ItemTitle className={styles.documentListTitle}>
+                        <Link
+                          aria-label={`${revision.title} ${t[revision.status]}`}
+                          href={`/admin/documents/${revision.id}`}
+                        >
+                          {revision.title}
+                        </Link>
+                      </ItemTitle>
+                      <ItemActions>
+                        <StatusLabel variant={statusVariants[revision.status]}>{t[revision.status]}</StatusLabel>
+                      </ItemActions>
+                    </ItemHeader>
+                    <ItemDescription>
+                      {t[revision.kind]} / {displayDocumentLocale(revision.locale, localePreference)} / r{revision.revision}
+                    </ItemDescription>
+                    <ItemFooter className={styles.documentListFooter}>
+                      <span>{t.by} {revision.publisher}</span>
+                      <span>{t[revision.dateLabel === "Scheduled" ? "scheduledAt" : revision.dateLabel === "Published" ? "publishedAt" : "updatedAt"]} {formatDocumentDate(revision.relevantAt, localePreference)}</span>
+                    </ItemFooter>
+                  </ItemContent>
+                </Item>
+              ))}
+            </ul>
+          )}
+        </PanelContent>
+        {nextCursor ? (
+          <PanelFooter className={styles.documentCollectionFooter}>
+            <Pagination aria-label={t.paginationLabel}>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationNext href={pageHref(initialFilters, nextCursor)} label={t.nextPage}>
+                    {t.nextPage}
+                  </PaginationNext>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </PanelFooter>
+        ) : null}
+      </Panel>
     </div>
   )
 }

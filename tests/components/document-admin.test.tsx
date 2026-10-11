@@ -239,7 +239,7 @@ describe("document admin", () => {
       "href",
       `/admin/documents/${revision.id}`,
     )
-    expect(screen.getAllByText("Published")).toHaveLength(2)
+    expect(screen.getByText("Published")).toBeInTheDocument()
   })
 
   it("switches between one source editor and a rendered document preview", async () => {
@@ -289,6 +289,7 @@ describe("document admin", () => {
 
     expect(settings.tagName).toBe("FIELDSET")
     expect(settings).toHaveAttribute("data-slot", "field-set")
+    expect(settings).toHaveAttribute("data-recipe", "document-settings-form")
     expect(settings.querySelector("form")).not.toBeInTheDocument()
     expect(container.querySelectorAll("form")).toHaveLength(1)
 
@@ -311,14 +312,21 @@ describe("document admin", () => {
     expect(screen.getAllByText("Save the draft before generating a summary, scheduling, or publishing."))
       .toHaveLength(1)
 
-    expect(screen.getByRole("button", { name: "Save draft" })).toHaveAttribute("type", "submit")
-    expect(screen.getByRole("button", { name: "Schedule" })).toHaveAttribute("type", "button")
-    expect(screen.getByRole("button", { name: "Publish now" })).toHaveAttribute("type", "button")
-    expect(screen.getByRole("button", { name: "Delete draft" })).toHaveAttribute("type", "button")
+    const publishingToolbar = container.querySelector('[data-recipe="document-publishing-toolbar"]')
+    expect(publishingToolbar).toBeInTheDocument()
+    expect(within(publishingToolbar as HTMLElement).getByText("Draft")).toBeInTheDocument()
+    const publishingActions = within(publishingToolbar as HTMLElement).getByRole("group", {
+      name: "Document publishing actions",
+    })
+    expect(within(publishingActions).getByRole("button", { name: "Save draft" })).toHaveAttribute("type", "submit")
+    expect(within(publishingActions).getByRole("button", { name: "Schedule" })).toHaveAttribute("type", "button")
+    expect(within(publishingActions).getByRole("button", { name: "Publish now" })).toHaveAttribute("type", "button")
     expect(screen.getByRole("link", { name: "Create English revision" })).toHaveAttribute(
       "href",
       `/admin/documents/new?seriesId=${revision.seriesId}&sourceRevisionId=${revision.id}`,
     )
+    await user.click(within(publishingActions).getByRole("button", { name: "More document actions" }))
+    expect(await screen.findByRole("menuitem", { name: "Delete draft" })).toBeInTheDocument()
   })
 
   it("shows server-managed localized category labels while preserving canonical option values", () => {
@@ -912,8 +920,10 @@ describe("document admin", () => {
       publishedBy: "publisher-77",
       publishedAt: new Date("2026-08-24T12:00:00.000Z"),
     }
-    render(<LocaleProvider initialLocale="en"><DocumentList rows={[revision, published].map(toAdminDocumentListRow)} /></LocaleProvider>)
+    const { container } = render(<LocaleProvider initialLocale="en"><DocumentList rows={[revision, published].map(toAdminDocumentListRow)} /></LocaleProvider>)
 
+    expect(container.querySelector('[data-recipe="search-filter-field"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-recipe="collection-state-surface"]')).toBeInTheDocument()
     expect(screen.getByRole("searchbox", { name: "Search documents" })).toBeInTheDocument()
     expect(screen.getByRole("combobox", { name: "Kind filter" })).toBeInTheDocument()
     expect(within(screen.getByRole("combobox", { name: "Kind filter" })).queryByRole("option", { name: "Design" })).not.toBeInTheDocument()
@@ -927,10 +937,29 @@ describe("document admin", () => {
       timeZone: "UTC",
     }).format(published.publishedAt)}`)).toBeInTheDocument()
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Kind filter" }), "legal")
+    await user.click(screen.getByRole("combobox", { name: "Kind filter" }))
+    await user.click(screen.getByRole("option", { name: "Legal" }))
     expect(navigationMocks.replace).toHaveBeenLastCalledWith("/admin/documents?kind=legal&limit=50")
     expect(screen.getByRole("link", { name: /서비스 업데이트/ })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: /Privacy policy/ })).toBeInTheDocument()
+  })
+
+  it("keeps server filters unchanged while a combobox query is only being edited", async () => {
+    const user = userEvent.setup()
+    render(<LocaleProvider initialLocale="en"><DocumentList
+      rows={[revision].map(toAdminDocumentListRow)}
+      initialFilters={{ kind: "notice" }}
+    /></LocaleProvider>)
+    navigationMocks.replace.mockClear()
+
+    const kindFilter = screen.getByRole("combobox", { name: "Kind filter" })
+    await user.click(kindFilter)
+    await user.clear(kindFilter)
+    await user.type(kindFilter, "legal")
+    expect(navigationMocks.replace).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole("option", { name: "Legal" }))
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith("/admin/documents?kind=legal&limit=50")
   })
 
   it("exposes filtered-empty recovery as one labelled region", () => {
@@ -1019,7 +1048,8 @@ describe("document admin", () => {
     const fetchMock = vi.mocked(fetch)
     render(<DocumentEditor revision={revision} />)
 
-    await user.click(screen.getByRole("button", { name: "Delete draft" }))
+    await user.click(screen.getByRole("button", { name: "More document actions" }))
+    await user.click(await screen.findByRole("menuitem", { name: "Delete draft" }))
 
     expect(window.confirm).toHaveBeenCalledWith("Delete this draft permanently?")
     expect(fetchMock).toHaveBeenCalledWith(`/api/admin/documents/${revision.id}`, {
@@ -1037,7 +1067,8 @@ describe("document admin", () => {
     render(<AppRouterTreeHarness />)
 
     await user.type(screen.getByRole("textbox", { name: "Summary" }), " delete me")
-    await user.click(screen.getByRole("button", { name: "Delete draft" }))
+    await user.click(screen.getByRole("button", { name: "More document actions" }))
+    await user.click(await screen.findByRole("menuitem", { name: "Delete draft" }))
     await waitFor(() => expect(window.location.pathname).toBe("/admin/documents"))
 
     window.history.back()
