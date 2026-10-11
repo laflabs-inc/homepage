@@ -301,6 +301,37 @@ const frameworkOptions: readonly ComboboxOption[] = [
 ]
 
 describe("Combobox", () => {
+  it("associates its visible Field label and separates query edits from committed choices", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    const onValueCommit = vi.fn()
+
+    render(
+      <Field>
+        <FieldLabel>Framework</FieldLabel>
+        <Combobox
+          defaultValue="next"
+          emptyText="No framework found"
+          onValueChange={onValueChange}
+          onValueCommit={onValueCommit}
+          options={frameworkOptions}
+        />
+      </Field>,
+    )
+
+    await user.click(screen.getByText("Framework"))
+    const input = screen.getByRole("combobox", { name: "Framework" })
+    expect(input).toHaveFocus()
+
+    await user.clear(input)
+    await user.type(input, "astro")
+    expect(onValueCommit).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole("option", { name: "Astro" }))
+    expect(onValueCommit).toHaveBeenCalledWith("astro")
+    expect(onValueChange).toHaveBeenLastCalledWith("astro")
+  })
+
   it("renders its listbox outside clipping preview containers", async () => {
     const user = userEvent.setup()
 

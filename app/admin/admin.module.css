@@ -152,6 +152,7 @@
 .documentListItem {
   position: relative;
   padding: 18px 22px;
+  grid-template-columns: minmax(0, 1fr);
   border: 0;
 }
 
@@ -1586,10 +1587,29 @@
 
   .editorPublishingActions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr)) 1px 44px;
   }
 
-  .editorPublishingActions > :nth-last-child(-n + 3) {
+  .editorPublishingActions > :nth-child(1) {
+    grid-column: 1 / 4;
+  }
+
+  .editorPublishingActions > :nth-child(2) {
+    grid-column: 4 / 7;
+  }
+
+  .editorPublishingActions > :nth-child(3) {
+    grid-column: 1 / 5;
+    grid-row: 2;
+  }
+
+  .editorPublishingActions > :nth-child(4) {
+    grid-column: 5;
+    grid-row: 2;
+  }
+
+  .editorPublishingActions > :nth-child(5) {
+    grid-column: 6;
     grid-row: 2;
   }
 

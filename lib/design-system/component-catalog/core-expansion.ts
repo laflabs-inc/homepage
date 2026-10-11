@@ -75,7 +75,8 @@ export const coreExpansionComponents = [
     props: [
       { name: "options", type: "readonly ComboboxOption[]", required: true, description: { ko: "검색하고 선택할 항목입니다.", en: "The options available for search and selection." } },
       { name: "value", type: "string", required: false, description: { ko: "제어되는 선택값입니다.", en: "The controlled selected value." } },
-      { name: "onValueChange", type: "(value: string) => void", required: false, description: { ko: "선택값이 바뀔 때 호출됩니다.", en: "Called when the selected value changes." } },
+      { name: "onValueChange", type: "(value: string) => void", required: false, description: { ko: "선택하거나 기존 선택을 편집해 값이 바뀔 때 호출됩니다.", en: "Called when selection or query editing changes the current value." } },
+      { name: "onValueCommit", type: "(value: string) => void", required: false, description: { ko: "사용자가 목록의 항목을 확정했을 때만 호출됩니다.", en: "Called only when the user commits an option from the list." } },
       { name: "emptyText", type: "string", required: true, description: { ko: "검색 결과가 없을 때 표시할 문구입니다.", en: "Copy shown when no option matches." } },
     ],
   },

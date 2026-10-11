@@ -944,6 +944,24 @@ describe("document admin", () => {
     expect(screen.getByRole("link", { name: /Privacy policy/ })).toBeInTheDocument()
   })
 
+  it("keeps server filters unchanged while a combobox query is only being edited", async () => {
+    const user = userEvent.setup()
+    render(<LocaleProvider initialLocale="en"><DocumentList
+      rows={[revision].map(toAdminDocumentListRow)}
+      initialFilters={{ kind: "notice" }}
+    /></LocaleProvider>)
+    navigationMocks.replace.mockClear()
+
+    const kindFilter = screen.getByRole("combobox", { name: "Kind filter" })
+    await user.click(kindFilter)
+    await user.clear(kindFilter)
+    await user.type(kindFilter, "legal")
+    expect(navigationMocks.replace).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole("option", { name: "Legal" }))
+    expect(navigationMocks.replace).toHaveBeenLastCalledWith("/admin/documents?kind=legal&limit=50")
+  })
+
   it("exposes filtered-empty recovery as one labelled region", () => {
     render(
       <LocaleProvider initialLocale="en">

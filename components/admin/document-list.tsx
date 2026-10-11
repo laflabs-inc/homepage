@@ -158,15 +158,16 @@ export function DocumentList({
               { value: "disclosure", label: t.disclosure },
             ]}
             value={kind}
-            onValueChange={(nextKind) => {
-            setKind(nextKind)
-            replaceFilters({
-              search: search.trim() || undefined,
-              kind: nextKind || undefined,
-              status: status || undefined,
-              locale: locale || undefined,
-            })
-          }} />
+            onValueCommit={(nextKind) => {
+              setKind(nextKind)
+              replaceFilters({
+                search: search.trim() || undefined,
+                kind: nextKind || undefined,
+                status: status || undefined,
+                locale: locale || undefined,
+              })
+            }}
+          />
         </Field>
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.statusFilter}</FieldLabel>
@@ -181,15 +182,16 @@ export function DocumentList({
               { value: "archived", label: t.archived },
             ]}
             value={status}
-            onValueChange={(nextStatus) => {
-            setStatus(nextStatus)
-            replaceFilters({
-              search: search.trim() || undefined,
-              kind: kind || undefined,
-              status: nextStatus || undefined,
-              locale: locale || undefined,
-            })
-          }} />
+            onValueCommit={(nextStatus) => {
+              setStatus(nextStatus)
+              replaceFilters({
+                search: search.trim() || undefined,
+                kind: kind || undefined,
+                status: nextStatus || undefined,
+                locale: locale || undefined,
+              })
+            }}
+          />
         </Field>
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.localeFilter}</FieldLabel>
@@ -202,15 +204,16 @@ export function DocumentList({
               { value: "en", label: t.english },
             ]}
             value={locale}
-            onValueChange={(nextLocale) => {
-            setLocale(nextLocale)
-            replaceFilters({
-              search: search.trim() || undefined,
-              kind: kind || undefined,
-              status: status || undefined,
-              locale: nextLocale || undefined,
-            })
-          }} />
+            onValueCommit={(nextLocale) => {
+              setLocale(nextLocale)
+              replaceFilters({
+                search: search.trim() || undefined,
+                kind: kind || undefined,
+                status: status || undefined,
+                locale: nextLocale || undefined,
+              })
+            }}
+          />
         </Field>
       </div>
       <Panel
