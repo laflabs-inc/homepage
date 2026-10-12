@@ -51,6 +51,14 @@ describe("CareersPage", () => {
       "href",
       "mailto:contact@laflabs.co?subject=LafLabs%20open%20application",
     )
+    expect(screen.getByRole("link", { name: "일하는 기준 보기" })).toHaveAttribute(
+      "data-analytics-event",
+      "careers_click",
+    )
+    expect(screen.getByRole("link", { name: "이메일 보내기" })).toHaveAttribute(
+      "data-analytics-target",
+      "email",
+    )
     expect(container.querySelector("header.site-header")).toBeInTheDocument()
     expect(container.querySelector("footer.site-footer")).toBeInTheDocument()
   })
@@ -95,5 +103,7 @@ describe("CareersRoleList", () => {
     expect(role).toHaveAttribute("href", "/careers/platform-engineer")
     expect(within(role).getByText("엔지니어링")).toBeVisible()
     expect(within(role).getByText("제품 기반을 함께 만듭니다.")).toBeVisible()
+    expect(role).toHaveAttribute("data-analytics-event", "careers_click")
+    expect(role).toHaveAttribute("data-analytics-target", "role:platform-engineer")
   })
 })

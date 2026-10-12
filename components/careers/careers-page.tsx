@@ -54,8 +54,8 @@ export function CareersRoleList({ roles }: { roles: readonly CareerRole[] }) {
         <li key={role.id}>
           <Link
             href={role.href ?? `/careers/${role.slug}`}
-            data-analytics-event="career_role_click"
-            data-analytics-target={role.slug}
+            data-analytics-event="careers_click"
+            data-analytics-target={`role:${role.slug}`}
           >
             <span className={styles.roleTeam}>{localize(role.team, locale)}</span>
             <span className={styles.roleMain}>
@@ -86,7 +86,8 @@ export function CareersPage({ content }: { content: CareersPageContent }) {
             <a
               className={styles.textAction}
               href="#working-principles"
-              data-analytics-event="careers_principles_click"
+              data-analytics-event="careers_click"
+              data-analytics-target="principles"
             >
               {t.heroAction}
               <ArrowRight aria-hidden size={16} weight="bold" />
@@ -105,7 +106,7 @@ export function CareersPage({ content }: { content: CareersPageContent }) {
                 <strong>{t.rolesEmpty}</strong>
                 <p>{t.rolesEmptyBody}</p>
               </div>
-              <a href="#open-application" data-analytics-event="careers_open_application_view">
+              <a href="#open-application" data-analytics-event="careers_click" data-analytics-target="open-application">
                 {t.rolesAction}
                 <ArrowRight aria-hidden size={16} weight="bold" />
               </a>
@@ -167,7 +168,7 @@ export function CareersPage({ content }: { content: CareersPageContent }) {
           <a
             href={`mailto:${content.openApplication.email}?subject=LafLabs%20open%20application`}
             data-analytics-event="contact_click"
-            data-analytics-target="career-open-application"
+            data-analytics-target="email"
           >
             {t.applicationAction}
             <ArrowRight aria-hidden size={18} weight="bold" />

@@ -96,6 +96,9 @@ describe("analytics event schema", () => {
     ["search_submit", "q6:r6"],
     ["search_result_click", "product"],
     ["work_navigate", "next:lafetch"],
+    ["careers_click", "principles"],
+    ["careers_click", "open-application"],
+    ["careers_click", "role:platform-engineer"],
     ["design_code_copy", "button"],
     ["design_code_copy", "document-settings-form"],
   ])("accepts the allowlisted %s target %s", (type, targetId) => {
@@ -140,6 +143,11 @@ describe("analytics event schema", () => {
       ...baseEvent,
       type: "design_code_copy",
       targetId: "private-component",
+    }).success).toBe(false)
+    expect(AnalyticsEventInputSchema.safeParse({
+      ...baseEvent,
+      type: "careers_click",
+      targetId: "role:../../private",
     }).success).toBe(false)
   })
 

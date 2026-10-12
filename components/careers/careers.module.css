@@ -60,7 +60,8 @@
 
 .textAction {
   margin-top: 38px;
-  padding-bottom: 7px;
+  min-height: 44px;
+  padding-block: 8px;
   border-bottom: 1px solid currentColor;
   transition: gap 180ms ease, color 180ms ease;
 }
@@ -119,6 +120,14 @@
   background: rgb(255 255 255 / 0.72);
 }
 
+.routeStart {
+  width: 1px;
+  height: 10%;
+  top: 23%;
+  left: 19%;
+  transform-origin: top;
+}
+
 .routeOne {
   width: 56%;
   height: 1px;
@@ -135,6 +144,14 @@
   transform-origin: top;
 }
 
+.routeThree {
+  width: 56%;
+  height: 1px;
+  top: 76%;
+  left: 19%;
+  transform-origin: right;
+}
+
 .node {
   width: 10px;
   height: 10px;
@@ -144,13 +161,18 @@
 }
 
 .nodeOne {
-  top: calc(33% - 4px);
+  top: calc(23% - 4px);
   left: calc(19% - 4px);
 }
 
 .nodeTwo {
-  top: calc(76% - 4px);
+  top: calc(33% - 4px);
   left: calc(75% - 4px);
+}
+
+.nodeThree {
+  top: calc(76% - 4px);
+  left: calc(19% - 4px);
 }
 
 .roles {
@@ -225,12 +247,11 @@
   grid-template-columns: 180px minmax(0, 1fr) 24px;
   gap: 28px;
   align-items: center;
-  transition: background 180ms ease, padding 180ms ease;
+  transition: background 180ms ease;
 }
 
 .roleList a:hover,
 .roleList a:focus-visible {
-  padding-inline: 20px;
   background: #eff6ff;
 }
 
@@ -244,6 +265,12 @@
 .roleMain {
   display: grid;
   gap: 10px;
+  transition: transform 180ms ease;
+}
+
+.roleList a:hover .roleMain,
+.roleList a:focus-visible .roleMain {
+  transform: translateX(8px);
 }
 
 .roleMain strong {
@@ -411,15 +438,21 @@
 .openApplication p {
   max-width: 52ch;
   margin: 30px 0 0;
-  color: #dbeafe;
+  color: #eff6ff;
   line-height: 1.7;
   word-break: keep-all;
 }
 
 .openApplication > a {
+  min-height: 44px;
+  padding-block: 8px;
   padding-bottom: 9px;
   border-bottom: 1px solid currentColor;
   transition: gap 180ms ease;
+}
+
+.openApplication > a:focus-visible {
+  outline-color: white;
 }
 
 .openApplication > a:hover,
@@ -515,7 +548,7 @@
   }
 
   .workField {
-    min-height: 310px;
+    min-height: 270px;
   }
 
   .workField::after {
@@ -527,7 +560,7 @@
   }
 
   .build {
-    top: 38px;
+    top: 30px;
     left: 26px;
   }
 
@@ -536,7 +569,7 @@
   }
 
   .share {
-    bottom: 36px;
+    bottom: 28px;
     left: 26px;
   }
 

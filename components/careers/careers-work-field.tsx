@@ -18,7 +18,7 @@ export function CareersWorkField({ label }: { label: string }) {
     <div className={styles.workField} aria-label={label}>
       <motion.span
         className={`${styles.workWord} ${styles.build}`}
-        initial={reducedMotion ? false : { opacity: 0.28, x: -24 }}
+        initial={{ opacity: 0.28, x: -24 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0.45 }}
         transition={transition(0.05)}
@@ -27,7 +27,7 @@ export function CareersWorkField({ label }: { label: string }) {
       </motion.span>
       <motion.span
         className={`${styles.workWord} ${styles.operate}`}
-        initial={reducedMotion ? false : { opacity: 0.28, y: 20 }}
+        initial={{ opacity: 0.28, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.45 }}
         transition={transition(0.22)}
@@ -36,7 +36,7 @@ export function CareersWorkField({ label }: { label: string }) {
       </motion.span>
       <motion.span
         className={`${styles.workWord} ${styles.share}`}
-        initial={reducedMotion ? false : { opacity: 0.28, x: 24 }}
+        initial={{ opacity: 0.28, x: 24 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0.45 }}
         transition={transition(0.39)}
@@ -44,21 +44,36 @@ export function CareersWorkField({ label }: { label: string }) {
         SHARE
       </motion.span>
       <motion.i
+        className={`${styles.route} ${styles.routeStart}`}
+        initial={{ scaleY: 0 }}
+        whileInView={{ scaleY: 1 }}
+        viewport={{ once: true, amount: 0.45 }}
+        transition={transition(0.1)}
+      />
+      <motion.i
         className={`${styles.route} ${styles.routeOne}`}
-        initial={reducedMotion ? false : { scaleX: 0 }}
+        initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true, amount: 0.45 }}
-        transition={transition(0.14)}
+        transition={transition(0.16)}
       />
       <motion.i
         className={`${styles.route} ${styles.routeTwo}`}
-        initial={reducedMotion ? false : { scaleY: 0 }}
+        initial={{ scaleY: 0 }}
         whileInView={{ scaleY: 1 }}
         viewport={{ once: true, amount: 0.45 }}
-        transition={transition(0.31)}
+        transition={transition(0.34)}
+      />
+      <motion.i
+        className={`${styles.route} ${styles.routeThree}`}
+        initial={{ scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true, amount: 0.45 }}
+        transition={transition(0.44)}
       />
       <span className={`${styles.node} ${styles.nodeOne}`} />
       <span className={`${styles.node} ${styles.nodeTwo}`} />
+      <span className={`${styles.node} ${styles.nodeThree}`} />
     </div>
   )
 }

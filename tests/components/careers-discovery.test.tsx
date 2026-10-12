@@ -6,12 +6,12 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn() }),
 }))
 
-import { buildCareersMetadata } from "@/app/careers/page"
 import { buildSitemap } from "@/app/sitemap"
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { SiteFooter } from "@/components/layout/site-footer"
 import type { PublishedDocumentReader } from "@/lib/documents/cache"
+import { buildCareersMetadata } from "@/lib/careers-metadata"
 import { searchSite } from "@/lib/search/site-search"
 
 const emptyRepository: PublishedDocumentReader = {

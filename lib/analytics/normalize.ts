@@ -16,6 +16,7 @@ export const eventTypes = [
   "search_submit",
   "search_result_click",
   "work_navigate",
+  "careers_click",
   "design_code_copy",
 ] as const
 
@@ -33,6 +34,7 @@ const searchResultGroups = new Set([
 ])
 const searchSubmitTarget = /^q(?:[2-9]|[1-9]\d|100):r(?:0|[1-9]\d{0,2})$/
 const workNavigateTarget = /^(?:next|previous):(laf-id|lafetch|lafwall)$/
+const careersClickTarget = /^(?:principles|open-application|role:[a-z0-9]+(?:-[a-z0-9]+)*)$/
 const designComponentIds = new Set<string>(designComponentSlugs)
 const designCodeTargets = new Set<string>([
   ...designComponentIds,
@@ -61,6 +63,8 @@ const hasValidTarget = (type: AnalyticsEventType, targetId: string | null): bool
       return targetId !== null && searchResultGroups.has(targetId)
     case "work_navigate":
       return targetId !== null && workNavigateTarget.test(targetId)
+    case "careers_click":
+      return targetId !== null && careersClickTarget.test(targetId)
     case "design_code_copy":
       return targetId !== null && designCodeTargets.has(targetId)
   }
