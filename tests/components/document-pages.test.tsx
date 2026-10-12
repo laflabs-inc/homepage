@@ -587,8 +587,8 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries.map((entry) => entry.url)).toEqual([siteUrl, ...designSitemapUrls])
-    expect(entries.slice(1)).toEqual(designSitemapUrls.map((url) => ({
+    expect(entries.map((entry) => entry.url)).toEqual([siteUrl, `${siteUrl}/careers`, ...designSitemapUrls])
+    expect(entries.slice(2)).toEqual(designSitemapUrls.map((url) => ({
       url,
       changeFrequency: "monthly",
       priority: url === `${siteUrl}/design` ? 0.6 : 0.5,
@@ -616,6 +616,7 @@ describe("public document pages", () => {
 
     expect(entries).toEqual([
       { url: siteUrl, changeFrequency: "monthly", priority: 1 },
+      { url: `${siteUrl}/careers`, changeFrequency: "monthly", priority: 0.7 },
       ...designSitemapUrls.map((url) => ({
         url,
         changeFrequency: "monthly" as const,
@@ -646,7 +647,7 @@ describe("public document pages", () => {
 
     const entries = await buildSitemap(store)
 
-    expect(entries).toHaveLength(103)
+    expect(entries).toHaveLength(104)
     expect(entries.at(-1)?.url).toBe(`${siteUrl}/notices/service-update-51`)
   })
 })

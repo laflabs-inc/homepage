@@ -1,0 +1,48 @@
+{
+  "title": "LafLabs Careers 구성 선택",
+  "question": "세 안 모두 기존 LafLabs 디자인을 유지합니다. 채용 공고가 없는 현재 상태에서도 회사와 일이 먼저 보이는 구성을 골라 주세요.",
+  "options": [
+    {
+      "id": "open-door",
+      "label": "Open Door",
+      "kicker": "THE ROLL",
+      "lineage": "회사 소개와 공개 제안이 만나는 채용 현관",
+      "thesis": "채용 공고보다 LafLabs가 풀고 있는 문제와 함께 일할 사람의 기준을 먼저 보여줍니다.",
+      "palette": ["#f4f7fb", "#0b1328", "#2563eb", "#dbe7ff"],
+      "materials": ["square editorial grid", "blue signal field", "thin rules"],
+      "viewport": "왼쪽에는 두 줄의 채용 선언과 설명, 오른쪽에는 BUILD, OPERATE, SHARE가 연결된 큰 블루 작업 필드가 놓입니다. 첫 화면 아래에서 공개 포지션 상태가 바로 이어집니다.",
+      "risk": "빈 포지션 상태를 지나치게 크게 다루면 채용 중단 안내처럼 보일 수 있습니다.",
+      "comp": ".impeccable/mocks/decision/careers-open-door.png"
+    },
+    {
+      "id": "field-notes",
+      "label": "Field Notes",
+      "lineage": "문제, 작업 방식, 채용 절차를 이어 읽는 작업 기록",
+      "thesis": "실제 문제를 짧은 장면처럼 순서대로 보여주고 그 뒤에 역할과 절차를 연결합니다.",
+      "palette": ["#f4f7fb", "#0b1328", "#2563eb", "#8ba7d9"],
+      "materials": ["editorial sequence", "full-width image bands", "square captions"],
+      "viewport": "큰 회사 선언 아래에 문제를 다루는 세 개의 장면이 가로로 이어지고, 각 장면은 제품, 기반 기술, 운영의 실제 작업을 설명합니다.",
+      "risk": "콘텐츠가 충분히 짧지 않으면 채용 페이지보다 긴 회사 소개처럼 느껴질 수 있습니다.",
+      "comp": ".impeccable/mocks/decision/careers-field-notes.webp"
+    },
+    {
+      "id": "open-brief",
+      "label": "Open Brief",
+      "lineage": "역할과 문제를 한눈에 비교하는 공개 작업 브리프",
+      "thesis": "현재 포지션, 맡게 될 문제, 일하는 기준을 하나의 명료한 작업 브리프로 정리합니다.",
+      "palette": ["#f4f7fb", "#0b1328", "#2563eb", "#c8d8f4"],
+      "materials": ["structured brief", "asymmetric columns", "status panels"],
+      "viewport": "짧은 채용 선언 바로 아래에 공개 포지션과 우리가 푸는 문제를 좌우 비대칭 열로 배치해 역할 유무와 회사의 기술 범위를 동시에 보여줍니다.",
+      "risk": "정보 구조가 강해서 회사의 인상보다 채용 공고 목록이 먼저 기억될 수 있습니다.",
+      "comp": ".impeccable/mocks/decision/careers-open-brief.webp"
+    }
+  ],
+  "reroll": {
+    "registers": ["safer", "bolder"]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "steer": true
+}

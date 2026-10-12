@@ -11,13 +11,19 @@ const homepage: MetadataRoute.Sitemap[number] = {
   priority: 1,
 }
 
+const careersPage: MetadataRoute.Sitemap[number] = {
+  url: `${siteUrl}/careers`,
+  changeFrequency: "monthly",
+  priority: 0.7,
+}
+
 const designPages: MetadataRoute.Sitemap = designDiscoveryEntries.map((entry) => ({
   url: `${siteUrl}${entry.href}`,
   changeFrequency: "monthly",
   priority: entry.href === designCatalog.meta.canonicalPath ? 0.6 : 0.5,
 }))
 
-const staticEntries: MetadataRoute.Sitemap = [homepage, ...designPages]
+const staticEntries: MetadataRoute.Sitemap = [homepage, careersPage, ...designPages]
 
 export async function buildSitemap(
   repository: PublishedDocumentReader = documentStore,

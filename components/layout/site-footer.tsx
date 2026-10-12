@@ -19,7 +19,7 @@ export function SiteFooter({ homeHref }: { homeHref?: string } = {}) {
         <div className="footer-top">
           <div className="footer-brand"><Logo /><p>{t.blurb}</p></div>
           <div className="footer-nav">
-            <div><h4>{t.company}</h4><a href={homeHref ? `${homeHref}#work-method` : "#work-method"}>{t.links.principles}</a><a href={`mailto:${contactEmail}`} data-analytics-event="contact_click" data-analytics-target="email">{t.links.contact}</a><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc">GitHub</a></div>
+            <div><h4>{t.company}</h4><a href={homeHref ? `${homeHref}#work-method` : "#work-method"}>{t.links.principles}</a><Link href="/careers">{t.links.careers}</Link><a href={`mailto:${contactEmail}`} data-analytics-event="contact_click" data-analytics-target="email">{t.links.contact}</a><a href={githubOrg} target="_blank" rel="noreferrer" data-analytics-event="github_click" data-analytics-target="laflabs-inc">GitHub</a></div>
             <div><h4>{t.documents}</h4><Link href="/notices">{t.links.notices}</Link><Link href="/legal">{t.links.legal}</Link><Link href="/disclosures">{t.links.disclosures}</Link><Link href="/design">{t.links.design}</Link></div>
           </div>
         </div>

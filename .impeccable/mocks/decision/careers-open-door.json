@@ -1,0 +1,7 @@
+{
+  "approved": true,
+  "approval": "Delegated by the user after the structured question tool was unavailable and the remote decision board could not open.",
+  "prompt": "High-fidelity desktop web UI comp, 1440x1000, for the LafLabs Careers page. Match the attached existing LafLabs homepage exactly in identity: off-white background, deep navy type, saturated cobalt blue, square hard-edged geometry, bold Geist/Pretendard sans, thin navy rules, small mono metadata, generous whitespace. Keep the same 64px top navigation. Careers hero uses 45/55 asymmetric split. Left: two-line Korean headline '함께 오래 쓸 시스템을 만듭니다.' then short body '제품에서 찾은 문제를 기반 기술로 만들고, 직접 운영하며 다음 기준을 세웁니다.' and square blue CTA '일하는 방식 보기'. Right: one large cobalt square work field with huge cropped BUILD / OPERATE / SHARE typography connected by precise thin square-ended routes. Directly below: compact full-width status strip '현재 공개된 포지션이 없습니다.' plus link '제안 보내기'. Show the beginning of a sparse second fold titled '우리가 푸는 문제' with three unequal editorial columns. The blue work field is the sole focal moment. Real usable website UI, not a poster. No rounded corners, pills, cards, gradients, glass, shadows, people photography, fake job listings, benefits, headcounts, metrics, testimonials, customer logos, or product content copied from reference.",
+  "reference": ".impeccable/review/desktop.png",
+  "generated": "2026-10-11"
+}

@@ -39,6 +39,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | Logo motion | Shipped | The public header reveals the official mark once per session and supports restrained hover or focus replay. |
 | Media platform foundation | Shipped | Separate private staging and public delivery stores, protected uploads, validation, recovery, and the Admin asset library are operational. |
 | Media authoring integration | Shipped | Authors can select, upload, version, insert, validate, and inspect stable media references without rewriting published paths. |
+| Careers page | Shipped | The bilingual public page explains the work, renders a truthful empty role state, and keeps one typed boundary for future role publishing. |
 
 ### Core UI v2 delivery track
 
@@ -58,7 +59,7 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | 3 | Logo motion | Shipped | Restrained one-time logo reveal plus hover or focus replay with reduced-motion fallback | S | Existing official logo |
 | 4 | Media platform foundation | Shipped | Vercel Blob storage, Neon metadata, protected upload APIs, validation, and Admin asset library | L | Admin auth and audit log |
 | 5 | Media authoring integration | Shipped | Asset picker, Markdown insertion, reference tracking, safe archive, immutable replacement, usage inspection, and deletion rules | M | Media platform foundation |
-| 6 | Careers page | Planned | Bilingual, API-ready careers page backed by typed local content and a real empty state | M | Media platform for reusable visuals |
+| 6 | Careers page | Shipped | Bilingual, API-ready careers page backed by typed local content and a real empty state | M | Media platform for reusable visuals |
 | 7 | Inquiry platform | Planned | Public contact form, protected API, Admin inbox, status workflow, retention, and abuse controls | L | Admin foundation |
 | 8 | Inquiry email and AI assistance | Planned | Resend notifications, delivery history, optional AI classification, summary, and reply drafts | M | Inquiry platform and Agent settings |
 | 9 | Careers publishing | Planned | Admin-managed roles with localized draft, published, closed, and archived states | L | Careers page and document workflow patterns |

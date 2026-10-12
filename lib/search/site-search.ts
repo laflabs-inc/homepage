@@ -1,6 +1,7 @@
 import "server-only"
 
 import { copy, documentSections } from "@/lib/content"
+import { careersContent } from "@/lib/careers"
 import {
   listPublishedDocuments,
   type PublishedDocumentReader,
@@ -68,6 +69,16 @@ function staticResults(locale: Locale): SearchableResult[] {
         "WORK RELIABLY",
         ...home.company.scopes.flatMap((scope) => [scope.title, scope.body]),
       ],
+    },
+    {
+      id: "careers",
+      group: "page",
+      title: careersContent.hero.title[locale],
+      description: careersContent.hero.body[locale],
+      href: "/careers",
+      keywords: locale === "ko"
+        ? ["채용", "합류", "지원", "일자리", "커리어"]
+        : ["careers", "career", "jobs", "hiring", "join", "apply"],
     },
     {
       id: "work-method",

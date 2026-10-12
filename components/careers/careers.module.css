@@ -1,0 +1,637 @@
+.root {
+  overflow: clip;
+}
+
+.root section {
+  scroll-margin-top: 76px;
+}
+
+.hero,
+.roles,
+.problems,
+.principles,
+.process {
+  width: var(--shell);
+  margin-inline: auto;
+}
+
+.hero {
+  min-height: min(900px, 100svh);
+  padding-block: 124px 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(500px, 1fr);
+  gap: clamp(48px, 7vw, 110px);
+  align-items: center;
+}
+
+.heroCopy {
+  max-width: 570px;
+}
+
+.hero h1 {
+  max-width: 10ch;
+  margin: 0;
+  font-size: clamp(58px, 6vw, 88px);
+  font-weight: 790;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+}
+
+.heroCopy > p {
+  max-width: 46ch;
+  margin: 34px 0 0;
+  color: var(--muted);
+  font-size: clamp(15px, 1.3vw, 17px);
+  line-height: 1.72;
+  word-break: keep-all;
+}
+
+.textAction,
+.emptyRole > a,
+.openApplication > a {
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.textAction {
+  margin-top: 38px;
+  min-height: 44px;
+  padding-block: 8px;
+  border-bottom: 1px solid currentColor;
+  transition: gap 180ms ease, color 180ms ease;
+}
+
+.textAction:hover,
+.textAction:focus-visible {
+  gap: 16px;
+  color: var(--blue);
+}
+
+.workField {
+  min-height: 560px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--blue);
+  color: white;
+}
+
+.workField::after {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 1px solid rgb(255 255 255 / 0.38);
+  pointer-events: none;
+}
+
+.workWord {
+  position: absolute;
+  z-index: 2;
+  font-size: clamp(47px, 5vw, 76px);
+  font-weight: 820;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.build {
+  top: 58px;
+  left: 54px;
+}
+
+.operate {
+  top: 46%;
+  right: 44px;
+}
+
+.share {
+  bottom: 56px;
+  left: 54px;
+}
+
+.route {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  background: rgb(255 255 255 / 0.72);
+}
+
+.routeStart {
+  width: 1px;
+  height: 10%;
+  top: 23%;
+  left: 19%;
+  transform-origin: top;
+}
+
+.routeOne {
+  width: 56%;
+  height: 1px;
+  top: 33%;
+  left: 19%;
+  transform-origin: left;
+}
+
+.routeTwo {
+  width: 1px;
+  height: 43%;
+  top: 33%;
+  left: 75%;
+  transform-origin: top;
+}
+
+.routeThree {
+  width: 56%;
+  height: 1px;
+  top: 76%;
+  left: 19%;
+  transform-origin: right;
+}
+
+.node {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  z-index: 2;
+  background: white;
+}
+
+.nodeOne {
+  top: calc(23% - 4px);
+  left: calc(19% - 4px);
+}
+
+.nodeTwo {
+  top: calc(33% - 4px);
+  left: calc(75% - 4px);
+}
+
+.nodeThree {
+  top: calc(76% - 4px);
+  left: calc(19% - 4px);
+}
+
+.roles {
+  padding-block: clamp(80px, 9vw, 120px);
+  border-top: 1px solid var(--ink);
+}
+
+.roles > h2,
+.problems > h2,
+.principles > h2,
+.process > h2 {
+  margin: 0 0 clamp(42px, 6vw, 72px);
+  font-size: clamp(38px, 4.6vw, 64px);
+  font-weight: 730;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+}
+
+.emptyRole {
+  min-height: 180px;
+  padding: 32px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 48px;
+  align-items: center;
+  border-block: 1px solid var(--line);
+}
+
+.emptyRole strong {
+  display: block;
+  font-size: clamp(22px, 2.3vw, 30px);
+  letter-spacing: -0.03em;
+}
+
+.emptyRole p {
+  max-width: 58ch;
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.emptyRole > a {
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.emptyRole > a:hover,
+.emptyRole > a:focus-visible {
+  background: var(--ink);
+  color: white;
+}
+
+.roleList {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+  list-style: none;
+}
+
+.roleList li {
+  border-bottom: 1px solid var(--line);
+}
+
+.roleList a {
+  min-height: 148px;
+  padding: 28px 8px;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) 24px;
+  gap: 28px;
+  align-items: center;
+  transition: background 180ms ease;
+}
+
+.roleList a:hover,
+.roleList a:focus-visible {
+  background: #eff6ff;
+}
+
+.roleTeam {
+  color: var(--blue);
+  font: 650 11px var(--font-geist-mono), monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.roleMain {
+  display: grid;
+  gap: 10px;
+  transition: transform 180ms ease;
+}
+
+.roleList a:hover .roleMain,
+.roleList a:focus-visible .roleMain {
+  transform: translateX(8px);
+}
+
+.roleMain strong {
+  font-size: 25px;
+  letter-spacing: -0.03em;
+}
+
+.roleMain > span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.problems {
+  padding-block: clamp(90px, 10vw, 140px);
+}
+
+.problemGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+}
+
+.problemGrid article {
+  min-height: 340px;
+  padding: 28px clamp(20px, 3vw, 38px) 34px 0;
+  border-right: 1px solid var(--line);
+}
+
+.problemGrid article + article {
+  padding-left: clamp(20px, 3vw, 38px);
+}
+
+.problemGrid article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.problemGrid article > span,
+.principleMark,
+.principleIndex,
+.process li > span {
+  color: var(--blue);
+  font: 680 10px var(--font-geist-mono), monospace;
+  letter-spacing: 0.1em;
+}
+
+.problemGrid h3 {
+  max-width: 10ch;
+  margin: 104px 0 16px;
+  font-size: clamp(26px, 2.7vw, 36px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+}
+
+.problemGrid p,
+.principleList p,
+.process p {
+  color: var(--muted);
+  line-height: 1.68;
+  word-break: keep-all;
+}
+
+.principles {
+  padding-block: clamp(90px, 10vw, 140px);
+}
+
+.principleList {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+  list-style: none;
+}
+
+.principleList li {
+  min-height: 158px;
+  padding: 26px 0;
+  display: grid;
+  grid-template-columns: minmax(80px, 0.4fr) minmax(0, 1.6fr) 44px;
+  gap: 32px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.principleList li:nth-child(even) > div {
+  transform: translateX(8%);
+}
+
+.principleList h3 {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 40px);
+  letter-spacing: -0.04em;
+}
+
+.principleList p {
+  max-width: 50ch;
+  margin: 10px 0 0;
+}
+
+.principleIndex {
+  color: var(--muted);
+  text-align: right;
+}
+
+.process {
+  padding-block: clamp(90px, 10vw, 140px);
+}
+
+.process ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  list-style: none;
+}
+
+.process li {
+  min-height: 280px;
+  padding: 26px 28px 30px 0;
+  border-right: 1px solid var(--line);
+}
+
+.process li + li {
+  padding-left: 28px;
+}
+
+.process li:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.process h3 {
+  margin: 76px 0 14px;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+}
+
+.process p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.openApplication {
+  min-height: 560px;
+  padding: clamp(78px, 9vw, 124px) var(--gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) auto;
+  gap: 72px;
+  align-items: end;
+  background: var(--blue);
+  color: white;
+}
+
+.openApplication h2 {
+  max-width: 13ch;
+  margin: 0;
+  font-size: clamp(50px, 6.5vw, 88px);
+  font-weight: 740;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  word-break: keep-all;
+}
+
+.openApplication p {
+  max-width: 52ch;
+  margin: 30px 0 0;
+  color: #eff6ff;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.openApplication > a {
+  min-height: 44px;
+  padding-block: 8px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid currentColor;
+  transition: gap 180ms ease;
+}
+
+.openApplication > a:focus-visible {
+  outline-color: white;
+}
+
+.openApplication > a:hover,
+.openApplication > a:focus-visible {
+  gap: 17px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: auto;
+    padding-block: 118px 72px;
+    grid-template-columns: 1fr;
+    gap: 52px;
+  }
+
+  .hero h1 {
+    max-width: 11ch;
+    font-size: clamp(48px, 13.4vw, 68px);
+  }
+
+  .workField {
+    min-height: 390px;
+  }
+
+  .workWord {
+    font-size: clamp(42px, 12vw, 64px);
+  }
+
+  .build {
+    top: 48px;
+    left: 34px;
+  }
+
+  .operate {
+    right: 28px;
+  }
+
+  .share {
+    bottom: 46px;
+    left: 34px;
+  }
+
+  .emptyRole,
+  .openApplication {
+    grid-template-columns: 1fr;
+  }
+
+  .problemGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .problemGrid article,
+  .problemGrid article + article {
+    min-height: auto;
+    padding: 26px 0 34px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .problemGrid h3 {
+    margin-top: 52px;
+  }
+
+  .process ol {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .process li:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .process li:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+
+  .openApplication {
+    min-height: 500px;
+    align-items: start;
+  }
+
+  .openApplication > a {
+    align-self: end;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding-block: 108px 64px;
+  }
+
+  .heroCopy > p {
+    margin-top: 26px;
+  }
+
+  .workField {
+    min-height: 270px;
+  }
+
+  .workField::after {
+    inset: 16px;
+  }
+
+  .workWord {
+    font-size: clamp(34px, 10.5vw, 46px);
+  }
+
+  .build {
+    top: 30px;
+    left: 26px;
+  }
+
+  .operate {
+    right: 22px;
+  }
+
+  .share {
+    bottom: 28px;
+    left: 26px;
+  }
+
+  .roles,
+  .problems,
+  .principles,
+  .process {
+    padding-block: 78px;
+  }
+
+  .emptyRole {
+    gap: 30px;
+  }
+
+  .principleList li {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .principleList li:nth-child(even) > div {
+    transform: none;
+  }
+
+  .principleIndex {
+    display: none;
+  }
+
+  .process ol {
+    grid-template-columns: 1fr;
+  }
+
+  .process li,
+  .process li + li {
+    min-height: 220px;
+    padding: 24px 0 28px;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .process li:first-child {
+    border-top: 0;
+  }
+
+  .process h3 {
+    margin-top: 54px;
+  }
+
+  .openApplication {
+    min-height: 520px;
+    gap: 54px;
+  }
+
+  .openApplication h2 {
+    font-size: clamp(46px, 13vw, 62px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .textAction,
+  .emptyRole > a,
+  .roleList a,
+  .openApplication > a {
+    transition: none;
+  }
+}
