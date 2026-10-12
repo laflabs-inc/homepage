@@ -3,9 +3,14 @@ import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const localeMocks = vi.hoisted(() => ({ getAdminLocale: vi.fn() }))
+const navigationMocks = vi.hoisted(() => ({ pathname: "/admin/documents" }))
 
 vi.mock("@/lib/admin/locale", () => localeMocks)
 vi.mock("@/auth", () => ({ signIn: vi.fn() }))
+vi.mock("next/navigation", () => ({
+  usePathname: () => navigationMocks.pathname,
+  useRouter: () => ({ refresh: vi.fn() }),
+}))
 vi.mock("@/app/admin/admin.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
@@ -53,6 +58,7 @@ describe("Admin shell localization", () => {
 
     expect(screen.getByRole("heading", { name: "조용히 관찰하고, 명확하게 결정합니다." })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "멤버십 확인" })).toBeInTheDocument()
+    expect(screen.queryByRole("navigation", { name: "관리자" })).not.toBeInTheDocument()
   })
 
   it("renders the English sign-in action when the server locale is English", async () => {

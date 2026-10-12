@@ -3,64 +3,11 @@
   background: var(--paper);
 }
 
-.header {
-  min-height: 76px;
-  padding: 0 var(--gutter);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--paper);
-  border-bottom: 1px solid var(--ink);
-}
-
-.headerLabel,
 .eyebrow,
 .cardIndex {
   font: 650 10px var(--font-geist-mono), monospace;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-.headerLabel {
-  color: var(--muted);
-}
-
-.headerMeta {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.content {
-  width: var(--shell);
-  margin: 0 auto;
-  padding: 72px 0;
-}
-
-.adminNav {
-  margin-bottom: 48px;
-  display: flex;
-  border: 1px solid var(--ink);
-}
-
-.adminNav a {
-  min-height: 44px;
-  padding: 0 18px;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font: 650 11px var(--font-geist-mono), monospace;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.adminNav a + a {
-  border-left: 1px solid var(--ink);
-}
-
-.adminNav a:hover {
-  color: white;
-  background: var(--blue);
 }
 
 .documentsPage {
@@ -1501,14 +1448,6 @@
     padding: 28px;
   }
 
-  .adminNav {
-    margin-bottom: 36px;
-  }
-
-  .adminNav a {
-    flex: 1;
-  }
-
   .documentsHeading {
     align-items: start;
     flex-direction: column;
@@ -1652,7 +1591,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rangeNav a,
-  .adminNav a,
   .documentList a,
   .primaryLink {
     transition: none;
