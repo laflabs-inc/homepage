@@ -1,0 +1,149 @@
+.page {
+  display: grid;
+  gap: 34px;
+}
+
+.pageHeader {
+  padding-bottom: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "breadcrumbs breadcrumbs"
+    "copy actions";
+  align-items: end;
+  gap: 22px 32px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.breadcrumbs {
+  grid-area: breadcrumbs;
+}
+
+.headerCopy {
+  min-width: 0;
+  grid-area: copy;
+}
+
+.eyebrow {
+  margin: 0 0 18px;
+  color: var(--blue);
+  font: 650 10px / 1.2 var(--font-geist-mono), monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.headerCopy h1 {
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(38px, 5vw, 62px);
+  line-height: 0.96;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.description {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.headerActions {
+  min-width: max-content;
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.toolbar {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  align-items: end;
+  gap: 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.section {
+  min-width: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.sectionHeader {
+  min-width: 0;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionCopy {
+  min-width: 0;
+}
+
+.sectionCopy h2,
+.sectionCopy p {
+  margin: 0;
+}
+
+.sectionCopy h2 {
+  font-size: clamp(21px, 2.4vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.sectionCopy p {
+  max-width: 64ch;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sectionActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .page {
+    gap: 28px;
+  }
+
+  .pageHeader {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "breadcrumbs"
+      "copy"
+      "actions";
+    align-items: start;
+    gap: 18px;
+  }
+
+  .headerCopy h1 {
+    max-width: 100%;
+    font-size: clamp(36px, 11vw, 50px);
+  }
+
+  .headerActions,
+  .sectionActions {
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sectionHeader {
+    align-items: start;
+    flex-direction: column;
+  }
+}
