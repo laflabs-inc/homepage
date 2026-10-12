@@ -46,6 +46,31 @@ describe("admin locale foundation", () => {
     })
   })
 
+  it("localizes the grouped workspace navigation and controls", () => {
+    expect(adminCopy.ko.nav.groups).toEqual({
+      content: "콘텐츠",
+      operations: "운영",
+      system: "시스템",
+    })
+    expect(adminCopy.en.nav.groups).toEqual({
+      content: "Content",
+      operations: "Operations",
+      system: "System",
+    })
+    expect(adminCopy.ko.nav).toMatchObject({
+      openMenu: "관리자 메뉴 열기",
+      closeMenu: "관리자 메뉴 닫기",
+      publicSite: "공개 사이트",
+      currentSection: "현재 섹션",
+    })
+    expect(adminCopy.en.nav).toMatchObject({
+      openMenu: "Open admin menu",
+      closeMenu: "Close admin menu",
+      publicSite: "Public site",
+      currentSection: "Current section",
+    })
+  })
+
   it("uses the existing locale cookie before Accept-Language", async () => {
     requestMocks.cookieValue = "en"
     requestMocks.acceptLanguage = "ko-KR,ko;q=0.9"

@@ -16,11 +16,20 @@ const en = {
   },
   nav: {
     label: "Admin",
+    groups: {
+      content: "Content",
+      operations: "Operations",
+      system: "System",
+    },
     analytics: "Analytics",
     documents: "Documents",
     categories: "Categories",
     assets: "Assets",
     agent: "Agent",
+    openMenu: "Open admin menu",
+    closeMenu: "Close admin menu",
+    publicSite: "Public site",
+    currentSection: "Current section",
   },
   assets: {
     eyebrow: "Media operations",
@@ -479,11 +488,20 @@ const ko = {
   },
   nav: {
     label: "관리자",
+    groups: {
+      content: "콘텐츠",
+      operations: "운영",
+      system: "시스템",
+    },
     analytics: "분석",
     documents: "문서",
     categories: "카테고리",
     assets: "미디어",
     agent: "에이전트",
+    openMenu: "관리자 메뉴 열기",
+    closeMenu: "관리자 메뉴 닫기",
+    publicSite: "공개 사이트",
+    currentSection: "현재 섹션",
   },
   assets: {
     eyebrow: "미디어 운영",
