@@ -46,7 +46,7 @@ Assert that `readCareersContent()` returns Korean and English hero, problem, pri
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
-Run: `npm run test:unit -- tests/lib/careers.test.ts`  
+Run: `npm run test:unit -- tests/lib/careers.test.ts`
 Expected: FAIL because `@/lib/careers` does not exist.
 
 - [ ] **Step 3: Implement the minimal typed local reader**
@@ -55,7 +55,7 @@ Create localized section/item types and verified copy. Keep roles language-indep
 
 - [ ] **Step 4: Run the focused test and verify GREEN**
 
-Run: `npm run test:unit -- tests/lib/careers.test.ts`  
+Run: `npm run test:unit -- tests/lib/careers.test.ts`
 Expected: PASS.
 
 ### Task 2: Careers route, page composition, and responsive motion
@@ -77,7 +77,7 @@ Assert localized hero and empty state, the `mailto:` open-application link, a fi
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
-Run: `npm run test:unit -- tests/components/careers-page.test.tsx`  
+Run: `npm run test:unit -- tests/components/careers-page.test.tsx`
 Expected: FAIL because the Careers components and route do not exist.
 
 - [ ] **Step 3: Implement the semantic page and local role renderer**
@@ -90,7 +90,7 @@ Reveal `BUILD`, `OPERATE`, and `SHARE` plus their connecting paths once. Use `us
 
 - [ ] **Step 5: Run the focused test and verify GREEN**
 
-Run: `npm run test:unit -- tests/components/careers-page.test.tsx`  
+Run: `npm run test:unit -- tests/components/careers-page.test.tsx`
 Expected: PASS.
 
 ### Task 3: Public discovery integration
@@ -113,7 +113,7 @@ Assert the Footer link in both locales, careers keyword search in both locales, 
 
 - [ ] **Step 2: Run focused tests and verify RED**
 
-Run: `npm run test:unit -- tests/components/careers-discovery.test.tsx`  
+Run: `npm run test:unit -- tests/components/careers-discovery.test.tsx`
 Expected: FAIL because discovery entries do not exist.
 
 - [ ] **Step 3: Implement Footer, search, and Sitemap registration**
@@ -122,7 +122,7 @@ Add the localized Footer label and import careers content into the static search
 
 - [ ] **Step 4: Run focused tests and verify GREEN**
 
-Run: `npm run test:unit -- tests/components/careers-discovery.test.tsx`  
+Run: `npm run test:unit -- tests/components/careers-discovery.test.tsx`
 Expected: PASS.
 
 ### Task 4: Documentation, visual verification, and release gate
@@ -139,7 +139,7 @@ Expected: PASS.
 
 - [ ] **Step 1: Run the complete automated release gate**
 
-Run: `npm test`  
+Run: `npm test`
 Expected: design check, typecheck, lint, unit tests, and production build all PASS.
 
 - [ ] **Step 2: Capture one bounded desktop/mobile visual pass**

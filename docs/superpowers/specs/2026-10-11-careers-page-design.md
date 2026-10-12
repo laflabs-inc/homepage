@@ -1,7 +1,7 @@
 # LafLabs Careers Page Design
 
-Date: 2026-10-11  
-Status: Approved by delegated choice  
+Date: 2026-10-11
+Status: Approved by delegated choice
 Route: `/careers`
 
 ## Goal
