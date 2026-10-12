@@ -1,7 +1,7 @@
 # LafLabs Admin Workspace Design
 
 Date: 2026-10-12
-Status: Approved for specification
+Status: Approved
 Delivery: Two pull requests
 
 ## Goal
