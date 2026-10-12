@@ -269,6 +269,8 @@ const en = {
   documents: {
     publishingWorkspace: "Publishing workspace",
     heading: "Documents",
+    description: "Create, review, and publish company notices and disclosures.",
+    filtersLabel: "Search and filter documents",
     newDocument: "New document",
     manageCategories: "Manage categories",
     newSeries: "New series",
@@ -741,6 +743,8 @@ const ko = {
   documents: {
     publishingWorkspace: "발행 작업 공간",
     heading: "문서",
+    description: "회사 공지와 공시 문서를 만들고 검토해 발행합니다.",
+    filtersLabel: "문서 검색 및 필터",
     newDocument: "새 문서",
     manageCategories: "카테고리 관리",
     newSeries: "새 시리즈",

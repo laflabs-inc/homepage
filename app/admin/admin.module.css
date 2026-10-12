@@ -72,18 +72,11 @@
 }
 
 .documentFilters {
-  display: grid;
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, auto));
-  border: 1px solid var(--ink);
 }
 
 .documentFilterField {
-  padding: 12px;
   align-content: start;
-}
-
-.documentFilterField + .documentFilterField {
-  border-left: 1px solid var(--ink);
 }
 
 .documentList {
@@ -1331,15 +1324,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .documentFilterField:nth-child(3) {
-    border-top: 1px solid var(--ink);
-    border-left: 0;
-  }
-
-  .documentFilterField:nth-child(4) {
-    border-top: 1px solid var(--ink);
-  }
-
   .immutableMeta {
     border-top: 1px solid var(--ink);
     border-left: 0;
@@ -1455,12 +1439,6 @@
 
   .documentFilters {
     grid-template-columns: 1fr;
-  }
-
-  .documentFilterField + .documentFilterField,
-  .documentFilterField:nth-child(4) {
-    border-top: 1px solid var(--ink);
-    border-left: 0;
   }
 
   .immutableMeta,

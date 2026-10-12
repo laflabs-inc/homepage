@@ -135,10 +135,12 @@ describe("protected admin document queries", () => {
     render(<LocaleProvider initialLocale="ko">{await DocumentsPage()}</LocaleProvider>)
 
     expect(screen.getByRole("heading", { name: "문서" })).toBeInTheDocument()
+    expect(screen.getByText("회사 공지와 공시 문서를 만들고 검토해 발행합니다.")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "새 문서" })).toHaveAttribute("href", "/admin/documents/new")
-    expect(screen.getByRole("link", { name: "카테고리 관리" })).toHaveAttribute(
-      "href",
-      "/admin/documents/categories",
+    expect(screen.getByRole("link", { name: "새 문서" })).toHaveAttribute("data-variant", "primary")
+    expect(screen.queryByRole("link", { name: "카테고리 관리" })).not.toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "문서 검색 및 필터" })).toContainElement(
+      screen.getByRole("searchbox", { name: "문서 검색" }),
     )
     expect(screen.getByRole("searchbox", { name: "문서 검색" })).toBeInTheDocument()
     expect(screen.queryByRole("link", { name: "필터 적용" })).not.toBeInTheDocument()

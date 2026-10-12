@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
 import styles from "@/app/admin/admin.module.css"
+import { AdminToolbar } from "@/components/admin/admin-page"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
@@ -124,7 +125,11 @@ export function DocumentList({
 
   return (
     <div className={styles.documentListWorkspace}>
-      <div className={styles.documentFilters} data-recipe="search-filter-field">
+      <AdminToolbar
+        className={styles.documentFilters}
+        data-recipe="search-filter-field"
+        label={t.filtersLabel}
+      >
         <Field className={styles.documentFilterField}>
           <FieldLabel>{t.search}</FieldLabel>
           <InputGroup>
@@ -215,7 +220,7 @@ export function DocumentList({
             }}
           />
         </Field>
-      </div>
+      </AdminToolbar>
       <Panel
         aria-label={t.collectionLabel}
         className={styles.documentCollection}

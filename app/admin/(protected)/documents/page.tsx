@@ -1,9 +1,9 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { z } from "zod"
 
-import styles from "@/app/admin/admin.module.css"
+import { AdminPage, AdminPageHeader } from "@/components/admin/admin-page"
 import { DocumentList } from "@/components/admin/document-list"
+import { ButtonLink } from "@/components/ui/button-link"
 import { requireAdmin } from "@/lib/auth/require-admin"
 import { toAdminDocumentListRow } from "@/lib/documents/admin-list"
 import { documentService } from "@/lib/documents/service"
@@ -47,19 +47,13 @@ export default async function DocumentsPage({
   }
 
   return (
-    <section className={styles.documentsPage}>
-      <div className={styles.documentsHeading}>
-        <div>
-          <p className={styles.eyebrow}>{t.publishingWorkspace}</p>
-          <h1>{t.heading}</h1>
-        </div>
-        <div className={styles.documentsHeadingActions}>
-          <Link className={styles.secondaryLink} href="/admin/documents/categories">
-            {t.manageCategories}
-          </Link>
-          <Link className={styles.primaryLink} href="/admin/documents/new">{t.newDocument}</Link>
-        </div>
-      </div>
+    <AdminPage>
+      <AdminPageHeader
+        actions={<ButtonLink href="/admin/documents/new">{t.newDocument}</ButtonLink>}
+        description={t.description}
+        eyebrow={t.publishingWorkspace}
+        title={t.heading}
+      />
       <DocumentList
         key={[
           search ?? "",
@@ -73,6 +67,6 @@ export default async function DocumentsPage({
         limit={filter.limit}
         initialFilters={initialFilters}
       />
-    </section>
+    </AdminPage>
   )
 }
