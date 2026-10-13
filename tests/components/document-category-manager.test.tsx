@@ -73,7 +73,6 @@ function jsonResponse(payload: unknown, status = 200) {
 beforeEach(() => {
   vi.restoreAllMocks()
   vi.stubGlobal("fetch", vi.fn(() => jsonResponse({ categories })))
-  vi.spyOn(window, "confirm").mockReturnValue(true)
   pageMocks.requireAdmin.mockReset().mockResolvedValue(undefined)
   pageMocks.getAdminLocale.mockReset().mockResolvedValue("en")
   pageMocks.listCategories.mockReset().mockResolvedValue(categories)
@@ -84,12 +83,19 @@ describe("DocumentCategoryManager", () => {
     renderManager("ko")
 
     expect(screen.getByRole("heading", { level: 1, name: "문서 카테고리" })).toBeInTheDocument()
+    expect(screen.getByRole("navigation", { name: "카테고리 경로" }))
+      .toHaveTextContent("문서 목록으로")
+    expect(screen.getByRole("region", { name: "카테고리 추가" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "카테고리 목록" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "공지사항" })).toBeInTheDocument()
     expect(screen.getByLabelText("general 한국어 이름")).toHaveValue("일반")
+    expect(screen.getByLabelText("general 한국어 이름").closest('[data-slot="field"]')).toBeInTheDocument()
     expect(screen.getByLabelText("general 영어 이름")).toHaveValue("General")
     expect(screen.getByRole("button", { name: "일반 비활성화" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "개인정보 처리방침 활성화" })).toBeInTheDocument()
     expect(screen.getByText("general")).toBeInTheDocument()
+    expect(screen.getAllByText("사용 중")[0].querySelector("[data-status-marker]"))
+      .toBeInTheDocument()
   })
 
   it("creates a category at the end of its selected document kind", async () => {
@@ -152,17 +158,30 @@ describe("DocumentCategoryManager", () => {
     expect(await screen.findByRole("status")).toHaveTextContent("Category saved.")
   })
 
-  it("confirms before changing whether a category can be assigned", async () => {
+  it("uses an accessible confirmation before changing whether a category can be assigned", async () => {
     const user = userEvent.setup()
     const updated = { ...general, active: false, version: 2 }
     vi.mocked(fetch).mockImplementationOnce(() => jsonResponse({ category: updated }))
     renderManager()
 
-    await user.click(screen.getByRole("button", { name: "Deactivate General" }))
+    const trigger = screen.getByRole("button", { name: "Deactivate General" })
+    await user.click(trigger)
+    const firstDialog = screen.getByRole("alertdialog", {
+      name: "Deactivate General? Existing documents keep this category, but it cannot be assigned to new documents.",
+    })
+    await user.click(within(firstDialog).getByRole("button", { name: "Cancel" }))
+    expect(fetch).not.toHaveBeenCalled()
+    expect(trigger).toHaveFocus()
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      "Deactivate General? Existing documents keep this category, but it cannot be assigned to new documents.",
+    await user.click(trigger)
+    const dialog = screen.getByRole("alertdialog", {
+      name: "Deactivate General? Existing documents keep this category, but it cannot be assigned to new documents.",
+    })
+    expect(dialog).toHaveAccessibleDescription(
+      "This changes whether the category can be assigned to new documents.",
     )
+    await user.click(within(dialog).getByRole("button", { name: "Deactivate" }))
+
     expect(fetch).toHaveBeenCalledWith("/api/admin/document-categories/" + general.id, expect.objectContaining({
       method: "PATCH",
       body: JSON.stringify({

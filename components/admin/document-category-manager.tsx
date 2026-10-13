@@ -1,10 +1,37 @@
 "use client"
 
-import Link from "next/link"
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
+import { AdminPage, AdminPageHeader, AdminSection } from "@/components/admin/admin-page"
 import { useLocale } from "@/components/i18n/locale-provider"
+import { Alert } from "@/components/ui/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogBody,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Button } from "@/components/ui/button"
+import { ButtonGroup } from "@/components/ui/button-group"
+import { Field, FieldLabel } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/ui/native-select"
+import { Panel, PanelContent } from "@/components/ui/panel"
+import { StatusLabel } from "@/components/ui/status-label"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
 import type { DocumentCategorySnapshot } from "@/lib/document-categories/types"
 import { documentKinds, type DocumentKind } from "@/lib/documents/types"
@@ -71,6 +98,8 @@ export function DocumentCategoryManager({
   const [pending, setPending] = useState("")
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
+  const [stateChangeCategory, setStateChangeCategory] = useState<DocumentCategorySnapshot | null>(null)
+  const stateChangeTriggerRef = useRef<HTMLButtonElement | null>(null)
 
   const kindLabel = (kind: DocumentKind) => (
     kind === "notice" ? documents.notice : kind === "legal" ? documents.legal : documents.disclosure
@@ -151,11 +180,6 @@ export function DocumentCategoryManager({
 
   const toggleCategory = async (category: DocumentCategorySnapshot) => {
     const nextActive = !category.active
-    const label = visibleLabel(category)
-    const confirmation = nextActive
-      ? t.confirmations.activate(label)
-      : t.confirmations.deactivate(label)
-    if (!window.confirm(confirmation)) return
     await patchCategory(category, { active: nextActive }, nextActive ? t.activated : t.deactivated)
   }
 
@@ -241,197 +265,261 @@ export function DocumentCategoryManager({
   }
 
   return (
-    <section className={styles.categoryWorkspace}>
-      <header className={styles.categoryHeading}>
-        <div>
-          <h1>{t.heading}</h1>
-          <p>{t.description}</p>
-        </div>
-        <Link className={styles.secondaryLink} href="/admin/documents">{t.backToDocuments}</Link>
-      </header>
+    <AdminPage className={styles.categoryWorkspace}>
+      <AdminPageHeader
+        breadcrumbs={(
+          <Breadcrumb aria-label={t.breadcrumbLabel}>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/admin/documents">{t.backToDocuments}</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>{t.heading}</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        )}
+        description={t.description}
+        title={t.heading}
+      />
 
-      <section className={styles.categoryCreatePanel} aria-labelledby="category-create-heading">
-        <div className={styles.categorySectionIntro}>
-          <h2 id="category-create-heading">{t.createHeading}</h2>
-          <p>{t.createDescription}</p>
-        </div>
-        <form className={styles.categoryCreateForm} onSubmit={createCategory}>
-          <label>
-            <span>{t.kind}</span>
-            <select
-              value={createDraft.kind}
-              onChange={(event) => setCreateDraft((current) => ({
-                ...current,
-                kind: event.target.value as DocumentKind,
-              }))}
-              disabled={Boolean(pending)}
-            >
-              {documentKinds.map((kind) => (
-                <option value={kind} key={kind}>{kindLabel(kind)}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>{t.slug}</span>
-            <input
-              value={createDraft.slug}
-              onChange={(event) => setCreateDraft((current) => ({
-                ...current,
-                slug: event.target.value,
-              }))}
-              maxLength={40}
-              pattern="[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*"
-              autoComplete="off"
-              required
-              disabled={Boolean(pending)}
-            />
-          </label>
-          <label>
-            <span>{t.labelKo}</span>
-            <input
-              value={createDraft.labelKo}
-              onChange={(event) => setCreateDraft((current) => ({
-                ...current,
-                labelKo: event.target.value,
-              }))}
-              maxLength={80}
-              autoComplete="off"
-              required
-              disabled={Boolean(pending)}
-            />
-          </label>
-          <label>
-            <span>{t.labelEn}</span>
-            <input
-              value={createDraft.labelEn}
-              onChange={(event) => setCreateDraft((current) => ({
-                ...current,
-                labelEn: event.target.value,
-              }))}
-              maxLength={80}
-              autoComplete="off"
-              required
-              disabled={Boolean(pending)}
-            />
-          </label>
-          <button type="submit" disabled={Boolean(pending)}>
-            {pending === "create" ? t.creating : t.create}
-          </button>
-        </form>
-      </section>
+      <AdminSection
+        aria-label={t.createHeading}
+        description={t.createDescription}
+        title={t.createHeading}
+      >
+        <Panel>
+          <PanelContent className={styles.categoryCreateContent}>
+            <form className={styles.categoryCreateForm} onSubmit={createCategory}>
+              <Field>
+                <FieldLabel>{t.kind}</FieldLabel>
+                <NativeSelect
+                  value={createDraft.kind}
+                  onChange={(event) => setCreateDraft((current) => ({
+                    ...current,
+                    kind: event.target.value as DocumentKind,
+                  }))}
+                  disabled={Boolean(pending)}
+                >
+                  {documentKinds.map((kind) => (
+                    <option value={kind} key={kind}>{kindLabel(kind)}</option>
+                  ))}
+                </NativeSelect>
+              </Field>
+              <Field required>
+                <FieldLabel>{t.slug}</FieldLabel>
+                <Input
+                  value={createDraft.slug}
+                  onChange={(event) => setCreateDraft((current) => ({
+                    ...current,
+                    slug: event.target.value,
+                  }))}
+                  maxLength={40}
+                  pattern="[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*"
+                  autoComplete="off"
+                  disabled={Boolean(pending)}
+                />
+              </Field>
+              <Field required>
+                <FieldLabel>{t.labelKo}</FieldLabel>
+                <Input
+                  value={createDraft.labelKo}
+                  onChange={(event) => setCreateDraft((current) => ({
+                    ...current,
+                    labelKo: event.target.value,
+                  }))}
+                  maxLength={80}
+                  autoComplete="off"
+                  disabled={Boolean(pending)}
+                />
+              </Field>
+              <Field required>
+                <FieldLabel>{t.labelEn}</FieldLabel>
+                <Input
+                  value={createDraft.labelEn}
+                  onChange={(event) => setCreateDraft((current) => ({
+                    ...current,
+                    labelEn: event.target.value,
+                  }))}
+                  maxLength={80}
+                  autoComplete="off"
+                  disabled={Boolean(pending)}
+                />
+              </Field>
+              <Button type="submit" loading={pending === "create"} disabled={Boolean(pending)}>
+                {pending === "create" ? t.creating : t.create}
+              </Button>
+            </form>
+          </PanelContent>
+        </Panel>
+      </AdminSection>
 
-      {error ? <p className={styles.formAlert} role="alert">{error}</p> : null}
+      {error ? <Alert live title={error} variant="error" /> : null}
       {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
 
-      <div className={styles.categoryGroups}>
-        {documentKinds.map((kind) => {
-          const kindCategories = categories.filter((category) => category.kind === kind)
-          const orderPending = pending === "reorder-" + kind
-          return (
-            <section className={styles.categoryGroup} key={kind}>
-              <header className={styles.categoryGroupHeading}>
-                <div>
-                  <h2>{kindLabel(kind)}</h2>
-                  <p>{t.kindDescription(kindLabel(kind))}</p>
-                </div>
-                <span>{t.categoryCount(kindCategories.length)}</span>
-              </header>
-              <ol
-                className={styles.categoryList}
-                aria-label={t.orderList(kindLabel(kind))}
-              >
-                {kindCategories.length === 0 ? (
-                  <li className={styles.categoryEmpty}>{t.emptyKind}</li>
-                ) : kindCategories.map((category, index) => {
-                  const draft = drafts[category.id] ?? {
-                    labelKo: category.labelKo,
-                    labelEn: category.labelEn,
-                  }
-                  const label = visibleLabel(category)
-                  const isPending = pending === category.id || orderPending
-                  return (
-                    <li
-                      className={styles.categoryRow}
-                      data-inactive={String(!category.active)}
-                      key={category.id}
-                    >
-                      <div className={styles.categoryIdentity}>
-                        <code>{category.slug}</code>
-                        <span>{category.active ? t.active : t.inactive}</span>
-                      </div>
-                      <div className={styles.categoryLabelFields}>
-                        <label>
-                          <span>{t.labelKo}</span>
-                          <input
-                            aria-label={t.rowLabelKo(category.slug)}
-                            value={draft.labelKo}
-                            onChange={(event) => setDrafts((current) => ({
-                              ...current,
-                              [category.id]: { ...draft, labelKo: event.target.value },
-                            }))}
-                            maxLength={80}
-                            required
-                            disabled={isPending}
-                          />
-                        </label>
-                        <label>
-                          <span>{t.labelEn}</span>
-                          <input
-                            aria-label={t.rowLabelEn(category.slug)}
-                            value={draft.labelEn}
-                            onChange={(event) => setDrafts((current) => ({
-                              ...current,
-                              [category.id]: { ...draft, labelEn: event.target.value },
-                            }))}
-                            maxLength={80}
-                            required
-                            disabled={isPending}
-                          />
-                        </label>
-                      </div>
-                      <div className={styles.categoryRowActions}>
-                        <button
-                          type="button"
-                          aria-label={t.moveUp(label)}
-                          onClick={() => moveCategory(category, -1)}
-                          disabled={Boolean(pending) || index === 0}
+      <AdminSection
+        aria-label={t.collectionLabel}
+        description={t.collectionDescription}
+        title={t.collectionHeading}
+      >
+        <Panel>
+          <PanelContent className={styles.categoryGroups}>
+            {documentKinds.map((kind) => {
+              const kindCategories = categories.filter((category) => category.kind === kind)
+              const orderPending = pending === "reorder-" + kind
+              return (
+                <section className={styles.categoryGroup} key={kind}>
+                  <header className={styles.categoryGroupHeading}>
+                    <div>
+                      <h3>{kindLabel(kind)}</h3>
+                      <p>{t.kindDescription(kindLabel(kind))}</p>
+                    </div>
+                    <span>{t.categoryCount(kindCategories.length)}</span>
+                  </header>
+                  <ol
+                    className={styles.categoryList}
+                    aria-label={t.orderList(kindLabel(kind))}
+                  >
+                    {kindCategories.length === 0 ? (
+                      <li className={styles.categoryEmpty}>{t.emptyKind}</li>
+                    ) : kindCategories.map((category, index) => {
+                      const draft = drafts[category.id] ?? {
+                        labelKo: category.labelKo,
+                        labelEn: category.labelEn,
+                      }
+                      const label = visibleLabel(category)
+                      const isPending = pending === category.id || orderPending
+                      return (
+                        <li
+                          className={styles.categoryRow}
+                          data-inactive={String(!category.active)}
+                          key={category.id}
                         >
-                          {t.up}
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={t.moveDown(label)}
-                          onClick={() => moveCategory(category, 1)}
-                          disabled={Boolean(pending) || index === kindCategories.length - 1}
-                        >
-                          {t.down}
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={t.saveCategory(label)}
-                          onClick={() => saveCategory(category)}
-                          disabled={Boolean(pending)}
-                        >
-                          {t.save}
-                        </button>
-                        <button
-                          className={styles.categoryStateButton}
-                          type="button"
-                          aria-label={category.active ? t.deactivate(label) : t.activate(label)}
-                          onClick={() => toggleCategory(category)}
-                          disabled={Boolean(pending)}
-                        >
-                          {category.active ? t.deactivateAction : t.activateAction}
-                        </button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            </section>
-          )
-        })}
-      </div>
-    </section>
+                          <div className={styles.categoryIdentity}>
+                            <code>{category.slug}</code>
+                            <StatusLabel tone={category.active ? "success" : "neutral"}>
+                              {category.active ? t.active : t.inactive}
+                            </StatusLabel>
+                          </div>
+                          <div className={styles.categoryLabelFields}>
+                            <Field required>
+                              <FieldLabel>{t.labelKo}</FieldLabel>
+                              <Input
+                                aria-label={t.rowLabelKo(category.slug)}
+                                value={draft.labelKo}
+                                onChange={(event) => setDrafts((current) => ({
+                                  ...current,
+                                  [category.id]: { ...draft, labelKo: event.target.value },
+                                }))}
+                                maxLength={80}
+                                disabled={isPending}
+                              />
+                            </Field>
+                            <Field required>
+                              <FieldLabel>{t.labelEn}</FieldLabel>
+                              <Input
+                                aria-label={t.rowLabelEn(category.slug)}
+                                value={draft.labelEn}
+                                onChange={(event) => setDrafts((current) => ({
+                                  ...current,
+                                  [category.id]: { ...draft, labelEn: event.target.value },
+                                }))}
+                                maxLength={80}
+                                disabled={isPending}
+                              />
+                            </Field>
+                          </div>
+                          <ButtonGroup
+                            className={styles.categoryRowActions}
+                            label={t.rowActions(label)}
+                          >
+                            <Button
+                              size="compact"
+                              variant="outline"
+                              aria-label={t.moveUp(label)}
+                              onClick={() => moveCategory(category, -1)}
+                              disabled={Boolean(pending) || index === 0}
+                            >
+                              {t.up}
+                            </Button>
+                            <Button
+                              size="compact"
+                              variant="outline"
+                              aria-label={t.moveDown(label)}
+                              onClick={() => moveCategory(category, 1)}
+                              disabled={Boolean(pending) || index === kindCategories.length - 1}
+                            >
+                              {t.down}
+                            </Button>
+                            <Button
+                              size="compact"
+                              variant="secondary"
+                              aria-label={t.saveCategory(label)}
+                              onClick={() => saveCategory(category)}
+                              disabled={Boolean(pending)}
+                            >
+                              {t.save}
+                            </Button>
+                            <Button
+                              size="compact"
+                              variant={category.active ? "danger" : "primary"}
+                              aria-label={category.active ? t.deactivate(label) : t.activate(label)}
+                              onClick={(event) => {
+                                stateChangeTriggerRef.current = event.currentTarget
+                                setStateChangeCategory(category)
+                              }}
+                              disabled={Boolean(pending)}
+                            >
+                              {category.active ? t.deactivateAction : t.activateAction}
+                            </Button>
+                          </ButtonGroup>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </section>
+              )
+            })}
+          </PanelContent>
+        </Panel>
+      </AdminSection>
+
+      <AlertDialog
+        open={Boolean(stateChangeCategory)}
+        onOpenChange={(open) => {
+          if (!open) setStateChangeCategory(null)
+        }}
+      >
+        <AlertDialogContent
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            stateChangeTriggerRef.current?.focus()
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {stateChangeCategory
+                ? stateChangeCategory.active
+                  ? t.confirmations.deactivate(visibleLabel(stateChangeCategory))
+                  : t.confirmations.activate(visibleLabel(stateChangeCategory))
+                : ""}
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogBody>
+            <AlertDialogDescription>{t.stateChangeDescription}</AlertDialogDescription>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+            <AlertDialogAction
+              variant={stateChangeCategory?.active ? "destructive" : "primary"}
+              onClick={() => {
+                if (stateChangeCategory) void toggleCategory(stateChangeCategory)
+              }}
+            >
+              {stateChangeCategory?.active ? t.deactivateAction : t.activateAction}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AdminPage>
   )
 }
