@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const navigationMocks = vi.hoisted(() => ({ push: vi.fn(), replace: vi.fn() }))
 vi.mock("next/navigation", () => ({
+  usePathname: () => "/admin/documents",
   useRouter: () => navigationMocks,
 }))
 vi.mock("next/link", () => ({
@@ -240,6 +241,8 @@ describe("document admin", () => {
       `/admin/documents/${revision.id}`,
     )
     expect(screen.getByText("Published")).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "Search and filter documents" }))
+      .toContainElement(screen.getByRole("searchbox", { name: "Search documents" }))
   })
 
   it("switches between one source editor and a rendered document preview", async () => {

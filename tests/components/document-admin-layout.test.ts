@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest"
 const stylesheet = readFileSync(join(process.cwd(), "app/admin/admin.module.css"), "utf8")
 
 describe("document admin layout contract", () => {
+  it("leaves outer filter geometry to the shared AdminToolbar", () => {
+    expect(stylesheet).not.toMatch(/\.documentFilters\s*\{[^}]*border:/s)
+  })
+
   it("gives Item content the flexible document-row track", () => {
     expect(stylesheet).toMatch(
       /\.documentListItem\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s,

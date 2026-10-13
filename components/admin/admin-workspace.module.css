@@ -1,0 +1,224 @@
+.workspace {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  background: var(--paper);
+}
+
+.desktopSidebar {
+  position: sticky;
+  top: 0;
+  min-width: 0;
+  height: 100svh;
+  padding: 28px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.identity {
+  display: grid;
+  gap: 12px;
+}
+
+.identity > span,
+.mobileSection > span,
+.navGroupLabel {
+  color: var(--muted);
+  font: 650 10px / 1.2 var(--font-geist-mono), monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.adminNav {
+  margin-top: 52px;
+  display: grid;
+  gap: 30px;
+}
+
+.navGroup {
+  display: grid;
+  gap: 10px;
+}
+
+.navGroupLabel {
+  margin: 0;
+}
+
+.navList {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  list-style: none;
+}
+
+.navItem {
+  position: relative;
+  min-height: 44px;
+  padding: 0 12px 0 18px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.navItem:hover {
+  color: var(--ink);
+  background: #eff6ff;
+}
+
+.navItem:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.navItem[aria-current="page"] {
+  color: var(--ink);
+  background: #eff6ff;
+  border-color: var(--line);
+}
+
+.navItem[aria-current="page"]::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--blue);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.navList li[data-parent="documents"] .navItem {
+  padding-left: 32px;
+  font-size: 12px;
+}
+
+.workspaceFooter {
+  margin-top: auto;
+  padding-top: 20px;
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.publicLink {
+  min-height: 44px;
+  padding-inline: 12px;
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.publicLink:hover {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+.publicLink:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.main {
+  min-width: 0;
+  width: 100%;
+  max-width: 1500px;
+  margin-inline: auto;
+  padding: clamp(42px, 5vw, 76px) clamp(28px, 4vw, 64px) 80px;
+}
+
+.mobileBar {
+  display: none;
+}
+
+.mobilePanel {
+  width: min(360px, 92vw) !important;
+  padding: 24px !important;
+}
+
+.mobilePanelHeader {
+  padding: 0 52px 24px 0;
+  border-bottom: 1px solid var(--ink);
+}
+
+.mobilePanelTitle {
+  margin-top: 24px;
+  font: 720 13px / 1.2 var(--font-geist-mono), monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mobilePanel .adminNav {
+  margin-block: 34px;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .desktopSidebar {
+    display: none;
+  }
+
+  .mobileBar {
+    position: sticky;
+    z-index: var(--layer-sticky);
+    top: 0;
+    min-width: 0;
+    min-height: 72px;
+    padding: 12px 20px;
+    display: grid;
+    grid-template-columns: minmax(112px, auto) minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid var(--ink);
+    background: rgb(248 250 252 / 0.96);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobileSection {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+    justify-items: end;
+  }
+
+  .mobileSection strong {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .main {
+    padding: 36px 20px 64px;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobileBar {
+    grid-template-columns: auto minmax(0, 1fr) 44px;
+    gap: 10px;
+  }
+
+  .mobileBar :global(.laf-logo-text) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navItem,
+  .publicLink {
+    transition: none;
+  }
+}

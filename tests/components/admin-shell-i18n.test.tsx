@@ -1,11 +1,17 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const localeMocks = vi.hoisted(() => ({ getAdminLocale: vi.fn() }))
+const navigationMocks = vi.hoisted(() => ({ pathname: "/admin/documents" }))
+const authMocks = vi.hoisted(() => ({ signIn: vi.fn() }))
 
 vi.mock("@/lib/admin/locale", () => localeMocks)
-vi.mock("@/auth", () => ({ signIn: vi.fn() }))
+vi.mock("@/auth", () => authMocks)
+vi.mock("next/navigation", () => ({
+  usePathname: () => navigationMocks.pathname,
+  useRouter: () => ({ refresh: vi.fn() }),
+}))
 vi.mock("@/app/admin/admin.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
@@ -23,6 +29,7 @@ import { LocaleProvider } from "@/components/i18n/locale-provider"
 describe("Admin shell localization", () => {
   beforeEach(() => {
     localeMocks.getAdminLocale.mockReset().mockResolvedValue("ko")
+    authMocks.signIn.mockReset().mockResolvedValue(undefined)
   })
 
   it("renders navigation and recovery actions in Korean without combined copy", async () => {
@@ -49,10 +56,20 @@ describe("Admin shell localization", () => {
   })
 
   it("renders the sign-in call to action for the resolved server locale", async () => {
+    const user = userEvent.setup()
     render(await AdminSignInPage())
 
+    expect(screen.getByLabelText("LafLabs 홈페이지")).toBeInTheDocument()
+    expect(screen.getByText("관리자 / 비공개")).toBeInTheDocument()
+    expect(screen.getByRole("radiogroup", { name: "언어" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "조용히 관찰하고, 명확하게 결정합니다." })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "멤버십 확인" })).toBeInTheDocument()
+    expect(screen.queryByRole("navigation", { name: "관리자" })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "멤버십 확인" }))
+    await waitFor(() => {
+      expect(authMocks.signIn).toHaveBeenCalledWith("github", { redirectTo: "/admin/analytics" })
+    })
   })
 
   it("renders the English sign-in action when the server locale is English", async () => {

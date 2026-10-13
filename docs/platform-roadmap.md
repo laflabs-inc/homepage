@@ -1,7 +1,7 @@
 # LafLabs Website and Admin Platform Roadmap
 
 Status: Active
-Last updated: 2026-10-11
+Last updated: 2026-10-13
 
 ## Objective
 
@@ -40,6 +40,14 @@ Evolve the LafLabs website from a company homepage with document publishing into
 | Media platform foundation | Shipped | Separate private staging and public delivery stores, protected uploads, validation, recovery, and the Admin asset library are operational. |
 | Media authoring integration | Shipped | Authors can select, upload, version, insert, validate, and inspect stable media references without rewriting published paths. |
 | Careers page | Shipped | The bilingual public page explains the work, renders a truthful empty role state, and keeps one typed boundary for future role publishing. |
+| Admin workspace refinement | PR A shipped; PR B next | The responsive workspace shell, shared page composition, document list, category management, sign-in, and route states are unified. Operational pages migrate next without changing their business contracts. |
+
+### Admin workspace refinement delivery track
+
+| Delivery | Status | Boundary |
+| --- | --- | --- |
+| PR A: workspace foundation and content administration | Shipped | Responsive grouped navigation, shared page composition, protected route states, independent sign-in, and Core UI adoption for Documents and Categories. Existing authorization, API payloads, and publishing behavior remain unchanged. |
+| PR B: operational and settings adoption | Next | Migrate Analytics, Assets, Agent settings, and remaining document editor surfaces into the same workspace grammar. Refine dense tables, forms, and feedback only against real feature data. |
 
 ### Core UI v2 delivery track
 
