@@ -1,7 +1,10 @@
 import { signIn } from "@/auth"
+import { AdminLanguageToggle } from "@/components/admin/admin-language-toggle"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/ui/logo"
 import { adminCopy } from "@/lib/admin/i18n"
 import { getAdminLocale } from "@/lib/admin/locale"
+import Link from "next/link"
 import styles from "../admin.module.css"
 
 function GitHubMark() {
@@ -15,6 +18,7 @@ function GitHubMark() {
 export default async function AdminSignInPage() {
   const locale = await getAdminLocale()
   const t = adminCopy[locale].signIn
+  const shell = adminCopy[locale].shell
 
   async function startGitHubSignIn() {
     "use server"
@@ -22,26 +26,36 @@ export default async function AdminSignInPage() {
   }
 
   return (
-    <section className={styles.signInGrid}>
-      <div className={styles.signInIntro}>
-        <p className={styles.eyebrow}>{t.eyebrow}</p>
-        <h1>{t.heading}</h1>
-        <p>{t.description}</p>
-      </div>
-
-      <div className={styles.signInCard}>
-        <span className={styles.cardIndex}>{t.cardIndex}</span>
-        <div>
-          <h2>{t.cardHeading}</h2>
-          <p>{t.cardDescription}</p>
+    <main className={styles.signInPage}>
+      <header className={styles.signInMasthead}>
+        <Link href="/" aria-label={shell.homeLabel}><Logo /></Link>
+        <div className={styles.signInMeta}>
+          <span>{shell.privateLabel}</span>
+          <AdminLanguageToggle />
         </div>
-        <form action={startGitHubSignIn}>
-          <Button type="submit" className={styles.signInButton} variant="secondary">
-            <GitHubMark />
-            {t.submit}
-          </Button>
-        </form>
-      </div>
-    </section>
+      </header>
+
+      <section className={styles.signInGrid}>
+        <div className={styles.signInIntro}>
+          <p className={styles.eyebrow}>{t.eyebrow}</p>
+          <h1>{t.heading}</h1>
+          <p>{t.description}</p>
+        </div>
+
+        <div className={styles.signInCard}>
+          <span className={styles.cardIndex}>{t.cardIndex}</span>
+          <div>
+            <h2>{t.cardHeading}</h2>
+            <p>{t.cardDescription}</p>
+          </div>
+          <form action={startGitHubSignIn}>
+            <Button type="submit" className={styles.signInButton} variant="secondary">
+              <GitHubMark />
+              {t.submit}
+            </Button>
+          </form>
+        </div>
+      </section>
+    </main>
   )
 }

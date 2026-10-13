@@ -218,6 +218,13 @@ const en = {
     cardDescription: "Your current membership in laflabs-inc is verified before access is granted.",
     submit: "Verify membership",
   },
+  routeState: {
+    loading: "Loading admin workspace",
+    errorEyebrow: "Admin / Recovery",
+    errorHeading: "This admin view could not be loaded.",
+    errorDescription: "Try again in a moment. Your saved data has not been changed.",
+    retry: "Try again",
+  },
   analytics: {
     heading: "Analytics",
     consentedTraffic: "Consented traffic only",
@@ -698,6 +705,13 @@ const ko = {
     cardHeading: "GitHub으로 계속하기",
     cardDescription: "접근 권한을 부여하기 전에 laflabs-inc 조직의 현재 멤버십을 확인합니다.",
     submit: "멤버십 확인",
+  },
+  routeState: {
+    loading: "관리자 화면을 불러오는 중",
+    errorEyebrow: "관리자 / 복구",
+    errorHeading: "관리자 화면을 불러오지 못했습니다.",
+    errorDescription: "잠시 뒤 다시 시도해 주세요. 저장된 데이터는 변경되지 않았습니다.",
+    retry: "다시 시도",
   },
   analytics: {
     heading: "분석",

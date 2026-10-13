@@ -1,0 +1,59 @@
+.routeState {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.loadingHeader {
+  min-height: 214px;
+  padding-bottom: 28px;
+  display: grid;
+  align-content: end;
+  gap: 14px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.loadingEyebrow {
+  width: min(160px, 42%);
+  height: 10px;
+}
+
+.loadingTitle {
+  width: min(420px, 82%);
+  height: clamp(40px, 5vw, 62px);
+}
+
+.loadingDescription {
+  width: min(560px, 92%);
+  height: 18px;
+}
+
+.loadingContent {
+  min-height: 300px;
+  padding-top: 34px;
+  display: grid;
+  align-content: start;
+  gap: 28px;
+}
+
+.loadingRows {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.loadingRows > * {
+  height: 76px;
+  background-color: var(--paper);
+}
+
+@media (max-width: 720px) {
+  .loadingHeader {
+    min-height: 184px;
+  }
+}

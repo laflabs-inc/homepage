@@ -608,8 +608,37 @@
   border-top: 1px solid var(--ink);
 }
 
+.signInPage {
+  width: var(--shell);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding-bottom: 64px;
+}
+
+.signInMasthead {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.signInMeta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.signInMeta > span {
+  color: var(--muted);
+  font: 650 10px / 1.2 var(--font-geist-mono), monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .signInGrid {
-  min-height: calc(100svh - 220px);
+  min-height: calc(100svh - 140px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.56fr);
   align-items: center;
@@ -1253,10 +1282,6 @@
 }
 
 @media (max-width: 900px) {
-  .content {
-    padding: 48px 0 72px;
-  }
-
   .signInGrid {
     grid-template-columns: 1fr;
     gap: 48px;
