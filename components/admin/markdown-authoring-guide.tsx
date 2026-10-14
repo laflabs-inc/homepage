@@ -4,13 +4,20 @@ import type { Locale } from "@/lib/i18n"
 import { markdownAuthoringGuideSource, markdownGuideSections } from "@/lib/markdown/authoring-guide"
 import styles from "@/app/admin/admin.module.css"
 
-export function MarkdownAuthoringGuide({ locale }: { locale: Locale }) {
+export function MarkdownAuthoringGuide({
+  locale,
+  showTitle = true,
+}: {
+  locale: Locale
+  showTitle?: boolean
+}) {
   const t = adminCopy[locale].documents.markdownGuide
 
   return (
     <div className={styles.markdownGuide}>
       <MarkdownDocument
         title={t.title}
+        showTitle={showTitle}
         source={markdownAuthoringGuideSource}
         intro={(
           <>

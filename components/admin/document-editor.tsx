@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import styles from "@/app/admin/admin.module.css"
+import { AdminSection } from "@/components/admin/admin-page"
 import { DocumentPreview } from "@/components/admin/document-preview"
 import { MarkdownLiveEditor } from "@/components/admin/markdown-live-editor"
 import { useDirtyNavigationGuard } from "@/components/admin/use-dirty-navigation-guard"
@@ -441,24 +442,27 @@ export function DocumentEditor({
 
   if (!editable && revision) {
     return (
-      <section className={styles.immutableDocument} aria-labelledby="document-title">
-        <div className={styles.immutableMeta}>
-          <p className={styles.eyebrow}>
-            {adminCopy[locale].documents[revision.kind]} / {revision.locale === "ko"
-              ? adminCopy[locale].documents.korean
-              : adminCopy[locale].documents.english} / {t.revision} {revision.revision}
-          </p>
-          <h1 id="document-title">{revision.title}</h1>
-          <dl>
-            <div><dt>{t.status}</dt><dd>{adminCopy[locale].documents[revision.status]}</dd></div>
-            <div><dt>{t.slug}</dt><dd>{revision.slug}</dd></div>
-            <div><dt>{t.scheduled}</dt><dd>{displayDate(locale, t.noDate, revision.scheduledAt)}</dd></div>
-            <div><dt>{t.published}</dt><dd>{displayDate(locale, t.noDate, revision.publishedAt)}</dd></div>
-          </dl>
-        </div>
-        <div className={styles.immutablePreview}>
-          <DocumentPreview title={revision.title} source={revision.bodyMarkdown} />
-        </div>
+      <section className={styles.immutableDocument} aria-label={t.editDocument}>
+        <AdminSection aria-label={t.documentSettings} className={styles.editorSection}>
+          <div className={styles.immutableMeta}>
+            <p className={styles.eyebrow}>
+              {adminCopy[locale].documents[revision.kind]} / {revision.locale === "ko"
+                ? adminCopy[locale].documents.korean
+                : adminCopy[locale].documents.english} / {t.revision} {revision.revision}
+            </p>
+            <dl>
+              <div><dt>{t.status}</dt><dd>{adminCopy[locale].documents[revision.status]}</dd></div>
+              <div><dt>{t.slug}</dt><dd>{revision.slug}</dd></div>
+              <div><dt>{t.scheduled}</dt><dd>{displayDate(locale, t.noDate, revision.scheduledAt)}</dd></div>
+              <div><dt>{t.published}</dt><dd>{displayDate(locale, t.noDate, revision.publishedAt)}</dd></div>
+            </dl>
+          </div>
+        </AdminSection>
+        <AdminSection aria-label={t.preview} className={styles.editorSection}>
+          <div className={styles.immutablePreview}>
+            <DocumentPreview title={revision.title} source={revision.bodyMarkdown} />
+          </div>
+        </AdminSection>
         {revision.locale === "en" && revision.status === "scheduled" ? (
           <p className={styles.editorGuidance}>{t.englishPublicationGuidance}</p>
         ) : null}
@@ -556,9 +560,10 @@ export function DocumentEditor({
               </p>
             </div>
           </div>
-          <FieldSet className={styles.editorProperties} data-recipe="document-settings-form">
-            <FieldLegend>{t.documentSettings}</FieldLegend>
-            <FieldGroup className={styles.editorFieldGrid}>
+          <AdminSection aria-label={t.documentSettings} className={styles.editorSection}>
+            <FieldSet className={styles.editorProperties} data-recipe="document-settings-form">
+              <FieldLegend>{t.documentSettings}</FieldLegend>
+              <FieldGroup className={styles.editorFieldGrid}>
               <Field className={styles.editorPropertyKind}>
                 <FieldLabel>{t.kind}</FieldLabel>
                 <NativeSelect disabled={englishSeriesFieldsLocked} value={values.kind} onChange={(event) => {
@@ -610,24 +615,27 @@ export function DocumentEditor({
                   onChange={(event) => update("pinned", event.target.checked)}
                 />
               </div>
-            </FieldGroup>
-          </FieldSet>
-          <div className={styles.markdownField}>
-            <div className={styles.markdownFieldHeader}>
-              <span>{t.markdownBody}</span>
-              <Link
-                href="/admin/documents/markdown-guide"
-                target="_blank"
-                rel="noreferrer"
-                aria-label={t.markdownGuide}
-              >{t.writingGuide}</Link>
+              </FieldGroup>
+            </FieldSet>
+          </AdminSection>
+          <AdminSection aria-label={t.markdownBody} className={styles.editorSection}>
+            <div className={styles.markdownField}>
+              <div className={styles.markdownFieldHeader}>
+                <span>{t.markdownBody}</span>
+                <Link
+                  href="/admin/documents/markdown-guide"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={t.markdownGuide}
+                >{t.writingGuide}</Link>
+              </div>
+              <MarkdownLiveEditor
+                value={values.bodyMarkdown}
+                documentLocale={values.locale}
+                onChange={(nextValue) => update("bodyMarkdown", nextValue)}
+              />
             </div>
-            <MarkdownLiveEditor
-              value={values.bodyMarkdown}
-              documentLocale={values.locale}
-              onChange={(nextValue) => update("bodyMarkdown", nextValue)}
-            />
-          </div>
+          </AdminSection>
           {error ? <p ref={errorRef} className={styles.formAlert} role="alert" tabIndex={-1}>{error}</p> : null}
           {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
           {revision?.locale === "en" ? (
@@ -636,14 +644,15 @@ export function DocumentEditor({
           {dirty && revision ? (
             <p className={styles.editorGuidance}>{t.dirtyGuidance}</p>
           ) : null}
-          <div
-            className={styles.editorPublishingToolbar}
-            data-recipe="document-publishing-toolbar"
-          >
-            <StatusLabel tone={pending ? "info" : "neutral"}>
-              {adminCopy[locale].documents[revision?.status ?? "draft"]}
-            </StatusLabel>
-            <div className={styles.editorPublishingControls}>
+          <AdminSection aria-label={t.publishingActions} className={styles.editorSection}>
+            <div
+              className={styles.editorPublishingToolbar}
+              data-recipe="document-publishing-toolbar"
+            >
+              <StatusLabel tone={pending ? "info" : "neutral"}>
+                {adminCopy[locale].documents[revision?.status ?? "draft"]}
+              </StatusLabel>
+              <div className={styles.editorPublishingControls}>
               {revision ? (
                 <Field className={styles.scheduleField}>
                   <FieldLabel>{t.scheduleTime}</FieldLabel>
@@ -691,8 +700,9 @@ export function DocumentEditor({
                   {t.createEnglishRevision}
                 </ButtonLink>
               ) : null}
+              </div>
             </div>
-          </div>
+          </AdminSection>
       </form>
     </section>
   )

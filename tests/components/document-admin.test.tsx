@@ -1089,8 +1089,10 @@ describe("document admin", () => {
     }} />)
 
     expect(screen.queryByRole("textbox", { name: "Title" })).not.toBeInTheDocument()
-    expect(screen.getAllByText("서비스 업데이트")).toHaveLength(2)
+    expect(screen.getAllByText("서비스 업데이트")).toHaveLength(1)
     expect(screen.getAllByText(/Published/)).toHaveLength(2)
+    expect(screen.getByRole("region", { name: "Document settings" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "Preview" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Create new revision" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Archive" })).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Generate with AI" })).not.toBeInTheDocument()

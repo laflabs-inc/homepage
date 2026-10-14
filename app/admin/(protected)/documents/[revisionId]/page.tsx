@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation"
 
-import styles from "@/app/admin/admin.module.css"
+import { AdminPage, AdminPageHeader } from "@/components/admin/admin-page"
 import { DocumentEditor } from "@/components/admin/document-editor"
+import { adminCopy } from "@/lib/admin/i18n"
+import { getAdminLocale } from "@/lib/admin/locale"
 import { requireAdmin } from "@/lib/auth/require-admin"
 import { createDocumentCategoryService } from "@/lib/document-categories/service"
 import { documentCategoryStore } from "@/lib/document-categories/store"
@@ -23,10 +25,17 @@ export default async function DocumentRevisionPage({
   const revision = await documentService.getRevision(revisionId)
   if (!revision) notFound()
   const categories = await categoryService.list({ kind: revision.kind })
+  const locale = await getAdminLocale()
+  const t = adminCopy[locale].documents
 
   return (
-    <div className={styles.documentsPage}>
+    <AdminPage>
+      <AdminPageHeader
+        description={`${revision.locale === "ko" ? t.korean : t.english} · ${t.editor.revision} ${revision.revision}`}
+        eyebrow={`${t.editor.editDocument} · ${t[revision.kind]} · ${t[revision.status]}`}
+        title={revision.title}
+      />
       <DocumentEditor revision={revision} categories={categories} />
-    </div>
+    </AdminPage>
   )
 }
