@@ -125,7 +125,9 @@ describe("AssetLibrary", () => {
     )
 
     expect(screen.getByTestId("asset-library")).toHaveAttribute("data-mobile-layout", "single-column")
-    expect(screen.getByRole("heading", { name: "미디어 라이브러리" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "이미지 업로드" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "미디어 검색 및 필터" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "미디어 목록" })).toBeInTheDocument()
   })
 
   it("edits bilingual metadata through the protected asset endpoint", async () => {
