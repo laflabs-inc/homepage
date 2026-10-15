@@ -666,29 +666,6 @@
   gap: 64px;
 }
 
-.dashboardHeading {
-  padding-bottom: 32px;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 32px;
-  border-bottom: 1px solid var(--ink);
-}
-
-.dashboardHeading h1 {
-  margin: 0;
-  font-size: 48px;
-  font-weight: 760;
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
-
-.dashboardHeading p {
-  margin: 16px 0 0;
-  color: var(--muted);
-  font-size: 13px;
-}
-
 .rangeNav {
   display: flex;
   border: 1px solid var(--ink);
@@ -761,28 +738,11 @@
   border-top: 1px solid var(--ink);
 }
 
-.sectionHeading {
-  min-height: 88px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.sectionHeading h2,
-.distribution h2,
-.tableHeading h2 {
+.distribution h2 {
   margin: 0;
   font-size: 18px;
   line-height: 1.25;
   letter-spacing: -0.02em;
-}
-
-.sectionHeading p,
-.tableHeading span {
-  margin: 0;
-  color: var(--muted);
-  font-size: 11px;
 }
 
 .funnelTrack {
@@ -958,21 +918,21 @@
   border-left: 1px solid var(--ink);
 }
 
-.tableHeading {
-  min-height: 56px;
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.tableHeading span {
+.tableTotal {
   max-width: 120px;
+  color: var(--muted);
+  font-size: 11px;
   text-align: right;
 }
 
-.tableSection table {
+.tableViewport {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.tableViewport table {
   width: 100%;
+  min-width: 260px;
   border-collapse: collapse;
   font-size: 12px;
 }
@@ -1015,8 +975,7 @@
   border: 1px solid var(--ink);
 }
 
-.dashboardEmpty h2,
-.errorState h2 {
+.dashboardEmpty h2 {
   max-width: 680px;
   margin: 0;
   font-size: 30px;
@@ -1024,8 +983,7 @@
   letter-spacing: -0.03em;
 }
 
-.dashboardEmpty p,
-.errorState p {
+.dashboardEmpty p {
   max-width: 620px;
   margin: 20px 0 0;
   color: var(--muted);
@@ -1250,11 +1208,6 @@
     gap: 48px;
   }
 
-  .dashboardHeading {
-    align-items: start;
-    flex-direction: column;
-  }
-
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1342,10 +1295,6 @@
     padding-top: 36px;
   }
 
-  .dashboardHeading h1 {
-    font-size: 34px;
-  }
-
   .rangeNav {
     width: 100%;
   }
@@ -1368,12 +1317,6 @@
 
   .metricCell {
     min-height: 132px;
-  }
-
-  .sectionHeading {
-    padding: 20px 0;
-    align-items: start;
-    flex-direction: column;
   }
 
   .funnelTrack {

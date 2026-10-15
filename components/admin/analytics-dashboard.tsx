@@ -1,18 +1,15 @@
 "use client"
 
-import Link from "next/link"
-
 import type {
   AnalyticsCountRow,
-  AnalyticsRange,
   AnalyticsSummary,
 } from "@/lib/analytics/store"
 import styles from "@/app/admin/admin.module.css"
+import { AdminSection } from "@/components/admin/admin-page"
 import { AnalyticsCharts } from "@/components/admin/analytics-charts"
 import { useLocale } from "@/components/i18n/locale-provider"
+import { EmptyState } from "@/components/ui/empty-state"
 import { adminCopy, type AdminCopy } from "@/lib/admin/i18n"
-
-const ranges: AnalyticsRange[] = [7, 30, 90]
 
 function distributionValueLabel(
   key: string,
@@ -59,8 +56,7 @@ function Distribution({
   const total = rows.reduce((sum, row) => sum + row.count, 0)
 
   return (
-    <section className={styles.distribution} aria-labelledby={`${id}-heading`}>
-      <h2 id={`${id}-heading`}>{title}</h2>
+    <AdminSection className={styles.distribution} title={title}>
       {rows.length === 0 ? (
         <p className={styles.inlineEmpty}>{noDataLabel}</p>
       ) : (
@@ -81,12 +77,11 @@ function Distribution({
           })}
         </ul>
       )}
-    </section>
+    </AdminSection>
   )
 }
 
 function AggregateTable({
-  id,
   title,
   totalLabel,
   rows,
@@ -95,7 +90,6 @@ function AggregateTable({
   noEventsLabel,
   locale,
 }: {
-  id: string
   title: string
   totalLabel: string
   rows: AnalyticsCountRow[]
@@ -105,32 +99,30 @@ function AggregateTable({
   locale: "ko" | "en"
 }) {
   return (
-    <section className={styles.tableSection} aria-labelledby={`${id}-heading`}>
-      <div className={styles.tableHeading}>
-        <h2 id={`${id}-heading`}>{title}</h2>
-        <span>{totalLabel}</span>
-      </div>
-      <table aria-label={title}>
-        <thead>
-          <tr>
-            <th scope="col">{targetLabel}</th>
-            <th scope="col">{eventsLabel}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.length === 0 ? (
+    <AdminSection className={styles.tableSection} title={title} actions={<span className={styles.tableTotal}>{totalLabel}</span>}>
+      <div className={styles.tableViewport}>
+        <table aria-label={title}>
+          <thead>
             <tr>
-              <td colSpan={2} className={styles.tableEmpty}>{noEventsLabel}</td>
+              <th scope="col">{targetLabel}</th>
+              <th scope="col">{eventsLabel}</th>
             </tr>
-          ) : rows.map((row) => (
-            <tr key={row.key}>
-              <th scope="row">{row.key}</th>
-              <td>{formatCount(row.count, locale)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={2} className={styles.tableEmpty}>{noEventsLabel}</td>
+              </tr>
+            ) : rows.map((row) => (
+              <tr key={row.key}>
+                <th scope="row">{row.key}</th>
+                <td>{formatCount(row.count, locale)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </AdminSection>
   )
 }
 
@@ -142,29 +134,8 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
 
   return (
     <div className={styles.dashboard}>
-      <header className={styles.dashboardHeading}>
-        <div>
-          <h1>{t.heading}</h1>
-          <p>{t.consentedTraffic}</p>
-        </div>
-        <nav className={styles.rangeNav} aria-label={t.dateRangeLabel}>
-          {ranges.map((range) => (
-            <Link
-              key={range}
-              href={`/admin/analytics?range=${range}`}
-              aria-current={summary.rangeDays === range ? "page" : undefined}
-            >
-              {t.range(range)}
-            </Link>
-          ))}
-        </nav>
-      </header>
-
       {!hasEvents ? (
-        <section className={styles.dashboardEmpty}>
-          <h2>{t.emptyHeading}</h2>
-          <p>{t.emptyDescription}</p>
-        </section>
+        <EmptyState className={styles.dashboardEmpty} title={t.emptyHeading} description={t.emptyDescription} />
       ) : (
         <>
           <dl className={styles.metrics} aria-label={t.totalsLabel}>
@@ -176,11 +147,7 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
 
           <AnalyticsCharts daily={summary.daily} locale={locale} copy={t} />
 
-          <section className={styles.funnel} aria-labelledby="funnel-heading">
-            <div className={styles.sectionHeading}>
-              <h2 id="funnel-heading">{t.funnel}</h2>
-              <p>{t.funnelDescription}</p>
-            </div>
+          <AdminSection className={styles.funnel} title={t.funnel} description={t.funnelDescription}>
             <div className={styles.funnelTrack}>
               <div className={styles.funnelStage}>
                 <span>{t.pageView}</span>
@@ -206,7 +173,7 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
                 <small>{t.visitors}</small>
               </div>
             </div>
-          </section>
+          </AdminSection>
 
           <div className={styles.distributionGrid}>
             <Distribution id="locale" title={t.locale} rows={summary.locales} noDataLabel={t.noPageViewData} locale={locale} copy={t} />
@@ -215,7 +182,6 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
 
           <div className={styles.tableGrid}>
             <AggregateTable
-              id="referrers"
               title={t.referrers}
               totalLabel={t.referrersTotal}
               rows={summary.referrers}
@@ -225,7 +191,6 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
               locale={locale}
             />
             <AggregateTable
-              id="products"
               title={t.products}
               totalLabel={t.productsTotal(formatCount(summary.productClicks, locale))}
               rows={summary.products}
@@ -235,7 +200,6 @@ export function AnalyticsDashboard({ summary }: { summary: AnalyticsSummary }) {
               locale={locale}
             />
             <AggregateTable
-              id="github-targets"
               title={t.githubTargets}
               totalLabel={t.githubTargetsTotal(formatCount(summary.githubClicks, locale))}
               rows={summary.githubTargets}

@@ -10,6 +10,7 @@ import {
 } from "recharts"
 
 import styles from "@/app/admin/admin.module.css"
+import { AdminSection } from "@/components/admin/admin-page"
 import type { AdminCopy } from "@/lib/admin/i18n"
 import type { AnalyticsDailyPoint } from "@/lib/analytics/store"
 
@@ -34,10 +35,7 @@ export function AnalyticsCharts({
   copy: AdminCopy["analytics"]
 }) {
   return (
-    <section className={styles.traffic} aria-labelledby="traffic-heading">
-      <div className={styles.sectionHeading}>
-        <h2 id="traffic-heading">{copy.traffic}</h2>
-      </div>
+    <AdminSection className={styles.traffic} title={copy.traffic}>
       <div className={styles.trafficLegend} aria-hidden="true">
         <span><i className={styles.visitorsKey} />{copy.visitors}</span>
         <span><i className={styles.pageViewsKey} />{copy.pageViews}</span>
@@ -101,6 +99,6 @@ export function AnalyticsCharts({
           ))}
         </tbody>
       </table>
-    </section>
+    </AdminSection>
   )
 }

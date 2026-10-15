@@ -8,12 +8,14 @@ import AnalyticsPage from "@/app/admin/(protected)/analytics/page"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import type { AnalyticsSummary } from "@/lib/analytics/store"
 
-const { getAnalyticsSummaryMock, requireAdminMock } = vi.hoisted(() => ({
+const { getAdminLocaleMock, getAnalyticsSummaryMock, requireAdminMock } = vi.hoisted(() => ({
+  getAdminLocaleMock: vi.fn(),
   getAnalyticsSummaryMock: vi.fn(),
   requireAdminMock: vi.fn(),
 }))
 
 vi.mock("@/lib/auth/require-admin", () => ({ requireAdmin: requireAdminMock }))
+vi.mock("@/lib/admin/locale", () => ({ getAdminLocale: getAdminLocaleMock }))
 vi.mock("@/lib/analytics/store", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/lib/analytics/store")>(),
   getAnalyticsSummary: getAnalyticsSummaryMock,
@@ -48,6 +50,7 @@ const summary: AnalyticsSummary = {
 }
 
 beforeEach(() => {
+  getAdminLocaleMock.mockReset().mockResolvedValue("en")
   requireAdminMock.mockReset().mockResolvedValue({ user: { orgMember: true } })
   getAnalyticsSummaryMock.mockReset().mockResolvedValue(summary)
 })
@@ -56,6 +59,8 @@ describe("AnalyticsDashboard", () => {
   it("renders daily traffic with exact values in an accessible table", () => {
     render(<LocaleProvider initialLocale="en"><AnalyticsDashboard summary={summary} /></LocaleProvider>)
 
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument()
+    expect(screen.queryByRole("navigation", { name: "Analytics date range" })).not.toBeInTheDocument()
     expect(screen.getByRole("region", { name: "Traffic" })).toBeInTheDocument()
 
     const table = screen.getByRole("table", { name: "Daily traffic data" })
@@ -69,19 +74,12 @@ describe("AnalyticsDashboard", () => {
   it("renders real aggregates, funnel context, tables, and non-JavaScript range links", () => {
     render(<LocaleProvider initialLocale="en"><AnalyticsDashboard summary={summary} /></LocaleProvider>)
 
-    expect(screen.getByRole("heading", { name: "Analytics" })).toBeInTheDocument()
     const totals = screen.getByLabelText("Consented analytics totals")
     expect(within(totals).getByText("Consented visitors").nextElementSibling).toHaveTextContent("12")
     expect(within(totals).getByText("Page views").nextElementSibling).toHaveTextContent("30")
     expect(screen.getByText("4 GitHub clicks")).toBeInTheDocument()
     expect(screen.getByText("58.33%")).toBeInTheDocument()
     expect(screen.getByText("28.57%")).toBeInTheDocument()
-    expect(screen.getByText("Consented traffic only")).toBeInTheDocument()
-
-    expect(screen.getByRole("link", { name: "7 days" })).toHaveAttribute("href", "/admin/analytics?range=7")
-    expect(screen.getByRole("link", { name: "30 days" })).toHaveAttribute("aria-current", "page")
-    expect(screen.getByRole("link", { name: "90 days" })).toHaveAttribute("href", "/admin/analytics?range=90")
-
     expect(screen.getByRole("table", { name: "Referrers" })).toHaveTextContent("github.com5")
     expect(screen.getByRole("table", { name: "Products" })).toHaveTextContent("laf-id7")
     expect(screen.getByRole("table", { name: "GitHub targets" })).toHaveTextContent("lafetch4")
@@ -175,8 +173,6 @@ describe("AnalyticsDashboard", () => {
   it("renders Korean analytics copy without slash-combined labels", () => {
     render(<LocaleProvider initialLocale="ko"><AnalyticsDashboard summary={summary} /></LocaleProvider>)
 
-    expect(screen.getByRole("heading", { name: "분석" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "7일" })).toHaveAttribute("href", "/admin/analytics?range=7")
     expect(screen.getByText("동의한 방문자").nextElementSibling).toHaveTextContent("12")
     expect(screen.queryByText(/Analytics \/ 분석/)).not.toBeInTheDocument()
   })
@@ -219,7 +215,12 @@ describe("analytics route boundaries", () => {
     expect(requireAdminMock.mock.invocationCallOrder[0]).toBeLessThan(
       getAnalyticsSummaryMock.mock.invocationCallOrder[0],
     )
-    expect(screen.getByRole("link", { name: "30 days" })).toHaveAttribute("aria-current", "page")
+    expect(screen.getByRole("heading", { level: 1, name: "Analytics" })).toBeInTheDocument()
+    expect(screen.getByText("Consented traffic only")).toBeInTheDocument()
+    const range = screen.getByRole("navigation", { name: "Analytics date range" })
+    expect(within(range).getByRole("link", { name: "7 days" })).toHaveAttribute("href", "/admin/analytics?range=7")
+    expect(within(range).getByRole("link", { name: "30 days" })).toHaveAttribute("aria-current", "page")
+    expect(within(range).getByRole("link", { name: "90 days" })).toHaveAttribute("href", "/admin/analytics?range=90")
   })
 
   it("redacts query errors and retries through the route reset callback", async () => {
@@ -229,6 +230,7 @@ describe("analytics route boundaries", () => {
     render(<LocaleProvider initialLocale="en"><AnalyticsError error={new Error("DATABASE_URL=postgres://secret")} reset={reset} /></LocaleProvider>)
 
     expect(screen.getByRole("heading", {
+      level: 1,
       name: "Unable to load analytics",
     })).toBeInTheDocument()
     expect(screen.queryByText(/postgres|database_url|secret/i)).not.toBeInTheDocument()
