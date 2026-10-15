@@ -136,9 +136,12 @@ describe("Agent settings", () => {
   it("renders a compact guided setup with optional limits and no editable prices", () => {
     render(<AgentSettings initialConfiguration={configuration} />)
 
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument()
     for (const heading of ["OpenAI setup", "Usage & policy"]) {
       expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument()
+      expect(screen.getByRole("region", { name: heading })).toBeInTheDocument()
     }
+    expect(screen.getByRole("region", { name: "Advanced limits" })).toBeInTheDocument()
     expect(screen.getByRole("checkbox", { name: "Enable AI" })).not.toBeChecked()
     expect(screen.getByRole("combobox", { name: "Model" })).toHaveValue("gpt-5.6-luna")
     expect(screen.getByRole("spinbutton", { name: "Monthly estimated cost limit (USD)" })).toHaveValue(50)

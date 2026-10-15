@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { AdminPage, AdminPageHeader } from "@/components/admin/admin-page"
 import { AgentSettings } from "@/components/admin/agent-settings"
 import { agentService } from "@/lib/agent/service"
 import { adminCopy } from "@/lib/admin/i18n"
@@ -15,7 +16,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AgentPage() {
   await requireAdmin()
-  const configuration = await agentService.getConfiguration()
+  const [configuration, locale] = await Promise.all([
+    agentService.getConfiguration(),
+    getAdminLocale(),
+  ])
+  const t = adminCopy[locale].agent
 
-  return <AgentSettings initialConfiguration={configuration} />
+  return (
+    <AdminPage>
+      <AdminPageHeader eyebrow={t.eyebrow} title={t.heading} />
+      <AgentSettings initialConfiguration={configuration} />
+    </AdminPage>
+  )
 }
