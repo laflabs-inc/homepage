@@ -1,4 +1,4 @@
-import styles from "@/app/admin/admin.module.css"
+import { AdminPage, AdminPageHeader } from "@/components/admin/admin-page"
 import { DocumentEditor } from "@/components/admin/document-editor"
 import { requireAdmin } from "@/lib/auth/require-admin"
 import { createDocumentCategoryService } from "@/lib/document-categories/service"
@@ -36,18 +36,13 @@ export default async function NewDocumentPage({
   )
 
   return (
-    <div className={styles.documentsPage}>
-      <div className={styles.documentsHeading}>
-        <div>
-          <p className={styles.eyebrow}>{t.newSeries}</p>
-          <h1>{t.createDocument}</h1>
-        </div>
-      </div>
+    <AdminPage>
+      <AdminPageHeader eyebrow={t.newSeries} title={t.createDocument} />
       <DocumentEditor
         seriesId={templateRevision ? seriesId : undefined}
         templateRevision={templateRevision}
         categories={categories}
       />
-    </div>
+    </AdminPage>
   )
 }

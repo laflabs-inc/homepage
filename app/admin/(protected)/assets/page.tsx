@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { z } from "zod"
 
 import { AssetLibrary } from "@/components/admin/asset-library"
+import { AdminPage, AdminPageHeader, AdminSection } from "@/components/admin/admin-page"
 import { EmptyState } from "@/components/ui/empty-state"
 import { adminCopy } from "@/lib/admin/i18n"
 import { getAdminLocale } from "@/lib/admin/locale"
@@ -11,8 +12,6 @@ import { assetService } from "@/lib/assets/service"
 import { mediaAssetStatuses, mediaTypes } from "@/lib/assets/types"
 import { requireAdmin } from "@/lib/auth/require-admin"
 import { isMediaConfigured } from "@/lib/env"
-
-import styles from "@/components/admin/asset-library.module.css"
 
 export const dynamic = "force-dynamic"
 
@@ -36,13 +35,12 @@ export default async function AssetsPage({
 
   if (!isMediaConfigured()) {
     return (
-      <section className={styles.page}>
-        <EmptyState
-          className={styles.unavailable}
-          title={t.unavailableHeading}
-          description={t.unavailableDescription}
-        />
-      </section>
+      <AdminPage>
+        <AdminPageHeader eyebrow={t.eyebrow} title={t.heading} description={t.description} />
+        <AdminSection aria-label={t.unavailableHeading}>
+          <EmptyState title={t.unavailableHeading} description={t.unavailableDescription} />
+        </AdminSection>
+      </AdminPage>
     )
   }
 
@@ -61,17 +59,20 @@ export default async function AssetsPage({
   const page = await assetService.list(filter)
 
   return (
-    <AssetLibrary
-      key={[search ?? "", type ?? "", baseFilter.status ?? "", tag ?? "", baseFilter.limit].join(":")}
-      assets={page.items.map(toAdminAsset)}
-      nextCursor={page.nextCursor ? encodeAssetCursor(page.nextCursor) : null}
-      initialFilters={{
-        search: search || undefined,
-        type,
-        status: baseFilter.status,
-        tag: tag || undefined,
-      }}
-      limit={baseFilter.limit}
-    />
+    <AdminPage>
+      <AdminPageHeader eyebrow={t.eyebrow} title={t.heading} description={t.description} />
+      <AssetLibrary
+        key={[search ?? "", type ?? "", baseFilter.status ?? "", tag ?? "", baseFilter.limit].join(":")}
+        assets={page.items.map(toAdminAsset)}
+        nextCursor={page.nextCursor ? encodeAssetCursor(page.nextCursor) : null}
+        initialFilters={{
+          search: search || undefined,
+          type,
+          status: baseFilter.status,
+          tag: tag || undefined,
+        }}
+        limit={baseFilter.limit}
+      />
+    </AdminPage>
   )
 }

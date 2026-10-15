@@ -3,6 +3,7 @@
 import { useState } from "react"
 
 import styles from "@/app/admin/admin.module.css"
+import { AdminSection } from "@/components/admin/admin-page"
 import { useLocale } from "@/components/i18n/locale-provider"
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -349,13 +350,9 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
   }).format(Number(draft.monthlyCostLimitUsd || 0))
 
   return (
-    <section className={styles.agentPage}>
-      <div className={styles.agentHeading}>
-        <div>
-          <p className={styles.eyebrow}>{t.eyebrow}</p>
-          <h1>{t.heading}</h1>
-          <p>{configuration.settings.enabled ? t.enabled : t.disabled}</p>
-        </div>
+    <div className={styles.agentWorkspace}>
+      <div className={styles.agentStatusBar}>
+        <p>{configuration.settings.enabled ? t.enabled : t.disabled}</p>
         <Button
           className={styles.killSwitch}
           type="button"
@@ -388,18 +385,18 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
       ) : null}
       {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
 
-      <section className={styles.agentSection}>
-        <div className={styles.agentSectionHeading}>
-          <span>01</span>
-          <h2>{t.connection}</h2>
-        </div>
-        <div className={styles.agentSectionBody}>
+      <AdminSection
+        title={t.connection}
+        actions={(
           <StatusLabel
             className={styles.connectionStatus}
             variant={credential.verificationStatus === "verified" ? "success" : "neutral"}
           >
             {credentialStatus}
           </StatusLabel>
+        )}
+      >
+        <div className={styles.agentSectionBody}>
           {legacyModel ? (
             <Alert className={styles.formAlert} live title={t.legacyModel(legacyModel)} variant="error" />
           ) : null}
@@ -476,14 +473,10 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
             </Button>
           </div>
         </div>
-      </section>
+      </AdminSection>
 
       <form className={styles.agentForm} onSubmit={saveSettings}>
-        <section className={styles.agentSection}>
-          <div className={styles.agentSectionHeading}>
-            <span>02</span>
-            <h2>{t.usage}</h2>
-          </div>
+        <AdminSection title={t.usage}>
           <div className={styles.agentFieldGrid}>
             <Field>
               <FieldLabel>{t.monthlyEstimatedCostLimit}</FieldLabel>
@@ -506,40 +499,42 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
             <p className={styles.agentMetric}>{t.estimatedMonthlyGuardrail(estimatedLimit)}</p>
             <p className={styles.agentMeta}>{t.estimateDisclaimer}</p>
 
-            <details className={styles.agentAdvanced}>
-              <summary>{t.advancedLimits}</summary>
-              <div className={styles.agentAdvancedGrid}>
-                <Field>
-                  <FieldLabel>{t.dailyTokenLimit}</FieldLabel>
-                  <Input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
-                </Field>
-                <Field>
-                  <FieldLabel>{t.dailyQuestionLimit}</FieldLabel>
-                  <Input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
-                </Field>
-                <Field>
-                  <FieldLabel>{t.maximumOutputTokens}</FieldLabel>
-                  <Input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
-                </Field>
-                <Field>
-                  <FieldLabel>{t.resetTimezone}</FieldLabel>
-                  <Input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
-                </Field>
-                <Field>
-                  <FieldLabel>{t.dailyResetTime}</FieldLabel>
-                  <Input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
-                </Field>
-                <Field>
-                  <FieldLabel>{t.identityCookieRetention}</FieldLabel>
-                  <Input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
-                </Field>
-              </div>
-            </details>
+            <AdminSection className={styles.agentAdvancedSection} aria-label={t.advancedLimits}>
+              <details className={styles.agentAdvanced}>
+                <summary>{t.advancedLimits}</summary>
+                <div className={styles.agentAdvancedGrid}>
+                  <Field>
+                    <FieldLabel>{t.dailyTokenLimit}</FieldLabel>
+                    <Input type="number" min="1000" max="1000000" value={draft.dailyTokenLimit} onChange={(event) => set("dailyTokenLimit", event.target.value)} />
+                  </Field>
+                  <Field>
+                    <FieldLabel>{t.dailyQuestionLimit}</FieldLabel>
+                    <Input type="number" min="1" max="1000" value={draft.dailyQuestionLimit} onChange={(event) => set("dailyQuestionLimit", event.target.value)} />
+                  </Field>
+                  <Field>
+                    <FieldLabel>{t.maximumOutputTokens}</FieldLabel>
+                    <Input type="number" min="64" max="8192" value={draft.maxOutputTokens} onChange={(event) => set("maxOutputTokens", event.target.value)} />
+                  </Field>
+                  <Field>
+                    <FieldLabel>{t.resetTimezone}</FieldLabel>
+                    <Input value={draft.resetTimezone} onChange={(event) => set("resetTimezone", event.target.value)} />
+                  </Field>
+                  <Field>
+                    <FieldLabel>{t.dailyResetTime}</FieldLabel>
+                    <Input type="time" value={draft.dailyResetTime} onChange={(event) => set("dailyResetTime", event.target.value)} />
+                  </Field>
+                  <Field>
+                    <FieldLabel>{t.identityCookieRetention}</FieldLabel>
+                    <Input type="number" min="1" max="365" value={draft.cookieRetentionDays} onChange={(event) => set("cookieRetentionDays", event.target.value)} />
+                  </Field>
+                </div>
+              </details>
+            </AdminSection>
 
             <Button className={styles.agentSave} type="submit" loading={busy}>{t.saveSettings}</Button>
           </div>
-        </section>
+        </AdminSection>
       </form>
-    </section>
+    </div>
   )
 }

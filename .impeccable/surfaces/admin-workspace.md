@@ -58,8 +58,10 @@ Quiet Operations. The interface extends the square Paper, Ink, and Primary Blue 
 
 ## Delivery Boundary
 
-PR A establishes the workspace shell and adopts it for Documents and Categories. PR B may migrate Analytics, Assets, Agent settings, and remaining editors, but must preserve the interfaces and functional boundaries above.
+PR A established the workspace shell and adopted it for Documents and Categories. PR B adopted document editing and guidance, Assets, Analytics, and Agent settings while preserving the interfaces and functional boundaries above.
+
+PR C is the next delivery. It is a presentation-only quality pass across the real adopted surfaces: hierarchy, typography, spacing, density, feedback, table and chart composition, and mobile control rhythm. It must not change APIs, payloads, authorization, storage, analytics calculations, document lifecycle behavior, or Agent operations.
 
 ## Unresolved Decisions
 
-No decision blocks PR A. Dense operational patterns should be evaluated during PR B using real feature data instead of speculative dashboard modules.
+No structural decision blocks PR C. Visual refinements should be judged side by side on the existing Korean and English operational states, without introducing speculative modules or placeholder data.

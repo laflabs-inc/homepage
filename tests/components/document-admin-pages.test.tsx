@@ -110,10 +110,15 @@ describe("protected admin document queries", () => {
   })
 
   it("renders the Markdown guide behind the admin boundary", async () => {
-    render(<LocaleProvider initialLocale="en">{await MarkdownGuidePage()}</LocaleProvider>)
+    const { container } = render(
+      <LocaleProvider initialLocale="en">{await MarkdownGuidePage()}</LocaleProvider>,
+    )
 
     expect(authMocks.requireAdmin).toHaveBeenCalled()
-    expect(screen.getByText("Markdown writing guide", { selector: "h1" })).toBeInTheDocument()
+    const heading = screen.getByRole("heading", { level: 1, name: "Markdown writing guide" })
+    expect(heading).toBeInTheDocument()
+    expect(container.querySelectorAll("h1")).toHaveLength(1)
+    expect(heading.closest("section")).not.toBeNull()
     expect(screen.getByText("Back to documents").closest("a")).toHaveAttribute("href", "/admin/documents")
     const aiGuideLink = screen.queryByText("Markdown source for AI")?.closest("a")
     expect(aiGuideLink).toHaveAttribute("href", "/markdown-guide.md")
@@ -208,7 +213,12 @@ describe("protected admin document queries", () => {
       </LocaleProvider>,
     )
 
-    expect(screen.getByRole("textbox", { name: "Title" })).toHaveValue(revision.title)
+    const heading = screen.getByRole("heading", { level: 1, name: revision.title })
+    const title = screen.getByRole("textbox", { name: "Title" })
+    expect(title).toHaveValue(revision.title)
+    expect(heading.closest("section")).toContainElement(title)
+    expect(screen.getByRole("region", { name: "Document settings" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "Markdown body" })).toBeInTheDocument()
     expect(serviceMocks.getRevision).toHaveBeenCalledWith(revision.id)
     expect(categoryMocks.list).toHaveBeenCalledWith({ kind: "notice" })
     expect(within(screen.getByRole("combobox", { name: "Category" }))
@@ -248,6 +258,11 @@ describe("protected admin document queries", () => {
       </LocaleProvider>,
     )
 
+    const heading = screen.getByRole("heading", { level: 1, name: "Create document" })
+    const form = screen.getByRole("form", { name: "Create document" })
+    expect(heading.closest("section")).toContainElement(form)
+    expect(screen.getByRole("region", { name: "Document settings" })).toBeInTheDocument()
+    expect(screen.getByRole("region", { name: "Markdown body" })).toBeInTheDocument()
     expect(categoryMocks.list).toHaveBeenCalledTimes(1)
     expect(categoryMocks.list).toHaveBeenCalledWith({ active: true })
     expect(within(screen.getByRole("combobox", { name: "Category" }))

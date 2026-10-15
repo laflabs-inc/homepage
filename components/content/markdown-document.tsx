@@ -19,6 +19,7 @@ type MarkdownDocumentProps = {
   source: string
   title: string
   intro?: React.ReactNode
+  showTitle?: boolean
 }
 
 type CalloutProperties = {
@@ -173,10 +174,10 @@ export function MarkdownBody({ source }: { source: string }) {
   )
 }
 
-export function MarkdownDocument({ source, title, intro }: MarkdownDocumentProps) {
+export function MarkdownDocument({ source, title, intro, showTitle = true }: MarkdownDocumentProps) {
   return (
     <article className={styles.document}>
-      <h1 className={styles.title}>{title}</h1>
+      {showTitle ? <h1 className={styles.title}>{title}</h1> : null}
       {intro}
       <MarkdownBody source={source} />
     </article>

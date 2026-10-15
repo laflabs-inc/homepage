@@ -1,36 +1,8 @@
-.page {
+.library {
   width: 100%;
   min-width: 0;
   display: grid;
   gap: 32px;
-}
-
-.heading {
-  padding-bottom: 28px;
-  border-bottom: 1px solid var(--ink);
-}
-
-.eyebrow {
-  margin: 0 0 20px;
-  color: var(--blue);
-  font: 650 10px var(--font-geist-mono), monospace;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.heading h1 {
-  margin: 0;
-  font-size: clamp(34px, 5vw, 56px);
-  line-height: 0.95;
-  letter-spacing: -0.05em;
-}
-
-.description {
-  max-width: 620px;
-  margin: 18px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.65;
 }
 
 .uploadPanel {
@@ -191,18 +163,7 @@
 }
 
 .toolbar {
-  display: grid;
   grid-template-columns: minmax(210px, 1fr) repeat(3, minmax(130px, 0.48fr));
-  border: 1px solid var(--ink);
-}
-
-.toolbar > div {
-  min-width: 0;
-  padding: 12px;
-}
-
-.toolbar > div + div {
-  border-left: 1px solid var(--ink);
 }
 
 .toolbar input,
@@ -387,19 +348,32 @@
   gap: 18px;
 }
 
-.loadingHeading {
-  display: grid;
-  gap: 14px;
+.loadingEyebrow,
+.loadingTitle,
+.loadingDescription {
+  display: block;
+  border-radius: 2px;
+  background: var(--line);
+  animation: loadingPulse 1.5s ease-in-out infinite;
 }
 
-.loadingHeading > div:first-child {
-  width: min(440px, 76%);
-  height: 58px;
+.loadingEyebrow {
+  width: 112px;
+  height: 10px;
 }
 
-.loadingHeading > div:last-child {
+.loadingTitle {
+  width: min(440px, 76vw);
+  height: 56px;
+}
+
+.loadingDescription {
   width: min(620px, 92%);
   height: 18px;
+}
+
+@keyframes loadingPulse {
+  50% { opacity: 0.45; }
 }
 
 .loadingUpload {
@@ -441,18 +415,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .toolbar > div + div {
-    border-left: 0;
-  }
-
-  .toolbar > div:nth-child(even) {
-    border-left: 1px solid var(--ink);
-  }
-
-  .toolbar > div:nth-child(n + 3) {
-    border-top: 1px solid var(--ink);
-  }
-
   .assetGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -463,14 +425,10 @@
 }
 
 @media (max-width: 640px) {
-  .page {
+  .library {
     max-width: 100%;
     gap: 24px;
     overflow-x: clip;
-  }
-
-  .heading h1 {
-    font-size: clamp(32px, 11vw, 44px);
   }
 
   .uploadLead {
@@ -501,14 +459,6 @@
 
   .toolbar {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .toolbar > div:nth-child(even) {
-    border-left: 0;
-  }
-
-  .toolbar > div:nth-child(n + 2) {
-    border-top: 1px solid var(--ink);
   }
 
   .libraryMeta {
@@ -557,7 +507,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .results {
+  .results,
+  .loadingEyebrow,
+  .loadingTitle,
+  .loadingDescription {
     transition: none;
+    animation: none;
   }
 }

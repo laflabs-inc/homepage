@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, useTransition } from "react"
 
 import { AssetUploadQueue } from "@/components/admin/asset-upload-queue"
+import { AdminSection, AdminToolbar } from "@/components/admin/admin-page"
 import styles from "@/components/admin/asset-library.module.css"
 import { useLocale } from "@/components/i18n/locale-provider"
 import {
@@ -302,18 +303,12 @@ export function AssetLibrary({
   }
 
   return (
-    <section className={styles.page} data-testid="asset-library" data-mobile-layout="single-column">
-      <header className={styles.heading}>
-        <div>
-          <p className={styles.eyebrow}>{t.eyebrow}</p>
-          <h1>{t.heading}</h1>
-          <p className={styles.description}>{t.description}</p>
-        </div>
-      </header>
+    <div className={styles.library} data-testid="asset-library" data-mobile-layout="single-column">
+      <AdminSection>
+        <AssetUploadQueue onReady={(asset) => setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)])} />
+      </AdminSection>
 
-      <AssetUploadQueue onReady={(asset) => setAssets((current) => [asset, ...current.filter((item) => item.id !== asset.id)])} />
-
-      <div className={styles.toolbar}>
+      <AdminToolbar label={t.filtersLabel} className={styles.toolbar}>
         <Field className={styles.searchField}>
           <FieldLabel>{t.search}</FieldLabel>
           <Input
@@ -360,38 +355,39 @@ export function AssetLibrary({
             replaceFilters({ ...currentFilters(), tag: next.trim() || undefined })
           }} />
         </Field>
-      </div>
+      </AdminToolbar>
 
-      <div className={styles.libraryMeta}>
-        <div>
-          <span aria-live="polite">{t.results(assets.length)}</span>
-          {hasFilters ? <Button size="compact" variant="secondary" onClick={clearFilters}>{t.clearFilters}</Button> : null}
-        </div>
-        <SegmentedControl
-          label={t.view}
-          value={view}
-          onValueChange={setView}
-          options={[
-            { value: "grid", label: t.gridView, content: <GridFour aria-hidden size={16} weight="bold" /> },
-            { value: "list", label: t.listView, content: <ListBullets aria-hidden size={16} weight="bold" /> },
-          ]}
-        />
-      </div>
-
-      {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
-      {error ? <p className={styles.errorText} role="alert">{error}</p> : null}
-
-      <div className={styles.results} aria-busy={isPending} data-view={view}>
-        {assets.length === 0 ? (
-          <EmptyState
-            className={styles.empty}
-            title={hasFilters ? t.noMatchesHeading : t.emptyHeading}
-            description={hasFilters ? t.noMatchesDescription : t.emptyDescription}
-            action={hasFilters ? <Button size="compact" variant="secondary" onClick={clearFilters}>{t.clearFilters}</Button> : undefined}
+      <AdminSection aria-label={t.collectionLabel}>
+        <div className={styles.libraryMeta}>
+          <div>
+            <span aria-live="polite">{t.results(assets.length)}</span>
+            {hasFilters ? <Button size="compact" variant="secondary" onClick={clearFilters}>{t.clearFilters}</Button> : null}
+          </div>
+          <SegmentedControl
+            label={t.view}
+            value={view}
+            onValueChange={setView}
+            options={[
+              { value: "grid", label: t.gridView, content: <GridFour aria-hidden size={16} weight="bold" /> },
+              { value: "list", label: t.listView, content: <ListBullets aria-hidden size={16} weight="bold" /> },
+            ]}
           />
-        ) : (
-          <ul className={styles.assetGrid}>
-            {assets.map((asset) => (
+        </div>
+
+        {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+        {error ? <p className={styles.errorText} role="alert">{error}</p> : null}
+
+        <div className={styles.results} aria-busy={isPending} data-view={view}>
+          {assets.length === 0 ? (
+            <EmptyState
+              className={styles.empty}
+              title={hasFilters ? t.noMatchesHeading : t.emptyHeading}
+              description={hasFilters ? t.noMatchesDescription : t.emptyDescription}
+              action={hasFilters ? <Button size="compact" variant="secondary" onClick={clearFilters}>{t.clearFilters}</Button> : undefined}
+            />
+          ) : (
+            <ul className={styles.assetGrid}>
+              {assets.map((asset) => (
               <li key={asset.id} className={styles.assetCard}>
                 <div className={styles.preview}>
                   {asset.src ? (
@@ -507,14 +503,15 @@ export function AssetLibrary({
                   </div>
                 </div>
               </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      {nextCursor ? (
-        <Link className={styles.nextLink} href={hrefFor(initialFilters, nextCursor)}>{t.nextPage}</Link>
-      ) : null}
+        {nextCursor ? (
+          <Link className={styles.nextLink} href={hrefFor(initialFilters, nextCursor)}>{t.nextPage}</Link>
+        ) : null}
+      </AdminSection>
 
       <Dialog open={Boolean(replacement)} onOpenChange={(open) => { if (!open) setReplacement(null) }}>
         <DialogContent closeLabel={t.close}>
@@ -577,6 +574,6 @@ export function AssetLibrary({
           onSaved={(asset) => { replaceAsset(asset); setNotice(t.metadataSaved) }}
         />
       ) : null}
-    </section>
+    </div>
   )
 }

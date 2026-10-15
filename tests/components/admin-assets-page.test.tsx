@@ -44,7 +44,10 @@ describe("Admin assets page", () => {
     expect(mocks.requireAdmin).toHaveBeenCalledOnce()
     expect(mocks.list).toHaveBeenCalledWith({ limit: 30, status: "ready", tag: "brand" })
     expect(mocks.requireAdmin.mock.invocationCallOrder[0]).toBeLessThan(mocks.list.mock.invocationCallOrder[0])
-    expect(screen.getByRole("heading", { name: "Asset library" })).toBeInTheDocument()
+    const heading = screen.getByRole("heading", { level: 1, name: "Asset library" })
+    const library = screen.getByTestId("asset-library")
+    expect(heading.closest("section")).toContainElement(library)
+    expect(heading.closest("section")).not.toBe(library)
   })
 
   it("renders a localized unavailable state without querying storage", async () => {
@@ -57,6 +60,7 @@ describe("Admin assets page", () => {
       </LocaleProvider>,
     )
 
+    expect(screen.getByRole("heading", { level: 1, name: "미디어 라이브러리" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "미디어 저장소를 설정해 주세요" })).toBeInTheDocument()
     expect(mocks.list).not.toHaveBeenCalled()
   })
