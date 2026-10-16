@@ -9,8 +9,8 @@
 }
 
 .loadingHeader {
-  min-height: 214px;
-  padding-bottom: 28px;
+  min-height: 156px;
+  padding-bottom: 24px;
   display: grid;
   align-content: end;
   gap: 14px;
@@ -24,7 +24,7 @@
 
 .loadingTitle {
   width: min(420px, 82%);
-  height: clamp(40px, 5vw, 62px);
+  height: 44px;
 }
 
 .loadingDescription {
@@ -33,11 +33,11 @@
 }
 
 .loadingContent {
-  min-height: 300px;
-  padding-top: 34px;
+  min-height: 220px;
+  padding-top: 24px;
   display: grid;
   align-content: start;
-  gap: 28px;
+  gap: 24px;
 }
 
 .loadingRows {
@@ -48,12 +48,16 @@
 }
 
 .loadingRows > * {
-  height: 76px;
+  height: 64px;
   background-color: var(--paper);
 }
 
 @media (max-width: 720px) {
   .loadingHeader {
-    min-height: 184px;
+    min-height: 132px;
+  }
+
+  .loadingTitle {
+    height: 36px;
   }
 }

@@ -1,0 +1,53 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+import { describe, expect, it } from "vitest"
+
+const readStylesheet = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
+
+const pageStyles = readStylesheet("components/admin/admin-page.module.css")
+const workspaceStyles = readStylesheet("components/admin/admin-workspace.module.css")
+const routeStateStyles = readStylesheet("components/admin/admin-route-state.module.css")
+
+describe("Admin visual quality contract", () => {
+  it("uses fixed product-ui heading sizes", () => {
+    expect(pageStyles).toMatch(
+      /\.headerCopy h1\s*\{[^}]*font-size:\s*40px;[^}]*line-height:\s*44px;/s,
+    )
+    expect(pageStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.headerCopy h1\s*\{[^}]*font-size:\s*32px;[^}]*line-height:\s*36px;/,
+    )
+    expect(pageStyles).toMatch(
+      /\.sectionCopy h2\s*\{[^}]*font-size:\s*22px;[^}]*line-height:\s*28px;/s,
+    )
+  })
+
+  it("uses authored workspace gutters at all three breakpoints", () => {
+    expect(workspaceStyles).toMatch(
+      /\.main\s*\{[^}]*padding:\s*48px 48px 64px;/s,
+    )
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width:\s*1099px\)[\s\S]*\.main\s*\{[^}]*padding-inline:\s*32px;/,
+    )
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.main\s*\{[^}]*padding-inline:\s*16px;/,
+    )
+  })
+
+  it("keeps compact route states", () => {
+    expect(routeStateStyles).toMatch(
+      /\.loadingHeader\s*\{[^}]*min-height:\s*156px;[^}]*padding-bottom:\s*24px;/s,
+    )
+    expect(routeStateStyles).toMatch(
+      /\.loadingTitle\s*\{[^}]*height:\s*44px;/s,
+    )
+    expect(routeStateStyles).toMatch(
+      /\.loadingContent\s*\{[^}]*min-height:\s*220px;[^}]*padding-top:\s*24px;/s,
+    )
+  })
+
+  it("removes marketing-scale heading clamps", () => {
+    expect(pageStyles).not.toMatch(/\.headerCopy h1\s*\{[^}]*clamp\(/s)
+    expect(pageStyles).not.toMatch(/\.sectionCopy h2\s*\{[^}]*clamp\(/s)
+    expect(routeStateStyles).not.toMatch(/\.loadingTitle\s*\{[^}]*clamp\(/s)
+  })
+})
