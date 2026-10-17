@@ -8,6 +8,7 @@ const pageStyles = readStylesheet("components/admin/admin-page.module.css")
 const workspaceStyles = readStylesheet("components/admin/admin-workspace.module.css")
 const routeStateStyles = readStylesheet("components/admin/admin-route-state.module.css")
 const adminStyles = readStylesheet("app/admin/admin.module.css")
+const assetStyles = readStylesheet("components/admin/asset-library.module.css")
 
 describe("Admin visual quality contract", () => {
   it("uses fixed product-ui heading sizes", () => {
@@ -73,6 +74,28 @@ describe("Admin visual quality contract", () => {
     )
     expect(adminStyles).toMatch(
       /@media \(max-width:\s*640px\)[\s\S]*\.editorPublishingActions\s*\{[^}]*max-width:\s*100%;[^}]*overflow:\s*hidden;/,
+    )
+  })
+
+  it("keeps media upload and asset states dimensionally stable", () => {
+    expect(assetStyles).toMatch(
+      /\.uploadLead\s*\{[^}]*min-height:\s*88px;[^}]*padding:\s*16px 20px;/s,
+    )
+    expect(assetStyles).toMatch(
+      /\.uploadQueue li\s*\{[^}]*min-height:\s*72px;/s,
+    )
+    expect(assetStyles).toMatch(
+      /\.assetCard\s*\{[^}]*min-height:\s*420px;/s,
+    )
+    expect(assetStyles).toMatch(/\.preview\s*\{[^}]*aspect-ratio:\s*4 \/ 3;/s)
+  })
+
+  it("uses an authored single-column media layout at the Admin mobile breakpoint", () => {
+    expect(assetStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.library\s*\{[^}]*overflow-x:\s*clip;/,
+    )
+    expect(assetStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.assetGrid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
     )
   })
 })

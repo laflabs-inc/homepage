@@ -2,20 +2,20 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  gap: 32px;
+  gap: 24px;
 }
 
 .uploadPanel {
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .uploadLead {
-  min-height: 112px;
-  padding: 22px;
+  min-height: 88px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
 }
 
 .uploadLead h2,
@@ -37,7 +37,7 @@
 }
 
 .uploadLead p {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .uploadLead button,
@@ -50,7 +50,7 @@
 }
 
 .uploadHint {
-  padding: 12px 22px;
+  padding: 10px 20px;
   background: #eff6ff;
   border-top: 1px solid var(--line);
 }
@@ -69,13 +69,14 @@
 .uploadQueue {
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
   list-style: none;
 }
 
 .uploadQueue li {
   min-width: 0;
-  padding: 14px 18px;
+  min-height: 72px;
+  padding: 12px 16px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(180px, 0.55fr) auto;
   align-items: center;
@@ -124,7 +125,7 @@
 .usageList {
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
   list-style: none;
 }
 
@@ -205,17 +206,18 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--ink);
-  border-left: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
   list-style: none;
 }
 
 .assetCard {
   min-width: 0;
+  min-height: 420px;
   display: grid;
   grid-template-rows: auto 1fr;
-  border-right: 1px solid var(--ink);
-  border-bottom: 1px solid var(--ink);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
 .preview {
@@ -233,7 +235,7 @@
     white;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
   background-size: 16px 16px;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--line);
   font: 650 11px var(--font-geist-mono), monospace;
 }
 
@@ -243,10 +245,10 @@
 
 .assetBody {
   min-width: 0;
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .assetTitleRow {
@@ -293,6 +295,7 @@
 }
 
 .results[data-view="list"] .assetCard {
+  min-height: 136px;
   grid-template-columns: 136px minmax(0, 1fr);
   grid-template-rows: none;
 }
@@ -300,21 +303,21 @@
 .results[data-view="list"] .preview {
   aspect-ratio: auto;
   min-height: 136px;
-  border-right: 1px solid var(--ink);
+  border-right: 1px solid var(--line);
   border-bottom: 0;
 }
 
 .empty,
 .unavailable {
-  min-height: 280px;
-  padding: 40px;
+  min-height: 220px;
+  padding: 32px;
   display: grid;
   align-content: center;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .unavailable {
-  min-height: 360px;
+  min-height: 280px;
 }
 
 .nextLink {
@@ -364,7 +367,7 @@
 
 .loadingTitle {
   width: min(440px, 76vw);
-  height: 56px;
+  height: 44px;
 }
 
 .loadingDescription {
@@ -377,26 +380,26 @@
 }
 
 .loadingUpload {
-  height: 148px;
+  height: 120px;
 }
 
 .loadingGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  background: var(--ink);
-  border: 1px solid var(--ink);
+  background: var(--line);
+  border: 1px solid var(--line);
 }
 
 .loadingGrid > div {
-  height: 360px;
+  height: 420px;
 }
 
 .notice,
 .errorText {
   margin: 0;
   padding: 12px 14px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
   font-size: 12px;
 }
 
@@ -424,7 +427,7 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 720px) {
   .library {
     max-width: 100%;
     gap: 24px;
@@ -433,7 +436,7 @@
 
   .uploadLead {
     min-height: 0;
-    padding: 18px;
+    padding: 16px;
     align-items: stretch;
     flex-direction: column;
   }
@@ -472,6 +475,10 @@
 
   .assetGrid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .assetCard {
+    min-height: 0;
   }
 
   .loadingGrid {
