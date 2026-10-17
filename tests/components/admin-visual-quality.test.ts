@@ -9,6 +9,11 @@ const workspaceStyles = readStylesheet("components/admin/admin-workspace.module.
 const routeStateStyles = readStylesheet("components/admin/admin-route-state.module.css")
 const adminStyles = readStylesheet("app/admin/admin.module.css")
 const assetStyles = readStylesheet("components/admin/asset-library.module.css")
+const uploadQueueSource = readStylesheet("components/admin/asset-upload-queue.tsx")
+const agentSettingsSource = readStylesheet("components/admin/agent-settings.tsx")
+const categoryManagerSource = readStylesheet("components/admin/document-category-manager.tsx")
+const documentEditorSource = readStylesheet("components/admin/document-editor.tsx")
+const assetLibrarySource = readStylesheet("components/admin/asset-library.tsx")
 
 describe("Admin visual quality contract", () => {
   it("uses fixed product-ui heading sizes", () => {
@@ -73,7 +78,7 @@ describe("Admin visual quality contract", () => {
       /\.editorProperties\s*\{[^}]*padding:\s*16px 32px;/s,
     )
     expect(adminStyles).toMatch(
-      /@media \(max-width:\s*640px\)[\s\S]*\.editorPublishingActions\s*\{[^}]*max-width:\s*100%;[^}]*overflow:\s*hidden;/,
+      /@media \(max-width:\s*640px\)[\s\S]*\.editorPublishingActions\s*\{[^}]*max-width:\s*100%;[^}]*overflow:\s*visible;/,
     )
   })
 
@@ -82,8 +87,11 @@ describe("Admin visual quality contract", () => {
       /\.uploadLead\s*\{[^}]*min-height:\s*88px;[^}]*padding:\s*16px 20px;/s,
     )
     expect(assetStyles).toMatch(
-      /\.uploadQueue li\s*\{[^}]*min-height:\s*72px;/s,
+      /\.uploadQueue li\s*\{[^}]*min-height:\s*96px;[^}]*grid-template-rows:\s*minmax\(44px,\s*auto\) 32px;/s,
     )
+    expect(assetStyles).toMatch(/\.queueProgress\s*\{[^}]*min-height:\s*32px;/s)
+    expect(uploadQueueSource).toMatch(/data-slot="queue-progress"/)
+    expect(uploadQueueSource).toMatch(/data-slot="queue-actions"/)
     expect(assetStyles).toMatch(
       /\.assetCard\s*\{[^}]*min-height:\s*420px;/s,
     )
@@ -96,6 +104,9 @@ describe("Admin visual quality contract", () => {
     )
     expect(assetStyles).toMatch(
       /@media \(max-width:\s*720px\)[\s\S]*\.assetGrid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
+    )
+    expect(assetStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.assetCard\s*\{[^}]*min-height:\s*400px;/,
     )
   })
 
@@ -140,6 +151,22 @@ describe("Admin visual quality contract", () => {
     expect(adminStyles).toMatch(
       /\.agentActions\s*\{[^}]*min-height:\s*44px;[^}]*align-items:\s*center;/s,
     )
+    expect(adminStyles).toMatch(
+      /\.agentFeedback\s*\{[^}]*grid-column:\s*1 \/ -1;/s,
+    )
+    expect(agentSettingsSource.indexOf("className={styles.agentFeedback}"))
+      .toBeGreaterThan(agentSettingsSource.indexOf("className={styles.agentForm}"))
+  })
+
+  it("preserves normal button labels while operations are busy", () => {
+    expect(categoryManagerSource).not.toMatch(/pending === "create" \? t\.creating : t\.create/)
+    expect(documentEditorSource).not.toMatch(/summaryPending \? t\.generatingSummary : t\.generateSummary/)
+    expect(assetLibrarySource).not.toMatch(/saving \? t\.saving : t\.save/)
+  })
+
+  it("keeps all compact Admin targets at least 44px tall", () => {
+    expect(adminStyles).toMatch(/\.markdownGuideContents a\s*\{[^}]*min-height:\s*44px;/s)
+    expect(adminStyles).toMatch(/\.rangeNav a\s*\{[^}]*min-height:\s*44px;/s)
   })
 
   it("contains long Admin content at mobile width", () => {

@@ -170,7 +170,7 @@ function AssetMetadataDialog({
         </div>
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
-          <Button loading={saving} onClick={save}>{saving ? t.saving : t.save}</Button>
+          <Button loading={saving} onClick={save}>{t.save}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

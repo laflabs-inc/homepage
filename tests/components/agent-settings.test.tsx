@@ -113,7 +113,12 @@ describe("Agent settings", () => {
     )
 
     await user.click(screen.getByRole("button", { name: "연결 테스트" }))
-    expect(await screen.findByRole("alert")).toHaveTextContent("OpenAI에 연결할 수 없거나 일시적으로 사용할 수 없습니다. 다시 시도하세요. 오류 코드: provider_unavailable")
+    const alert = await screen.findByRole("alert")
+    expect(alert).toHaveTextContent("OpenAI에 연결할 수 없거나 일시적으로 사용할 수 없습니다. 다시 시도하세요. 오류 코드: provider_unavailable")
+    const feedback = alert.closest(".agentFeedback")
+    const saveButton = screen.getByRole("button", { name: "설정 저장" })
+    expect(feedback).toBeInTheDocument()
+    expect(saveButton.compareDocumentPosition(feedback!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
 
     await user.click(screen.getByRole("button", { name: "인증 정보 삭제" }))
     expect(window.confirm).toHaveBeenCalledWith("저장된 OpenAI 인증 정보를 삭제하고 AI를 비활성화할까요?")

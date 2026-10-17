@@ -389,7 +389,7 @@
 }
 
 .markdownGuideContents a {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 14px;
   display: grid;
   place-items: center;
@@ -681,7 +681,7 @@
 
 .rangeNav a {
   min-width: 84px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 14px;
   display: grid;
   place-items: center;
@@ -1154,6 +1154,12 @@
   gap: 10px;
 }
 
+.agentFeedback {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+}
+
 .agentMeta {
   color: var(--muted);
   font-size: 12px;
@@ -1389,7 +1395,7 @@
 
   .editorPublishingActions {
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr)) 1px 44px;
   }

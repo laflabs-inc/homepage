@@ -346,7 +346,7 @@ export function DocumentCategoryManager({
                 />
               </Field>
               <Button type="submit" loading={pending === "create"} disabled={Boolean(pending)}>
-                {pending === "create" ? t.creating : t.create}
+                {t.create}
               </Button>
             </form>
           </PanelContent>

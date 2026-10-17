@@ -551,7 +551,7 @@ export function DocumentEditor({
                     variant="secondary"
                     onClick={() => void generateSummary()}
                   >
-                    {summaryPending ? t.generatingSummary : t.generateSummary}
+                    {t.generateSummary}
                   </Button>
                 ) : null}
               </div>

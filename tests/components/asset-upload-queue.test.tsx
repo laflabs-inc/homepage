@@ -87,6 +87,10 @@ describe("AssetUploadQueue", () => {
 
     expect(await screen.findByText("Ready")).toBeInTheDocument()
     expect(screen.getByText("Unsupported file type")).toBeInTheDocument()
+    for (const row of screen.getAllByRole("listitem")) {
+      expect(row.querySelector('[data-slot="queue-progress"]')).toBeInTheDocument()
+      expect(row.querySelector('[data-slot="queue-actions"]')).toBeInTheDocument()
+    }
     expect(screen.getByRole("button", { name: "Remove failed upload" })).toBeEnabled()
     expect(onReady).toHaveBeenCalledWith(readyAsset)
     expect(uploadMocks.uploadStagedAsset).toHaveBeenCalledTimes(1)
