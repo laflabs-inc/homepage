@@ -10,10 +10,10 @@
   top: 0;
   min-width: 0;
   height: 100svh;
-  padding: 28px 22px 22px;
+  padding: 24px 16px 20px;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--ink);
+  border-right: 1px solid var(--line);
   background: var(--paper);
 }
 
@@ -32,9 +32,9 @@
 }
 
 .adminNav {
-  margin-top: 52px;
+  margin-top: 40px;
   display: grid;
-  gap: 30px;
+  gap: 24px;
 }
 
 .navGroup {
@@ -56,13 +56,16 @@
 .navItem {
   position: relative;
   min-height: 44px;
-  padding: 0 12px 0 18px;
+  padding: 0 12px 0 16px;
   display: flex;
   align-items: center;
   color: var(--muted);
   border: 1px solid transparent;
   font-size: 13px;
   font-weight: 680;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
 }
 
 .navItem:hover {
@@ -78,16 +81,16 @@
 
 .navItem[aria-current="page"] {
   color: var(--ink);
-  background: #eff6ff;
-  border-color: var(--line);
+  background: transparent;
+  border-color: transparent;
 }
 
 .navItem[aria-current="page"]::before {
   position: absolute;
   top: 50%;
   left: 0;
-  width: 6px;
-  height: 6px;
+  width: 3px;
+  height: 20px;
   background: var(--blue);
   content: "";
   transform: translateY(-50%);
@@ -108,18 +111,18 @@
 
 .publicLink {
   min-height: 44px;
-  padding-inline: 12px;
+  padding-inline: 0;
   display: flex;
   align-items: center;
   color: var(--muted);
-  border: 1px solid var(--line);
+  border: 0;
   font-size: 12px;
   font-weight: 680;
+  transition: color 160ms ease;
 }
 
 .publicLink:hover {
   color: var(--blue);
-  border-color: var(--blue);
 }
 
 .publicLink:focus-visible {
@@ -132,7 +135,7 @@
   width: 100%;
   max-width: 1500px;
   margin-inline: auto;
-  padding: clamp(42px, 5vw, 76px) clamp(28px, 4vw, 64px) 80px;
+  padding: 48px 48px 64px;
 }
 
 .mobileBar {
@@ -157,7 +160,13 @@
 }
 
 .mobilePanel .adminNav {
-  margin-block: 34px;
+  margin-block: 32px;
+}
+
+@media (max-width: 1099px) {
+  .main {
+    padding-inline: 32px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -174,8 +183,8 @@
     z-index: var(--layer-sticky);
     top: 0;
     min-width: 0;
-    min-height: 72px;
-    padding: 12px 20px;
+    min-height: 64px;
+    padding: 10px 20px;
     display: grid;
     grid-template-columns: minmax(112px, auto) minmax(0, 1fr) 44px;
     align-items: center;
@@ -201,7 +210,18 @@
   }
 
   .main {
-    padding: 36px 20px 64px;
+    padding-block: 32px 64px;
+  }
+}
+
+@media (max-width: 720px) {
+  .mobileBar {
+    padding-inline: 16px;
+  }
+
+  .main {
+    padding: 28px 16px 48px;
+    padding-inline: 16px;
   }
 }
 

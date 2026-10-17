@@ -1,18 +1,20 @@
 .page {
+  min-width: 0;
+  max-width: 100%;
   display: grid;
-  gap: 34px;
+  gap: 32px;
 }
 
 .pageHeader {
-  padding-bottom: 28px;
+  padding-bottom: 24px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     "breadcrumbs breadcrumbs"
     "copy actions";
   align-items: end;
-  gap: 22px 32px;
-  border-bottom: 1px solid var(--ink);
+  gap: 16px 24px;
+  border-bottom: 1px solid var(--line);
 }
 
 .breadcrumbs {
@@ -25,7 +27,7 @@
 }
 
 .eyebrow {
-  margin: 0 0 18px;
+  margin: 0 0 12px;
   color: var(--blue);
   font: 650 10px / 1.2 var(--font-geist-mono), monospace;
   letter-spacing: 0.12em;
@@ -34,19 +36,19 @@
 
 .headerCopy h1 {
   margin: 0;
-  max-width: 16ch;
-  font-size: clamp(38px, 5vw, 62px);
-  line-height: 0.96;
-  letter-spacing: -0.055em;
+  max-width: 22ch;
+  font-size: 40px;
+  line-height: 44px;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
 .description {
   max-width: 62ch;
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   color: var(--muted);
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 22px;
 }
 
 .headerActions {
@@ -59,19 +61,19 @@
 }
 
 .toolbar {
-  padding: 16px;
+  padding: 16px 24px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   align-items: end;
-  gap: 14px;
+  gap: 16px;
   border: 1px solid var(--line);
-  background: var(--paper);
+  background: #fff;
 }
 
 .section {
   min-width: 0;
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 
 .sectionHeader {
@@ -92,9 +94,9 @@
 }
 
 .sectionCopy h2 {
-  font-size: clamp(21px, 2.4vw, 30px);
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+  font-size: 22px;
+  line-height: 28px;
+  letter-spacing: -0.025em;
 }
 
 .sectionCopy p {
@@ -102,7 +104,7 @@
   margin-top: 8px;
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 20px;
 }
 
 .sectionActions {
@@ -114,7 +116,7 @@
 
 @media (max-width: 720px) {
   .page {
-    gap: 28px;
+    gap: 24px;
   }
 
   .pageHeader {
@@ -124,12 +126,14 @@
       "copy"
       "actions";
     align-items: start;
-    gap: 18px;
+    gap: 16px;
   }
 
   .headerCopy h1 {
     max-width: 100%;
-    font-size: clamp(36px, 11vw, 50px);
+    font-size: 32px;
+    line-height: 36px;
+    letter-spacing: -0.035em;
   }
 
   .headerActions,
@@ -139,11 +143,18 @@
   }
 
   .toolbar {
+    padding: 12px;
     grid-template-columns: minmax(0, 1fr);
   }
 
   .sectionHeader {
     align-items: start;
     flex-direction: column;
+    gap: 12px;
+  }
+
+  .sectionCopy h2 {
+    font-size: 20px;
+    line-height: 26px;
   }
 }

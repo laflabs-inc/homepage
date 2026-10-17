@@ -633,8 +633,8 @@ describe("document admin", () => {
     render(<DocumentEditor revision={revision} />)
 
     await user.click(screen.getByRole("button", { name: "Generate with AI" }))
-    expect(screen.getByRole("button", { name: "Generating…" })).toHaveAttribute("aria-busy", "true")
-    expect(screen.getByRole("button", { name: "Generating…" })).toBeDisabled()
+    expect(screen.getByRole("button", { name: "Generate with AI" })).toHaveAttribute("aria-busy", "true")
+    expect(screen.getByRole("button", { name: "Generate with AI" })).toBeDisabled()
 
     await act(async () => resolveGeneration(Response.json({ error: "provider_unavailable" }, { status: 503 })))
     expect(await screen.findByRole("alert")).toHaveTextContent("OpenAI could not generate the summary.")

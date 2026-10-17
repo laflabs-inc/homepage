@@ -195,32 +195,39 @@ export function AssetUploadQueue({
                 <StatusLabel variant={item.status === "ready" ? "success" : item.status === "failed" ? "error" : "info"}>
                   {statusCopy(item)}
                 </StatusLabel>
-                {item.status === "uploading" ? (
+                <div
+                  aria-hidden={item.status !== "uploading"}
+                  className={styles.queueProgress}
+                  data-active={item.status === "uploading"}
+                  data-slot="queue-progress"
+                >
                   <Progress label={`${item.file.name} ${t.uploading}`} value={item.progress} />
-                ) : null}
+                </div>
               </div>
-              {item.status === "failed" ? (
-                <div className={styles.queueActions}>
-                  {item.failureReason === "upload_failed" ? (
+              <div className={styles.queueActions} data-slot="queue-actions">
+                {item.status === "failed" ? (
+                  <>
+                    {item.failureReason === "upload_failed" ? (
+                      <Button
+                        size="compact"
+                        variant="secondary"
+                        aria-label={t.retryUpload}
+                        onClick={() => void retryUpload(item)}
+                      >
+                        <ArrowClockwise aria-hidden size={16} weight="bold" />
+                      </Button>
+                    ) : null}
                     <Button
                       size="compact"
                       variant="secondary"
-                      aria-label={t.retryUpload}
-                      onClick={() => void retryUpload(item)}
+                      aria-label={t.removeFailedUpload}
+                      onClick={() => void removeFailedUpload(item)}
                     >
-                      <ArrowClockwise aria-hidden size={16} weight="bold" />
+                      <Trash aria-hidden size={16} weight="bold" />
                     </Button>
-                  ) : null}
-                  <Button
-                    size="compact"
-                    variant="secondary"
-                    aria-label={t.removeFailedUpload}
-                    onClick={() => void removeFailedUpload(item)}
-                  >
-                    <Trash aria-hidden size={16} weight="bold" />
-                  </Button>
-                </div>
-              ) : null}
+                  </>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

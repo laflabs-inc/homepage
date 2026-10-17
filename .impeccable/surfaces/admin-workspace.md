@@ -56,11 +56,23 @@ Quiet Operations. The interface extends the square Paper, Ink, and Primary Blue 
 - Motion is limited to state transitions and panel behavior. Reduced-motion users reach the final state immediately.
 - Verify Korean and English at 1440px and 390px, including `document.documentElement.scrollWidth === window.innerWidth`.
 
+## PR C Visual Quality Contract
+
+- Admin page titles use a fixed product scale: 40/44px on desktop and 32/36px at 720px and below. Section titles use 22/28px and 20/26px respectively. Protected Admin headings do not inherit marketing-scale fluid typography.
+- Workspace gutters are 48px on wide desktop, 32px through the tablet/small-desktop range, and 16px on mobile. The page rhythm is 32px on desktop and 24px on mobile.
+- Borders use `--line` for container and row boundaries. Ink borders are reserved for focus, selection, or strong semantic emphasis; nested sections do not each become a card.
+- Primary Blue is limited to primary actions, selected/focus states, the active navigation marker, and the primary analytics series.
+- Documents connect filter and collection surfaces, use row separators, treat the editor as the main canvas, and keep metadata/publishing as supporting regions.
+- Media uses a compact upload entry, stable 4:3 asset previews, fixed queue/card geometry during state changes, and an authored single-column layout at 720px and below.
+- Analytics uses compact 36px metric values, a stable 280px traffic plot, local table overflow, and distinct funnel, distribution, and table compositions.
+- Agent settings group connection, policy/usage, and advanced limits through spacing and bounded working surfaces. Busy, success, conflict, and error states do not move the primary actions.
+- Loading and empty states preserve the final region's geometry without occupying a marketing-style viewport. State transitions remain between 150ms and 220ms and are removed for reduced-motion users.
+
 ## Delivery Boundary
 
 PR A established the workspace shell and adopted it for Documents and Categories. PR B adopted document editing and guidance, Assets, Analytics, and Agent settings while preserving the interfaces and functional boundaries above.
 
-PR C is the next delivery. It is a presentation-only quality pass across the real adopted surfaces: hierarchy, typography, spacing, density, feedback, table and chart composition, and mobile control rhythm. It must not change APIs, payloads, authorization, storage, analytics calculations, document lifecycle behavior, or Agent operations.
+PR C completes the presentation-only quality pass across the adopted surfaces: hierarchy, typography, spacing, density, feedback, table and chart composition, and mobile control rhythm. It does not change APIs, payloads, authorization, storage, analytics calculations, document lifecycle behavior, or Agent operations.
 
 ## Unresolved Decisions
 

@@ -1,0 +1,192 @@
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
+import { describe, expect, it } from "vitest"
+
+const readStylesheet = (path: string) => readFileSync(join(process.cwd(), path), "utf8")
+
+const pageStyles = readStylesheet("components/admin/admin-page.module.css")
+const workspaceStyles = readStylesheet("components/admin/admin-workspace.module.css")
+const routeStateStyles = readStylesheet("components/admin/admin-route-state.module.css")
+const adminStyles = readStylesheet("app/admin/admin.module.css")
+const assetStyles = readStylesheet("components/admin/asset-library.module.css")
+const uploadQueueSource = readStylesheet("components/admin/asset-upload-queue.tsx")
+const agentSettingsSource = readStylesheet("components/admin/agent-settings.tsx")
+const categoryManagerSource = readStylesheet("components/admin/document-category-manager.tsx")
+const documentEditorSource = readStylesheet("components/admin/document-editor.tsx")
+const assetLibrarySource = readStylesheet("components/admin/asset-library.tsx")
+
+describe("Admin visual quality contract", () => {
+  it("uses fixed product-ui heading sizes", () => {
+    expect(pageStyles).toMatch(
+      /\.headerCopy h1\s*\{[^}]*font-size:\s*40px;[^}]*line-height:\s*44px;/s,
+    )
+    expect(pageStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.headerCopy h1\s*\{[^}]*font-size:\s*32px;[^}]*line-height:\s*36px;/,
+    )
+    expect(pageStyles).toMatch(
+      /\.sectionCopy h2\s*\{[^}]*font-size:\s*22px;[^}]*line-height:\s*28px;/s,
+    )
+  })
+
+  it("uses authored workspace gutters at all three breakpoints", () => {
+    expect(workspaceStyles).toMatch(
+      /\.main\s*\{[^}]*padding:\s*48px 48px 64px;/s,
+    )
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width:\s*1099px\)[\s\S]*\.main\s*\{[^}]*padding-inline:\s*32px;/,
+    )
+    expect(workspaceStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.main\s*\{[^}]*padding-inline:\s*16px;/,
+    )
+  })
+
+  it("keeps compact route states", () => {
+    expect(routeStateStyles).toMatch(
+      /\.loadingHeader\s*\{[^}]*min-height:\s*156px;[^}]*padding-bottom:\s*24px;/s,
+    )
+    expect(routeStateStyles).toMatch(
+      /\.loadingTitle\s*\{[^}]*height:\s*44px;/s,
+    )
+    expect(routeStateStyles).toMatch(
+      /\.loadingContent\s*\{[^}]*min-height:\s*220px;[^}]*padding-top:\s*24px;/s,
+    )
+  })
+
+  it("removes marketing-scale heading clamps", () => {
+    expect(pageStyles).not.toMatch(/\.headerCopy h1\s*\{[^}]*clamp\(/s)
+    expect(pageStyles).not.toMatch(/\.sectionCopy h2\s*\{[^}]*clamp\(/s)
+    expect(routeStateStyles).not.toMatch(/\.loadingTitle\s*\{[^}]*clamp\(/s)
+  })
+
+  it("connects document filters and results with row separators", () => {
+    expect(adminStyles).toMatch(
+      /\.documentListWorkspace\s*\{[^}]*gap:\s*0;[^}]*background:\s*#fff;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.documentFilters\s*\{[^}]*border-bottom:\s*0;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.documentListItem \+ \.documentListItem\s*\{[^}]*border-top:\s*1px solid var\(--line\);/s,
+    )
+  })
+
+  it("keeps the document editor bounded and publishing controls inside mobile", () => {
+    expect(adminStyles).toMatch(
+      /\.editorSource\s*\{[^}]*background:\s*white;[^}]*border:\s*1px solid var\(--line\);/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.editorProperties\s*\{[^}]*padding:\s*16px 32px;/s,
+    )
+    expect(adminStyles).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.editorPublishingActions\s*\{[^}]*max-width:\s*100%;[^}]*overflow:\s*visible;/,
+    )
+  })
+
+  it("keeps media upload and asset states dimensionally stable", () => {
+    expect(assetStyles).toMatch(
+      /\.uploadLead\s*\{[^}]*min-height:\s*88px;[^}]*padding:\s*16px 20px;/s,
+    )
+    expect(assetStyles).toMatch(
+      /\.uploadQueue li\s*\{[^}]*min-height:\s*96px;[^}]*grid-template-rows:\s*minmax\(44px,\s*auto\) 32px;/s,
+    )
+    expect(assetStyles).toMatch(/\.queueProgress\s*\{[^}]*min-height:\s*32px;/s)
+    expect(uploadQueueSource).toMatch(/data-slot="queue-progress"/)
+    expect(uploadQueueSource).toMatch(/data-slot="queue-actions"/)
+    expect(assetStyles).toMatch(
+      /\.assetCard\s*\{[^}]*min-height:\s*420px;/s,
+    )
+    expect(assetStyles).toMatch(/\.preview\s*\{[^}]*aspect-ratio:\s*4 \/ 3;/s)
+  })
+
+  it("uses an authored single-column media layout at the Admin mobile breakpoint", () => {
+    expect(assetStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.library\s*\{[^}]*overflow-x:\s*clip;/,
+    )
+    expect(assetStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.assetGrid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
+    )
+    expect(assetStyles).toMatch(
+      /@media \(max-width:\s*720px\)[\s\S]*\.assetCard\s*\{[^}]*min-height:\s*400px;/,
+    )
+  })
+
+  it("uses compact analytics metrics and stable chart states", () => {
+    expect(adminStyles).toMatch(
+      /\.metricCell\s*\{[^}]*min-height:\s*144px;[^}]*padding:\s*20px;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.metricCell dd\s*\{[^}]*font-size:\s*36px;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.trafficPlot\s*\{[^}]*height:\s*280px;[^}]*border:\s*1px solid var\(--line\);/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.dashboardEmpty,[\s\S]*\.errorState\s*\{[^}]*min-height:\s*280px;/,
+    )
+  })
+
+  it("contains analytics table overflow inside its viewport", () => {
+    expect(adminStyles).toMatch(
+      /\.tableViewport\s*\{[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;[^}]*overscroll-behavior-inline:\s*contain;/s,
+    )
+  })
+
+  it("groups Agent connection and policy surfaces without field cards", () => {
+    expect(adminStyles).toMatch(
+      /\.agentWorkspace,[\s\S]*\.agentForm\s*\{[^}]*gap:\s*24px;/,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentStatusBar\s*\{[^}]*min-height:\s*52px;[^}]*padding:\s*8px 12px;[^}]*background:\s*#fff;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentSectionBody,[\s\S]*\.agentFieldGrid\s*\{[^}]*padding:\s*20px 24px;[^}]*background:\s*#fff;/,
+    )
+    expect(adminStyles).not.toMatch(/\.agentFieldGrid\s*>\s*[^,{]+\{[^}]*border:/s)
+  })
+
+  it("keeps Agent advanced limits and actions visually stable", () => {
+    expect(adminStyles).toMatch(
+      /\.agentAdvanced\s*\{[^}]*border:\s*1px solid var\(--line\);/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentActions\s*\{[^}]*min-height:\s*44px;[^}]*align-items:\s*center;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentFeedback\s*\{[^}]*grid-column:\s*1 \/ -1;/s,
+    )
+    expect(agentSettingsSource.indexOf("className={styles.agentFeedback}"))
+      .toBeGreaterThan(agentSettingsSource.indexOf("className={styles.agentForm}"))
+  })
+
+  it("preserves normal button labels while operations are busy", () => {
+    expect(categoryManagerSource).not.toMatch(/pending === "create" \? t\.creating : t\.create/)
+    expect(documentEditorSource).not.toMatch(/summaryPending \? t\.generatingSummary : t\.generateSummary/)
+    expect(assetLibrarySource).not.toMatch(/saving \? t\.saving : t\.save/)
+  })
+
+  it("keeps all compact Admin targets at least 44px tall", () => {
+    expect(adminStyles).toMatch(/\.markdownGuideContents a\s*\{[^}]*min-height:\s*44px;/s)
+    expect(adminStyles).toMatch(/\.rangeNav a\s*\{[^}]*min-height:\s*44px;/s)
+  })
+
+  it("contains long Admin content at mobile width", () => {
+    expect(pageStyles).toMatch(
+      /\.page\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s,
+    )
+    expect(routeStateStyles).toMatch(/\.copy\s*\{[^}]*overflow-wrap:\s*anywhere;/s)
+    expect(workspaceStyles).toMatch(/@media \(max-width:\s*900px\)/)
+    expect(workspaceStyles).toMatch(/@media \(max-width:\s*720px\)/)
+    expect(assetStyles).toMatch(/@media \(max-width:\s*720px\)/)
+  })
+
+  it("keeps wide content local and honors reduced motion", () => {
+    expect(adminStyles).toMatch(
+      /\.markdownCodeMirror :global\(\.cm-scroller\)\s*\{[^}]*overflow-x:\s*hidden;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.trafficPlot\s*\{[^}]*overflow:\s*hidden;/s,
+    )
+    expect(workspaceStyles).toMatch(/@media \(prefers-reduced-motion:\s*reduce\)/)
+    expect(assetStyles).toMatch(/@media \(prefers-reduced-motion:\s*reduce\)/)
+  })
+})

@@ -366,25 +366,6 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
         </Button>
       </div>
 
-      {error ? (
-        <Alert className={styles.formAlert} live title={error} variant="error">
-          {diagnostic ? (
-            <details>
-              <summary>{t.diagnosticDetails}</summary>
-              {diagnostic.statusCode !== null ? <p>{t.diagnosticStatus}: {diagnostic.statusCode}</p> : null}
-              {diagnostic.providerCode ? <p>{t.diagnosticProviderCode}: {diagnostic.providerCode}</p> : null}
-              {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
-              {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
-              {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
-              {diagnostic.providerMessage ? (
-                <p>{t.diagnosticProviderMessage}: {diagnostic.providerMessage}</p>
-              ) : null}
-            </details>
-          ) : null}
-        </Alert>
-      ) : null}
-      {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
-
       <AdminSection
         title={t.connection}
         actions={(
@@ -535,6 +516,29 @@ export function AgentSettings({ initialConfiguration }: { initialConfiguration: 
           </div>
         </AdminSection>
       </form>
+
+      {error || notice ? (
+        <div className={styles.agentFeedback}>
+          {error ? (
+            <Alert className={styles.formAlert} live title={error} variant="error">
+              {diagnostic ? (
+                <details>
+                  <summary>{t.diagnosticDetails}</summary>
+                  {diagnostic.statusCode !== null ? <p>{t.diagnosticStatus}: {diagnostic.statusCode}</p> : null}
+                  {diagnostic.providerCode ? <p>{t.diagnosticProviderCode}: {diagnostic.providerCode}</p> : null}
+                  {diagnostic.providerType ? <p>{t.diagnosticProviderType}: {diagnostic.providerType}</p> : null}
+                  {diagnostic.providerParam ? <p>{t.diagnosticProviderParameter}: {diagnostic.providerParam}</p> : null}
+                  {diagnostic.requestId ? <p>{t.diagnosticRequestId}: {diagnostic.requestId}</p> : null}
+                  {diagnostic.providerMessage ? (
+                    <p>{t.diagnosticProviderMessage}: {diagnostic.providerMessage}</p>
+                  ) : null}
+                </details>
+              ) : null}
+            </Alert>
+          ) : null}
+          {notice ? <p className={styles.formNotice} role="status">{notice}</p> : null}
+        </div>
+      ) : null}
     </div>
   )
 }

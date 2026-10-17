@@ -24,12 +24,13 @@
 
 .documentListWorkspace {
   display: grid;
-  gap: 24px;
+  gap: 0;
+  background: #fff;
 }
 
 .documentListMeta {
-  min-height: 46px;
-  padding: 14px 20px;
+  min-height: 44px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -51,6 +52,7 @@
 
 .documentFilters {
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, auto));
+  border-bottom: 0;
 }
 
 .documentFilterField {
@@ -67,9 +69,14 @@
   padding: 0;
 }
 
+.documentCollection {
+  margin-top: -1px;
+  background: #fff;
+}
+
 .documentListItem {
   position: relative;
-  padding: 18px 22px;
+  padding: 16px 20px;
   grid-template-columns: minmax(0, 1fr);
   border: 0;
 }
@@ -109,8 +116,8 @@
 }
 
 .documentEmpty {
-  min-height: 280px;
-  padding: 40px;
+  min-height: 220px;
+  padding: 32px;
   display: grid;
   align-content: center;
 }
@@ -140,7 +147,7 @@
   display: grid;
   align-content: start;
   background: white;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .editorLead label {
@@ -164,9 +171,9 @@
 }
 
 .editorLead {
-  padding: 34px 48px 26px;
+  padding: 24px 32px;
   display: grid;
-  gap: 22px;
+  gap: 20px;
 }
 
 .editorSource .editorTitleField {
@@ -174,12 +181,12 @@
 }
 
 .editorSource .editorTitleField input {
-  min-height: 58px;
+  min-height: 52px;
   padding: 2px 0 10px;
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--line);
-  font-size: clamp(26px, 3vw, 38px);
+  font-size: 32px;
   font-weight: 680;
   line-height: 1.15;
   letter-spacing: -0.035em;
@@ -211,14 +218,14 @@
 
 .editorProperties {
   min-width: 0;
-  padding: 18px 48px 20px;
+  padding: 16px 32px;
   background: var(--paper);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
 .markdownField {
-  padding: 26px 48px 0;
+  padding: 24px 32px 0;
   display: grid;
   gap: 8px;
 }
@@ -253,7 +260,7 @@
   min-width: 0;
   overflow: hidden;
   background: white;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .markdownLiveEditor:has(.markdownCodeMirror :global(.cm-content:focus-visible)) {
@@ -276,7 +283,7 @@
   max-width: 100%;
   min-width: 0;
   min-height: 520px;
-  padding: 72px 56px 64px;
+  padding: 64px 40px 56px;
   overflow-wrap: anywhere;
 }
 
@@ -289,7 +296,7 @@
   width: 100%;
   min-width: 0;
   min-height: 520px;
-  padding: 72px 56px 64px;
+  padding: 64px 40px 56px;
   overflow-wrap: anywhere;
 }
 
@@ -353,15 +360,15 @@
 
 .markdownGuideIntro {
   max-width: 680px;
-  margin: -24px 0 32px;
+  margin: 0 0 24px;
   color: var(--muted);
   font-size: 15px;
   line-height: 1.7;
 }
 
 .markdownGuideContents {
-  margin-bottom: 72px;
-  border: 1px solid var(--ink);
+  margin-bottom: 48px;
+  border: 1px solid var(--line);
 }
 
 .markdownGuideContents > span {
@@ -382,7 +389,7 @@
 }
 
 .markdownGuideContents a {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 14px;
   display: grid;
   place-items: center;
@@ -401,7 +408,7 @@
   display: grid;
   grid-template-areas: "kind locale category slug slug date date pinned";
   grid-template-columns: repeat(3, minmax(90px, 1fr)) minmax(180px, 1.5fr) minmax(0, 0.5fr) repeat(2, minmax(110px, 1fr)) auto;
-  gap: 12px;
+  gap: 16px;
 }
 
 .editorPropertyKind {
@@ -439,15 +446,16 @@
 }
 
 .editorSource > .editorActions {
-  padding: 20px 48px 28px;
+  padding: 16px 32px 24px;
 }
 
 .editorPublishingToolbar {
-  padding: 20px 48px 28px;
+  padding: 16px 32px 24px;
   display: flex;
   align-items: end;
   justify-content: space-between;
   gap: 18px;
+  border-top: 1px solid var(--line);
 }
 
 .editorPublishingControls {
@@ -470,7 +478,7 @@
 .editorSource > .formAlert,
 .editorSource > .formNotice,
 .editorSource > .editorGuidance {
-  margin: 16px 48px 0;
+  margin: 16px 32px 0;
 }
 
 .editorGuidance {
@@ -478,7 +486,7 @@
   padding: 12px 14px;
   color: var(--muted);
   background: #fffbea;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
   font-size: 12px;
 }
 
@@ -490,7 +498,7 @@
 .formNotice {
   margin: 0;
   padding: 12px 14px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
   font-size: 13px;
 }
 
@@ -507,7 +515,7 @@
 .immutableDocument {
   display: grid;
   grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .immutableMeta,
@@ -517,7 +525,7 @@
 }
 
 .immutableMeta {
-  border-right: 1px solid var(--ink);
+  border-right: 1px solid var(--line);
 }
 
 .immutableMeta dl {
@@ -555,7 +563,7 @@
 .immutableDocument > .editorGuidance {
   grid-column: 1 / -1;
   padding: 20px 30px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
 }
 
 .signInPage {
@@ -663,17 +671,17 @@
 
 .dashboard {
   display: grid;
-  gap: 64px;
+  gap: 48px;
 }
 
 .rangeNav {
   display: flex;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .rangeNav a {
   min-width: 84px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 14px;
   display: grid;
   place-items: center;
@@ -685,7 +693,7 @@
 }
 
 .rangeNav a + a {
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .rangeNav a:hover {
@@ -702,19 +710,19 @@
   margin: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .metricCell {
-  min-height: 176px;
-  padding: 24px;
+  min-height: 144px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .metricCell + .metricCell {
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .metricCell dt {
@@ -724,7 +732,7 @@
 
 .metricCell dd {
   margin: 0;
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 740;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -735,7 +743,7 @@
 .traffic,
 .distributionGrid,
 .tableGrid {
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
 }
 
 .distribution h2 {
@@ -748,18 +756,18 @@
 .funnelTrack {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr) 132px minmax(0, 1fr);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
   border-right: 0;
 }
 
 .funnelStage,
 .funnelRate {
-  min-height: 168px;
+  min-height: 144px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-right: 1px solid var(--ink);
+  border-right: 1px solid var(--line);
 }
 
 .funnelStage span,
@@ -828,9 +836,10 @@
 
 .trafficPlot {
   width: 100%;
-  height: 256px;
+  height: 280px;
   min-width: 0;
-  border: 1px solid var(--ink);
+  overflow: hidden;
+  border: 1px solid var(--line);
 }
 
 .visuallyHidden {
@@ -856,14 +865,14 @@
 
 .distribution + .distribution {
   padding-left: 32px;
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .barList {
   margin: 32px 0 0;
   padding: 0;
   display: grid;
-  gap: 24px;
+  gap: 16px;
   list-style: none;
 }
 
@@ -915,7 +924,7 @@
 
 .tableSection + .tableSection {
   padding-left: 24px;
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .tableTotal {
@@ -927,7 +936,9 @@
 
 .tableViewport {
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 .tableViewport table {
@@ -967,18 +978,18 @@
 
 .dashboardEmpty,
 .errorState {
-  min-height: 360px;
-  padding: 48px;
+  min-height: 280px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .dashboardEmpty h2 {
   max-width: 680px;
   margin: 0;
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
@@ -999,17 +1010,18 @@
 .agentWorkspace,
 .agentForm {
   display: grid;
-  gap: 28px;
+  gap: 24px;
 }
 
 .agentStatusBar {
-  min-height: 58px;
-  padding: 10px 12px 10px 18px;
+  min-height: 52px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
   border: 1px solid var(--line);
+  background: #fff;
 }
 
 .agentStatusBar p {
@@ -1021,8 +1033,9 @@
 .agentSectionBody,
 .agentFieldGrid {
   min-width: 0;
-  padding: 24px;
+  padding: 20px 24px;
   border: 1px solid var(--line);
+  background: #fff;
 }
 
 .agentSectionBody,
@@ -1030,7 +1043,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: 18px;
+  gap: 16px;
 }
 
 .agentSectionBody {
@@ -1059,7 +1072,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
-  gap: 12px;
+  gap: 16px;
 }
 
 .agentSetupForm > .editorGuidance {
@@ -1094,7 +1107,7 @@
 
 .agentAdvanced {
   grid-column: 1 / -1;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .agentAdvanced summary {
@@ -1119,7 +1132,7 @@
 }
 
 .agentAdvanced[open] summary {
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--line);
 }
 
 .agentAdvanced[open] summary::after {
@@ -1134,9 +1147,17 @@
 }
 
 .agentActions {
+  min-height: 44px;
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.agentFeedback {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
 }
 
 .agentMeta {
@@ -1146,7 +1167,7 @@
 }
 
 .agentMetric {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 720;
   letter-spacing: -0.03em;
 }
@@ -1184,7 +1205,7 @@
   }
 
   .metricCell:nth-child(n + 3) {
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
   }
 
   .funnelTrack {
@@ -1207,7 +1228,7 @@
 
   .tableSection + .tableSection {
     padding-left: 0;
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
   }
 
@@ -1220,7 +1241,7 @@
   }
 
   .immutableMeta {
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
     border-right: 0;
   }
@@ -1268,7 +1289,7 @@
 
   .metricCell + .metricCell,
   .metricCell:nth-child(3) {
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
   }
 
@@ -1284,7 +1305,7 @@
   .funnelStage,
   .funnelRate {
     min-height: 112px;
-    border-bottom: 1px solid var(--ink);
+    border-bottom: 1px solid var(--line);
   }
 
   .funnelRate {
@@ -1297,14 +1318,14 @@
 
   .distribution + .distribution {
     padding-left: 0;
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
   }
 
   .dashboardEmpty,
   .errorState {
-    min-height: 300px;
-    padding: 28px;
+    min-height: 240px;
+    padding: 24px;
   }
 
   .documentFilters {
@@ -1323,7 +1344,7 @@
 
   .editorSource .editorTitleField input {
     min-height: 50px;
-    font-size: clamp(24px, 7.8vw, 30px);
+    font-size: 28px;
   }
 
   .editorProperties {
@@ -1373,6 +1394,8 @@
   }
 
   .editorPublishingActions {
+    max-width: 100%;
+    overflow: visible;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr)) 1px 44px;
   }
@@ -1449,7 +1472,7 @@
 }
 
 .categoryCreateContent {
-  padding: clamp(18px, 2.5vw, 24px);
+  padding: 24px;
 }
 
 .categoryCreateForm {
@@ -1464,6 +1487,7 @@
   min-width: 0;
   padding: 0;
   display: grid;
+  background: #fff;
 }
 
 .categoryGroup {
@@ -1475,8 +1499,8 @@
 }
 
 .categoryGroupHeading {
-  min-height: 88px;
-  padding: 20px 24px;
+  min-height: 72px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1491,7 +1515,7 @@
 }
 
 .categoryGroupHeading p {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.6;
@@ -1512,7 +1536,7 @@
 
 .categoryRow {
   min-width: 0;
-  padding: 18px;
+  padding: 16px 20px;
   display: grid;
   grid-template-columns: minmax(130px, 0.24fr) minmax(300px, 1fr) auto;
   align-items: end;
@@ -1524,7 +1548,7 @@
 }
 
 .categoryRow[data-inactive="true"] {
-  background: #f1f3f6;
+  background: #f8fafc;
 }
 
 .categoryIdentity {
