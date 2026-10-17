@@ -671,12 +671,12 @@
 
 .dashboard {
   display: grid;
-  gap: 64px;
+  gap: 48px;
 }
 
 .rangeNav {
   display: flex;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .rangeNav a {
@@ -693,7 +693,7 @@
 }
 
 .rangeNav a + a {
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .rangeNav a:hover {
@@ -710,19 +710,19 @@
   margin: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .metricCell {
-  min-height: 176px;
-  padding: 24px;
+  min-height: 144px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .metricCell + .metricCell {
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .metricCell dt {
@@ -732,7 +732,7 @@
 
 .metricCell dd {
   margin: 0;
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 740;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -743,7 +743,7 @@
 .traffic,
 .distributionGrid,
 .tableGrid {
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--line);
 }
 
 .distribution h2 {
@@ -756,18 +756,18 @@
 .funnelTrack {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr) 132px minmax(0, 1fr);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
   border-right: 0;
 }
 
 .funnelStage,
 .funnelRate {
-  min-height: 168px;
+  min-height: 144px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-right: 1px solid var(--ink);
+  border-right: 1px solid var(--line);
 }
 
 .funnelStage span,
@@ -836,9 +836,9 @@
 
 .trafficPlot {
   width: 100%;
-  height: 256px;
+  height: 280px;
   min-width: 0;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .visuallyHidden {
@@ -864,14 +864,14 @@
 
 .distribution + .distribution {
   padding-left: 32px;
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .barList {
   margin: 32px 0 0;
   padding: 0;
   display: grid;
-  gap: 24px;
+  gap: 16px;
   list-style: none;
 }
 
@@ -923,7 +923,7 @@
 
 .tableSection + .tableSection {
   padding-left: 24px;
-  border-left: 1px solid var(--ink);
+  border-left: 1px solid var(--line);
 }
 
 .tableTotal {
@@ -935,7 +935,9 @@
 
 .tableViewport {
   min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 .tableViewport table {
@@ -975,18 +977,18 @@
 
 .dashboardEmpty,
 .errorState {
-  min-height: 360px;
-  padding: 48px;
+  min-height: 280px;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--line);
 }
 
 .dashboardEmpty h2 {
   max-width: 680px;
   margin: 0;
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
@@ -1192,7 +1194,7 @@
   }
 
   .metricCell:nth-child(n + 3) {
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
   }
 
   .funnelTrack {
@@ -1215,7 +1217,7 @@
 
   .tableSection + .tableSection {
     padding-left: 0;
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
   }
 
@@ -1276,7 +1278,7 @@
 
   .metricCell + .metricCell,
   .metricCell:nth-child(3) {
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
   }
 
@@ -1292,7 +1294,7 @@
   .funnelStage,
   .funnelRate {
     min-height: 112px;
-    border-bottom: 1px solid var(--ink);
+    border-bottom: 1px solid var(--line);
   }
 
   .funnelRate {
@@ -1305,14 +1307,14 @@
 
   .distribution + .distribution {
     padding-left: 0;
-    border-top: 1px solid var(--ink);
+    border-top: 1px solid var(--line);
     border-left: 0;
   }
 
   .dashboardEmpty,
   .errorState {
-    min-height: 300px;
-    padding: 28px;
+    min-height: 240px;
+    padding: 24px;
   }
 
   .documentFilters {

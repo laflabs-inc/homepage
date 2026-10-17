@@ -98,4 +98,25 @@ describe("Admin visual quality contract", () => {
       /@media \(max-width:\s*720px\)[\s\S]*\.assetGrid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
     )
   })
+
+  it("uses compact analytics metrics and stable chart states", () => {
+    expect(adminStyles).toMatch(
+      /\.metricCell\s*\{[^}]*min-height:\s*144px;[^}]*padding:\s*20px;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.metricCell dd\s*\{[^}]*font-size:\s*36px;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.trafficPlot\s*\{[^}]*height:\s*280px;[^}]*border:\s*1px solid var\(--line\);/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.dashboardEmpty,[\s\S]*\.errorState\s*\{[^}]*min-height:\s*280px;/,
+    )
+  })
+
+  it("contains analytics table overflow inside its viewport", () => {
+    expect(adminStyles).toMatch(
+      /\.tableViewport\s*\{[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;[^}]*overscroll-behavior-inline:\s*contain;/s,
+    )
+  })
 })
