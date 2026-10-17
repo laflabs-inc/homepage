@@ -1,7 +1,9 @@
 # Admin Visual Quality Refinement (PR C)
 
-**Status:** Approved direction, implementation pending  
-**Date:** 2026-10-16  
+**Status:** Approved direction, implementation pending
+
+**Date:** 2026-10-16
+
 **Scope:** Existing authenticated Admin workspace only
 
 ## 1. Context
