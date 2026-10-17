@@ -119,4 +119,26 @@ describe("Admin visual quality contract", () => {
       /\.tableViewport\s*\{[^}]*max-width:\s*100%;[^}]*overflow-x:\s*auto;[^}]*overscroll-behavior-inline:\s*contain;/s,
     )
   })
+
+  it("groups Agent connection and policy surfaces without field cards", () => {
+    expect(adminStyles).toMatch(
+      /\.agentWorkspace,[\s\S]*\.agentForm\s*\{[^}]*gap:\s*24px;/,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentStatusBar\s*\{[^}]*min-height:\s*52px;[^}]*padding:\s*8px 12px;[^}]*background:\s*#fff;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentSectionBody,[\s\S]*\.agentFieldGrid\s*\{[^}]*padding:\s*20px 24px;[^}]*background:\s*#fff;/,
+    )
+    expect(adminStyles).not.toMatch(/\.agentFieldGrid\s*>\s*[^,{]+\{[^}]*border:/s)
+  })
+
+  it("keeps Agent advanced limits and actions visually stable", () => {
+    expect(adminStyles).toMatch(
+      /\.agentAdvanced\s*\{[^}]*border:\s*1px solid var\(--line\);/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.agentActions\s*\{[^}]*min-height:\s*44px;[^}]*align-items:\s*center;/s,
+    )
+  })
 })
