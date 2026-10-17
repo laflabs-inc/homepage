@@ -141,4 +141,25 @@ describe("Admin visual quality contract", () => {
       /\.agentActions\s*\{[^}]*min-height:\s*44px;[^}]*align-items:\s*center;/s,
     )
   })
+
+  it("contains long Admin content at mobile width", () => {
+    expect(pageStyles).toMatch(
+      /\.page\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*100%;/s,
+    )
+    expect(routeStateStyles).toMatch(/\.copy\s*\{[^}]*overflow-wrap:\s*anywhere;/s)
+    expect(workspaceStyles).toMatch(/@media \(max-width:\s*900px\)/)
+    expect(workspaceStyles).toMatch(/@media \(max-width:\s*720px\)/)
+    expect(assetStyles).toMatch(/@media \(max-width:\s*720px\)/)
+  })
+
+  it("keeps wide content local and honors reduced motion", () => {
+    expect(adminStyles).toMatch(
+      /\.markdownCodeMirror :global\(\.cm-scroller\)\s*\{[^}]*overflow-x:\s*hidden;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.trafficPlot\s*\{[^}]*overflow:\s*hidden;/s,
+    )
+    expect(workspaceStyles).toMatch(/@media \(prefers-reduced-motion:\s*reduce\)/)
+    expect(assetStyles).toMatch(/@media \(prefers-reduced-motion:\s*reduce\)/)
+  })
 })
