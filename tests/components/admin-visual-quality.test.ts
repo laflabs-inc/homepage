@@ -7,6 +7,7 @@ const readStylesheet = (path: string) => readFileSync(join(process.cwd(), path),
 const pageStyles = readStylesheet("components/admin/admin-page.module.css")
 const workspaceStyles = readStylesheet("components/admin/admin-workspace.module.css")
 const routeStateStyles = readStylesheet("components/admin/admin-route-state.module.css")
+const adminStyles = readStylesheet("app/admin/admin.module.css")
 
 describe("Admin visual quality contract", () => {
   it("uses fixed product-ui heading sizes", () => {
@@ -49,5 +50,29 @@ describe("Admin visual quality contract", () => {
     expect(pageStyles).not.toMatch(/\.headerCopy h1\s*\{[^}]*clamp\(/s)
     expect(pageStyles).not.toMatch(/\.sectionCopy h2\s*\{[^}]*clamp\(/s)
     expect(routeStateStyles).not.toMatch(/\.loadingTitle\s*\{[^}]*clamp\(/s)
+  })
+
+  it("connects document filters and results with row separators", () => {
+    expect(adminStyles).toMatch(
+      /\.documentListWorkspace\s*\{[^}]*gap:\s*0;[^}]*background:\s*#fff;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.documentFilters\s*\{[^}]*border-bottom:\s*0;/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.documentListItem \+ \.documentListItem\s*\{[^}]*border-top:\s*1px solid var\(--line\);/s,
+    )
+  })
+
+  it("keeps the document editor bounded and publishing controls inside mobile", () => {
+    expect(adminStyles).toMatch(
+      /\.editorSource\s*\{[^}]*background:\s*white;[^}]*border:\s*1px solid var\(--line\);/s,
+    )
+    expect(adminStyles).toMatch(
+      /\.editorProperties\s*\{[^}]*padding:\s*16px 32px;/s,
+    )
+    expect(adminStyles).toMatch(
+      /@media \(max-width:\s*640px\)[\s\S]*\.editorPublishingActions\s*\{[^}]*max-width:\s*100%;[^}]*overflow:\s*hidden;/,
+    )
   })
 })
