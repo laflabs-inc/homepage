@@ -3,7 +3,7 @@
 import { MagnifyingGlass, X } from "@phosphor-icons/react/dist/ssr"
 import { useState } from "react"
 
-import { Alert, AlertAction } from "@/components/ui/alert"
+import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field"
@@ -61,7 +61,12 @@ export function SearchFilterFieldDemo({ locale, state = "default" }: RecipeDemoP
             value={query}
           />
           <InputGroupAddon placement="inline-end">
-            <InputGroupButton aria-label={copy.clear} onClick={() => setQuery("")} size="icon">
+            <InputGroupButton
+              aria-label={copy.clear}
+              disabled={!query}
+              onClick={() => setQuery("")}
+              size="icon"
+            >
               <X aria-hidden weight="bold" />
             </InputGroupButton>
           </InputGroupAddon>
@@ -82,13 +87,16 @@ export function SearchFilterFieldDemo({ locale, state = "default" }: RecipeDemoP
         />
       </Field>
       {state === "empty" && query ? (
-        <Alert className={styles.searchFeedback} title={copy.noResults}>
-          {copy.nextAction}
-          <AlertAction>
+        <Alert
+          action={(
             <Button onClick={() => setQuery("")} size="compact" variant="secondary">
               {copy.clearSearch}
             </Button>
-          </AlertAction>
+          )}
+          className={styles.searchFeedback}
+          title={copy.noResults}
+        >
+          {copy.nextAction}
         </Alert>
       ) : null}
     </div>

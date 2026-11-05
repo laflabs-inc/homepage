@@ -119,7 +119,7 @@ describe("design-system Recipe previews", () => {
     expect(screen.getByRole("group", { name: "Document settings" })).toBeDisabled()
     disabled.unmount()
 
-    render(
+    const saving = render(
       <RecipePreview
         demoKey="document-settings-form"
         label="Saving settings"
@@ -129,6 +129,22 @@ describe("design-system Recipe previews", () => {
     )
     expect(screen.getByRole("group", { name: "Document settings" })).toBeVisible()
     expect(screen.getAllByRole("status", { name: "Saving document settings" })).toHaveLength(1)
+    expect(screen.getByRole("button", { name: /Saving document settings/ })).toHaveAttribute(
+      "aria-busy",
+      "true",
+    )
+    saving.unmount()
+
+    render(
+      <RecipePreview
+        demoKey="document-settings-form"
+        label="Saved settings"
+        locale="en"
+        state="saved"
+      />,
+    )
+    expect(screen.getByRole("status", { name: "Saved" })).toBeVisible()
+    expect(screen.getByRole("button", { name: "Save changes" })).toBeEnabled()
   })
 
   it.each(["loading", "populated", "empty", "error"])(
@@ -146,8 +162,23 @@ describe("design-system Recipe previews", () => {
       const surface = screen.getByRole("region", { name: `${state} document collection` })
       expect(surface).toBeVisible()
       expect(surface).not.toHaveTextContent(/customer|product/i)
+      expect(within(surface).getByRole("button", { name: "Create document" })).toBeEnabled()
     },
   )
+
+  it("keeps a single-page collection at both pagination boundaries", () => {
+    render(
+      <RecipePreview
+        demoKey="collection-state-surface"
+        label="Populated collection"
+        locale="en"
+        state="populated"
+      />,
+    )
+
+    expect(screen.getByLabelText("Previous page")).toHaveAttribute("aria-disabled", "true")
+    expect(screen.getByLabelText("Next page")).toHaveAttribute("aria-disabled", "true")
+  })
 
   it("localizes the Korean collection region name", () => {
     render(

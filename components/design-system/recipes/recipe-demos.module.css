@@ -2,8 +2,8 @@
   min-width: 0;
   padding: clamp(20px, 4vw, 40px);
   overflow: visible;
-  border: 1px solid var(--line);
-  background: var(--paper);
+  border-block: 1px solid var(--line);
+  background: var(--neutral-wash);
 }
 
 .toolbar {
@@ -15,6 +15,13 @@
 }
 
 .toolbarActions {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  min-width: 0;
+}
+
+.publishActions {
   min-width: 0;
 }
 
@@ -51,23 +58,106 @@
   max-width: 760px;
 }
 
-.loadingRows {
-  display: grid;
-  gap: 12px;
+.settingsActions {
+  padding-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid var(--line);
 }
 
-.loadingRows > :nth-child(1) {
-  min-height: 48px;
+.settingsStatus {
+  min-width: 0;
+  color: var(--muted);
+  font: 400 12px / 1.55 var(--font-geist-sans), "Pretendard", sans-serif;
 }
 
-.loadingRows > :nth-child(2),
-.loadingRows > :nth-child(3) {
-  min-height: 64px;
+.settingsButtons {
+  display: flex;
+  flex: none;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.settingsSave {
+  gap: 10px;
 }
 
 .collectionContent {
   display: grid;
+  gap: 0;
+}
+
+.collectionContent[data-collection-state="loading"],
+.collectionContent[data-collection-state="populated"] {
+  padding: 0;
+}
+
+.collectionTable [data-table-scroll] {
+  border-block-end: 0;
+}
+
+.collectionDate {
+  font-family: var(--font-geist-mono), "Pretendard", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.collectionSkeleton {
+  display: grid;
+  border-block-start: 1px solid var(--ink);
+}
+
+.collectionSkeletonHeader,
+.collectionSkeletonRow {
+  min-height: 48px;
+  padding: 13px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px 140px;
   gap: 24px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.collectionSkeletonHeader {
+  min-height: 44px;
+  background: var(--neutral-wash);
+}
+
+.collectionSkeletonHeader > :first-child,
+.collectionSkeletonRow > :first-child {
+  width: min(240px, 72%);
+}
+
+.collectionSkeletonHeader > :not(:first-child),
+.collectionSkeletonRow > :not(:first-child) {
+  width: 72%;
+  justify-self: end;
+}
+
+.collectionEmpty h3 {
+  font-size: clamp(22px, 2.4vw, 28px);
+  letter-spacing: -0.03em;
+}
+
+.collectionError {
+  margin-block-start: 8px;
+}
+
+.collectionFooter {
+  padding-block: 12px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+}
+
+.collectionPagination {
+  width: auto;
+}
+
+.collectionPagination [data-pagination-rail] {
+  margin: 0;
+  border: 0;
 }
 
 @media (max-width: 720px) {
@@ -83,18 +173,40 @@
 
   .toolbarActions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 1px 44px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
     width: 100%;
   }
 
-  .toolbarActions > button:not([data-size="icon"]) {
+  .toolbarSave {
     min-width: 0;
+    width: 100%;
     white-space: normal;
+  }
+
+  .publishActions {
+    width: 100%;
   }
 
   .searchField,
   .filterField {
     width: 100%;
+  }
+
+  .settingsActions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .settingsButtons {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .settingsButtons > button {
+    min-width: 0;
+    white-space: normal;
   }
 
   .collectionTable {
@@ -103,6 +215,38 @@
 
   .mobileCollection {
     display: grid;
+    border-block-start: 1px solid var(--ink);
+  }
+
+  .mobileCollection > * {
+    padding-inline: 20px;
+  }
+
+  .collectionSkeletonHeader {
+    display: none;
+  }
+
+  .collectionSkeletonRow {
+    grid-template-columns: minmax(0, 1fr) 88px;
+    min-height: 72px;
+    padding-inline: 20px;
+  }
+
+  .collectionSkeletonRow > :nth-child(3) {
+    display: none;
+  }
+
+  .collectionFooter {
+    justify-content: stretch;
+  }
+
+  .collectionPagination {
+    width: 100%;
+  }
+
+  .collectionPagination [data-pagination-rail] {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -112,11 +256,20 @@
   }
 
   .toolbarActions {
-    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .toolbarActions > button:not([data-size="icon"]) {
-    grid-column: 1 / -1;
+  .publishActions {
     width: 100%;
+  }
+
+  .publishActions > button:not([data-size="icon"]) {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .settingsButtons {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

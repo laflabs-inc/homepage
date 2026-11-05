@@ -1003,6 +1003,25 @@
   width: min(100%, 620px);
 }
 
+.demoPopoverOptions {
+  display: grid;
+  gap: 6px;
+}
+
+.demoPopoverActions {
+  margin-top: 18px;
+  padding-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.demoSidePanelBody {
+  flex: 1 1 auto;
+  padding-block: 32px;
+}
+
 .demoFormRecipe {
   width: min(100%, 680px);
   display: grid;

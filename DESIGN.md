@@ -761,20 +761,22 @@ import { StatusLabel } from "@/components/ui/status-label"
 
 <div>
   <StatusLabel tone="neutral">Draft</StatusLabel>
-  <DropdownMenu>
-    <ButtonGroup label="Document publishing">
-      <Button variant="secondary">Save draft</Button>
-      <Button>Publish document</Button>
-      <ButtonGroupSeparator />
-      <DropdownMenuTrigger asChild>
-        <Button aria-label="Open publishing options" size="icon">...</Button>
-      </DropdownMenuTrigger>
-    </ButtonGroup>
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem>Schedule publication</DropdownMenuItem>
-      <DropdownMenuItem>Copy preview link</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+  <div aria-label="Document publishing" role="group">
+    <Button variant="secondary">Save draft</Button>
+    <DropdownMenu>
+      <ButtonGroup label="Publish document">
+        <Button>Publish document</Button>
+        <ButtonGroupSeparator />
+        <DropdownMenuTrigger asChild>
+          <Button aria-label="Open publishing options" size="icon">...</Button>
+        </DropdownMenuTrigger>
+      </ButtonGroup>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Schedule publication</DropdownMenuItem>
+        <DropdownMenuItem>Copy preview link</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 </div>
 ```
 
@@ -787,25 +789,28 @@ Connects document metadata and publishing settings in one meaningful form struct
 - Use: Use when editing related fields and immediately applied settings as one task.
 - Avoid: Do not group unrelated settings or use it as a read-only summary.
 - Accessibility: Name the task with fieldset and legend, and connect all guidance and errors to their fields.
-- Components: `field`, `input`, `native-select`, `checkbox`, `switch`, `alert`
+- Components: `field`, `input`, `native-select`, `checkbox`, `switch`, `button`, `spinner`, `status-label`
 - Related Patterns: `document-surface`, `responsive-collapse`
-- States: `default` (fixture), `invalid` (fixture), `disabled` (fixture), `saving` (fixture)
+- States: `default` (fixture), `invalid` (fixture), `disabled` (fixture), `saving` (fixture), `saved` (fixture)
 - Responsive behavior:
   - On small screens, collapse horizontal fields into one label-then-input column.
   - Keep descriptions and errors immediately below their related input.
 
 ```tsx
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldLegend,
+  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Switch } from "@/components/ui/switch"
+import { StatusLabel } from "@/components/ui/status-label"
 
 <FieldSet>
   <FieldLegend>Document settings</FieldLegend>
@@ -821,8 +826,14 @@ import { Switch } from "@/components/ui/switch"
         <option value="disclosure">Disclosure</option>
       </NativeSelect>
     </Field>
+    <FieldSeparator>Publishing behavior</FieldSeparator>
     <Checkbox label="Pin document" />
     <Switch label="Publish immediately" />
+    <div>
+      <StatusLabel tone="success">Saved</StatusLabel>
+      <Button variant="secondary">Cancel</Button>
+      <Button>Save changes</Button>
+    </div>
   </FieldGroup>
 </FieldSet>
 ```
@@ -844,7 +855,7 @@ Combines a query and structured filters into one named discovery task.
   - Keep the label and error associated with the same input after reflow.
 
 ```tsx
-import { Alert, AlertAction } from "@/components/ui/alert"
+import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -870,11 +881,11 @@ const statusOptions = [
       options={statusOptions}
     />
   </Field>
-  <Alert title="No documents match this search.">
+  <Alert
+    action={<Button variant="secondary">Clear search</Button>}
+    title="No documents match this search."
+  >
     Clear the query or adjust the status filter.
-      <AlertAction>
-        <Button variant="secondary">Clear search</Button>
-      </AlertAction>
     </Alert>
   </div>
 ```

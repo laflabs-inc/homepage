@@ -13,10 +13,11 @@ import {
   PanelAction,
   PanelContent,
   PanelDescription,
+  PanelFooter,
   PanelHeader,
   PanelTitle,
 } from "@/components/ui/panel"
-import { Alert, AlertAction } from "@/components/ui/alert"
+import { Alert } from "@/components/ui/alert"
 import {
   Item,
   ItemActions,
@@ -40,10 +41,22 @@ import styles from "./recipe-demos.module.css"
 function LoadingState({ locale }: Pick<RecipeDemoProps, "locale">) {
   const label = locale === "ko" ? "문서 목록 불러오는 중" : "Loading document list"
   return (
-    <div aria-label={label} className={styles.loadingRows} role="status">
-      <Skeleton />
-      <Skeleton />
-      <Skeleton />
+    <div aria-label={label} className={styles.collectionSkeleton} role="status">
+      <div aria-hidden="true" className={styles.collectionSkeletonHeader}>
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+      </div>
+      <div aria-hidden="true" className={styles.collectionSkeletonRow}>
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+      </div>
+      <div aria-hidden="true" className={styles.collectionSkeletonRow}>
+        <Skeleton />
+        <Skeleton />
+        <Skeleton />
+      </div>
     </div>
   )
 }
@@ -63,25 +76,25 @@ function PopulatedState({ locale }: Pick<RecipeDemoProps, "locale">) {
     <>
       <div className={styles.collectionTable}>
         <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{locale === "ko" ? "문서" : "Document"}</TableHead>
-            <TableHead>{locale === "ko" ? "상태" : "Status"}</TableHead>
-            <TableHead>{locale === "ko" ? "수정일" : "Updated"}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell>{locale === "ko" ? "운영 정책" : "Operations policy"}</TableCell>
-            <TableCell><StatusLabel tone="success">{locale === "ko" ? "발행됨" : "Published"}</StatusLabel></TableCell>
-            <TableCell>2026-10-07</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>{locale === "ko" ? "릴리스 안내" : "Release notes"}</TableCell>
-            <TableCell><StatusLabel>{locale === "ko" ? "초안" : "Draft"}</StatusLabel></TableCell>
-            <TableCell>2026-10-06</TableCell>
-          </TableRow>
-        </TableBody>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{locale === "ko" ? "문서" : "Document"}</TableHead>
+              <TableHead>{locale === "ko" ? "상태" : "Status"}</TableHead>
+              <TableHead align="end">{locale === "ko" ? "수정일" : "Updated"}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>{locale === "ko" ? "운영 정책" : "Operations policy"}</TableCell>
+              <TableCell><StatusLabel tone="success">{locale === "ko" ? "발행됨" : "Published"}</StatusLabel></TableCell>
+              <TableCell align="end" className={styles.collectionDate}>2026-10-07</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>{locale === "ko" ? "릴리스 안내" : "Release notes"}</TableCell>
+              <TableCell><StatusLabel>{locale === "ko" ? "초안" : "Draft"}</StatusLabel></TableCell>
+              <TableCell align="end" className={styles.collectionDate}>2026-10-06</TableCell>
+            </TableRow>
+          </TableBody>
         </Table>
       </div>
       <div className={styles.mobileCollection}>
@@ -97,14 +110,22 @@ function PopulatedState({ locale }: Pick<RecipeDemoProps, "locale">) {
           </Item>
         ))}
       </div>
-      <Pagination aria-label={locale === "ko" ? "문서 목록 페이지" : "Document list pages"}>
-        <PaginationContent>
-          <PaginationItem><PaginationPrevious disabled href="#" label={locale === "ko" ? "이전 페이지" : "Previous page"}>{locale === "ko" ? "이전" : "Previous"}</PaginationPrevious></PaginationItem>
-          <PaginationItem><PaginationLink href="#" isCurrent>1</PaginationLink></PaginationItem>
-          <PaginationItem><PaginationNext href="#" label={locale === "ko" ? "다음 페이지" : "Next page"}>{locale === "ko" ? "다음" : "Next"}</PaginationNext></PaginationItem>
-        </PaginationContent>
-      </Pagination>
     </>
+  )
+}
+
+function CollectionPagination({ locale }: Pick<RecipeDemoProps, "locale">) {
+  return (
+    <Pagination
+      aria-label={locale === "ko" ? "문서 목록 페이지" : "Document list pages"}
+      className={styles.collectionPagination}
+    >
+      <PaginationContent>
+        <PaginationItem><PaginationPrevious disabled href="#" label={locale === "ko" ? "이전 페이지" : "Previous page"}>{locale === "ko" ? "이전" : "Previous"}</PaginationPrevious></PaginationItem>
+        <PaginationItem><PaginationLink href="#" isCurrent>1</PaginationLink></PaginationItem>
+        <PaginationItem><PaginationNext disabled href="#" label={locale === "ko" ? "다음 페이지" : "Next page"}>{locale === "ko" ? "다음" : "Next"}</PaginationNext></PaginationItem>
+      </PaginationContent>
+    </Pagination>
   )
 }
 
@@ -143,25 +164,34 @@ export function CollectionStateSurfaceDemo({ locale, state = "loading" }: Recipe
           <PanelTitle>{labels.title}</PanelTitle>
           <PanelDescription>{labels.description}</PanelDescription>
         </div>
-        {state === "populated" ? <PanelAction><Button size="compact">{labels.create}</Button></PanelAction> : null}
+        <PanelAction><Button size="compact">{labels.create}</Button></PanelAction>
       </PanelHeader>
-      <PanelContent className={styles.collectionContent}>
+      <PanelContent className={styles.collectionContent} data-collection-state={state}>
         {state === "loading" ? <LoadingState locale={locale} /> : null}
         {state === "populated" ? <PopulatedState locale={locale} /> : null}
         {state === "empty" ? (
           <EmptyState
-            action={<Button>{labels.create}</Button>}
+            className={styles.collectionEmpty}
             description={labels.emptyDescription}
             title={labels.emptyTitle}
           />
         ) : null}
         {state === "error" ? (
-          <Alert title={labels.errorTitle} variant="error">
+          <Alert
+            action={<Button variant="secondary">{labels.retry}</Button>}
+            className={styles.collectionError}
+            title={labels.errorTitle}
+            variant="error"
+          >
             {labels.errorDescription}
-            <AlertAction><Button variant="secondary">{labels.retry}</Button></AlertAction>
           </Alert>
         ) : null}
       </PanelContent>
+      {state === "populated" ? (
+        <PanelFooter className={styles.collectionFooter}>
+          <CollectionPagination locale={locale} />
+        </PanelFooter>
+      ) : null}
     </Panel>
   )
 }

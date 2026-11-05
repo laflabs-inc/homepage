@@ -52,4 +52,20 @@ describe("Alert C3C", () => {
     expect(screen.getAllByRole("heading", { name: "검토 필요" })).toHaveLength(1)
     expect(screen.getByText("발행 전에 내용을 확인하세요.")).toBeInTheDocument()
   })
+
+  it("keeps shorthand recovery actions outside the description", () => {
+    render(
+      <Alert
+        action={<button type="button">다시 시도</button>}
+        title="저장 실패"
+        variant="error"
+      >
+        연결을 확인해 주세요.
+      </Alert>,
+    )
+
+    const action = screen.getByRole("button", { name: "다시 시도" })
+    expect(action.parentElement).not.toContainElement(screen.getByText("연결을 확인해 주세요."))
+    expect(action.closest("section")).toHaveTextContent("저장 실패")
+  })
 })
