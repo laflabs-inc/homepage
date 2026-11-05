@@ -39,7 +39,7 @@
 
 .link:hover,
 .direction:hover:not([data-disabled]) {
-  background: #eef2f7;
+  background: var(--neutral-wash);
 }
 
 .link:focus-visible,

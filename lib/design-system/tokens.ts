@@ -109,6 +109,30 @@ export const designTokens = [
     },
   },
   {
+    id: "color.primary-wash",
+    group: "color",
+    value: "#eff6ff",
+    cssVariable: "--blue-wash",
+    purpose: {
+      ko: "밝은 면에서 hover와 낮은 강도의 선택 상태를 표시합니다.",
+      en: "A quiet hover and low-emphasis selected surface on light backgrounds.",
+    },
+    contrast: {
+      ko: "장식 면으로만 쓰고 상태는 글자나 아이콘으로 함께 설명합니다.",
+      en: "Use it as a supporting surface and pair state with text or an icon.",
+    },
+  },
+  {
+    id: "color.neutral-wash",
+    group: "color",
+    value: "#eef2f7",
+    cssVariable: "--neutral-wash",
+    purpose: {
+      ko: "표 머리글과 중립적인 보조 면에 쓰는 낮은 대비 배경입니다.",
+      en: "A low-contrast background for table headers and neutral supporting surfaces.",
+    },
+  },
+  {
     id: "color.info",
     group: "color",
     value: "#0ea5e9",

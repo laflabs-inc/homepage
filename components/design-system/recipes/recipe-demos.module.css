@@ -19,7 +19,7 @@
 }
 
 .popupLayer {
-  z-index: 80;
+  z-index: var(--layer-popup);
 }
 
 .searchRecipe {

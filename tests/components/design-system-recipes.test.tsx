@@ -169,7 +169,7 @@ describe("design-system Recipe previews", () => {
     )
 
     expect(css).toMatch(/\.preview\s*{[^}]*overflow:\s*visible/s)
-    expect(css).toMatch(/\.popupLayer\s*{[^}]*z-index:\s*[2-9]\d*/s)
+    expect(css).toMatch(/\.popupLayer\s*{[^}]*z-index:\s*(?:var\(--layer-popup\)|[2-9]\d*)/s)
     expect(css).toContain("@media (max-width: 720px)")
     expect(css).toMatch(/min-width:\s*0/)
     expect(css).toMatch(/\.mobileCollection\s*{[^}]*display:\s*none/s)

@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.3 · Updated: 2026-10-07
+System version: 2026.10.4 · Updated: 2026-11-05
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -113,11 +113,13 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `color.line` | color | `#cbd5e1` | Current | Quiet dividers and inactive outlines. |
 | `color.mask-black` | color | `#000` | Legacy reference | Legacy opaque mask stop, not a visible surface color. |
 | `color.muted` | color | `#64748b` | Current | Supporting copy and lower-priority metadata. |
+| `color.neutral-wash` | color | `#eef2f7` | Current | A low-contrast background for table headers and neutral supporting surfaces. |
 | `color.off-white` | color | `#f4f7fb` | Legacy reference | Legacy text and light-control color from the route-era interface. |
 | `color.page-navy` | color | `#0b1328` | Legacy reference | Legacy default page surface from the route-era interface. |
 | `color.paper` | color | `#f8fafc` | Current | The default page and control surface. |
 | `color.primary` | color | `#2563eb` | Current | The primary accent for key actions, selected states, and structure. |
 | `color.primary-deep` | color | `#1e40af` | Current | The hover and pressed color for Primary Blue actions. |
+| `color.primary-wash` | color | `#eff6ff` | Current | A quiet hover and low-emphasis selected surface on light backgrounds. |
 | `color.pure-white` | color | `#fff` | Current | Foreground color on Ink, Primary Blue, and Error Deep surfaces. |
 | `color.raised-navy` | color | `#101c35` | Legacy reference | Legacy raised dark detail from the route-era interface. |
 | `color.route-blue` | color | `#165dff` | Legacy reference | Legacy fill and structural accent from the route-era interface. |

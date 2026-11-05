@@ -22,6 +22,16 @@
   flex: none;
 }
 
+.group[data-orientation="horizontal"] > :is(button, a) {
+  height: auto;
+  align-self: stretch;
+}
+
+.group[data-orientation="horizontal"] > :is(button, a)[data-size="icon"] {
+  width: 44px;
+  min-width: 44px;
+}
+
 .group > :is(button, a):focus-visible,
 .group > [data-slot="button-group"]:focus-within,
 .group > [data-slot="input-group"]:focus-within {

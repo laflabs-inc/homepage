@@ -6,7 +6,13 @@
   border: 1px solid var(--line);
   background: var(--paper);
   color: var(--ink);
-  transition: border-color 160ms ease, outline-color 160ms ease;
+  font: 400 16px / 1.5 var(--font-geist-sans), "Pretendard", sans-serif;
+  transition: border-color 160ms ease, outline-color 160ms ease, background-color 160ms ease;
+}
+
+.group:not(:has(.control:disabled)):hover {
+  border-color: var(--ink);
+  background: var(--pure-white);
 }
 
 .group:has(.control:focus-visible) {
@@ -17,6 +23,10 @@
 
 .group:has(.control[aria-invalid="true"]) {
   border-color: var(--error);
+}
+
+.group:has(.control[aria-invalid="true"]:focus-visible) {
+  outline-color: var(--error);
 }
 
 .control {

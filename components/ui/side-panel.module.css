@@ -1,6 +1,6 @@
 .overlay {
   position: fixed;
-  z-index: 80;
+  z-index: var(--layer-overlay);
   inset: 0;
   background: rgb(15 23 42 / .54);
   animation: side-overlay-in 160ms ease-out;
@@ -8,7 +8,7 @@
 
 .content {
   position: fixed;
-  z-index: 81;
+  z-index: var(--layer-dialog);
   display: flex;
   flex-direction: column;
   overflow: auto;
@@ -43,7 +43,7 @@
   color: var(--ink);
   cursor: pointer;
 }
-.close:hover { background: #eef2f7; border-color: var(--ink); }
+.close:hover { background: var(--neutral-wash); border-color: var(--ink); }
 .close:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .header { display: grid; gap: 12px; padding-right: 48px; }
 .title { margin: 0; font-size: clamp(28px, 4vw, 44px); line-height: 1.02; letter-spacing: -.04em; }

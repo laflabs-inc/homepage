@@ -14,11 +14,12 @@
   font: 400 16px / 1.5 var(--font-geist-sans), "Pretendard", sans-serif;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, outline-color 160ms ease;
+  transition: border-color 160ms ease, outline-color 160ms ease, background-color 160ms ease;
 }
 
 .trigger:hover:not([data-disabled]) {
   border-color: var(--ink);
+  background: var(--pure-white);
 }
 
 .trigger:focus-visible,
@@ -30,6 +31,10 @@
 
 .trigger[aria-invalid="true"] {
   border-color: var(--error);
+}
+
+.trigger[aria-invalid="true"]:focus-visible {
+  outline-color: var(--error);
 }
 
 .trigger[data-placeholder] {
@@ -51,7 +56,7 @@
 }
 
 .content {
-  z-index: 120;
+  z-index: var(--layer-popup);
   min-width: var(--radix-select-trigger-width);
   max-width: calc(100vw - 16px);
   max-height: min(360px, var(--radix-select-content-available-height));
@@ -102,7 +107,7 @@
 
 .item[data-highlighted] {
   background: var(--blue);
-  color: var(--paper);
+  color: var(--pure-white);
 }
 
 .item[data-disabled] {
