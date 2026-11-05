@@ -1,5 +1,5 @@
 .content {
-  z-index: 120;
+  z-index: var(--layer-popup);
   min-width: 208px;
   max-width: calc(100vw - 16px);
   padding-block: 4px;
@@ -40,7 +40,7 @@
 .item[data-highlighted],
 .choiceItem[data-highlighted] {
   background: var(--blue);
-  color: var(--paper);
+  color: var(--pure-white);
 }
 
 .item[data-disabled],

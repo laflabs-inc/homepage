@@ -1,5 +1,5 @@
 .content {
-  z-index: 70;
+  z-index: var(--layer-popup);
   width: min(360px, calc(100vw - 24px));
   padding: 20px;
   border: 1px solid var(--ink);

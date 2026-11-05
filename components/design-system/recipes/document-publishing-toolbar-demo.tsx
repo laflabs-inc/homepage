@@ -37,22 +37,26 @@ export function DocumentPublishingToolbarDemo({ locale, state = "draft" }: Recip
   return (
     <div className={styles.toolbar}>
       <StatusLabel tone={isPublishing ? "info" : "neutral"}>{copy.status}</StatusLabel>
-      <DropdownMenu>
-        <ButtonGroup className={styles.toolbarActions} label={copy.group}>
-          <Button disabled={isPublishing} variant="secondary">{copy.save}</Button>
-          <Button loading={isPublishing}>{copy.publish}</Button>
-          <ButtonGroupSeparator />
-          <DropdownMenuTrigger asChild>
-            <Button aria-label={copy.options} disabled={isPublishing} size="icon">
-              <CaretDown aria-hidden weight="bold" />
-            </Button>
-          </DropdownMenuTrigger>
-        </ButtonGroup>
-        <DropdownMenuContent align="end" className={styles.popupLayer}>
-          <DropdownMenuItem>{copy.schedule}</DropdownMenuItem>
-          <DropdownMenuItem>{copy.preview}</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div aria-label={copy.group} className={styles.toolbarActions} role="group">
+        <Button className={styles.toolbarSave} disabled={isPublishing} variant="secondary">
+          {copy.save}
+        </Button>
+        <DropdownMenu>
+          <ButtonGroup className={styles.publishActions} label={copy.group}>
+            <Button loading={isPublishing}>{copy.publish}</Button>
+            <ButtonGroupSeparator />
+            <DropdownMenuTrigger asChild>
+              <Button aria-label={copy.options} disabled={isPublishing} size="icon">
+                <CaretDown aria-hidden weight="bold" />
+              </Button>
+            </DropdownMenuTrigger>
+          </ButtonGroup>
+          <DropdownMenuContent align="end" className={styles.popupLayer}>
+            <DropdownMenuItem>{copy.schedule}</DropdownMenuItem>
+            <DropdownMenuItem>{copy.preview}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   )
 }

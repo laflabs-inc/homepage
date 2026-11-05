@@ -18,14 +18,13 @@
   position: relative;
   min-width: 0;
   display: grid;
-  grid-template-columns: 4px minmax(0, 1fr) auto auto;
-  align-items: start;
+  grid-template-columns: 10px minmax(0, 1fr) auto auto;
+  align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 15px;
   border: 1px solid var(--ink);
   background: var(--paper);
   color: var(--ink);
-  box-shadow: 5px 5px 0 rgb(15 23 42 / 12%);
 }
 
 .root[data-state="open"] { animation: toast-in 180ms cubic-bezier(.2, .8, .2, 1); }
@@ -35,9 +34,8 @@
 .root[data-swipe="end"] { animation: toast-swipe-out 140ms ease-out; }
 
 .signal {
-  width: 4px;
-  height: 100%;
-  min-height: 32px;
+  width: 9px;
+  height: 9px;
   background: var(--ink);
 }
 
@@ -46,7 +44,7 @@
 .root[data-tone="warning"] .signal { background: var(--warning); }
 .root[data-tone="error"] .signal { background: var(--error); }
 
-.copy { min-width: 0; align-self: center; }
+.copy { min-width: 0; }
 
 .title {
   color: var(--ink);
@@ -92,7 +90,7 @@
 .action:hover,
 .close:hover {
   border-color: var(--blue);
-  background: #eff6ff;
+  background: var(--blue-wash);
   color: var(--blue);
 }
 
@@ -125,7 +123,7 @@
     flex-direction: column;
   }
 
-  .root { grid-template-columns: 4px minmax(0, 1fr) auto; }
+  .root { grid-template-columns: 9px minmax(0, 1fr) auto; }
   .action { grid-column: 2; width: max-content; }
   .close { grid-column: 3; grid-row: 1; }
 }

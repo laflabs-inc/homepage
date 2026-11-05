@@ -83,20 +83,22 @@ import { StatusLabel } from "@/components/ui/status-label"
 
 <div>
   <StatusLabel tone="neutral">Draft</StatusLabel>
-  <DropdownMenu>
-    <ButtonGroup label="Document publishing">
-      <Button variant="secondary">Save draft</Button>
-      <Button>Publish document</Button>
-      <ButtonGroupSeparator />
-      <DropdownMenuTrigger asChild>
-        <Button aria-label="Open publishing options" size="icon">...</Button>
-      </DropdownMenuTrigger>
-    </ButtonGroup>
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem>Schedule publication</DropdownMenuItem>
-      <DropdownMenuItem>Copy preview link</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+  <div aria-label="Document publishing" role="group">
+    <Button variant="secondary">Save draft</Button>
+    <DropdownMenu>
+      <ButtonGroup label="Publish document">
+        <Button>Publish document</Button>
+        <ButtonGroupSeparator />
+        <DropdownMenuTrigger asChild>
+          <Button aria-label="Open publishing options" size="icon">...</Button>
+        </DropdownMenuTrigger>
+      </ButtonGroup>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Schedule publication</DropdownMenuItem>
+        <DropdownMenuItem>Copy preview link</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 </div>`,
   },
   {
@@ -173,7 +175,7 @@ import { StatusLabel } from "@/components/ui/status-label"
       },
     ],
     sourcePaths: ["components/design-system/recipes/search-filter-field-demo.tsx"],
-    usageExample: `import { Alert, AlertAction } from "@/components/ui/alert"
+    usageExample: `import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -201,9 +203,11 @@ const statusOptions = [
       options={statusOptions}
     />
   </Field>
-  <Alert title="No documents match this search.">
+  <Alert
+    action={<Button variant="secondary">Clear search</Button>}
+    title="No documents match this search."
+  >
     Clear the query or adjust the status filter.
-    <AlertAction><Button variant="secondary">Clear search</Button></AlertAction>
   </Alert>
 </div>`,
   },
@@ -228,13 +232,14 @@ const statusOptions = [
     },
     category: "form",
     demoKey: "document-settings-form",
-    components: ["field", "input", "native-select", "checkbox", "switch", "alert"],
+    components: ["field", "input", "native-select", "checkbox", "switch", "button", "spinner", "status-label"],
     relatedPatterns: ["document-surface", "responsive-collapse"],
     anatomy: [
       { ko: "설정 그룹 legend", en: "Settings group legend" },
       { ko: "문서 식별 정보", en: "Document identity fields" },
       { ko: "공개와 고정 설정", en: "Publishing and pinning settings" },
-      { ko: "저장 상태 피드백", en: "Save-state feedback" },
+      { ko: "고정된 취소·저장 동작", en: "Stable cancel and save actions" },
+      { ko: "저장 진행과 완료 상태", en: "Saving progress and completion state" },
     ],
     states: [
       {
@@ -266,6 +271,14 @@ const statusOptions = [
         },
         inspection: fixtureInspection,
       },
+      {
+        id: "saved",
+        guidance: {
+          ko: "저장이 끝나면 같은 동작 영역에서 완료 상태를 짧게 확인합니다.",
+          en: "After saving, confirm completion briefly in the same action area.",
+        },
+        inspection: fixtureInspection,
+      },
     ],
     responsive: [
       {
@@ -279,16 +292,19 @@ const statusOptions = [
     ],
     sourcePaths: ["components/design-system/recipes/document-settings-form-demo.tsx"],
     usageExample: `import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldLegend,
+  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Switch } from "@/components/ui/switch"
+import { StatusLabel } from "@/components/ui/status-label"
 
 <FieldSet>
   <FieldLegend>Document settings</FieldLegend>
@@ -304,8 +320,14 @@ import { Switch } from "@/components/ui/switch"
         <option value="disclosure">Disclosure</option>
       </NativeSelect>
     </Field>
+    <FieldSeparator>Publishing behavior</FieldSeparator>
     <Checkbox label="Pin document" />
     <Switch label="Publish immediately" />
+    <div>
+      <StatusLabel tone="success">Saved</StatusLabel>
+      <Button variant="secondary">Cancel</Button>
+      <Button>Save changes</Button>
+    </div>
   </FieldGroup>
 </FieldSet>`,
   },

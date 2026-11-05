@@ -39,13 +39,14 @@ function classes(...values: Array<string | undefined>) {
 }
 
 export type AlertProps = Omit<ComponentPropsWithoutRef<"section">, "title"> & {
+  action?: ReactNode
   live?: boolean
   title?: ReactNode
   variant?: AlertVariant
 }
 
 export const Alert = forwardRef<HTMLElement, AlertProps>(function Alert(
-  { children, className, live = false, title, variant = "info", ...props },
+  { action, children, className, live = false, title, variant = "info", ...props },
   ref,
 ) {
   const titleId = useId()
@@ -71,6 +72,9 @@ export const Alert = forwardRef<HTMLElement, AlertProps>(function Alert(
                 <AlertDescription>{children}</AlertDescription>
               ) : null}
             </AlertContent>
+            {action !== undefined && action !== null ? (
+              <AlertAction>{action}</AlertAction>
+            ) : null}
           </>
         ) : children}
       </section>

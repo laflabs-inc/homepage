@@ -157,6 +157,7 @@ export const coreUiC3CComponents = [
     ],
     props: [
       { name: "title", type: "ReactNode", required: false, description: { ko: "기존 사용법을 위한 단축 제목입니다.", en: "Compatibility shorthand for a visible title." } },
+      { name: "action", type: "ReactNode", required: false, description: { ko: "축약형 제목과 함께 배치하는 한 가지 복구 동작입니다.", en: "Provides one recovery action beside the title shorthand." } },
       { name: "variant", type: '"info" | "success" | "warning" | "error"', required: false, description: { ko: "상태의 의미입니다.", en: "Sets the feedback meaning." } },
       { name: "live", type: "boolean", required: false, description: { ko: "새 긴급 상태를 즉시 발표합니다.", en: "Announces a newly rendered urgent state." } },
     ],

@@ -1,9 +1,9 @@
 .scroll { width: 100%; max-width: 100%; overflow-x: auto; border-block: 1px solid var(--ink); }
 .table { width: 100%; min-width: 560px; border-collapse: collapse; color: var(--ink); font-size: 13px; }
-.header { background: #eef2f7; }
+.header { background: var(--neutral-wash); }
 .body .row { transition: background-color 140ms ease; }
-.body .row:hover { background: #eff6ff; }
-.footer { border-top: 1px solid var(--ink); background: #eef2f7; font-weight: 700; }
+.body .row:hover { background: var(--blue-wash); }
+.footer { border-top: 1px solid var(--ink); background: var(--neutral-wash); font-weight: 700; }
 .row { border-bottom: 1px solid var(--line); }
 .row:last-child { border-bottom: 0; }
 .head, .cell { min-width: 120px; padding: 13px 16px; vertical-align: middle; }

@@ -146,7 +146,7 @@
   display: grid;
   place-items: center;
   border-right: 1px solid var(--line);
-  background: #eff6ff;
+  background: var(--blue-wash);
 }
 
 .logoField img {
@@ -1003,6 +1003,25 @@
   width: min(100%, 620px);
 }
 
+.demoPopoverOptions {
+  display: grid;
+  gap: 6px;
+}
+
+.demoPopoverActions {
+  margin-top: 18px;
+  padding-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.demoSidePanelBody {
+  flex: 1 1 auto;
+  padding-block: 32px;
+}
+
 .demoFormRecipe {
   width: min(100%, 680px);
   display: grid;
@@ -1235,7 +1254,7 @@
   align-items: center;
   border: 1px solid var(--line);
   color: var(--muted);
-  font: 650 9px / 1.35 var(--font-geist-mono), "Pretendard", monospace;
+  font: 650 10px / 1.35 var(--font-geist-mono), "Pretendard", monospace;
   letter-spacing: 0.02em;
 }
 

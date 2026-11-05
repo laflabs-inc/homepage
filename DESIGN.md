@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.3 · Updated: 2026-10-07
+System version: 2026.10.4 · Updated: 2026-11-05
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 
@@ -113,11 +113,13 @@ The production shell is `min(1280px, calc(100% - 64px))`. Treat tokens marked le
 | `color.line` | color | `#cbd5e1` | Current | Quiet dividers and inactive outlines. |
 | `color.mask-black` | color | `#000` | Legacy reference | Legacy opaque mask stop, not a visible surface color. |
 | `color.muted` | color | `#64748b` | Current | Supporting copy and lower-priority metadata. |
+| `color.neutral-wash` | color | `#eef2f7` | Current | A low-contrast background for table headers and neutral supporting surfaces. |
 | `color.off-white` | color | `#f4f7fb` | Legacy reference | Legacy text and light-control color from the route-era interface. |
 | `color.page-navy` | color | `#0b1328` | Legacy reference | Legacy default page surface from the route-era interface. |
 | `color.paper` | color | `#f8fafc` | Current | The default page and control surface. |
 | `color.primary` | color | `#2563eb` | Current | The primary accent for key actions, selected states, and structure. |
 | `color.primary-deep` | color | `#1e40af` | Current | The hover and pressed color for Primary Blue actions. |
+| `color.primary-wash` | color | `#eff6ff` | Current | A quiet hover and low-emphasis selected surface on light backgrounds. |
 | `color.pure-white` | color | `#fff` | Current | Foreground color on Ink, Primary Blue, and Error Deep surfaces. |
 | `color.raised-navy` | color | `#101c35` | Legacy reference | Legacy raised dark detail from the route-era interface. |
 | `color.route-blue` | color | `#165dff` | Legacy reference | Legacy fill and structural accent from the route-era interface. |
@@ -759,20 +761,22 @@ import { StatusLabel } from "@/components/ui/status-label"
 
 <div>
   <StatusLabel tone="neutral">Draft</StatusLabel>
-  <DropdownMenu>
-    <ButtonGroup label="Document publishing">
-      <Button variant="secondary">Save draft</Button>
-      <Button>Publish document</Button>
-      <ButtonGroupSeparator />
-      <DropdownMenuTrigger asChild>
-        <Button aria-label="Open publishing options" size="icon">...</Button>
-      </DropdownMenuTrigger>
-    </ButtonGroup>
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem>Schedule publication</DropdownMenuItem>
-      <DropdownMenuItem>Copy preview link</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+  <div aria-label="Document publishing" role="group">
+    <Button variant="secondary">Save draft</Button>
+    <DropdownMenu>
+      <ButtonGroup label="Publish document">
+        <Button>Publish document</Button>
+        <ButtonGroupSeparator />
+        <DropdownMenuTrigger asChild>
+          <Button aria-label="Open publishing options" size="icon">...</Button>
+        </DropdownMenuTrigger>
+      </ButtonGroup>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Schedule publication</DropdownMenuItem>
+        <DropdownMenuItem>Copy preview link</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 </div>
 ```
 
@@ -785,25 +789,28 @@ Connects document metadata and publishing settings in one meaningful form struct
 - Use: Use when editing related fields and immediately applied settings as one task.
 - Avoid: Do not group unrelated settings or use it as a read-only summary.
 - Accessibility: Name the task with fieldset and legend, and connect all guidance and errors to their fields.
-- Components: `field`, `input`, `native-select`, `checkbox`, `switch`, `alert`
+- Components: `field`, `input`, `native-select`, `checkbox`, `switch`, `button`, `spinner`, `status-label`
 - Related Patterns: `document-surface`, `responsive-collapse`
-- States: `default` (fixture), `invalid` (fixture), `disabled` (fixture), `saving` (fixture)
+- States: `default` (fixture), `invalid` (fixture), `disabled` (fixture), `saving` (fixture), `saved` (fixture)
 - Responsive behavior:
   - On small screens, collapse horizontal fields into one label-then-input column.
   - Keep descriptions and errors immediately below their related input.
 
 ```tsx
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldLegend,
+  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Switch } from "@/components/ui/switch"
+import { StatusLabel } from "@/components/ui/status-label"
 
 <FieldSet>
   <FieldLegend>Document settings</FieldLegend>
@@ -819,8 +826,14 @@ import { Switch } from "@/components/ui/switch"
         <option value="disclosure">Disclosure</option>
       </NativeSelect>
     </Field>
+    <FieldSeparator>Publishing behavior</FieldSeparator>
     <Checkbox label="Pin document" />
     <Switch label="Publish immediately" />
+    <div>
+      <StatusLabel tone="success">Saved</StatusLabel>
+      <Button variant="secondary">Cancel</Button>
+      <Button>Save changes</Button>
+    </div>
   </FieldGroup>
 </FieldSet>
 ```
@@ -842,7 +855,7 @@ Combines a query and structured filters into one named discovery task.
   - Keep the label and error associated with the same input after reflow.
 
 ```tsx
-import { Alert, AlertAction } from "@/components/ui/alert"
+import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -868,11 +881,11 @@ const statusOptions = [
       options={statusOptions}
     />
   </Field>
-  <Alert title="No documents match this search.">
+  <Alert
+    action={<Button variant="secondary">Clear search</Button>}
+    title="No documents match this search."
+  >
     Clear the query or adjust the status filter.
-      <AlertAction>
-        <Button variant="secondary">Clear search</Button>
-      </AlertAction>
     </Alert>
   </div>
 ```

@@ -39,13 +39,13 @@
 }
 
 .content[data-scroll="content"] {
-  padding: clamp(28px, 5vw, 48px);
+  padding: clamp(24px, 4vw, 40px);
   overflow: auto;
 }
 
 .alertContent {
   --overlay-width: 520px;
-  padding: clamp(24px, 4vw, 40px);
+  padding: clamp(24px, 4vw, 36px);
   overflow: auto;
 }
 
@@ -56,23 +56,23 @@
 .content[data-scroll="body"] > .header,
 .content[data-scroll="body"] > .footer {
   flex: none;
-  padding-inline: clamp(20px, 5vw, 48px);
+  padding-inline: clamp(20px, 4vw, 40px);
 }
 
 .content[data-scroll="body"] > .header {
-  padding-block: clamp(24px, 4vw, 40px) 20px;
+  padding-block: clamp(24px, 4vw, 36px) 14px;
 }
 
 .content[data-scroll="body"] > .body {
   min-height: 0;
-  padding: 0 clamp(20px, 5vw, 48px);
+  padding: 8px clamp(20px, 4vw, 40px);
   overflow: auto;
   overscroll-behavior: contain;
 }
 
 .content[data-scroll="body"] > .footer {
   margin-top: 0;
-  padding-block: 20px clamp(24px, 4vw, 40px);
+  padding-block: 16px clamp(24px, 4vw, 36px);
 }
 
 .content[data-state="open"] {
@@ -114,7 +114,7 @@
 .header {
   padding-inline-end: 52px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .alertHeader {
@@ -126,7 +126,7 @@
 }
 
 .footer {
-  margin-top: 32px;
+  margin-top: 28px;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -138,14 +138,14 @@
 
 .title {
   margin: 0;
-  font: 720 clamp(28px, 4vw, 42px) / 1.08 var(--font-geist-sans), "Pretendard", sans-serif;
-  letter-spacing: -0.04em;
+  font: 720 clamp(24px, 3vw, 32px) / 1.12 var(--font-geist-sans), "Pretendard", sans-serif;
+  letter-spacing: -0.03em;
   overflow-wrap: anywhere;
 }
 
 .description {
   max-width: 54ch;
-  margin: 12px 0 28px;
+  margin: 0 0 18px;
   color: var(--muted);
   font: 400 15px / 1.65 var(--font-geist-sans), "Pretendard", sans-serif;
   overflow-wrap: anywhere;

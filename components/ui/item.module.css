@@ -1,6 +1,6 @@
 .item { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: start; padding: 20px 0; border-block: 1px solid var(--line); color: var(--ink); }
 .item + .item { border-top: 0; }
-.item[data-tone="subtle"] { padding-inline: 20px; background: #eef2f7; }
+.item[data-tone="subtle"] { padding-inline: 20px; background: var(--neutral-wash); }
 .item[data-tone="inverse"] { padding-inline: 20px; border-color: #475569; background: var(--ink); color: white; }
 .media { width: 48px; height: 48px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid currentColor; color: var(--blue); font: 750 12px/1 var(--font-geist-mono), monospace; }
 .item[data-tone="inverse"] .media { color: #93c5fd; }

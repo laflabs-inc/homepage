@@ -13,8 +13,23 @@ export const coreExpansionComponents = [
     accessibility: { ko: "제목과 설명으로 보조 화면의 목적을 알리고 Escape와 초점 복귀를 유지합니다.", en: "Names the supporting surface and preserves Escape dismissal and focus restoration." },
     sourcePath: "components/ui/popover.tsx",
     demoKey: "popover",
-    importExample: 'import { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription } from "@/components/ui/popover"',
-    usageExample: '<Popover><PopoverTrigger>Filters</PopoverTrigger><PopoverContent><PopoverTitle>Filters</PopoverTitle><PopoverDescription>Narrow results.</PopoverDescription></PopoverContent></Popover>',
+    importExample: `import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover"`,
+    usageExample: `<Popover>
+  <PopoverTrigger>Filters</PopoverTrigger>
+  <PopoverContent>
+    <PopoverTitle>Document filters</PopoverTitle>
+    <PopoverDescription>Choose which states appear.</PopoverDescription>
+    <Checkbox defaultChecked label="Published" />
+    <Checkbox label="Draft" />
+  </PopoverContent>
+</Popover>`,
     relatedComponents: ["dropdown-menu", "dialog", "tooltip"],
     dependencies: ["radix-ui"],
     states: [
@@ -38,8 +53,27 @@ export const coreExpansionComponents = [
     accessibility: { ko: "Dialog의 제목, 설명, 초점 가두기, Escape 닫기와 초점 복귀를 유지합니다.", en: "Preserves Dialog title, description, focus trap, Escape dismissal, and focus restoration." },
     sourcePath: "components/ui/side-panel.tsx",
     demoKey: "side-panel",
-    importExample: 'import { SidePanel, SidePanelTrigger, SidePanelContent, SidePanelTitle, SidePanelDescription } from "@/components/ui/side-panel"',
-    usageExample: '<SidePanel><SidePanelTrigger>Settings</SidePanelTrigger><SidePanelContent closeLabel="Close"><SidePanelTitle>Settings</SidePanelTitle><SidePanelDescription>Manage the workspace.</SidePanelDescription></SidePanelContent></SidePanel>',
+    importExample: `import { Field } from "@/components/ui/field"
+import {
+  SidePanel,
+  SidePanelContent,
+  SidePanelDescription,
+  SidePanelFooter,
+  SidePanelHeader,
+  SidePanelTitle,
+  SidePanelTrigger,
+} from "@/components/ui/side-panel"`,
+    usageExample: `<SidePanel>
+  <SidePanelTrigger>Settings</SidePanelTrigger>
+  <SidePanelContent closeLabel="Close settings">
+    <SidePanelHeader>
+      <SidePanelTitle>Document settings</SidePanelTitle>
+      <SidePanelDescription>Manage visibility and metadata.</SidePanelDescription>
+    </SidePanelHeader>
+    <Field>...</Field>
+    <SidePanelFooter>Changes save automatically.</SidePanelFooter>
+  </SidePanelContent>
+</SidePanel>`,
     relatedComponents: ["dialog", "popover", "panel"],
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
