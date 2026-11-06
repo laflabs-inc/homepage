@@ -54,7 +54,7 @@ export function Checkbox({
   }, [indeterminate])
 
   return (
-    <label className={styles.choice}>
+    <label className={styles.choice} data-slot="checkbox">
       <input
         {...props}
         ref={setInputRef}
@@ -65,16 +65,22 @@ export function Checkbox({
         )}
         aria-labelledby={labelId}
         className={`${styles.choiceInput} ${styles.checkboxInput}`}
+        data-slot="checkbox-input"
         type="checkbox"
       />
-      <span aria-hidden className={styles.checkboxIndicator} data-checkbox-indicator>
+      <span
+        aria-hidden
+        className={styles.checkboxIndicator}
+        data-checkbox-indicator
+        data-slot="checkbox-indicator"
+      >
         <span className={styles.checkboxSelection} data-checkbox-selection />
         <span className={styles.checkboxMixed} data-checkbox-mixed />
       </span>
-      <span className={styles.choiceCopy}>
-        <span className={styles.choiceLabel} id={labelId}>{label}</span>
+      <span className={styles.choiceCopy} data-slot="checkbox-copy">
+        <span className={styles.choiceLabel} data-slot="checkbox-label" id={labelId}>{label}</span>
         {description ? (
-          <span className={styles.choiceDescription} id={descriptionId}>{description}</span>
+          <span className={styles.choiceDescription} data-slot="checkbox-description" id={descriptionId}>{description}</span>
         ) : null}
       </span>
     </label>

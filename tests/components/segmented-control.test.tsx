@@ -59,7 +59,12 @@ describe("SegmentedControl", () => {
     )
 
     const group = screen.getByRole("radiogroup", { name: "Language" })
+    expect(group).toHaveAttribute("data-slot", "segmented-control")
     expect(within(group).getAllByRole("radio")).toHaveLength(2)
+    expect(within(group).getAllByRole("radio")[0]).toHaveAttribute(
+      "data-slot",
+      "segmented-control-option",
+    )
     expect(screen.getByRole("radio", { name: "한국어" })).toHaveAttribute(
       "aria-checked",
       "true",

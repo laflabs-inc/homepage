@@ -124,6 +124,7 @@ function SegmentedControlRoot<Value extends string>({
             aria-pressed={legacyPressed ? active : undefined}
             className={styles.button}
             data-active={active || undefined}
+            data-slot="segmented-control-option"
             disabled={option.disabled}
             role={legacyPressed ? undefined : "radio"}
             tabIndex={legacyPressed ? undefined : index === tabStopIndex ? 0 : -1}

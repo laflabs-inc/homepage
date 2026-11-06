@@ -12,7 +12,12 @@ describe("Checkbox", () => {
     const ref = createRef<HTMLInputElement>()
     const { container } = render(<Checkbox label="선택" ref={ref} />)
     expect(ref.current).toBe(screen.getByRole("checkbox", { name: "선택" }))
-    expect(container.querySelector("[data-checkbox-indicator]")).toBeInTheDocument()
+    expect(ref.current).toHaveAttribute("data-slot", "checkbox-input")
+    expect(ref.current?.closest("label")).toHaveAttribute("data-slot", "checkbox")
+    expect(container.querySelector("[data-checkbox-indicator]")).toHaveAttribute(
+      "data-slot",
+      "checkbox-indicator",
+    )
     expect(container.querySelector("[data-checkbox-selection]")).toBeInTheDocument()
     expect(container.querySelector("[data-checkbox-mixed]")).toBeInTheDocument()
     expect(container.querySelector("[data-checkbox-indicator] svg")).not.toBeInTheDocument()
