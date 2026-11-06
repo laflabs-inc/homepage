@@ -2,29 +2,40 @@
   display: inline-flex;
   max-width: 100%;
   align-items: stretch;
+  border: 1px solid var(--ink);
+  background: var(--paper);
   isolation: isolate;
 }
 
-.group[data-orientation="horizontal"] > * + * {
-  margin-inline-start: -1px;
+.group > [data-slot="button-group"] {
+  border: 0;
 }
 
 .group[data-orientation="vertical"] {
   flex-direction: column;
 }
 
-.group[data-orientation="vertical"] > * + * {
-  margin-block-start: -1px;
-}
-
 .group > :is(button, a, [data-slot="button-group"], [data-slot="input-group"]) {
   position: relative;
   flex: none;
+  border-color: transparent;
 }
 
 .group[data-orientation="horizontal"] > :is(button, a) {
   height: auto;
   align-self: stretch;
+}
+
+.group[data-orientation="horizontal"]
+  > :is(button, a, [data-slot="button-group"], [data-slot="input-group"])
+  + :is(button, a, [data-slot="button-group"], [data-slot="input-group"]) {
+  border-inline-start-color: var(--line);
+}
+
+.group[data-orientation="vertical"]
+  > :is(button, a, [data-slot="button-group"], [data-slot="input-group"])
+  + :is(button, a, [data-slot="button-group"], [data-slot="input-group"]) {
+  border-block-start-color: var(--line);
 }
 
 .group[data-orientation="horizontal"] > :is(button, a)[data-size="icon"] {
@@ -39,12 +50,12 @@
 }
 
 .text {
-  min-height: 44px;
+  min-height: 38px;
   padding-inline: 14px;
   display: inline-flex;
   flex: none;
   align-items: center;
-  border: 1px solid var(--line);
+  border: 0;
   background: var(--paper);
   color: var(--muted);
   font: 600 11px / 1.2 var(--font-geist-mono), monospace;
@@ -73,6 +84,10 @@
 
 @media (max-width: 720px) {
   .group[data-orientation="horizontal"] > * {
+    min-height: 44px;
+  }
+
+  .text {
     min-height: 44px;
   }
 }

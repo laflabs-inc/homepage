@@ -35,8 +35,10 @@ describe("Button", () => {
     const label = "Delete the selected document revision permanently"
     render(<Button variant="danger" size="compact">{label}</Button>)
 
-    expect(screen.getByRole("button", { name: label })).toHaveAttribute("data-variant", "danger")
-    expect(screen.getByRole("button", { name: label })).toHaveAttribute("data-size", "compact")
+    const button = screen.getByRole("button", { name: label })
+    expect(button).toHaveAttribute("data-slot", "button")
+    expect(button).toHaveAttribute("data-variant", "danger")
+    expect(button).toHaveAttribute("data-size", "compact")
   })
 
   it("renders a low-emphasis ghost action", () => {
@@ -48,14 +50,14 @@ describe("Button", () => {
     )
   })
 
-  it("renders a transparent outline action as a first-class variant", () => {
+  it("renders a quiet transparent outline action as a first-class variant", () => {
     render(<Button variant={"outline" as never}>View details</Button>)
 
     const button = screen.getByRole("button", { name: "View details" })
     const stylesheet = readFileSync(join(process.cwd(), "components/ui/button.module.css"), "utf8")
     expect(button).toHaveAttribute("data-variant", "outline")
     expect(stylesheet).toMatch(
-      /\.outline\s*\{[^}]*border-color:\s*var\(--ink\);[^}]*background:\s*transparent;[^}]*color:\s*var\(--ink\);/s,
+      /\.outline\s*\{[^}]*border-color:\s*var\(--line\);[^}]*background:\s*transparent;[^}]*color:\s*var\(--ink\);/s,
     )
   })
 
@@ -79,6 +81,8 @@ describe("Button", () => {
 
     const button = screen.getByRole("button", { name: "Save changes" })
     expect(button).toHaveAttribute("aria-busy", "true")
+    expect(button).toHaveAttribute("data-size", "default")
+    expect(button).toHaveAttribute("data-slot", "button")
     expect(button).toBeDisabled()
     await user.click(button)
     expect(onClick).not.toHaveBeenCalled()
