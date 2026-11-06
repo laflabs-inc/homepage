@@ -7,22 +7,26 @@
   background: var(--paper);
   color: var(--ink);
   font: 400 16px / 1.5 var(--font-geist-sans), "Pretendard", sans-serif;
-  transition: border-color 160ms ease, outline-color 160ms ease, background-color 160ms ease;
+  box-shadow: inset 3px 0 0 transparent;
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .group:not(:has(.control:disabled)):hover {
   border-color: var(--ink);
   background: var(--pure-white);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 
 .group:has(.control:focus-visible) {
   border-color: var(--blue);
   outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline-offset: 1px;
+  box-shadow: inset 3px 0 0 var(--blue);
 }
 
 .group:has(.control[aria-invalid="true"]) {
   border-color: var(--error);
+  box-shadow: inset 3px 0 0 var(--error);
 }
 
 .group:has(.control[aria-invalid="true"]:focus-visible) {
@@ -52,7 +56,7 @@
 
 .input {
   min-height: 46px;
-  padding: 0 14px;
+  padding: 0 15px;
 }
 
 .textarea {
@@ -66,6 +70,7 @@
   min-width: 0;
   align-items: stretch;
   color: var(--muted);
+  background: var(--neutral-wash);
 }
 
 .addon[data-placement="inline-start"] {
@@ -97,7 +102,7 @@
   min-width: 0;
   align-items: center;
   padding: 10px 12px;
-  font: 600 11px / 1.35 var(--font-geist-mono), monospace;
+  font: 650 11px / 1.35 var(--font-geist-mono), monospace;
   overflow-wrap: anywhere;
 }
 
@@ -109,6 +114,7 @@
 .button {
   min-height: 100%;
   border: 0;
+  box-shadow: none;
 }
 
 .button:focus-visible {

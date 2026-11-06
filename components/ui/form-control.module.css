@@ -2,13 +2,18 @@
   width: 100%;
   min-width: 0;
   min-height: 48px;
-  padding: 11px 14px;
+  padding: 11px 15px;
   border: 1px solid var(--line);
   border-radius: 0;
   background: var(--paper);
   color: var(--ink);
   font: 400 16px / 1.5 var(--font-geist-sans), "Pretendard", sans-serif;
-  transition: border-color 160ms ease, outline-color 160ms ease, background-color 160ms ease;
+  box-shadow: inset 3px 0 0 transparent;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    outline-color 140ms ease;
 }
 
 .control::placeholder {
@@ -19,16 +24,19 @@
 .control:hover:not(:disabled) {
   border-color: var(--ink);
   background: var(--pure-white);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 
 .control:focus-visible {
   border-color: var(--blue);
   outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline-offset: 1px;
+  box-shadow: inset 3px 0 0 var(--blue);
 }
 
 .control[aria-invalid="true"] {
   border-color: var(--error);
+  box-shadow: inset 3px 0 0 var(--error);
 }
 
 .control[aria-invalid="true"]:focus-visible {
@@ -36,8 +44,9 @@
 }
 
 .control:disabled {
+  background: var(--neutral-wash);
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.62;
 }
 
 .textarea {
@@ -51,15 +60,33 @@
   width: 100%;
 }
 
+.selectWrap::after {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 43px;
+  border-left: 1px solid var(--line);
+  background: var(--neutral-wash);
+  content: "";
+  pointer-events: none;
+}
+
+.selectWrap:has(.select:focus-visible)::after {
+  border-left-color: var(--blue);
+  background: var(--blue-wash);
+}
+
 .select {
   appearance: none;
-  padding-inline-end: 44px;
+  padding-inline-end: 58px;
 }
 
 .selectIcon {
   position: absolute;
   top: 50%;
   right: 14px;
+  z-index: 1;
   color: var(--ink);
   pointer-events: none;
   transform: translateY(-50%);

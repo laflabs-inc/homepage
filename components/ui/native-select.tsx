@@ -10,10 +10,11 @@ export function NativeSelect(props: ComponentPropsWithRef<"select">) {
   const fieldProps = useFieldControlProps(props)
 
   return (
-    <span className={styles.selectWrap}>
+    <span className={styles.selectWrap} data-slot="native-select-wrap">
       <select
         {...fieldProps}
         className={[styles.control, styles.select, props.className].filter(Boolean).join(" ")}
+        data-slot="native-select"
       />
       <CaretDown aria-hidden className={styles.selectIcon} size={16} weight="bold" />
     </span>

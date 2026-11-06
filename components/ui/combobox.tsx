@@ -124,8 +124,8 @@ export function Combobox({
       }}
     >
       <PopoverPrimitive.Anchor asChild>
-        <div ref={rootRef} className={styles.root} data-open={open || undefined}>
-          <div className={styles.control}>
+        <div ref={rootRef} className={styles.root} data-open={open || undefined} data-slot="combobox">
+          <div className={styles.control} data-slot="combobox-control">
             <input
               {...fieldProps}
               ref={inputRef}
@@ -135,6 +135,7 @@ export function Combobox({
               aria-controls={listboxId}
               aria-expanded={open}
               className={[styles.input, inputProps.className].filter(Boolean).join(" ")}
+              data-slot="combobox-input"
               onBlur={(event) => {
                 inputProps.onBlur?.(event)
                 window.setTimeout(() => {
@@ -180,6 +181,7 @@ export function Combobox({
           align="start"
           className={styles.listbox}
           collisionPadding={12}
+          data-slot="combobox-content"
           onCloseAutoFocus={(event) => event.preventDefault()}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onPointerDownOutside={(event) => {
@@ -197,6 +199,7 @@ export function Combobox({
               className={styles.option}
               data-active={index === activeIndex || undefined}
               data-disabled={option.disabled || undefined}
+              data-slot="combobox-option"
               onMouseDown={(event) => event.preventDefault()}
               onMouseEnter={() => !option.disabled && setActiveIndex(index)}
               onClick={() => commit(option)}

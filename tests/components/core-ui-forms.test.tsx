@@ -228,6 +228,9 @@ describe("native form controls", () => {
     expect(inputRef.current).toBe(screen.getByRole("textbox", { name: "Input ref" }))
     expect(textareaRef.current).toBe(screen.getByRole("textbox", { name: "Textarea ref" }))
     expect(selectRef.current).toBe(screen.getByRole("combobox", { name: "Select ref" }))
+    expect(inputRef.current).toHaveAttribute("data-slot", "input")
+    expect(textareaRef.current).toHaveAttribute("data-slot", "textarea")
+    expect(selectRef.current).toHaveAttribute("data-slot", "native-select")
   })
 
   it("forwards textarea rows, name, and disabled state", () => {

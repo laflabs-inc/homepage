@@ -36,10 +36,12 @@ describe("Select", () => {
     render(<LanguageSelect />)
 
     const trigger = screen.getByRole("combobox", { name: "문서 언어" })
+    expect(trigger).toHaveAttribute("data-slot", "select-trigger")
     expect(trigger).toHaveTextContent("한국어")
     await user.click(trigger)
 
-    expect(screen.getByRole("listbox")).toBeVisible()
+    expect(screen.getByRole("listbox")).toHaveAttribute("data-slot", "select-content")
+    expect(screen.getByRole("option", { name: "한국어" })).toHaveAttribute("data-slot", "select-item")
     expect(screen.getByRole("option", { name: "한국어" })).toHaveAttribute("aria-selected", "true")
     expect(screen.getByRole("option", { name: "한국어" }).querySelector("[data-select-indicator]"))
       .toBeInTheDocument()

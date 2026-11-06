@@ -11,6 +11,7 @@ export function Textarea(props: ComponentPropsWithRef<"textarea">) {
     <textarea
       {...fieldProps}
       className={[styles.control, styles.textarea, props.className].filter(Boolean).join(" ")}
+      data-slot="textarea"
     />
   )
 }

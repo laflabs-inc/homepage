@@ -11,6 +11,7 @@ export function Input(props: ComponentPropsWithRef<"input">) {
     <input
       {...fieldProps}
       className={[styles.control, props.className].filter(Boolean).join(" ")}
+      data-slot="input"
     />
   )
 }

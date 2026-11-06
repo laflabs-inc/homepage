@@ -321,6 +321,8 @@ describe("Combobox", () => {
 
     await user.click(screen.getByText("Framework"))
     const input = screen.getByRole("combobox", { name: "Framework" })
+    expect(input).toHaveAttribute("data-slot", "combobox-input")
+    expect(input.closest('[data-slot="combobox-control"]')).toBeInTheDocument()
     expect(input).toHaveFocus()
 
     await user.clear(input)

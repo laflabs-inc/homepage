@@ -2,7 +2,7 @@
   width: 100%;
   min-width: 0;
   min-height: 48px;
-  padding: 11px 14px;
+  padding: 11px 0 11px 15px;
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -14,23 +14,27 @@
   font: 400 16px / 1.5 var(--font-geist-sans), "Pretendard", sans-serif;
   text-align: left;
   cursor: pointer;
-  transition: border-color 160ms ease, outline-color 160ms ease, background-color 160ms ease;
+  box-shadow: inset 3px 0 0 transparent;
+  transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .trigger:hover:not([data-disabled]) {
   border-color: var(--ink);
   background: var(--pure-white);
+  box-shadow: inset 3px 0 0 var(--ink);
 }
 
 .trigger:focus-visible,
 .trigger[data-state="open"] {
   border-color: var(--blue);
   outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline-offset: 1px;
+  box-shadow: inset 3px 0 0 var(--blue);
 }
 
 .trigger[aria-invalid="true"] {
   border-color: var(--error);
+  box-shadow: inset 3px 0 0 var(--error);
 }
 
 .trigger[aria-invalid="true"]:focus-visible {
@@ -42,16 +46,26 @@
 }
 
 .trigger[data-disabled] {
+  background: var(--neutral-wash);
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.62;
 }
 
 .triggerIcon {
   flex: 0 0 auto;
+  box-sizing: content-box;
+  width: 16px;
+  height: 16px;
+  margin-block: -11px;
+  padding: 15px;
+  border-left: 1px solid var(--line);
+  background: var(--neutral-wash);
   transition: transform 160ms ease;
 }
 
 .trigger[data-state="open"] .triggerIcon {
+  border-left-color: var(--blue);
+  background: var(--blue-wash);
   transform: rotate(180deg);
 }
 
@@ -105,9 +119,24 @@
   user-select: none;
 }
 
-.item[data-highlighted] {
+.item::before {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 3px;
   background: var(--blue);
-  color: var(--pure-white);
+  content: "";
+  opacity: 0;
+}
+
+.item[data-highlighted] {
+  background: var(--blue-wash);
+  color: var(--ink);
+}
+
+.item[data-highlighted]::before {
+  opacity: 1;
 }
 
 .item[data-disabled] {
@@ -123,6 +152,7 @@
   display: grid;
   place-items: center;
   transform: translateY(-50%);
+  color: var(--blue);
 }
 
 .separator {

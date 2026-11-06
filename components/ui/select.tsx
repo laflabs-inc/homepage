@@ -19,7 +19,12 @@ export const SelectTrigger = forwardRef<
   Omit<ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>, "asChild">
 >(function SelectTrigger({ children, className, ...props }, ref) {
   return (
-    <SelectPrimitive.Trigger ref={ref} className={classes(styles.trigger, className)} {...props}>
+    <SelectPrimitive.Trigger
+      ref={ref}
+      className={classes(styles.trigger, className)}
+      data-slot="select-trigger"
+      {...props}
+    >
       {children}
       <SelectPrimitive.Icon asChild>
         <CaretDown aria-hidden className={styles.triggerIcon} size={16} weight="bold" />
@@ -38,6 +43,7 @@ export const SelectContent = forwardRef<
         ref={ref}
         className={classes(styles.content, className)}
         collisionPadding={8}
+        data-slot="select-content"
         position={position}
         sideOffset={sideOffset}
         {...props}
@@ -68,7 +74,12 @@ export const SelectItem = forwardRef<
   Omit<ComponentPropsWithoutRef<typeof SelectPrimitive.Item>, "asChild">
 >(function SelectItem({ children, className, ...props }, ref) {
   return (
-    <SelectPrimitive.Item ref={ref} className={classes(styles.item, className)} {...props}>
+    <SelectPrimitive.Item
+      ref={ref}
+      className={classes(styles.item, className)}
+      data-slot="select-item"
+      {...props}
+    >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator className={styles.itemIndicator} data-select-indicator>
         <Check aria-hidden size={16} weight="bold" />
