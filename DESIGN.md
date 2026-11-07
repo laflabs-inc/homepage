@@ -2,7 +2,7 @@
 
 # LafLabs Web Design
 
-System version: 2026.10.4 · Updated: 2026-11-05
+System version: 2026.11.0 · Updated: 2026-11-07
 
 Use this provider-neutral guide for LafLabs public websites and branded web surfaces. It does not redefine dense Admin workflows or unrelated third-party products.
 

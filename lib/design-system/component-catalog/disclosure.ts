@@ -18,7 +18,7 @@ export const disclosureComponents = [
     dependencies: ["radix-ui"],
     states: [
       { id: "default", guidance: { ko: "첫 패널과 활성 탭이 연결되는지 확인합니다.", en: "Confirm the initial panel is associated with the active tab." } },
-      { id: "selected", guidance: { ko: "파란 상태선과 aria-selected가 함께 바뀌는지 확인합니다.", en: "Confirm the blue state rule and aria-selected change together." } },
+      { id: "selected", guidance: { ko: "강한 글자, 옅은 면, 전체 폭 파란 하단 블록과 aria-selected가 함께 바뀌는지 확인합니다.", en: "Confirm stronger type, quiet wash, full-width blue lower block, and aria-selected change together." } },
       { id: "disabled", guidance: { ko: "비활성 탭을 방향키가 건너뛰는지 확인합니다.", en: "Confirm arrow navigation skips disabled tabs." } },
     ],
     props: [

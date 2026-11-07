@@ -21,7 +21,7 @@
 .root[data-open] .icon { transform: translateY(-50%) rotate(180deg); }
 .listbox { z-index: var(--layer-popup); width: var(--radix-popover-trigger-width); max-height: min(360px, var(--radix-popover-content-available-height)); padding-block: 4px; overflow: auto; border: 1px solid var(--ink); background: var(--paper); animation: combobox-in 140ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 .option { position: relative; display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px 10px 17px; font: 600 14px / 1.45 var(--font-geist-sans), "Pretendard", sans-serif; cursor: pointer; }
-.option::before { position: absolute; top: 7px; bottom: 7px; left: 0; width: 3px; background: var(--blue); content: ""; opacity: 0; }
+.option::before { position: absolute; top: 7px; bottom: 7px; left: 0; width: 2px; background: var(--blue); content: ""; opacity: 0; }
 .option[data-active] { background: var(--blue-wash); color: var(--ink); }
 .option[data-active]::before { opacity: 1; }
 .option[data-disabled] { cursor: not-allowed; color: var(--muted); opacity: .55; }

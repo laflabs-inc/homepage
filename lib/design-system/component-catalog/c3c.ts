@@ -19,7 +19,7 @@ export const coreUiC3CComponents = [
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거가 열릴 작업을 구체적으로 설명하는지 확인합니다.", en: "Confirm the trigger names the task it opens." } },
-      { id: "open", guidance: { ko: "제목, 본문, 동작과 닫기 경계가 분명한지 확인합니다.", en: "Inspect the title, body, actions, and close boundary." }, inspection: interactiveInspection },
+      { id: "open", guidance: { ko: "파란 상단 레일, 큰 제목, 본문, 동작과 고정 닫기 셀의 경계가 분명한지 확인합니다.", en: "Inspect the blue top rail, decisive title, body, actions, and stable close cell." }, inspection: interactiveInspection },
       { id: "body-scroll", guidance: { ko: "긴 본문만 스크롤되고 제목과 동작은 접근 가능한지 확인합니다.", en: "Confirm only the long body scrolls while title and actions remain reachable." }, inspection: interactiveInspection },
     ],
     props: [
@@ -45,7 +45,7 @@ export const coreUiC3CComponents = [
     dependencies: ["radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거가 결과를 구체적으로 설명하는지 확인합니다.", en: "Confirm the trigger names the consequence." } },
-      { id: "open", guidance: { ko: "취소와 실행의 위계, 초기 초점과 초점 복귀를 확인합니다.", en: "Inspect action hierarchy, initial focus, and focus restoration." }, inspection: interactiveInspection },
+      { id: "open", guidance: { ko: "상단 레일 아래 결정 문구와 취소·실행의 위계, 초기 초점과 초점 복귀를 확인합니다.", en: "Inspect the decision copy below the top rail, action hierarchy, initial focus, and focus restoration." }, inspection: interactiveInspection },
       { id: "destructive", guidance: { ko: "위험 동작은 Error Deep 면과 흰색 글자를 사용합니다.", en: "Use Error Deep with a white foreground for a destructive action." }, inspection: interactiveInspection },
     ],
     props: [
@@ -70,7 +70,7 @@ export const coreUiC3CComponents = [
     dependencies: ["@phosphor-icons/react"],
     states: [
       { id: "default", guidance: { ko: "이전과 다음이 실제 목적지 링크인지 확인합니다.", en: "Confirm previous and next are real destination links." } },
-      { id: "current", guidance: { ko: "현재 페이지가 aria-current와 파란 면으로 전달되는지 확인합니다.", en: "Confirm the current page uses aria-current and the blue surface." } },
+      { id: "current", guidance: { ko: "현재 페이지가 aria-current, 옅은 면과 파란 하단 블록으로 전달되는지 확인합니다.", en: "Confirm the current page uses aria-current, a quiet wash, and a blue lower plane." } },
       { id: "boundary", guidance: { ko: "첫 페이지와 마지막 페이지의 비활성 방향이 목적지를 노출하지 않는지 확인합니다.", en: "Confirm disabled boundary directions expose no destination." } },
       { id: "collapsed", guidance: { ko: "긴 범위는 축약하되 현재 위치는 유지합니다.", en: "Collapse long ranges while preserving the current position." } },
     ],
@@ -121,9 +121,9 @@ export const coreUiC3CComponents = [
     relatedComponents: ["alert", "status-label", "spinner"],
     dependencies: ["radix-ui"],
     states: [
-      { id: "success", guidance: { ko: "완료 결과를 한 문장으로 설명합니다.", en: "Describe the completed outcome in one sentence." }, inspection: interactiveInspection },
+      { id: "success", guidance: { ko: "왼쪽 신호 레일과 한 문장 결과가 조밀한 알림 스트립으로 읽히는지 확인합니다.", en: "Confirm the leading signal rail and one-sentence outcome read as one compact notification strip." }, inspection: interactiveInspection },
       { id: "error", guidance: { ko: "오류는 더 오래 표시하고 복구 설명은 짧게 유지합니다.", en: "Keep errors visible longer and recovery copy concise." }, inspection: interactiveInspection },
-      { id: "action", guidance: { ko: "되돌리기 같은 한 가지 보조 동작만 제공합니다.", en: "Offer one supporting action such as Undo." }, inspection: interactiveInspection },
+      { id: "action", guidance: { ko: "본문과 구분된 셀에 되돌리기 같은 한 가지 보조 동작만 제공합니다.", en: "Offer one supporting action such as Undo in a cell separated from the message." }, inspection: interactiveInspection },
       { id: "queued", guidance: { ko: "세 개를 넘는 알림은 앞선 알림이 닫힐 때까지 대기합니다.", en: "Queue notifications beyond the three visible items." }, inspection: interactiveInspection },
       { id: "persistent", guidance: { ko: "duration 0은 사용자가 직접 닫을 때까지 유지합니다.", en: "Use duration zero only for deliberate persistence." }, inspection: interactiveInspection },
     ],
@@ -150,7 +150,7 @@ export const coreUiC3CComponents = [
     relatedComponents: ["toast", "alert-dialog", "button"],
     dependencies: ["@phosphor-icons/react"],
     states: [
-      { id: "info", guidance: { ko: "왼쪽 상태 신호와 제목으로 정보를 구분합니다.", en: "Distinguish information with the left status signal and title." } },
+      { id: "info", guidance: { ko: "의미색 레일·아이콘 셀·제목을 함께 사용해 정보를 구분합니다.", en: "Distinguish information with a semantic rail, icon cell, and title." } },
       { id: "warning", guidance: { ko: "주의 상태와 다음 행동을 구체적으로 적습니다.", en: "State the caution and next action concretely." } },
       { id: "error", guidance: { ko: "오류 원인과 가능한 복구 동작을 함께 제공합니다.", en: "Provide the error reason and an available recovery action." } },
       { id: "live", guidance: { ko: "새 긴급 상태만 alert로 발표합니다.", en: "Announce only a newly created urgent state as an alert." } },

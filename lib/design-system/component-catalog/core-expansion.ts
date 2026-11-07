@@ -34,7 +34,7 @@ import {
     dependencies: ["radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거 이름만으로 펼쳐질 내용을 예상할 수 있는지 확인합니다.", en: "Confirm the trigger name predicts the content it opens." } },
-      { id: "open", guidance: { ko: "화면 가장자리 충돌과 키보드 이동을 확인합니다.", en: "Inspect viewport collision and keyboard movement." }, inspection: interactiveInspection },
+      { id: "open", guidance: { ko: "파란 상단 레일과 조밀한 헤더 밴드, 화면 가장자리 충돌과 키보드 이동을 확인합니다.", en: "Inspect the blue top rail, dense header band, viewport collision, and keyboard movement." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "open", type: "boolean", required: false, description: { ko: "제어되는 열림 상태입니다.", en: "The controlled open state." } },
@@ -78,7 +78,7 @@ import {
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "트리거가 보조 작업임을 분명히 하는지 확인합니다.", en: "Confirm the trigger clearly names the supporting task." } },
-      { id: "open", guidance: { ko: "본문과 패널의 경계, 내부 스크롤과 닫기 동작을 확인합니다.", en: "Inspect the page boundary, internal scroll, and close action." }, inspection: interactiveInspection },
+      { id: "open", guidance: { ko: "헤더·작업 본문·푸터의 리듬, 고정된 닫기 셀과 내부 스크롤을 확인합니다.", en: "Inspect the header, workspace body, footer rhythm, stable close cell, and internal scroll." }, inspection: interactiveInspection },
     ],
     props: [
       { name: "side", type: '"top" | "right" | "bottom" | "left"', required: false, description: { ko: "패널이 들어오는 화면 가장자리입니다.", en: "The viewport edge the panel enters from." } },
@@ -103,7 +103,7 @@ import {
     dependencies: ["@phosphor-icons/react", "radix-ui"],
     states: [
       { id: "closed", guidance: { ko: "선택값과 입력 목적이 함께 읽히는지 확인합니다.", en: "Confirm the selected value and input purpose are both readable." } },
-      { id: "open", guidance: { ko: "활성 항목, 선택 항목, 비활성 항목을 구분합니다.", en: "Distinguish active, selected, and disabled options." }, inspection: interactiveInspection },
+      { id: "open", guidance: { ko: "활성 항목의 파란 측면 표시와 옅은 면을 선택·비활성 항목과 구분합니다.", en: "Distinguish the active option's blue side marker and wash from selected and disabled options." }, inspection: interactiveInspection },
       { id: "empty", guidance: { ko: "검색 결과가 없음을 짧은 문장으로 알립니다.", en: "State an empty search result in concise text." }, inspection: interactiveInspection },
     ],
     props: [
@@ -131,7 +131,7 @@ import {
     dependencies: [],
     states: [
       { id: "default", guidance: { ko: "접두어와 동작이 입력값과 시각적으로 연결되는지 확인합니다.", en: "Confirm prefixes and actions remain visibly connected to the value." } },
-      { id: "focus-visible", guidance: { ko: "그룹 전체 경계가 초점 상태를 보여주는지 확인합니다.", en: "Confirm the shared boundary communicates focus." }, inspection: interactiveInspection },
+      { id: "focus-visible", guidance: { ko: "그룹 전체의 파란 왼쪽 레일과 초점선이 하나의 입력으로 읽히는지 확인합니다.", en: "Confirm the group's blue leading rail and focus outline read as one field." }, inspection: interactiveInspection },
       { id: "invalid", guidance: { ko: "Field 오류와 그룹 경계가 같은 상태를 전달하는지 확인합니다.", en: "Confirm Field error copy and group border communicate the same state." } },
     ],
     props: [

@@ -26,7 +26,7 @@
   top: 0;
   right: 0;
   left: 0;
-  height: 6px;
+  height: 2px;
   background: var(--blue);
 }
 
@@ -45,7 +45,7 @@
 .close {
   position: absolute;
   z-index: 2;
-  top: 6px;
+  top: 2px;
   right: 0;
   display: grid;
   place-items: center;
@@ -65,7 +65,7 @@
   display: grid;
   gap: 8px;
   margin: calc(var(--side-panel-pad) * -1) calc(var(--side-panel-pad) * -1) 28px;
-  padding: calc(var(--side-panel-pad) + 6px) calc(var(--side-panel-pad) + 56px) 24px var(--side-panel-pad);
+  padding: calc(var(--side-panel-pad) + 2px) calc(var(--side-panel-pad) + 56px) 24px var(--side-panel-pad);
   background: var(--blue-wash);
 }
 .title { margin: 0; font-size: clamp(27px, 3.5vw, 38px); font-weight: 780; line-height: 1.05; letter-spacing: -.045em; }

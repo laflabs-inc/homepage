@@ -10,6 +10,34 @@ import { TextLink } from "@/components/ui/text-link"
 import { designCatalog } from "@/lib/design-system/catalog"
 
 describe("public design-system primitives", () => {
+  it("publishes inspection states for every visually redesigned primitive family", () => {
+    const requiredStates = {
+      button: ["primary", "outline", "loading"],
+      input: ["focus-visible", "invalid", "disabled"],
+      select: ["open", "disabled"],
+      checkbox: ["checked", "indeterminate", "disabled"],
+      "segmented-control": ["selected", "disabled"],
+      alert: ["info", "warning", "error"],
+      toast: ["success", "error", "action"],
+      panel: ["default", "subtle", "action"],
+      dialog: ["open", "body-scroll"],
+      popover: ["open"],
+      "side-panel": ["open"],
+      pagination: ["current", "boundary"],
+      tabs: ["selected", "disabled"],
+    } as const
+
+    for (const [id, states] of Object.entries(requiredStates)) {
+      const component = designCatalog.components.find((entry) => entry.id === id)
+      expect(component, id).toBeDefined()
+      if (!component) continue
+      expect(componentDemos[component.demoKey], `${id} demo`).toBeDefined()
+      expect(component.states.map((state) => state.id), `${id} states`).toEqual(
+        expect.arrayContaining([...states]),
+      )
+    }
+  })
+
   it("renders a real Korean demo for every catalog component", () => {
     for (const component of designCatalog.components) {
       const Demo = componentDemos[component.demoKey]

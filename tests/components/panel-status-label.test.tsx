@@ -68,6 +68,7 @@ describe("StatusLabel", () => {
 
     const label = screen.getByText("Published").closest("[data-slot='status-label']")
     expect(label).not.toBeNull()
+    if (!label) throw new Error("StatusLabel root was not rendered")
     expect(label).toHaveAttribute("data-slot", "status-label")
     expect(label).toHaveAttribute("data-tone", "success")
     expect(label.querySelector("[data-status-marker]")).toHaveAttribute("aria-hidden", "true")
@@ -81,6 +82,7 @@ describe("StatusLabel", () => {
 
     const label = screen.getByText("Ready").closest("[data-slot='status-label']")
     expect(label).not.toBeNull()
+    if (!label) throw new Error("StatusLabel root was not rendered")
     expect(label).toHaveTextContent("Ready")
     expect(label.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
   })
