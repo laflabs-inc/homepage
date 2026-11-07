@@ -1,15 +1,33 @@
 .content {
+  position: relative;
   z-index: var(--layer-popup);
   width: min(360px, calc(100vw - 24px));
-  padding: 20px;
+  padding: 16px;
   border: 1px solid var(--ink);
   background: var(--paper);
   color: var(--ink);
+  box-shadow: 4px 4px 0 rgb(15 23 42 / 10%);
   animation: popover-in 150ms cubic-bezier(.2, .8, .2, 1);
 }
 
-.header { display: grid; gap: 7px; margin-bottom: 18px; }
-.title { margin: 0; font-size: 16px; line-height: 1.2; letter-spacing: -.02em; }
+.content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: var(--blue);
+}
+
+.header {
+  display: grid;
+  gap: 6px;
+  margin: -16px -16px 16px;
+  padding: 20px 16px 14px;
+  background: var(--blue-wash);
+}
+.title { margin: 0; font-size: 16px; font-weight: 760; line-height: 1.2; letter-spacing: -.025em; }
 .description { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
 
 @keyframes popover-in {

@@ -114,8 +114,18 @@ describe("Popover", () => {
 
     const trigger = screen.getByRole("button", { name: "Inspect filters" })
     await user.click(trigger)
-    expect(screen.getByRole("dialog", { name: "Filters" }))
-      .toHaveAccessibleDescription("Narrow the document list.")
+    const popover = screen.getByRole("dialog", { name: "Filters" })
+    expect(popover).toHaveAccessibleDescription("Narrow the document list.")
+    expect(popover).toHaveAttribute("data-slot", "popover-content")
+    expect(screen.getByRole("heading", { name: "Filters" })).toHaveAttribute("data-slot", "popover-title")
+    expect(screen.getByRole("heading", { name: "Filters" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "popover-header",
+    )
+    expect(screen.getByText("Narrow the document list.")).toHaveAttribute(
+      "data-slot",
+      "popover-description",
+    )
 
     await user.keyboard("{Escape}")
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
@@ -143,7 +153,25 @@ describe("SidePanel", () => {
     await user.click(screen.getByRole("button", { name: "Open settings" }))
     const panel = screen.getByRole("dialog", { name: "Settings" })
     expect(panel).toHaveAttribute("data-side", "left")
+    expect(panel).toHaveAttribute("data-slot", "side-panel-content")
     expect(panel).toHaveAccessibleDescription("Manage this workspace.")
+    expect(screen.getByRole("heading", { name: "Settings" })).toHaveAttribute(
+      "data-slot",
+      "side-panel-title",
+    )
+    expect(screen.getByRole("heading", { name: "Settings" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "side-panel-header",
+    )
+    expect(screen.getByText("Manage this workspace.")).toHaveAttribute(
+      "data-slot",
+      "side-panel-description",
+    )
+    expect(screen.getByText("Saved automatically")).toHaveAttribute("data-slot", "side-panel-footer")
+    expect(screen.getByRole("button", { name: "Close settings" })).toHaveAttribute(
+      "data-slot",
+      "side-panel-close",
+    )
 
     await user.click(screen.getByRole("button", { name: "Close settings" }))
     expect(panel).not.toBeInTheDocument()

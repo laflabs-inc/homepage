@@ -54,7 +54,21 @@ describe("Dialog", () => {
 
     await user.click(screen.getByRole("button", { name: "구성 열기" }))
     expect(screen.getByTestId("dialog-overlay")).toBeInTheDocument()
-    expect(screen.getByText("본문")).toHaveAttribute("data-dialog-body", "")
+    const dialog = screen.getByRole("dialog", { name: "구성형 대화상자" })
+    expect(dialog).toHaveAttribute("data-slot", "dialog-content")
+    expect(screen.getByRole("heading", { name: "구성형 대화상자" })).toHaveAttribute(
+      "data-slot",
+      "dialog-title",
+    )
+    expect(screen.getByRole("heading", { name: "구성형 대화상자" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "dialog-header",
+    )
+    expect(screen.getByText("본문")).toHaveAttribute("data-slot", "dialog-body")
+    expect(screen.getByRole("button", { name: "완료" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "dialog-footer",
+    )
     await user.click(screen.getByRole("button", { name: "완료" }))
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
   })

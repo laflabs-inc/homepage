@@ -38,10 +38,15 @@ export const SidePanelContent = forwardRef<
         ref={ref}
         className={classes(styles.content, className)}
         data-side={side}
+        data-slot="side-panel-content"
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className={styles.close} aria-label={closeLabel}>
+        <DialogPrimitive.Close
+          className={styles.close}
+          aria-label={closeLabel}
+          data-slot="side-panel-close"
+        >
           <X aria-hidden size={18} weight="bold" />
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
@@ -53,20 +58,34 @@ export const SidePanelTitle = forwardRef<
   ComponentRef<typeof DialogPrimitive.Title>,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(function SidePanelTitle({ className, ...props }, ref) {
-  return <DialogPrimitive.Title ref={ref} className={classes(styles.title, className)} {...props} />
+  return (
+    <DialogPrimitive.Title
+      ref={ref}
+      className={classes(styles.title, className)}
+      data-slot="side-panel-title"
+      {...props}
+    />
+  )
 })
 
 export const SidePanelDescription = forwardRef<
   ComponentRef<typeof DialogPrimitive.Description>,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(function SidePanelDescription({ className, ...props }, ref) {
-  return <DialogPrimitive.Description ref={ref} className={classes(styles.description, className)} {...props} />
+  return (
+    <DialogPrimitive.Description
+      ref={ref}
+      className={classes(styles.description, className)}
+      data-slot="side-panel-description"
+      {...props}
+    />
+  )
 })
 
 export function SidePanelHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.header, className)} {...props} />
+  return <div className={classes(styles.header, className)} data-slot="side-panel-header" {...props} />
 }
 
 export function SidePanelFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.footer, className)} {...props} />
+  return <div className={classes(styles.footer, className)} data-slot="side-panel-footer" {...props} />
 }

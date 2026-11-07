@@ -44,6 +44,7 @@ export const PopoverContent = forwardRef<
         aria-labelledby={props["aria-labelledby"] ?? label?.titleId}
         className={classes(styles.content, className)}
         collisionPadding={12}
+        data-slot="popover-content"
         role={props.role ?? "dialog"}
         sideOffset={sideOffset}
         {...props}
@@ -53,15 +54,29 @@ export const PopoverContent = forwardRef<
 })
 
 export function PopoverHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.header, className)} {...props} />
+  return <div className={classes(styles.header, className)} data-slot="popover-header" {...props} />
 }
 
 export function PopoverTitle({ className, id, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   const label = useContext(PopoverLabelContext)
-  return <h2 id={id ?? label?.titleId} className={classes(styles.title, className)} {...props} />
+  return (
+    <h2
+      id={id ?? label?.titleId}
+      className={classes(styles.title, className)}
+      data-slot="popover-title"
+      {...props}
+    />
+  )
 }
 
 export function PopoverDescription({ className, id, ...props }: HTMLAttributes<HTMLParagraphElement>) {
   const label = useContext(PopoverLabelContext)
-  return <p id={id ?? label?.descriptionId} className={classes(styles.description, className)} {...props} />
+  return (
+    <p
+      id={id ?? label?.descriptionId}
+      className={classes(styles.description, className)}
+      data-slot="popover-description"
+      {...props}
+    />
+  )
 }

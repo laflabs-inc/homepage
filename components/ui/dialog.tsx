@@ -44,15 +44,20 @@ export const DialogContent = forwardRef<
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
+        {...props}
         ref={ref}
         className={classes(styles.content, className)}
         data-scroll={scroll}
         data-size={size}
-        {...props}
+        data-slot="dialog-content"
       >
         {children}
         {closeLabel ? (
-          <DialogPrimitive.Close className={styles.close} aria-label={closeLabel}>
+          <DialogPrimitive.Close
+            className={styles.close}
+            aria-label={closeLabel}
+            data-slot="dialog-close"
+          >
             <X aria-hidden size={18} weight="bold" />
           </DialogPrimitive.Close>
         ) : null}
@@ -65,26 +70,48 @@ export const DialogTitle = forwardRef<
   ComponentRef<typeof DialogPrimitive.Title>,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(function DialogTitle({ className, ...props }, ref) {
-  return <DialogPrimitive.Title ref={ref} className={classes(styles.title, className)} {...props} />
+  return (
+    <DialogPrimitive.Title
+      ref={ref}
+      className={classes(styles.title, className)}
+      data-slot="dialog-title"
+      {...props}
+    />
+  )
 })
 
 export const DialogDescription = forwardRef<
   ComponentRef<typeof DialogPrimitive.Description>,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(function DialogDescription({ className, ...props }, ref) {
-  return <DialogPrimitive.Description ref={ref} className={classes(styles.description, className)} {...props} />
+  return (
+    <DialogPrimitive.Description
+      ref={ref}
+      className={classes(styles.description, className)}
+      data-slot="dialog-description"
+      {...props}
+    />
+  )
 })
 
 export function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.header, className)} {...props} />
+  return <div className={classes(styles.header, className)} data-slot="dialog-header" {...props} />
 }
 
 export const DialogBody = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function DialogBody({ className, ...props }, ref) {
-    return <div ref={ref} className={classes(styles.body, className)} data-dialog-body="" {...props} />
+    return (
+      <div
+        ref={ref}
+        className={classes(styles.body, className)}
+        data-dialog-body=""
+        data-slot="dialog-body"
+        {...props}
+      />
+    )
   },
 )
 
 export function DialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.footer, className)} {...props} />
+  return <div className={classes(styles.footer, className)} data-slot="dialog-footer" {...props} />
 }

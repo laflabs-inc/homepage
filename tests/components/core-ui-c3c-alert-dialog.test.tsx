@@ -88,7 +88,11 @@ describe("AlertDialog C3C", () => {
     )
 
     expect(screen.getByTestId("decision-overlay")).toBeInTheDocument()
-    expect(screen.getByText("본문")).toHaveAttribute("data-alert-dialog-body", "")
+    const dialog = screen.getByRole("alertdialog")
+    expect(dialog).toHaveAttribute("data-slot", "alert-dialog-content")
+    expect(screen.getByText("머리말")).toHaveAttribute("data-slot", "alert-dialog-header")
+    expect(screen.getByText("본문")).toHaveAttribute("data-slot", "alert-dialog-body")
+    expect(screen.getByText("꼬리말")).toHaveAttribute("data-slot", "alert-dialog-footer")
   })
 
   it("returns focus to the trigger after cancel", async () => {

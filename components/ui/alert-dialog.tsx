@@ -36,6 +36,7 @@ export const AlertDialogContent = forwardRef<
       <AlertDialogPrimitive.Content
         ref={ref}
         className={classes(styles.content, styles.alertContent, className)}
+        data-slot="alert-dialog-content"
         {...props}
       />
     </AlertDialogPortal>
@@ -46,28 +47,62 @@ export const AlertDialogTitle = forwardRef<
   ComponentRef<typeof AlertDialogPrimitive.Title>,
   ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>
 >(function AlertDialogTitle({ className, ...props }, ref) {
-  return <AlertDialogPrimitive.Title ref={ref} className={classes(styles.title, className)} {...props} />
+  return (
+    <AlertDialogPrimitive.Title
+      ref={ref}
+      className={classes(styles.title, className)}
+      data-slot="alert-dialog-title"
+      {...props}
+    />
+  )
 })
 
 export const AlertDialogDescription = forwardRef<
   ComponentRef<typeof AlertDialogPrimitive.Description>,
   ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>
 >(function AlertDialogDescription({ className, ...props }, ref) {
-  return <AlertDialogPrimitive.Description ref={ref} className={classes(styles.description, className)} {...props} />
+  return (
+    <AlertDialogPrimitive.Description
+      ref={ref}
+      className={classes(styles.description, className)}
+      data-slot="alert-dialog-description"
+      {...props}
+    />
+  )
 })
 
 export function AlertDialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.header, styles.alertHeader, className)} {...props} />
+  return (
+    <div
+      className={classes(styles.header, styles.alertHeader, className)}
+      data-slot="alert-dialog-header"
+      {...props}
+    />
+  )
 }
 
 export const AlertDialogBody = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function AlertDialogBody({ className, ...props }, ref) {
-    return <div ref={ref} className={classes(styles.body, className)} data-alert-dialog-body="" {...props} />
+    return (
+      <div
+        ref={ref}
+        className={classes(styles.body, className)}
+        data-alert-dialog-body=""
+        data-slot="alert-dialog-body"
+        {...props}
+      />
+    )
   },
 )
 
 export function AlertDialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={classes(styles.footer, styles.alertFooter, className)} {...props} />
+  return (
+    <div
+      className={classes(styles.footer, styles.alertFooter, className)}
+      data-slot="alert-dialog-footer"
+      {...props}
+    />
+  )
 }
 
 export const AlertDialogCancel = forwardRef<

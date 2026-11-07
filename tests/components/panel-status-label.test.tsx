@@ -29,11 +29,20 @@ describe("Panel", () => {
     )
 
     const panel = screen.getByRole("region", { name: "Account" })
+    expect(panel).toHaveAttribute("data-slot", "panel")
     expect(panel).toHaveAttribute("data-tone", "subtle")
-    expect(screen.getByRole("heading", { level: 3, name: "Account" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument()
-    expect(screen.getByText("contact@laflabs.co")).toBeInTheDocument()
-    expect(screen.getByText("Updated today")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { level: 3, name: "Account" })).toHaveAttribute("data-slot", "panel-title")
+    expect(screen.getByRole("button", { name: "Edit" }).parentElement).toHaveAttribute("data-slot", "panel-action")
+    expect(screen.getByText("contact@laflabs.co").parentElement).toHaveAttribute("data-slot", "panel-content")
+    expect(screen.getByText("Updated today")).toHaveAttribute("data-slot", "panel-footer")
+    expect(screen.getByText("Manage the public company profile.")).toHaveAttribute(
+      "data-slot",
+      "panel-description",
+    )
+    expect(screen.getByRole("heading", { name: "Account" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "panel-header",
+    )
   })
 
   it("forwards native div props and refs", () => {
