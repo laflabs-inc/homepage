@@ -1044,8 +1044,8 @@
 }
 
 .demoWrappedGroup {
-  width: min(100%, 220px);
-  flex-wrap: wrap;
+  width: min(100%, 420px);
+  flex-wrap: nowrap;
 }
 
 .demoField {
@@ -1108,7 +1108,7 @@
 }
 
 .inverseDemo {
-  padding: 10px;
+  padding: 16px;
   display: inline-flex;
   background: var(--ink);
 }
@@ -1132,7 +1132,7 @@
 }
 
 .demoSpinner {
-  gap: 10px;
+  gap: 12px;
 }
 
 .componentMasthead h1 {

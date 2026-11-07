@@ -22,6 +22,10 @@
   flex: none;
 }
 
+.group > [data-slot="input-group"] {
+  flex: 1 1 180px;
+}
+
 .group[data-orientation="horizontal"] > :is(button, a) {
   height: auto;
   align-self: stretch;

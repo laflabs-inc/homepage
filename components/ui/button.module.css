@@ -3,6 +3,7 @@
   max-width: 100%;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   border: 1px solid transparent;
   border-radius: 0;
   font: 700 13px / 1.2 var(--font-geist-sans), "Pretendard", sans-serif;
