@@ -13,26 +13,54 @@ export const Tabs = forwardRef<
   ComponentRef<typeof TabsPrimitive.Root>,
   ComponentPropsWithoutRef<typeof TabsPrimitive.Root>
 >(function Tabs({ className, ...props }, ref) {
-  return <TabsPrimitive.Root ref={ref} className={classes(styles.root, className)} {...props} />
+  return (
+    <TabsPrimitive.Root
+      ref={ref}
+      className={classes(styles.root, className)}
+      data-slot="tabs"
+      {...props}
+    />
+  )
 })
 
 export const TabsList = forwardRef<
   ComponentRef<typeof TabsPrimitive.List>,
   ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(function TabsList({ className, ...props }, ref) {
-  return <TabsPrimitive.List ref={ref} className={classes(styles.list, className)} {...props} />
+  return (
+    <TabsPrimitive.List
+      ref={ref}
+      className={classes(styles.list, className)}
+      data-slot="tabs-list"
+      {...props}
+    />
+  )
 })
 
 export const TabsTrigger = forwardRef<
   ComponentRef<typeof TabsPrimitive.Trigger>,
   ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
 >(function TabsTrigger({ className, ...props }, ref) {
-  return <TabsPrimitive.Trigger ref={ref} className={classes(styles.trigger, className)} {...props} />
+  return (
+    <TabsPrimitive.Trigger
+      ref={ref}
+      className={classes(styles.trigger, className)}
+      data-slot="tabs-trigger"
+      {...props}
+    />
+  )
 })
 
 export const TabsContent = forwardRef<
   ComponentRef<typeof TabsPrimitive.Content>,
   ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
 >(function TabsContent({ className, ...props }, ref) {
-  return <TabsPrimitive.Content ref={ref} className={classes(styles.content, className)} {...props} />
+  return (
+    <TabsPrimitive.Content
+      ref={ref}
+      className={classes(styles.content, className)}
+      data-slot="tabs-content"
+      {...props}
+    />
+  )
 })

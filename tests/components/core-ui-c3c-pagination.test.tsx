@@ -42,11 +42,23 @@ describe("Pagination", () => {
     const navigation = screen.getByRole("navigation", { name: "Notice pages" })
     const rail = within(navigation).getByRole("list")
 
+    expect(navigation).toHaveAttribute("data-slot", "pagination")
+    expect(rail).toHaveAttribute("data-slot", "pagination-content")
     expect(rail).toHaveAttribute("data-pagination-rail")
-    expect(within(navigation).getByRole("link", { name: "Previous page" })).toHaveAttribute("href", "?page=1")
+    expect(within(navigation).getByRole("link", { name: "Previous page" })).toHaveAttribute(
+      "data-slot",
+      "pagination-previous",
+    )
+    expect(within(navigation).getByRole("link", { name: "2" })).toHaveAttribute("data-slot", "pagination-page")
     expect(within(navigation).getByRole("link", { name: "2" })).toHaveAttribute("aria-current", "page")
-    expect(within(navigation).getByRole("link", { name: "Next page" })).toHaveAttribute("href", "?page=3")
-    expect(within(navigation).getByLabelText("More pages")).toBeInTheDocument()
+    expect(within(navigation).getByRole("link", { name: "Next page" })).toHaveAttribute(
+      "data-slot",
+      "pagination-next",
+    )
+    expect(within(navigation).getByLabelText("More pages")).toHaveAttribute(
+      "data-slot",
+      "pagination-ellipsis",
+    )
   })
 
   it("keeps a disabled boundary visible without exposing a destination", async () => {

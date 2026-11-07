@@ -8,15 +8,29 @@ function classes(...values: Array<string | undefined>) {
 }
 
 export function Pagination({ "aria-label": ariaLabel = "Pagination", className, ...props }: ComponentPropsWithRef<"nav">) {
-  return <nav aria-label={ariaLabel} className={classes(styles.pagination, className)} {...props} />
+  return (
+    <nav
+      aria-label={ariaLabel}
+      className={classes(styles.pagination, className)}
+      data-slot="pagination"
+      {...props}
+    />
+  )
 }
 
 export function PaginationContent({ className, ...props }: ComponentPropsWithRef<"ul">) {
-  return <ul className={classes(styles.content, className)} data-pagination-rail {...props} />
+  return (
+    <ul
+      className={classes(styles.content, className)}
+      data-pagination-rail
+      data-slot="pagination-content"
+      {...props}
+    />
+  )
 }
 
 export function PaginationItem({ className, ...props }: ComponentPropsWithRef<"li">) {
-  return <li className={classes(styles.item, className)} {...props} />
+  return <li className={classes(styles.item, className)} data-slot="pagination-item" {...props} />
 }
 
 export type PaginationLinkProps = ComponentPropsWithRef<"a"> & { isCurrent?: boolean }
@@ -26,6 +40,7 @@ export function PaginationLink({ className, isCurrent = false, ...props }: Pagin
     <a
       aria-current={isCurrent ? "page" : undefined}
       className={classes(styles.link, isCurrent ? styles.current : undefined, className)}
+      data-slot="pagination-page"
       {...props}
     />
   )
@@ -44,6 +59,7 @@ export function PaginationPrevious({ children, className, disabled = false, href
       aria-label={label}
       className={classes(styles.direction, className)}
       data-disabled={disabled || undefined}
+      data-slot="pagination-previous"
       href={disabled ? undefined : href}
       onClick={disabled ? undefined : onClick}
     >
@@ -61,6 +77,7 @@ export function PaginationNext({ children, className, disabled = false, href, la
       aria-label={label}
       className={classes(styles.direction, className)}
       data-disabled={disabled || undefined}
+      data-slot="pagination-next"
       href={disabled ? undefined : href}
       onClick={disabled ? undefined : onClick}
     >
@@ -72,7 +89,13 @@ export function PaginationNext({ children, className, disabled = false, href, la
 
 export function PaginationEllipsis({ className, label, ...props }: ComponentPropsWithRef<"span"> & { label: string }) {
   return (
-    <span aria-label={label} className={classes(styles.ellipsis, className)} role="img" {...props}>
+    <span
+      aria-label={label}
+      className={classes(styles.ellipsis, className)}
+      data-slot="pagination-ellipsis"
+      role="img"
+      {...props}
+    >
       <DotsThree aria-hidden size={18} weight="bold" />
     </span>
   )

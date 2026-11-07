@@ -26,7 +26,14 @@ describe("Tabs", () => {
     render(<ExampleTabs />)
 
     const overview = screen.getByRole("tab", { name: "개요" })
+    expect(overview.closest("[data-slot='tabs']")).toBeInTheDocument()
+    expect(screen.getByRole("tablist", { name: "문서 보기" })).toHaveAttribute(
+      "data-slot",
+      "tabs-list",
+    )
+    expect(overview).toHaveAttribute("data-slot", "tabs-trigger")
     expect(overview).toHaveAttribute("aria-selected", "true")
+    expect(screen.getByRole("tabpanel", { name: "개요" })).toHaveAttribute("data-slot", "tabs-content")
     expect(screen.getByRole("tabpanel", { name: "개요" })).toHaveTextContent("개요 내용")
     expect(screen.getByRole("tab", { name: "변경 이력" })).toHaveAttribute("data-disabled", "")
   })
