@@ -8,7 +8,10 @@ describe("Spinner C3C", () => {
   it("announces the pending task with a required status name", () => {
     render(<Spinner label="문서를 저장하는 중" />)
 
-    expect(screen.getByRole("status", { name: "문서를 저장하는 중" })).toBeInTheDocument()
+    expect(screen.getByRole("status", { name: "문서를 저장하는 중" })).toHaveAttribute(
+      "data-slot",
+      "spinner",
+    )
   })
 
   it("renders one hidden square track without rotating the geometry", () => {

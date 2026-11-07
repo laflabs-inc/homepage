@@ -44,7 +44,13 @@ describe("Toast C3C", () => {
 
     await user.click(screen.getByRole("button", { name: "성공" }))
     await user.click(screen.getByRole("button", { name: "오류" }))
-    expect(screen.getByText("저장 완료").closest("[data-tone]")).toHaveAttribute("role", "status")
+    const successToast = screen.getByText("저장 완료").closest("[data-tone]")
+    expect(successToast).toHaveAttribute("role", "status")
+    expect(successToast).toHaveAttribute("data-slot", "toast")
+    expect(successToast?.querySelector("[data-slot='toast-signal']")).toHaveAttribute("aria-hidden", "true")
+    expect(screen.getByText("저장 완료")).toHaveAttribute("data-slot", "toast-title")
+    expect(screen.getByText("저장 완료").parentElement).toHaveAttribute("data-slot", "toast-content")
+    expect(successToast?.querySelector("[data-slot='toast-close']")).toHaveAccessibleName("알림 닫기")
     expect(screen.getByText("업로드 실패").closest("[data-tone]")).toHaveAttribute("role", "alert")
 
     await user.click(screen.getByRole("button", { name: "성공 닫기" }))
@@ -83,7 +89,9 @@ describe("Toast C3C", () => {
     render(<TestProvider><ToastControls action={action} /></TestProvider>)
 
     await user.click(screen.getByRole("button", { name: "액션 표시" }))
-    await user.click(screen.getByRole("button", { name: "되돌리기" }))
+    const actionButton = screen.getByRole("button", { name: "되돌리기" })
+    expect(actionButton).toHaveAttribute("data-slot", "toast-action")
+    await user.click(actionButton)
     expect(action).toHaveBeenCalledOnce()
   })
 

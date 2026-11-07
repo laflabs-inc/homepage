@@ -88,6 +88,7 @@ export const ToastRoot = forwardRef<ComponentRef<typeof ToastPrimitive.Root>, To
       <ToastPrimitive.Root
         ref={ref}
         className={classes(styles.root, className)}
+        data-slot="toast"
         data-tone={tone}
         {...props}
       />
@@ -99,28 +100,56 @@ export const ToastTitle = forwardRef<
   ComponentRef<typeof ToastPrimitive.Title>,
   ComponentPropsWithoutRef<typeof ToastPrimitive.Title>
 >(function ToastTitle({ className, ...props }, ref) {
-  return <ToastPrimitive.Title ref={ref} className={classes(styles.title, className)} {...props} />
+  return (
+    <ToastPrimitive.Title
+      ref={ref}
+      className={classes(styles.title, className)}
+      data-slot="toast-title"
+      {...props}
+    />
+  )
 })
 
 export const ToastDescription = forwardRef<
   ComponentRef<typeof ToastPrimitive.Description>,
   ComponentPropsWithoutRef<typeof ToastPrimitive.Description>
 >(function ToastDescription({ className, ...props }, ref) {
-  return <ToastPrimitive.Description ref={ref} className={classes(styles.description, className)} {...props} />
+  return (
+    <ToastPrimitive.Description
+      ref={ref}
+      className={classes(styles.description, className)}
+      data-slot="toast-description"
+      {...props}
+    />
+  )
 })
 
 export const ToastAction = forwardRef<
   ComponentRef<typeof ToastPrimitive.Action>,
   ComponentPropsWithoutRef<typeof ToastPrimitive.Action>
 >(function ToastAction({ className, ...props }, ref) {
-  return <ToastPrimitive.Action ref={ref} className={classes(styles.action, className)} {...props} />
+  return (
+    <ToastPrimitive.Action
+      ref={ref}
+      className={classes(styles.action, className)}
+      data-slot="toast-action"
+      {...props}
+    />
+  )
 })
 
 export const ToastClose = forwardRef<
   ComponentRef<typeof ToastPrimitive.Close>,
   ComponentPropsWithoutRef<typeof ToastPrimitive.Close>
 >(function ToastClose({ className, ...props }, ref) {
-  return <ToastPrimitive.Close ref={ref} className={classes(styles.close, className)} {...props} />
+  return (
+    <ToastPrimitive.Close
+      ref={ref}
+      className={classes(styles.close, className)}
+      data-slot="toast-close"
+      {...props}
+    />
+  )
 })
 
 function nextStoreAfterDismiss(store: ToastStore, id?: string): { next: ToastStore; removed: ToastItem[] } {
@@ -232,8 +261,8 @@ export function ToastProvider({ children, closeLabel, viewportLabel }: ToastProv
             tone={item.tone}
             type={item.tone === "error" ? "foreground" : "background"}
           >
-            <span aria-hidden className={styles.signal} />
-            <div className={styles.copy}>
+            <span aria-hidden className={styles.signal} data-slot="toast-signal" />
+            <div className={styles.copy} data-slot="toast-content">
               <ToastTitle>{item.title}</ToastTitle>
               {item.description ? <ToastDescription>{item.description}</ToastDescription> : null}
             </div>

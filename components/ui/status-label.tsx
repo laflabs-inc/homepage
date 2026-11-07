@@ -22,10 +22,11 @@ export const StatusLabel = forwardRef<HTMLSpanElement, StatusLabelProps>(functio
       {...props}
       ref={ref}
       className={[styles.label, className].filter(Boolean).join(" ")}
+      data-slot="status-label"
       data-tone={resolvedTone}
     >
       <span aria-hidden="true" className={styles.marker} data-status-marker />
-      {children}
+      <span className={styles.text} data-slot="status-label-text">{children}</span>
     </span>
   )
 })

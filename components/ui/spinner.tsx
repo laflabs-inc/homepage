@@ -18,6 +18,7 @@ export const Spinner = forwardRef<HTMLSpanElement, SpinnerProps>(function Spinne
       aria-label={label}
       className={[styles.spinner, className].filter(Boolean).join(" ")}
       data-size={size}
+      data-slot="spinner"
       role="status"
     >
       <span aria-hidden="true" data-spinner-track="" />

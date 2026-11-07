@@ -94,7 +94,11 @@ describe("DocumentCategoryManager", () => {
     expect(screen.getByRole("button", { name: "일반 비활성화" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "개인정보 처리방침 활성화" })).toBeInTheDocument()
     expect(screen.getByText("general")).toBeInTheDocument()
-    expect(screen.getAllByText("사용 중")[0].querySelector("[data-status-marker]"))
+    expect(
+      screen.getAllByText("사용 중")[0]
+        .closest("[data-slot='status-label']")
+        ?.querySelector("[data-status-marker]"),
+    )
       .toBeInTheDocument()
   })
 

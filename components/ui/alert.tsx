@@ -59,10 +59,16 @@ export const Alert = forwardRef<HTMLElement, AlertProps>(function Alert(
         ref={ref}
         aria-labelledby={titleId}
         className={classes(styles.alert, className)}
+        data-slot="alert"
         data-variant={variant}
         role={live ? "alert" : undefined}
       >
-        <span aria-hidden="true" className={styles.alertSignal} data-alert-signal />
+        <span
+          aria-hidden="true"
+          className={styles.alertSignal}
+          data-alert-signal
+          data-slot="alert-signal"
+        />
         {title !== undefined ? (
           <>
             <AlertIcon><DefaultIcon size={20} weight="bold" /></AlertIcon>
@@ -84,13 +90,28 @@ export const Alert = forwardRef<HTMLElement, AlertProps>(function Alert(
 
 export const AlertIcon = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function AlertIcon({ className, ...props }, ref) {
-    return <div {...props} ref={ref} aria-hidden="true" className={classes(styles.alertIcon, className)} />
+    return (
+      <div
+        {...props}
+        ref={ref}
+        aria-hidden="true"
+        className={classes(styles.alertIcon, className)}
+        data-slot="alert-icon"
+      />
+    )
   },
 )
 
 export const AlertContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function AlertContent({ className, ...props }, ref) {
-    return <div {...props} ref={ref} className={classes(styles.alertContent, className)} />
+    return (
+      <div
+        {...props}
+        ref={ref}
+        className={classes(styles.alertContent, className)}
+        data-slot="alert-content"
+      />
+    )
   },
 )
 
@@ -102,6 +123,7 @@ export const AlertTitle = forwardRef<HTMLHeadingElement, ComponentPropsWithoutRe
         {...props}
         ref={ref}
         className={classes(styles.alertTitle, className)}
+        data-slot="alert-title"
         id={id ?? context?.titleId}
       />
     )
@@ -110,12 +132,26 @@ export const AlertTitle = forwardRef<HTMLHeadingElement, ComponentPropsWithoutRe
 
 export const AlertDescription = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function AlertDescription({ className, ...props }, ref) {
-    return <div {...props} ref={ref} className={classes(styles.alertDescription, className)} />
+    return (
+      <div
+        {...props}
+        ref={ref}
+        className={classes(styles.alertDescription, className)}
+        data-slot="alert-description"
+      />
+    )
   },
 )
 
 export const AlertAction = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   function AlertAction({ className, ...props }, ref) {
-    return <div {...props} ref={ref} className={classes(styles.alertAction, className)} />
+    return (
+      <div
+        {...props}
+        ref={ref}
+        className={classes(styles.alertAction, className)}
+        data-slot="alert-action"
+      />
+    )
   },
 )

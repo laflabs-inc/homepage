@@ -26,8 +26,20 @@ describe("Alert C3C", () => {
 
     const alert = screen.getByTestId("alert")
     const title = screen.getByRole("heading", { name: "배포 준비 완료" })
+    expect(alert).toHaveAttribute("data-slot", "alert")
     expect(alert).toHaveAttribute("aria-labelledby", title.id)
-    expect(alert.querySelector("[data-alert-signal]")).toHaveAttribute("aria-hidden", "true")
+    expect(alert.querySelector("[data-alert-signal]")).toHaveAttribute("data-slot", "alert-signal")
+    expect(alert.querySelector("[data-slot='alert-icon']")).toHaveAttribute("aria-hidden", "true")
+    expect(alert.querySelector("[data-slot='alert-content']")).toContainElement(title)
+    expect(title).toHaveAttribute("data-slot", "alert-title")
+    expect(screen.getByText("변경 사항을 검토한 뒤 발행할 수 있습니다.")).toHaveAttribute(
+      "data-slot",
+      "alert-description",
+    )
+    expect(screen.getByRole("button", { name: "검토하기" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "alert-action",
+    )
     expect(screen.getByRole("button", { name: "검토하기" })).toBeInTheDocument()
     expect(screen.getAllByRole("heading", { name: "배포 준비 완료" })).toHaveLength(1)
   })

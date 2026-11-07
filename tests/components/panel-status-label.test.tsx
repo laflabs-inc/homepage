@@ -57,9 +57,12 @@ describe("StatusLabel", () => {
   it("pairs explicit text with one square semantic marker", () => {
     render(<StatusLabel variant="success">Published</StatusLabel>)
 
-    const label = screen.getByText("Published")
+    const label = screen.getByText("Published").closest("[data-slot='status-label']")
+    expect(label).not.toBeNull()
+    expect(label).toHaveAttribute("data-slot", "status-label")
     expect(label).toHaveAttribute("data-tone", "success")
     expect(label.querySelector("[data-status-marker]")).toHaveAttribute("aria-hidden", "true")
+    expect(label.querySelector("[data-slot='status-label-text']")).toHaveTextContent("Published")
     expect(label).not.toHaveAttribute("role")
     expect(label).not.toHaveAttribute("aria-live")
   })
@@ -67,7 +70,8 @@ describe("StatusLabel", () => {
   it("accepts a composed Phosphor icon without relying on it for the name", () => {
     render(<StatusLabel><CheckCircle aria-hidden />Ready</StatusLabel>)
 
-    const label = screen.getByText("Ready")
+    const label = screen.getByText("Ready").closest("[data-slot='status-label']")
+    expect(label).not.toBeNull()
     expect(label).toHaveTextContent("Ready")
     expect(label.querySelector("svg")).toHaveAttribute("aria-hidden", "true")
   })
@@ -75,7 +79,8 @@ describe("StatusLabel", () => {
   it("lets tone override the legacy variant without creating a live region", () => {
     render(<StatusLabel tone="warning" variant="success">Needs review</StatusLabel>)
 
-    const label = screen.getByText("Needs review")
+    const label = screen.getByText("Needs review").closest("[data-slot='status-label']")
+    expect(label).not.toBeNull()
     expect(label).toHaveAttribute("data-tone", "warning")
     expect(label).not.toHaveAttribute("role")
     expect(label).not.toHaveAttribute("aria-live")
@@ -86,8 +91,9 @@ describe("StatusLabel", () => {
 
     render(<StatusLabel ref={ref} title="Current state">Draft</StatusLabel>)
 
-    expect(ref.current).toBe(screen.getByText("Draft"))
-    expect(screen.getByText("Draft")).toHaveAttribute("title", "Current state")
-    expect(screen.getByText("Draft")).toHaveAttribute("data-tone", "neutral")
+    const label = screen.getByText("Draft").closest("[data-slot='status-label']")
+    expect(ref.current).toBe(label)
+    expect(label).toHaveAttribute("title", "Current state")
+    expect(label).toHaveAttribute("data-tone", "neutral")
   })
 })

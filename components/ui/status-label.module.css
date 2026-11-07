@@ -4,19 +4,26 @@
   max-width: 100%;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   color: var(--ink);
-  font: 650 11px / 1.4 var(--font-geist-mono), "Pretendard", monospace;
+  font: 700 11px / 1.35 var(--font-geist-mono), "Pretendard", monospace;
+  letter-spacing: 0.015em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .marker {
-  width: 9px;
-  height: 9px;
-  flex: 0 0 9px;
+  width: 10px;
+  height: 15px;
+  flex: 0 0 10px;
   background: var(--status-color);
+}
+
+.text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .label[data-tone="info"] {
@@ -35,7 +42,7 @@
   --status-color: var(--error);
 }
 
-.label > svg {
+.text > svg {
   width: 13px;
   height: 13px;
   flex: none;
