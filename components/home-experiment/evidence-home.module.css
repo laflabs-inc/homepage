@@ -151,6 +151,7 @@
   font-size: clamp(24px, 2.2vw, 32px);
   line-height: 1.2;
   letter-spacing: -0.025em;
+  word-break: keep-all;
 }
 
 .companyProofCopy p {
