@@ -1,8 +1,7 @@
 "use client"
 
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
-import { motion, useReducedMotion } from "motion/react"
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
 
 import { useLocale } from "@/components/i18n/locale-provider"
 import { GithubGlyph } from "@/components/layout/site-header"
@@ -14,7 +13,6 @@ import {
   LafwallArtifact,
   MethodScene,
 } from "@/components/home-experiment/evidence-scenes"
-import { githubOrg } from "@/lib/content"
 import {
   homeExperimentCopy,
   homeExperimentWork,
@@ -24,7 +22,7 @@ import type { Locale } from "@/lib/i18n"
 
 import styles from "./evidence-home.module.css"
 
-const EASE = [0.16, 1, 0.3, 1] as const
+const subscribeToHydration = () => () => undefined
 
 function EmphasisLine({ line, highlight }: { line: string; highlight?: string }) {
   const start = highlight ? line.indexOf(highlight) : -1
@@ -63,15 +61,9 @@ function WorkArtifact({ item, locale }: { item: HomeExperimentWorkItem; locale: 
 
 export function EvidenceHome() {
   const locale = useLocale()
-  const reducedMotion = useReducedMotion()
+  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false)
   const t = homeExperimentCopy[locale]
   const [activeWork, setActiveWork] = useState(0)
-
-  const heroMotion = (delay: number) => ({
-    initial: reducedMotion ? false : { opacity: 0.35, y: 18, filter: "blur(5px)" },
-    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-    transition: { duration: reducedMotion ? 0 : 0.68, delay: reducedMotion ? 0 : delay, ease: EASE },
-  })
 
   const moveWork = (direction: -1 | 1) => {
     setActiveWork((current) => (
@@ -82,7 +74,7 @@ export function EvidenceHome() {
   return (
     <main className={styles.root} data-home-experiment="true" id="top">
       <section className={styles.hero} data-home-section="hero" aria-labelledby="home-hero-title">
-        <motion.div className={styles.heroCopy} {...heroMotion(0)}>
+        <div className={styles.heroCopy}>
           <div className={styles.heroMeta}>
             <span>{t.hero.companyType}</span>
             <span>{t.hero.location}</span>
@@ -91,11 +83,11 @@ export function EvidenceHome() {
             <EditorialTitle lines={t.hero.titleLines} highlight={t.hero.highlight} />
           </h1>
           <p>{t.hero.lede}</p>
-        </motion.div>
+        </div>
 
-        <motion.div className={styles.heroEvidence} {...heroMotion(0.16)}>
+        <div className={styles.heroEvidence}>
           <BuildScene label={t.hero.artifactLabel} />
-        </motion.div>
+        </div>
 
         <a className={styles.scrollCue} href="#company">
           <ArrowDown aria-hidden size={16} />
@@ -165,12 +157,12 @@ export function EvidenceHome() {
             <p>{t.work.lede}</p>
           </div>
 
-          <div className={styles.workStage} aria-live="polite">
+          <div className={styles.workStage} aria-live={isHydrated ? "polite" : undefined}>
             {homeExperimentWork.map((item, index) => (
               <article
                 className={styles.workItem}
                 data-work-item={item.id}
-                hidden={index !== activeWork}
+                hidden={isHydrated && index !== activeWork}
                 key={item.id}
               >
                 <div className={styles.workVisual}>
@@ -204,7 +196,7 @@ export function EvidenceHome() {
             ))}
           </div>
 
-          <div className={styles.workControls}>
+          <div className={styles.workControls} data-work-controls hidden={!isHydrated}>
             <button type="button" aria-label={t.work.previous} onClick={() => moveWork(-1)}>
               <ArrowLeft aria-hidden size={18} />
             </button>
@@ -228,11 +220,11 @@ export function EvidenceHome() {
           <p>{t.open.lede}</p>
           <span className={styles.sourceLabel}>{t.open.sourceLabel}</span>
           <a
-            href={githubOrg}
+            href={homeExperimentWork[1].href}
             target="_blank"
             rel="noreferrer noopener"
             data-analytics-event="github_click"
-            data-analytics-target="laflabs-inc"
+            data-analytics-target={homeExperimentWork[1].id}
           >
             <GithubGlyph />
             {t.open.repository}

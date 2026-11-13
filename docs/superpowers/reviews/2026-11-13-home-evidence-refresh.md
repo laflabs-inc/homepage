@@ -38,6 +38,12 @@ Reviewed in one batch:
 
 The initial pass found one Korean word split in the company proof title. `word-break: keep-all` corrected it. The confirmation pass measured zero document-width overflow at all three viewports, and the corrected title remained two lines on both Korean captures.
 
+## Branch review follow-up
+
+The final changed-file review found that the first server response blurred the hero and hid two work items before JavaScript enhancement. The route now serves a complete, readable hero and all three evidence items in the initial HTML, then enables the carousel controls after hydration. The same pass corrected the open-source destination to the exact `lafetch` repository and removed four references to CSS-module classes that were never defined.
+
+Regression coverage now checks the unenhanced server markup and the exact public repository destination.
+
 ## Remaining asset limits
 
 - Laf ID is represented by its published OAuth 2.0 and OpenID Connect standards flow, not an unverified product screenshot.

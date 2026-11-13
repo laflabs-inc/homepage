@@ -35,7 +35,7 @@ export function BuildScene({
   return (
     <figure
       aria-label={label}
-      className={`${sceneClass(compact)} ${styles.buildScene}`}
+      className={sceneClass(compact)}
       data-compact={String(compact)}
       data-evidence-scene="build"
       data-motion-state={sceneState(reducedMotion)}
@@ -131,7 +131,7 @@ export function IdentityArtifact({ artifact, compact = false, locale }: Artifact
   return (
     <figure
       aria-label={artifact.label[locale]}
-      className={`${sceneClass(compact)} ${styles.identityScene}`}
+      className={sceneClass(compact)}
       data-compact={String(compact)}
       data-evidence-scene="identity"
       data-motion-state={sceneState(reducedMotion)}
@@ -169,7 +169,7 @@ export function LafetchArtifact({ artifact, compact = false, locale }: ArtifactS
   return (
     <figure
       aria-label={artifact.label[locale]}
-      className={`${sceneClass(compact)} ${styles.codeScene}`}
+      className={sceneClass(compact)}
       data-compact={String(compact)}
       data-evidence-scene="lafetch"
       data-motion-state={sceneState(reducedMotion)}
@@ -203,7 +203,7 @@ export function LafwallArtifact({ artifact, compact = false, locale }: ArtifactS
   return (
     <figure
       aria-label={artifact.label[locale]}
-      className={`${sceneClass(compact)} ${styles.wallScene}`}
+      className={sceneClass(compact)}
       data-compact={String(compact)}
       data-evidence-scene="lafwall"
       data-motion-state={sceneState(reducedMotion)}

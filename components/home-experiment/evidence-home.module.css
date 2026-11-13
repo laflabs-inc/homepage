@@ -414,6 +414,10 @@
   align-items: center;
 }
 
+.workControls[hidden] {
+  display: none;
+}
+
 .workControls button {
   width: 48px;
   height: 48px;

@@ -1,4 +1,5 @@
 import { Children, isValidElement } from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -22,6 +23,7 @@ vi.mock("@/components/home-experiment/evidence-scenes.module.css", () => ({
 import HomeExperimentPage from "@/app/home/page"
 import HomePage from "@/app/page"
 import { ConsentProvider } from "@/components/analytics/consent-provider"
+import { EvidenceHome } from "@/components/home-experiment/evidence-home"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
 import { Landing } from "@/components/landing"
 import { homeExperimentCopy, homeExperimentWork } from "@/lib/home-experiment"
@@ -102,6 +104,29 @@ describe("evidence-led home experiment", () => {
     )
     expect(lafIdCard.querySelector("a")).not.toBeInTheDocument()
     expect(lafwallCard.querySelector("a")).not.toBeInTheDocument()
+  })
+
+  it("serves complete evidence before client-side enhancement", () => {
+    const markup = renderToStaticMarkup(
+      <LocaleProvider initialLocale="ko">
+        <EvidenceHome />
+      </LocaleProvider>,
+    )
+    const document = new DOMParser().parseFromString(markup, "text/html")
+    const workItems = [...document.querySelectorAll("[data-work-item]")]
+
+    expect(document.querySelector('[data-home-section="hero"] [style*="blur"]')).toBeNull()
+    expect(workItems).toHaveLength(homeExperimentWork.length)
+    expect(workItems.every((item) => !item.hasAttribute("hidden"))).toBe(true)
+    expect(document.querySelector("[data-work-controls]")?.hasAttribute("hidden")).toBe(true)
+  })
+
+  it("links the open-source evidence to the exact public repository", () => {
+    const { container } = renderPage()
+    const link = container.querySelector('[data-home-section="open-source"] a')
+
+    expect(link).toHaveAttribute("href", "https://github.com/laflabs-inc/lafetch")
+    expect(link).toHaveAttribute("data-analytics-target", "lafetch")
   })
 
   it("leaves the published root homepage on the current Landing composition", () => {
