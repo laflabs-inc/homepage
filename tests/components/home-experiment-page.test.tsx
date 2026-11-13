@@ -1,3 +1,4 @@
+import { Children, isValidElement } from "react"
 import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -11,10 +12,18 @@ vi.mock("@/components/analytics/consent-panel.module.css", () => ({
 vi.mock("@/components/search/site-search-overlay.module.css", () => ({
   default: new Proxy({}, { get: (_target, property) => String(property) }),
 }))
+vi.mock("@/components/home-experiment/evidence-home.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
+vi.mock("@/components/home-experiment/evidence-scenes.module.css", () => ({
+  default: new Proxy({}, { get: (_target, property) => String(property) }),
+}))
 
 import HomeExperimentPage from "@/app/home/page"
+import HomePage from "@/app/page"
 import { ConsentProvider } from "@/components/analytics/consent-provider"
 import { LocaleProvider } from "@/components/i18n/locale-provider"
+import { Landing } from "@/components/landing"
 import { homeExperimentCopy, homeExperimentWork } from "@/lib/home-experiment"
 
 beforeEach(() => {
@@ -70,5 +79,35 @@ describe("evidence-led home experiment", () => {
       { id: "lafwall", href: undefined },
     ])
     expect(homeExperimentWork.every((item) => !item.artifact.source.startsWith("/work/"))).toBe(true)
+  })
+
+  it("composes six evidence-led areas without restoring generated work images", () => {
+    const { container } = renderPage()
+
+    expect([...container.querySelectorAll("[data-home-section]")].map((section) => (
+      section.getAttribute("data-home-section")
+    ))).toEqual(["hero", "company", "method", "work", "open-source", "signals"])
+    expect(container.querySelector('img[src^="/work/"]')).not.toBeInTheDocument()
+  })
+
+  it("links only the verified public work and keeps unavailable work inert", () => {
+    const { container } = renderPage()
+    const lafetchCard = container.querySelector('[data-work-item="lafetch"]')!
+    const lafIdCard = container.querySelector('[data-work-item="laf-id"]')!
+    const lafwallCard = container.querySelector('[data-work-item="lafwall"]')!
+
+    expect(lafetchCard.querySelector("a")).toHaveAttribute(
+      "href",
+      "https://github.com/laflabs-inc/lafetch",
+    )
+    expect(lafIdCard.querySelector("a")).not.toBeInTheDocument()
+    expect(lafwallCard.querySelector("a")).not.toBeInTheDocument()
+  })
+
+  it("leaves the published root homepage on the current Landing composition", () => {
+    const root = HomePage()
+    const rootChildren = Children.toArray(root.props.children)
+
+    expect(rootChildren.some((child) => isValidElement(child) && child.type === Landing)).toBe(true)
   })
 })
